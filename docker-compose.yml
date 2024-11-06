@@ -1,0 +1,11 @@
+services:
+  backend:
+    image: backend
+    build:
+      context: ./backend
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./backend/src:/app/src
+    ports:
+      - 5002:5000
+    command: ["gunicorn", "--bind", "0.0.0.0:5000", "startup:app", "--reload"]
