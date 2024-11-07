@@ -22,6 +22,11 @@
         },
         "files": ["${workspaceFolder}/docker-compose.debug.yml"]
       }
+    },
+    {
+      "label": "Open Swagger",
+      "type": "shell",
+      "command": "npx open-cli http://localhost:4200/apidocs"
     }
   ]
 }
