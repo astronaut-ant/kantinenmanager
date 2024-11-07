@@ -2,7 +2,7 @@
   "recommendations": [
     "ms-azuretools.vscode-docker",
     "editorconfig.editorconfig",
-    "actboy168.tasks",
+    "spmeesseman.vscode-taskexplorer",
     "ms-python.python",
     "ms-python.debugpy",
     "ms-python.black-formatter"
