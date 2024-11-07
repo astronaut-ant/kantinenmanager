@@ -7,5 +7,5 @@ services:
     volumes:
       - ./backend/src:/app/src
     ports:
-      - 5002:5000
-    command: ["gunicorn", "--bind", "0.0.0.0:5000", "startup:app", "--reload"]
+      - 4200:4200
+    command: ["gunicorn", "--bind", "0.0.0.0:4200", "startup:app", "--reload"]
