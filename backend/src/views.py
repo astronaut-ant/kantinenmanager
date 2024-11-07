@@ -1,5 +1,6 @@
 from . import app
 
-@app.route('/health')
+
+@app.route("/health")
 def health():
-    return 'OK'
+    return "OK"

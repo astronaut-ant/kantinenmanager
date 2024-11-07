@@ -4,6 +4,7 @@
     "editorconfig.editorconfig",
     "actboy168.tasks",
     "ms-python.python",
-    "ms-python.debugpy"
+    "ms-python.debugpy",
+    "ms-python.black-formatter"
   ]
 }
