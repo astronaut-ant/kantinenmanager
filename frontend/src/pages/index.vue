@@ -20,7 +20,7 @@
 const showConfirm = ref(false);
 const backEndAnswer = ref("");
 const testBackend = async () => {
-  const url = "https://dummyjson.com/products";
+  const url = "localhost:5000/health";
   try {
     const response = await fetch(url);
     if (!response.ok) {
