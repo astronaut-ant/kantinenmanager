@@ -21,6 +21,11 @@
           "build": true
         },
         "files": ["${workspaceFolder}/docker-compose.debug.yml"]
+      },
+      "options": {
+        "statusbar": {
+          "hide": true
+        }
       }
     },
     {
