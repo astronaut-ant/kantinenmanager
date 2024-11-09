@@ -1,0 +1,17 @@
+services:
+  backend:
+    image: backend
+    build:
+      context: ./backend
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./backend/src:/app/src
+    ports:
+      - 4200:4200
+    command: ["gunicorn", "--bind", "0.0.0.0:4200", "startup:app", "--reload"]
+
+  frontend:
+    build: ./frontend
+    container_name: frontend_c
+    ports:
+      - 3000:8080
