@@ -16,4 +16,5 @@ def health():
       200:
         description: OK
     """
-    return "OK"
+    response_dict = {"health_status": "OK"}
+    return response_dict
