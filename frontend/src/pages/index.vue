@@ -6,12 +6,7 @@
   </div>
   <div v-if="showConfirm" class="mt-5 d-flex justify-center align-center ga-5">
     <h3>{{ backEndAnswer.health_status }}</h3>
-    <v-icon
-      color="success"
-      icon="mdi-check-circle-outline"
-      size="32"
-    >
-    </v-icon>
+    <v-icon color="success" icon="mdi-check-circle-outline" size="32"> </v-icon>
   </div>
 </template>
 
@@ -19,7 +14,7 @@
 const showConfirm = ref(false);
 const backEndAnswer = ref({});
 const testBackend = async () => {
-  const url = "http://localhost:5002/health";
+  const url = "http://localhost:4200/api/health";
   try {
     const response = await fetch(url);
     if (!response.ok) {

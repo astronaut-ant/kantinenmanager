@@ -24,9 +24,24 @@
       }
     },
     {
+      "label": "Open Frontend",
+      "type": "shell",
+      "command": "npx open-cli http://localhost:3000/",
+      "options": {
+        "statusbar": {
+          "hide": true
+        }
+      }
+    },
+    {
       "label": "Open Swagger",
       "type": "shell",
-      "command": "npx open-cli http://localhost:4200/apidocs"
+      "command": "npx open-cli http://localhost:4200/apidocs",
+      "options": {
+        "statusbar": {
+          "hide": true
+        }
+      }
     }
   ]
 }

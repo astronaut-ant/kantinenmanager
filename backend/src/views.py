@@ -1,20 +1,30 @@
 from . import app
-from flask import redirect
+from flask import redirect, jsonify
 
 
 @app.route("/")
 def index():
-    return redirect("/health", code=302)
+    return redirect("/api/health", code=302)
 
 
-@app.route("/health")
+@app.route("/api/health")
 def health():
-    """Example endpoint returning OK if the service is healthy.
-    This is an example of a health check endpoint.
+    """Endpoint to check the health of the API.
+    Checks if the API is up and running.
     ---
+    definitions:
+      Health:
+        type: object
+        properties:
+          health_status:
+            type: string
     responses:
       200:
-        description: OK
+        description: Health status of the API
+        schema:
+          $ref: '#/definitions/Health'
+        examples:
+          health_status: OK
     """
     response_dict = {"health_status": "OK"}
-    return response_dict
+    return jsonify(response_dict)
