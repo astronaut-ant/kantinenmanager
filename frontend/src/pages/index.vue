@@ -17,7 +17,7 @@
 
 <script setup>
 const showConfirm = ref(false);
-const backEndAnswer = ref("");
+const backEndAnswer = ref({});
 const testBackend = async () => {
   const url = "http://localhost:5002/health";
   try {
