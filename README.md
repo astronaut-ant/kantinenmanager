@@ -12,13 +12,20 @@ If you open this project in VS Code you should get a list of recommended extensi
 
 ## Getting started
 
-If you have opened this project in VS Code and installed all recommended extensions, you can use the buttons in the bottom status bar to manage the project:
+If you have opened this project in VS Code and installed all recommended extensions, you can start the project by following these steps:
+
+1. Go to the Explorer tab in VS Code.
+2. Open the Task Explorer submenu at the bottom.
+3. Navigate to `group-16 > vscode`.
+
+Here are the available tasks:
 
 - **Start Dev**: Start the application in development mode.
 - **Start Debug**: Start the application in debug mode.
+- **Open Frontend**: Open the frontend in your browser.
 - **Open Swagger**: Open the backend API documentation in your browser.
 
-Alternatively, you can use the "Tasks: Run Task" command in VS Code to run these tasks.
+Alternatively, you can use the "Tasks: Run Task" command in VS Code to run these tasks. The "Start Dev" task should also appear in the status bar at the bottom of the screen.
 
 You can also manually run Docker commands from the root of the project:
 
@@ -33,7 +40,7 @@ docker compose -f docker-compose.debug.yml up --build # Start the application in
 
 **Hint:** Debug mode uses a Python Debugger, allowing you to use the "Run and Debug" tab of VS Code. Select "Backend Python Debugger" and click the small green play button in the top left. This will disable hot-reloading.
 
-**Hint:** The default backend port is `4200`.
+**Hint:** The default backend port is `4200` and the frontend uses `3000`.
 
 ## Test and Deploy
 
