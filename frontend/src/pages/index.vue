@@ -4,13 +4,12 @@
     <v-btn class="text-dark" to="../testroute">testRoute#</v-btn>
     <v-btn @click="testBackend" class="bg-pink">Backend check</v-btn>
   </div>
-  <div v-if="showConfirm" class="d-flex justify-center">
-    <h3>{{ backEndAnswer }}</h3>
+  <div v-if="showConfirm" class="mt-5 d-flex justify-center align-center ga-5">
+    <h3>{{ backEndAnswer.health_status }}</h3>
     <v-icon
-      class="mt-6"
       color="success"
       icon="mdi-check-circle-outline"
-      size="128"
+      size="32"
     >
     </v-icon>
   </div>
@@ -20,7 +19,7 @@
 const showConfirm = ref(false);
 const backEndAnswer = ref("");
 const testBackend = async () => {
-  const url = "localhost:5000/health";
+  const url = "http://localhost:5002/health";
   try {
     const response = await fetch(url);
     if (!response.ok) {
