@@ -1,5 +1,5 @@
 <template>
-  <h1 class="text-center mt-5 text-pink">Frontend ... under construction</h1>
+  <h1 class="text-center mt-5 text-pink">Frontend ... under construction!</h1>
   <div class="d-flex justify-center mt-5 ga-5">
     <v-btn class="text-dark" to="../testroute">testRoute#</v-btn>
     <v-btn @click="testBackend" class="bg-pink">Backend check</v-btn>
