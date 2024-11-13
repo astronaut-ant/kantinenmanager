@@ -12,5 +12,7 @@ db = SQLAlchemy(model_class=Base)
 def init_db(app):
     db.init_app(app)
 
+    import src.models.user
+
     with app.app_context():
         db.create_all()
