@@ -12,6 +12,35 @@ If you open this project in VS Code you should get a list of recommended extensi
 
 ## Getting started
 
+### Using Dev Containers
+
+Dev Containers allow you to connect VS Code directly to a Docker container, enabling you to develop inside the container using autocompletion as well as npm and python commands just like on your local machine.
+
+**First Start:**
+
+1. Install the VS Code `Dev Containers` extension by Microsoft, if not already installed.
+2. Open the root of this project in VS Code.
+3. Open the VS Code command palette: Mac ⇧⌘P, Windows Ctrl+Shift+P.
+4. Run `Dev Containers: Rebuild and Reopen in Container`.
+5. Choose one of the following options:
+   - `Frontend All` - Starts all containers and connects to the frontend container.
+   - `Backend All` - Starts all containers and connects to the backend container.
+6. Wait for the containers to build and start. The initial load may take some time as it builds all the images (monitor progress by clicking the loading bar in the bottom right).
+
+**Important:** Containers may continue running after closing VS Code. Stop them manually using Docker Desktop or the CLI.
+
+**Shutting Down:**
+
+1. Close VS Code or click the blue button in the bottom left, then select `Close Remote Connection`.
+2. Stop the containers using Docker Desktop or the CLI as described in a later section.
+
+**Troubleshooting:**
+
+- If issues arise, try running `Dev Containers: Rebuild Container`.
+- If the Flask or Node app isn't running in the terminal, disconnect and restart the container (the npm/flask command runs only when the container starts but continues after disconnection).
+
+### Using Docker Compose in VS Code UI
+
 If you have opened this project in VS Code and installed all recommended extensions, you can start the project by following these steps:
 
 1. Go to the Explorer tab in VS Code.
@@ -26,6 +55,8 @@ Here are the available tasks:
 - **Open Swagger**: Open the backend API documentation in your browser.
 
 Alternatively, you can use the "Tasks: Run Task" command in VS Code to run these tasks. The "Start Dev" task should also appear in the status bar at the bottom of the screen.
+
+### Manually run Docker Compose commands
 
 You can also manually run Docker commands from the root of the project:
 
