@@ -13,8 +13,8 @@ ENV PYTHONUNBUFFERED=1
 COPY requirements.txt .
 RUN python -m pip install -r requirements.txt
 
-WORKDIR /app
-COPY . /app
+WORKDIR /app/backend
+COPY . /app/backend
 RUN pip install -U flask-cors
 
 # Creates a non-root user with an explicit UID and adds permission to access the /app folder
