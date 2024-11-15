@@ -18,7 +18,7 @@
 const showConfirm = ref(false);
 const backEndAnswer = ref({});
 const testBackend = async () => {
-  const url = "http://localhost:4200/api/health";
+  const url = "http://localhost:4200/api/login";
   try {
     const response = await fetch(url);
     if (!response.ok) {

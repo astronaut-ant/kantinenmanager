@@ -1,8 +1,6 @@
 // Utilities
-import { defineStore } from 'pinia'
+import { defineStore } from "pinia";
 
-export const useAppStore = defineStore('appStore', {
-  state: () => ({
-    auth: false
-  }),
-})
+export const useAppStore = defineStore("appStore", {
+  state: () => ({}),
+});
