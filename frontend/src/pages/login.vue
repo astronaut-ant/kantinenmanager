@@ -1,0 +1,47 @@
+<template>
+  <v-dialog v-model="dialog" :persistent="true" :no-click-animation="true" max-width="600">
+    <v-card class="mx-auto px-6 py-4" min-width="344">
+      <v-card-text class="text-center text-h5">
+        SIGN IN
+        <v-icon>mdi-login</v-icon>
+      </v-card-text>
+      <v-form v-model="form" @submit.prevent="handleSubmit">
+        <v-text-field v-model="userName" :readonly="loading" :rules="[required]" class="mb-2" label="Benutzername" clearable></v-text-field>
+        <v-text-field v-model="password" type="password" :readonly="loading" :rules="[required]" label="Passwort" clearable></v-text-field>
+        <v-btn class="mt-5" :disabled="!form" :loading="loading" color="success" size="large" type="submit" variant="elevated" block>
+          Sign In
+        </v-btn>
+      </v-form>
+    </v-card>
+  </v-dialog>
+</template>
+
+<script setup>
+import axios from "axios"
+import router from '../router'
+import { useAppStore } from "../stores/app.js"
+
+const form = ref(false)
+const userName = ref(null)
+const password = ref(null)
+const loading = ref(false)
+const dialog = ref(true)
+
+const handleSubmit = () => {
+  const appStore = useAppStore()
+  if (!form) return
+  axios.post('https://jsonplaceholder.typicode.com/posts', {
+    userName: userName.value,
+    password: password.value
+  })
+    .then((response) => console.log(response.data))
+    .catch((err) => console.log(err))
+  loading.value = true
+  setTimeout(() => (loading.value = false), 2000)
+  appStore.auth = true
+  router.push({ path: '/verwaltung' })
+}
+const required = (v) => {
+  return !!v || 'Eingabe erforderlich'
+}
+</script>

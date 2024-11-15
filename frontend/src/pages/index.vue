@@ -1,7 +1,11 @@
 <template>
-  <h1 class="text-center mt-5 text-pink">Frontend ... under construction!</h1>
+  <h1 class="text-center mt-5 text-pink">Frontend ... under construction!!!</h1>
   <div class="d-flex justify-center mt-5 ga-5">
-    <v-btn class="text-dark" to="../testroute">testRoute#</v-btn>
+    <v-btn class="text-dark" to="../verwaltung">Verwaltung</v-btn>
+    <v-btn class="text-dark" to="../standortleitung">Standortleitung</v-btn>
+    <v-btn class="text-dark" to="../gruppenleitung">Gruppenleitung</v-btn>
+    <v-btn class="text-dark" to="../kuechenpersonal">Küchenpersonal</v-btn>
+    <v-btn class="text-dark" to="../login">login</v-btn>
     <v-btn @click="testBackend" class="bg-pink">Backend check</v-btn>
   </div>
   <div v-if="showConfirm" class="mt-5 d-flex justify-center align-center ga-5">

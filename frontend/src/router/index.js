@@ -1,17 +1,58 @@
-/**
- * router/index.ts
- *
- * Automatic routes for `./src/pages/*.vue`
- */
+import { createRouter, createWebHistory } from 'vue-router'
+import gruppenleitung from "../pages/gruppenleitung.vue"
+import index from "../pages/index.vue"
+import kuechenpersonal from "../pages/kuechenpersonal.vue"
+import verwaltung from "../pages/verwaltung.vue"
+import standortleitung from '../pages/standortleitung.vue'
+import login from "../pages/login.vue"
+import { useAppStore } from "../stores/app.js"
 
-// Composables
-import { createRouter, createWebHistory } from 'vue-router/auto'
-import { setupLayouts } from 'virtual:generated-layouts'
-import { routes } from 'vue-router/auto-routes'
+
+
+const routes = [
+  { path: '/', component: index},
+  { path: '/gruppenleitung', component: gruppenleitung, beforeEnter: (to, from, next) => {
+    const appStore = useAppStore()
+    if(!appStore.auth){
+      next("/login")
+    }
+    else next()
+    }
+  },
+  { path: '/standortleitung', component: standortleitung, beforeEnter: (to, from, next) => {
+    const appStore = useAppStore()
+    if(!appStore.auth){
+      next("/login")
+    }
+    else next()
+    }
+  },
+  { path: '/verwaltung', component: verwaltung, beforeEnter: (to, from, next) => {
+    const appStore = useAppStore()
+    if(!appStore.auth){
+      next("/login")
+    }
+    else next()
+    }
+  },
+  { path: '/kuechenpersonal', component: kuechenpersonal, beforeEnter: (to, from, next) => {
+    const appStore = useAppStore()
+    if(!appStore.auth){
+      next("/login")
+    }
+    else next()
+    }
+  },
+
+
+
+
+  { path: '/login', component: login },
+]
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes: setupLayouts(routes),
+  routes,
 })
 
 // Workaround for https://github.com/vitejs/vite/issues/11804
