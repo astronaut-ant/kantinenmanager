@@ -1,3 +1,4 @@
+from sqlalchemy import select
 from src.models.user import User
 from src.database import db
 
@@ -28,3 +29,7 @@ class UsersRepository:
         # SQLAlchemy synchronisiert obiges `user` Objekt mit der DB. Wir haben jetzt also
         # Zugriff auf die zugewiesene ID.
         return user.id
+
+    @staticmethod
+    def get_user_by_username(username):
+        return select(User).where(User.username == username)
