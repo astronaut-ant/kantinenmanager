@@ -5,16 +5,44 @@ services:
       context: ./backend
       dockerfile: ./Dockerfile
     volumes:
-      - ./backend/src:/app/src
+      - ./backend:/app/backend
+    depends_on:
+      - db
     ports:
       - 4200:4200
-    command: ["gunicorn", "--bind", "0.0.0.0:4200", "startup:app", "--reload"]
+    command:
+      [
+        "flask",
+        "--app",
+        "startup:app",
+        "run",
+        "--host=0.0.0.0",
+        "--port=4200",
+        "--debug",
+      ]
 
   frontend:
     build: ./frontend
     container_name: frontend_c
     ports:
-      - '3000:3000'
+      - 3000:3000
     volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      - ./frontend:/app/frontend
+      - /app/frontend/node_modules
+
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    shm_size: 128mb
+    environment:
+      POSTGRES_PASSWORD: miau
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+
+  adminer:
+    image: adminer
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - 8080:8080
