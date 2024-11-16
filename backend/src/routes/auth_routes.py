@@ -1,6 +1,6 @@
 """Routes for authentication and session management."""
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, make_response, request
 from marshmallow.validate import Length
 from flasgger import swag_from
 from marshmallow import Schema, fields, ValidationError
@@ -93,6 +93,14 @@ def login():
             )
         )
 
-    return jsonify(
-        {"id": user.id, "username": user.username, "user_group": user.user_group.value}
+    resp = make_response(
+        {"id": user.id, "username": user.username, "user_group": user.user_group.value},
+        200,
     )
+    resp.set_cookie(
+        "user_group",
+        user.user_group.value,
+        max_age=60 * 60 * 24 * 31,
+    )  # TODO: Set secure=True and samesite="Strict" in production
+
+    return resp
