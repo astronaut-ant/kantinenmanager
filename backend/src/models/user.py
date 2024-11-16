@@ -23,8 +23,8 @@ class UserGroup(enum.Enum):
 class User(db.Model):
     # Das sind die Attribue (Spalten) der Tabelle:
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    username: Mapped[str] = mapped_column(String(50))
-    password: Mapped[str] = mapped_column(String(150))
+    username: Mapped[str] = mapped_column(String(64))
+    password: Mapped[str] = mapped_column(String(256))
     user_group: Mapped[UserGroup] = mapped_column(sqlalchemy.Enum(UserGroup))
 
     def __repr__(self):

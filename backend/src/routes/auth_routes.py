@@ -1,6 +1,6 @@
 """Routes for authentication and session management."""
 
-from flask import Blueprint, jsonify, make_response, request
+from flask import Blueprint, make_response, request
 from marshmallow.validate import Length
 from flasgger import swag_from
 from marshmallow import Schema, fields, ValidationError
@@ -20,8 +20,8 @@ class LoginBodySchema(Schema):
     Schema to validate POST /api/login request body
     """
 
-    username = fields.Str(required=True, validate=Length(min=1, max=50))
-    password = fields.Str(required=True, validate=Length(min=1, max=150))
+    username = fields.Str(required=True, validate=Length(min=1, max=64))
+    password = fields.Str(required=True, validate=Length(min=1, max=256))
 
 
 @auth_routes.post("/api/login")
@@ -35,11 +35,11 @@ class LoginBodySchema(Schema):
                 "schema": {
                     "type": "object",
                     "properties": {
-                        "username": {"type": "string", "minLength": 1, "maxLength": 50},
+                        "username": {"type": "string", "minLength": 1, "maxLength": 64},
                         "password": {
                             "type": "string",
                             "minLength": 1,
-                            "maxLength": 150,
+                            "maxLength": 256,
                         },
                     },
                 },
@@ -73,7 +73,9 @@ def login():
         )
 
     try:
-        user = AuthService.login(body["username"], body["password"])
+
+        user = AuthService.login(body.get("username"), body.get("password"))
+
     except UserNotFoundException:
         # Both Exceptions return the same error message as it would be a security risk to
         # differentiate between invalid username and invalid password

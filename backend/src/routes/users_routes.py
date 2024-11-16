@@ -81,8 +81,8 @@ class UsersPostBody(Schema):
     Schema for the POST /users endpoint
     """
 
-    username = fields.Str(required=True, validate=Length(min=1, max=50))
-    password = fields.Str(required=True, validate=Length(min=8, max=150))
+    username = fields.Str(required=True, validate=Length(min=1, max=64))
+    password = fields.Str(required=True, validate=Length(min=8, max=256))
     user_group = fields.Enum(UserGroup, required=True)
 
     # Die beiden folgenden Funktionen müssen genauso heißen und werden
@@ -128,6 +128,7 @@ def create_user(body: UsersPostBody):
     # Alternativ könnten wir über das `request` Objekt von Flask direkt auf den Request zugreifen
     # und manuell die Daten extrahieren.
 
-    user = User(**body)
-    id = UsersService.create_user(user)
+    id = UsersService.create_user(
+        body.get("username"), body.get("password"), body.get("user_group")
+    )
     return jsonify({"id": id})

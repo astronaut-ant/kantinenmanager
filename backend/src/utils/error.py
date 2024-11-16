@@ -20,15 +20,14 @@ class ErrMsg:
 
     User facing information should be in German.
 
-    Attributes:
-        status: Standardized status message describing the status code
-        status_code: The HTTP status code
-        title: Short title of the error (e.g. "Anmeldung fehlgeschlagen")
-        description: Detailed description of the error
-        url: The URL that was requested
-        method: The HTTP method that was used by the request
-        timestamp: The time when the object was created
-        details: Additional details about the error
+    :param status: Standardized status message describing the status code
+    :param status_code: The HTTP status code
+    :param title: Short title of the error (e.g. "Anmeldung fehlgeschlagen")
+    :param description: Detailed description of the error
+    :param url: The URL that was requested
+    :param method: The HTTP method that was used by the request
+    :param timestamp: The time when the object was created
+    :param details: Additional details about the error
     """
 
     def __init__(
@@ -40,11 +39,10 @@ class ErrMsg:
     ):
         """Initialize the error message.
 
-        Args:
-            status_code: The HTTP status code
-            title: Short title of the error (e.g. "Anmeldung fehlgeschlagen")
-            description: Detailed description of the error
-            details (optional): Additional details about the error that may be converted to JSON (str, int, dict, list, ...)
+        :param status_code: The HTTP status code
+        :param title: Short title of the error (e.g. "Anmeldung fehlgeschlagen")
+        :param description: Detailed description of the error
+        :param details (optional): Additional details about the error that may be converted to JSON (str, int, dict, list, ...)
         """
 
         self.status = HTTP_STATUS_CODES[status_code]

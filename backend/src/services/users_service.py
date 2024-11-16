@@ -1,4 +1,5 @@
-from src.models.user import User
+from src.services.auth_service import AuthService
+from src.models.user import User, UserGroup
 from src.repositories.users_repository import UsersRepository
 
 # Services enthalten die Businesslogik der Anwendung.
@@ -16,5 +17,9 @@ class UsersService:
         return UsersRepository.get_users()
 
     @staticmethod
-    def create_user(user: User):
+    def create_user(username: str, password: str, user_group: UserGroup) -> int:
+        hashed_password = AuthService.hash_password(password)
+
+        user = User(username=username, password=hashed_password, user_group=user_group)
+
         return UsersRepository.create_user(user)
