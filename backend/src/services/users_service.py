@@ -18,8 +18,3 @@ class UsersService:
     @staticmethod
     def create_user(user: User):
         return UsersRepository.create_user(user)
-
-    @staticmethod
-    def login(username, password):
-        user = UsersRepository.get_user_by_username(username)
-        print(user)

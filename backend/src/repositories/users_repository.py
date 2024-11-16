@@ -1,3 +1,5 @@
+"""Repository to handle database operations for user data."""
+
 from sqlalchemy import select
 from src.models.user import User
 from src.database import db
@@ -12,12 +14,16 @@ from src.database import db
 
 
 class UsersRepository:
+    """Repository to handle database operations for user data."""
+
     @staticmethod
     def get_users():
-        return User.query.all()  # Gibt uns eine Liste aller User Objekte (von der DB)
+        """Get all users saved in the database"""
+        return db.session.scalars(select(User)).all()
 
     @staticmethod
     def create_user(user: User):
+        """Create a new user in the database"""
         db.session.add(
             user
         )  # Beginne eine neue DB-Transaktion und speichere user in DB
@@ -31,5 +37,7 @@ class UsersRepository:
         return user.id
 
     @staticmethod
-    def get_user_by_username(username):
-        return select(User).where(User.username == username)
+    def get_user_by_username(username) -> User | None:
+        """Retrieve a user by their username"""
+
+        return db.session.scalars(select(User).where(User.username == username)).first()

@@ -1,9 +1,9 @@
-import marshmallow
+from marshmallow import ValidationError
 from src.models.user import User, UserGroup
 from src.services.users_service import UsersService
 from flask import Blueprint, make_response, jsonify, abort, request
 from marshmallow.validate import Length
-from flasgger import Schema, fields
+from flasgger import Schema, fields, swag_from
 
 # Routes sind die Verbindung zur Außenwelt und verantwortlich für die Verarbeitung von HTTP-Requests.
 # Eine Route bekommt einen Request vom Nutzer (Frontend), extrahiert die enthaltenen Daten, gibt
@@ -131,48 +131,3 @@ def create_user(body: UsersPostBody):
     user = User(**body)
     id = UsersService.create_user(user)
     return jsonify({"id": id})
-
-
-class LoginBody(marshmallow.Schema):
-    """
-    Schema for the POST /users endpoint
-    """
-
-    username = fields.Str(required=True, validate=Length(min=1, max=50))
-    password = fields.Str(required=True, validate=Length(min=8, max=150))
-
-    def swag_validation_function(self, data, main_def):
-        self.load(data)
-
-    def swag_validation_error_handler(self, err, data, main_def):
-        abort(make_response(jsonify(err.messages), 400))
-
-
-@users_routes.post("/api/login")
-def login():
-    """
-    Create a new user
-    Create a new user with the given username, password, and user group
-    ---
-    tags:
-      - users
-    definitions:
-      LoginBody:
-        type: object
-        properties:
-          username:
-            type: string
-          password:
-            type: string
-    parameters:
-      - name: LoginBody
-        in: body
-        required: true
-        schema:
-          $ref: '#/definitions/LoginBody'
-    """
-    schema = LoginBody()
-    result = schema.dumps(request.json)
-
-    UsersService.login(result.username, result.password)
-    return "Hallo"

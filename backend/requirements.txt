@@ -8,3 +8,4 @@ alembic==1.14.0
 marshmallow==3.23.1
 setuptools
 apispec==6.7.1
+Werkzeug==3.1.3
