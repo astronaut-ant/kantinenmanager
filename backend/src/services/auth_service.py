@@ -87,11 +87,11 @@ class AuthService:
         if user is None:
             raise UserNotFoundException(f"User with username '{username}' not found")
 
-        if not AuthService.check_password(password, user.password):
+        if not AuthService.check_password(password, user.hashed_password):
             raise InvalidCredentialsException("Invalid password")
 
-        if AuthService.needs_rehash(user.password):
-            user.password = AuthService.hash_password(password)
+        if AuthService.needs_rehash(user.hashed_password):
+            user.hashed_password = AuthService.hash_password(password)
             # UsersRepository.update_user(user) # TODO: Implement update_user
 
         return user

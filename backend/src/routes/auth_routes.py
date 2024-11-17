@@ -96,7 +96,15 @@ def login():
         )
 
     resp = make_response(
-        {"id": user.id, "username": user.username, "user_group": user.user_group.value},
+        {
+            "id": str(user.id),
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "username": user.username,
+            "user_group": user.user_group.value,
+            "created": user.created.timestamp(),
+            "last_login": user.last_login.timestamp() if user.last_login else 0,
+        },
         200,
     )
     resp.set_cookie(

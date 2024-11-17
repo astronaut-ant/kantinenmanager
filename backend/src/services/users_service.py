@@ -1,3 +1,6 @@
+"""Service for handling user management."""
+
+from uuid import UUID
 from src.services.auth_service import AuthService
 from src.models.user import User, UserGroup
 from src.repositories.users_repository import UsersRepository
@@ -12,14 +15,43 @@ from src.repositories.users_repository import UsersRepository
 
 
 class UsersService:
+    """Service for handling user management."""
+
     @staticmethod
-    def get_users():
+    def get_users() -> list[User]:
+        """Get all users saved in the database."""
+
         return UsersRepository.get_users()
 
     @staticmethod
-    def create_user(username: str, password: str, user_group: UserGroup) -> int:
+    def create_user(
+        first_name: str,
+        last_name: str,
+        username: str,
+        password: str,
+        user_group: UserGroup,
+    ) -> tuple[UUID, str]:
+        """Create a new user in the database.
+
+        :param first_name: The first name of the new user
+        :param last_name: The last name of the new user
+        :param username: The username of the new user
+        :param password: The password of the new user
+        :param user_group: The user group of the new user
+
+        :return: A tuple containing the ID of the new user and the initial password
+        """
+
         hashed_password = AuthService.hash_password(password)
 
-        user = User(username=username, password=hashed_password, user_group=user_group)
+        user = User(
+            first_name=first_name,
+            last_name=last_name,
+            username=username,
+            hashed_password=hashed_password,
+            user_group=user_group,
+        )
 
-        return UsersRepository.create_user(user)
+        id = UsersRepository.create_user(user)
+
+        return id, password
