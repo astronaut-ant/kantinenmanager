@@ -28,7 +28,7 @@ db_host = "db"
 db_port = "5432"
 db_password = "miau"
 
-# db_password = "".join(secrets.choice(alphabet) for i in range(256))
+jwt_secret = "".join(secrets.choice(alphabet) for _ in range(256))
 
 with open(template, "r") as f:
     lines = f.read()
@@ -40,6 +40,7 @@ lines = lines.replace("$$DB_DATABASE$$", db_database)
 lines = lines.replace("$$DB_HOST$$", db_host)
 lines = lines.replace("$$DB_PORT$$", db_port)
 lines = lines.replace("$$DB_PASSWORD$$", f'"{db_password}"')
+lines = lines.replace("$$JWT_SECRET$$", f'"{jwt_secret}"')
 
 with open(outputRoot, "w") as f:
     f.write(lines)

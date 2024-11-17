@@ -73,8 +73,9 @@ def login():
         )
 
     try:
-
-        user = AuthService.login(body.get("username"), body.get("password"))
+        user, auth_token, refresh_token = AuthService.login(
+            body.get("username"), body.get("password")
+        )
 
     except UserNotFoundException:
         # Both Exceptions return the same error message as it would be a security risk to
