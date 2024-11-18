@@ -2,13 +2,13 @@ import { createRouter, createWebHistory } from "vue-router";
 import gruppenleitung from "../pages/gruppenleitung.vue";
 import index from "../pages/index.vue";
 import kuechenpersonal from "../pages/kuechenpersonal.vue";
-import verwaltung from "../pages/verwaltung_neuerBenutzer.vue";
+import verwaltung from "../pages/verwaltungNeuerBenutzer.vue";
 import standortleitung from "../pages/standortleitung.vue";
 import login from "../pages/login.vue";
 import { useAppStore } from "../stores/app.js";
-import Verwaltung_Uebersicht from "@/pages/verwaltung_Uebersicht.vue";
-import Verwaltung_neuerBenutzer from "../pages/verwaltung_neuerBenutzer.vue";
-import Verwaltung_behinderung from "@/pages/verwaltung_behinderung.vue";
+import VerwaltungUebersicht from "@/pages/verwaltungUebersicht.vue";
+import VerwaltungNeuerBenutzer from "../pages/verwaltungNeuerBenutzer.vue";
+import VerwaltungBehinderung from "@/pages/verwaltungBehinderung.vue";
 
 const routes = [
   { path: "/", component: index, redirect: "/login" },
@@ -34,7 +34,7 @@ const routes = [
   },
   {
     path: "/verwaltung/uebersicht",
-    component: Verwaltung_Uebersicht,
+    component: VerwaltungUebersicht,
     // beforeEnter: (to, from, next) => {
     //   const appStore = useAppStore();
     //   if (!appStore.auth) {
@@ -45,7 +45,7 @@ const routes = [
 
   {
     path: "/verwaltung/neuerBenutzer",
-    component: Verwaltung_neuerBenutzer,
+    component: VerwaltungNeuerBenutzer,
     // beforeEnter: (to, from, next) => {
     //   const appStore = useAppStore();
     //   if (!appStore.auth) {
@@ -55,7 +55,7 @@ const routes = [
   },
   {
     path: "/verwaltung/behinderung",
-    component: Verwaltung_behinderung,
+    component: VerwaltungBehinderung,
     // beforeEnter: (to, from, next) => {
     //   const appStore = useAppStore();
     //   if (!appStore.auth) {

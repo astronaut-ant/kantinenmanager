@@ -1,6 +1,6 @@
 <template>
-  <NavbarVerwaltung />
-  <div class="mt-10 d-flex justify-center">
+  <NavbarVerwaltung @click="emptyForm" />
+  <div class="mt-10 d-flex justify-center" @click="emptyForm">
     <div>
       <v-card class="elevation-7 px-6 py-4 w-100">
         <v-card-text class="mb-2 text-h5">
@@ -63,7 +63,6 @@
 
 <script setup>
 import axios from "axios";
-import router from "../router";
 const validation = ref("");
 const showConfirm = ref(false);
 const form = ref(false);
@@ -93,6 +92,4 @@ const emptyForm = () => {
     validation.value.reset();
   }
 };
-
-watch([username, password, user_group], emptyForm);
 </script>

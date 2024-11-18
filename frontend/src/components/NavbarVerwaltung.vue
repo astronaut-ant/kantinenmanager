@@ -6,8 +6,13 @@
         <span>Verwaltung</span>
       </v-toolbar-title>
     </v-toolbar>
-    <v-navigation-drawer class="elevation-10 bg-red" v-model="drawer" app>
-      <h1 class="mt-5 ps-2">Verwaltung</h1>
+    <v-navigation-drawer
+      :disable-resize-watcher="true"
+      class="elevation-10 bg-red"
+      v-model="drawer"
+      app
+    >
+      <h1 class="mt-5 ps-2">Menu</h1>
       <hr class="text-white mt-4" />
       <div class="d-flex flex-column h-75 justify-space-evenly ps-2">
         <router-link
