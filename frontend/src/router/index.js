@@ -2,10 +2,13 @@ import { createRouter, createWebHistory } from "vue-router";
 import gruppenleitung from "../pages/gruppenleitung.vue";
 import index from "../pages/index.vue";
 import kuechenpersonal from "../pages/kuechenpersonal.vue";
-import verwaltung from "../pages/verwaltung.vue";
+import verwaltung from "../pages/verwaltung_neuerBenutzer.vue";
 import standortleitung from "../pages/standortleitung.vue";
 import login from "../pages/login.vue";
 import { useAppStore } from "../stores/app.js";
+import Verwaltung_Uebersicht from "@/pages/verwaltung_Uebersicht.vue";
+import Verwaltung_neuerBenutzer from "../pages/verwaltung_neuerBenutzer.vue";
+import Verwaltung_behinderung from "@/pages/verwaltung_behinderung.vue";
 
 const routes = [
   { path: "/", component: index, redirect: "/login" },
@@ -30,8 +33,29 @@ const routes = [
     // },
   },
   {
-    path: "/verwaltung",
-    component: verwaltung,
+    path: "/verwaltung/uebersicht",
+    component: Verwaltung_Uebersicht,
+    // beforeEnter: (to, from, next) => {
+    //   const appStore = useAppStore();
+    //   if (!appStore.auth) {
+    //     next("/login");
+    //   } else next();
+    // },
+  },
+
+  {
+    path: "/verwaltung/neuerBenutzer",
+    component: Verwaltung_neuerBenutzer,
+    // beforeEnter: (to, from, next) => {
+    //   const appStore = useAppStore();
+    //   if (!appStore.auth) {
+    //     next("/login");
+    //   } else next();
+    // },
+  },
+  {
+    path: "/verwaltung/behinderung",
+    component: Verwaltung_behinderung,
     // beforeEnter: (to, from, next) => {
     //   const appStore = useAppStore();
     //   if (!appStore.auth) {

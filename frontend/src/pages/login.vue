@@ -31,7 +31,7 @@
           class="mt-5"
           :disabled="!form"
           :loading="loading"
-          color="success"
+          color="primary"
           size="large"
           type="submit"
           variant="elevated"
@@ -67,7 +67,7 @@ const handleSubmit = () => {
     .catch((err) => console.log(err));
   loading.value = true;
   setTimeout(() => (loading.value = false), 2000);
-  router.push({ path: "/verwaltung" });
+  router.push({ path: "/verwaltung/uebersicht" });
 };
 const required = (v) => {
   return !!v || "Eingabe erforderlich";
