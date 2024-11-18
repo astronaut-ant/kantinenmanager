@@ -2,8 +2,9 @@
 
 import jwt
 import secrets
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from argon2 import PasswordHasher
+from src.constants import AUTHENTICATION_TOKEN_DURATION, REFRESH_TOKEN_DURATION
 from src.repositories.refresh_token_repository import RefreshTokenRepository
 from src.models.refresh_token import RefreshToken
 from src.models.user import User
@@ -11,9 +12,6 @@ from src.repositories.users_repository import UsersRepository
 from flask import current_app as app
 
 AUDIENCE = "grp16-backend"
-AUTH_DURATION = timedelta(minutes=10)
-
-REFRESH_TOKEN_DURATION = timedelta(days=7)
 REFRESH_TOKEN_BYTES = 64 // 2  # 64 hex characters
 
 
@@ -134,7 +132,8 @@ class AuthService:
         payload = {
             "sub": str(user.id),  # subject
             "iat": datetime.now(tz=timezone.utc),  # issued at
-            "exp": datetime.now(tz=timezone.utc) + AUTH_DURATION,  # expiration
+            "exp": datetime.now(tz=timezone.utc)
+            + AUTHENTICATION_TOKEN_DURATION,  # expiration
             "aud": AUDIENCE,  # audience
             # "iss": "https://example.com",
             "app-username": user.username,

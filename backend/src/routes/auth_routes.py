@@ -1,5 +1,11 @@
 """Routes for authentication and session management."""
 
+from src.constants import (
+    AUTHENTICATION_TOKEN_DURATION,
+    AUTHENTICATION_TOKEN_COOKIE_NAME,
+    REFRESH_TOKEN_DURATION,
+    REFRESH_TOKEN_COOKIE_NAME,
+)
 from flask import Blueprint, make_response, request
 from marshmallow.validate import Length
 from flasgger import swag_from
@@ -11,6 +17,8 @@ from src.services.auth_service import (
     UserNotFoundException,
     InvalidCredentialsException,
 )
+
+# CONSTANTS
 
 auth_routes = Blueprint("auth_routes", __name__)
 
@@ -58,6 +66,13 @@ class LoginBodySchema(Schema):
 def login():
     """Login
     Login with given username and password
+
+    When the login is successful, the response will contain the user object and set the
+    following cookies:
+
+    - user_group: The user's group as plain text
+    - auth_token: The authentication token as plain text (HTTP only)
+    - refresh_token: The refresh token as plain text (HTTP only)
     ---
     """
     try:
@@ -108,10 +123,29 @@ def login():
         },
         200,
     )
+
     resp.set_cookie(
         "user_group",
         user.user_group.value,
-        max_age=60 * 60 * 24 * 31,
+        max_age=round(REFRESH_TOKEN_DURATION.total_seconds()),
     )  # TODO: Set secure=True and samesite="Strict" in production
+
+    resp.set_cookie(
+        AUTHENTICATION_TOKEN_COOKIE_NAME,
+        auth_token,
+        max_age=round(AUTHENTICATION_TOKEN_DURATION.total_seconds()),
+        httponly=True,
+        # secure=True,  # TODO: Enable in production
+        # samesite="Strict",  # TODO: Enable in production
+    )
+
+    resp.set_cookie(
+        REFRESH_TOKEN_COOKIE_NAME,
+        refresh_token,
+        max_age=round(REFRESH_TOKEN_DURATION.total_seconds()),
+        httponly=True,
+        # secure=True,  # TODO: Enable in production
+        # samesite="Strict",  # TODO: Enable in production
+    )
 
     return resp
