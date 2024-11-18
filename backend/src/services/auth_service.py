@@ -1,14 +1,20 @@
 """Service for authorization and session management."""
 
 import jwt
+import secrets
 from datetime import datetime, timedelta, timezone
 from argon2 import PasswordHasher
+from src.repositories.refresh_token_repository import RefreshTokenRepository
+from src.models.refresh_token import RefreshToken
 from src.models.user import User
 from src.repositories.users_repository import UsersRepository
 from flask import current_app as app
 
 AUDIENCE = "grp16-backend"
 AUTH_DURATION = timedelta(minutes=10)
+
+REFRESH_TOKEN_DURATION = timedelta(days=7)
+REFRESH_TOKEN_BYTES = 64 // 2  # 64 hex characters
 
 
 class UserNotFoundException(Exception):
@@ -105,6 +111,7 @@ class AuthService:
             raise ValueError("JWT_SECRET not set in app config")
 
         jwt_str = AuthService.__make_jwt(user, jwt_secret)
+        refresh_token = AuthService.__make_refresh_token(user)
 
         try:
             payload = AuthService.__verify_jwt(jwt_str, jwt_secret)
@@ -112,8 +119,9 @@ class AuthService:
         except jwt.PyJWTError as e:
             print(e)
 
-        return user, jwt_str, ""
+        return user, jwt_str, refresh_token
 
+    @staticmethod
     def __make_jwt(user: User, jwt_secret: str) -> str:
         """Create a JWT token for a user
 
@@ -135,6 +143,7 @@ class AuthService:
 
         return jwt.encode(payload, jwt_secret, algorithm="HS256")
 
+    @staticmethod
     def __verify_jwt(encoded: str, jwt_secret: str) -> dict:
         """Verify a JWT token
 
@@ -161,3 +170,25 @@ class AuthService:
                 "require": ["exp", "iat", "sub", "aud", "app-username", "app-group"]
             },
         )
+
+    @staticmethod
+    def __make_refresh_token(user: User) -> str:
+        """Create a refresh token for a user
+
+        :param user: The user to create the token for
+
+        :return: The refresh token
+        """
+
+        token_str = secrets.token_hex(REFRESH_TOKEN_BYTES)
+        expires = datetime.now() + REFRESH_TOKEN_DURATION
+
+        # Regenerate token if it already exists
+        while RefreshTokenRepository.get_token(token_str) is not None:
+            token_str = secrets.token_hex(REFRESH_TOKEN_BYTES)
+
+        token = RefreshToken(refresh_token=token_str, user_id=user.id, expires=expires)
+
+        RefreshTokenRepository.create_token(token)
+
+        return token.refresh_token

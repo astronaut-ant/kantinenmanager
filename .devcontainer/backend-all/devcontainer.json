@@ -46,7 +46,8 @@
         "ms-python.debugpy",
         "ms-python.black-formatter",
         "esbenp.prettier-vscode",
-        "vue.volar"
+        "vue.volar",
+        "mhutchie.git-graph"
       ]
     }
   },
