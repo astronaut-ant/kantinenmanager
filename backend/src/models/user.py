@@ -4,7 +4,7 @@ import enum
 import sqlalchemy
 import uuid
 from datetime import datetime
-from sqlalchemy import UUID, DateTime, String
+from sqlalchemy import UUID, Boolean, DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column
 from src.database import db
 
@@ -53,6 +53,7 @@ class User(db.Model):
     )
     created: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     last_login: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+    blocked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     def __init__(
         self,
@@ -78,6 +79,7 @@ class User(db.Model):
         self.user_group = user_group
         self.created = datetime.now()
         self.last_login = None
+        self.blocked = False
 
     def __repr__(self):
         return f"<User {self.id!r} {self.username!r} {self.user_group.value!r}>"
