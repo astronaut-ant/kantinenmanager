@@ -44,6 +44,7 @@ users_routes = Blueprint("users_routes", __name__)
                     "user_group": {"type": "string"},
                     "created": {"type": "number"},
                     "last_login": {"type": "number"},
+                    "blocked": {"type": "boolean"},
                 },
             }
         },
@@ -77,6 +78,7 @@ def get_users():
             "user_group": user.user_group.value,
             "created": user.created.timestamp(),
             "last_login": user.last_login.timestamp() if user.last_login else 0,
+            "blocked": user.blocked,
         }
         for user in users
     ]

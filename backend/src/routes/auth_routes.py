@@ -117,6 +117,7 @@ def login():
             "user_group": user.user_group.value,
             "created": user.created.timestamp(),
             "last_login": user.last_login.timestamp() if user.last_login else 0,
+            "blocked": user.blocked,
         },
         200,
     )
