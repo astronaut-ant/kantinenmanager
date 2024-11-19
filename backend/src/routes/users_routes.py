@@ -1,4 +1,5 @@
 from marshmallow import ValidationError
+from src.utils.auth_utils import login_required
 from src.utils.error import ErrMsg, abort_with_err
 from src.models.user import UserGroup
 from src.services.users_service import UsersService
@@ -25,6 +26,7 @@ users_routes = Blueprint("users_routes", __name__)
 
 # Bei jedem GET Request (siehe HTTP) auf /api/users wird die get_users Funktion aufgerufen
 @users_routes.get("/api/users")
+@login_required(disabled=True)
 @swag_from(
     {
         "tags": ["users"],

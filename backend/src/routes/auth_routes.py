@@ -1,10 +1,8 @@
 """Routes for authentication and session management."""
 
+from src.utils.auth_utils import set_token_cookies
 from src.constants import (
-    AUTHENTICATION_TOKEN_DURATION,
-    AUTHENTICATION_TOKEN_COOKIE_NAME,
     REFRESH_TOKEN_DURATION,
-    REFRESH_TOKEN_COOKIE_NAME,
 )
 from flask import Blueprint, make_response, request
 from marshmallow.validate import Length
@@ -18,7 +16,6 @@ from src.services.auth_service import (
     InvalidCredentialsException,
 )
 
-# CONSTANTS
 
 auth_routes = Blueprint("auth_routes", __name__)
 
@@ -130,22 +127,6 @@ def login():
         max_age=round(REFRESH_TOKEN_DURATION.total_seconds()),
     )  # TODO: Set secure=True and samesite="Strict" in production
 
-    resp.set_cookie(
-        AUTHENTICATION_TOKEN_COOKIE_NAME,
-        auth_token,
-        max_age=round(AUTHENTICATION_TOKEN_DURATION.total_seconds()),
-        httponly=True,
-        # secure=True,  # TODO: Enable in production
-        # samesite="Strict",  # TODO: Enable in production
-    )
-
-    resp.set_cookie(
-        REFRESH_TOKEN_COOKIE_NAME,
-        refresh_token,
-        max_age=round(REFRESH_TOKEN_DURATION.total_seconds()),
-        httponly=True,
-        # secure=True,  # TODO: Enable in production
-        # samesite="Strict",  # TODO: Enable in production
-    )
+    set_token_cookies(resp, auth_token, refresh_token)
 
     return resp

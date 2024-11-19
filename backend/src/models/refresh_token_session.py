@@ -1,15 +1,16 @@
-"""Model to store refresh tokens for user authentication"""
+"""Model to store refresh token sessions for user authentication"""
 
 from datetime import datetime
 import sqlalchemy
 import uuid
+from src.constants import REFRESH_TOKEN_LENGTH
 from src.database import db
 from sqlalchemy import DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 
-class RefreshToken(db.Model):
-    """Model to represent a refresh token for user authentication
+class RefreshTokenSession(db.Model):
+    """Model to represent a refresh token session in the database
 
     Refresh tokens are used to generate new access tokens when the old ones expire.
     The database stores all active refresh tokens along with some metadata. The
@@ -25,7 +26,9 @@ class RefreshToken(db.Model):
     :param last_used: The date and time when the token was last used. None if never used
     """
 
-    refresh_token: Mapped[str] = mapped_column(String(64), primary_key=True)
+    refresh_token: Mapped[str] = mapped_column(
+        String(REFRESH_TOKEN_LENGTH), primary_key=True
+    )
     user_id: Mapped[uuid.UUID] = mapped_column(
         sqlalchemy.UUID(as_uuid=True), nullable=False
     )
@@ -34,10 +37,11 @@ class RefreshToken(db.Model):
     last_used: Mapped[datetime] = mapped_column(DateTime, nullable=True)
 
     def __init__(self, refresh_token: str, user_id: uuid.UUID, expires: datetime):
-        """Initialize a new refresh token
+        """Initialize a new refresh token session
 
         :param refresh_token: The refresh token
         :param user_id: The ID of the user this token is associated with
+        :param expires: Expiration date and time of the token
         """
 
         self.refresh_token = refresh_token
@@ -47,7 +51,7 @@ class RefreshToken(db.Model):
         self.last_used = None
 
     def __repr__(self):
-        return f"<RefreshToken {self.refresh_token}>"
+        return f"<RefreshTokenSession {self.refresh_token}>"
 
     def has_been_used(self):
         """Check if the refresh token has been used before

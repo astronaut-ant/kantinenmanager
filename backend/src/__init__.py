@@ -1,6 +1,8 @@
 from flask import Flask
 from flasgger import Swagger
 from flask_cors import CORS
+
+from .middlewares.auth_middleware import register_auth_middleware
 from .database import init_db
 from .routes.users_routes import users_routes
 from .routes.auth_routes import auth_routes
@@ -44,6 +46,8 @@ app.config["SQLALCHEMY_DATABASE_URI"] = (
 app.config["JWT_SECRET"] = jwt_secret
 
 init_db(app)
+
+register_auth_middleware(app)
 
 app.register_blueprint(users_routes)
 app.register_blueprint(auth_routes)
