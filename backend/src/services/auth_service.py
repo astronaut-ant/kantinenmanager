@@ -128,6 +128,10 @@ class AuthService:
             print(e)
 
         # Validate refresh token
+
+        if refresh_token is None:
+            raise UnauthenticatedException("No refresh token provided")
+
         session = None
         try:
             session = AuthService.__verify_refresh_token(refresh_token)
