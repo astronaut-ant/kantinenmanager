@@ -2,7 +2,7 @@ from marshmallow import ValidationError
 from src.utils.auth_utils import login_required
 from src.utils.error import ErrMsg, abort_with_err
 from src.models.user import UserGroup
-from src.services.users_service import UsersService
+from src.services.users_service import UserAlreadyExistsError, UsersService
 from flask import Blueprint, jsonify, request
 from marshmallow.validate import Length
 from marshmallow import Schema, fields
@@ -157,7 +157,7 @@ class UsersPostBody(Schema):
                     },
                 },
             },
-            400: {"description": "Validation error"},
+            400: {"description": "Validation error or username already exists"},
         },
     }
 )
@@ -179,12 +179,15 @@ def create_user():
             )
         )
 
-    (id, initial_password) = UsersService.create_user(
-        body.get("first_name"),
-        body.get("last_name"),
-        body.get("username"),
-        body.get("password"),
-        body.get("user_group"),
-    )
+    try:
+        id, initial_password = UsersService.create_user(**body)
+    except UserAlreadyExistsError:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Nutzername bereits vergeben",
+                description="Der Nutzername ist bereits vergeben",
+            )
+        )
 
     return jsonify({"id": id, "initial_password": initial_password})

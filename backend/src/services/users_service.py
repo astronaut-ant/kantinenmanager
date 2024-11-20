@@ -14,6 +14,12 @@ from src.repositories.users_repository import UsersRepository
 # eingegeben hat.
 
 
+class UserAlreadyExistsError(Exception):
+    """Exception raised when a username is already taken."""
+
+    pass
+
+
 class UsersService:
     """Service for handling user management."""
 
@@ -40,7 +46,14 @@ class UsersService:
         :param user_group: The user group of the new user
 
         :return: A tuple containing the ID of the new user and the initial password
+
+        :raises UserAlreadyExistsError: If a user with the given username already exists
         """
+
+        if UsersRepository.get_user_by_username(username):
+            raise UserAlreadyExistsError(
+                f"User with username {username} already exists"
+            )
 
         hashed_password = AuthService.hash_password(password)
 
