@@ -239,6 +239,55 @@ class UsersUpdateBody(Schema):
     user_group = fields.Enum(UserGroup, required=True)
 
 
+@users_routes.put("/api/users/<uuid:user_id>/reset-password")
+@login_required(groups=[UserGroup.verwaltung])
+@swag_from(
+    {
+        "tags": ["users"],
+        "parameters": [
+            {
+                "in": "path",
+                "name": "user_id",
+                "required": True,
+                "schema": {"type": "string"},
+            }
+        ],
+        "responses": {
+            200: {
+                "description": "Returns the new password of the user",
+                "schema": {
+                    "type": "object",
+                    "properties": {"new_password": {"type": "string"}},
+                },
+            },
+            404: {"description": "User not found"},
+        },
+    }
+)
+def reset_password(user_id: UUID):
+    """Reset the password of a user
+    Reset the password of a user.
+
+    A new random password is generated and returned. All refresh tokens of the user are invalidated.
+
+    Authentication: required
+    Authorization: Verwaltung
+    ---
+    """
+    user = UsersService.get_user_by_id(user_id)
+    if user is None:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Nutzer nicht gefunden",
+                description="Es wurde kein Nutzer mit dieser ID gefunden",
+            )
+        )
+
+    initial_password = UsersService.reset_password(user)
+    return jsonify({"new_password": initial_password})
+
+
 @users_routes.put("/api/users/<uuid:user_id>")
 @login_required(groups=[UserGroup.verwaltung])
 @swag_from(

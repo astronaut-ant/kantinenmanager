@@ -117,3 +117,25 @@ class UsersService:
         """
 
         UsersRepository.delete_user(user)
+
+    @staticmethod
+    def reset_password(user: User) -> str:
+        """Reset the password of a user to a new random password.
+
+        The user's sessions get invalidated.
+
+        :param user: The user whose password to reset
+
+        :return: The new password
+        """
+
+        new_password = AuthService.generate_password()
+        hashed_password = AuthService.hash_password(new_password)
+
+        user.hashed_password = hashed_password
+
+        UsersRepository.update_user(user)
+
+        AuthService.invalidate_all_refresh_tokens(user.id)
+
+        return new_password

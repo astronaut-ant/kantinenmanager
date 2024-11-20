@@ -1,6 +1,6 @@
 """Repository to handle database operations for refresh token sessions."""
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from src.models.refresh_token_session import RefreshTokenSession
 from src.database import db
 
@@ -52,3 +52,14 @@ class RefreshTokenSessionRepository:
         """
 
         raise NotImplementedError("Not implemented yet")
+
+    @staticmethod
+    def delete_user_tokens(user_id: str):
+        """Delete all refresh tokens for a user
+
+        :param user_id: The ID of the user whose tokens to delete
+        """
+
+        stmt = delete(RefreshTokenSession).where(RefreshTokenSession.user_id == user_id)
+        db.session.execute(stmt)
+        db.session.commit()

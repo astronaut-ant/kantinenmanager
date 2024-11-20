@@ -8,6 +8,8 @@ from argon2 import PasswordHasher
 from src.constants import (
     AUTHENTICATION_TOKEN_AUDIENCE,
     AUTHENTICATION_TOKEN_DURATION,
+    GEN_PASSWORD_ALPHABET,
+    GEN_PASSWORD_LENGTH,
     REFRESH_TOKEN_DURATION,
     REFRESH_TOKEN_LENGTH,
 )
@@ -165,6 +167,29 @@ class AuthService:
     @staticmethod
     def logout():
         raise NotImplementedError()
+
+    @staticmethod
+    def invalidate_all_refresh_tokens(user_id: UUID):
+        """Invalidate all refresh tokens for a user
+
+        Warning: This will only keep users from obtaining new auth tokens.
+        Existing auth tokens will remain valid until they expire.
+
+        :param user_id: The ID of the user whose tokens to invalidate
+        """
+
+        RefreshTokenSessionRepository.delete_user_tokens(user_id)
+
+    @staticmethod
+    def generate_password() -> str:
+        """Generate a random password
+
+        :return: The generated password
+        """
+
+        return "".join(
+            secrets.choice(GEN_PASSWORD_ALPHABET) for _ in range(GEN_PASSWORD_LENGTH)
+        )
 
     @staticmethod
     def hash_password(password: str) -> str:
