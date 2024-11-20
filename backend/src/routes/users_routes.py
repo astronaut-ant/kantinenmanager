@@ -73,7 +73,7 @@ def get_users():
     users = UsersService.get_users()
 
     # Diese wird in eine Liste an Dicts umgewandelt, aber ohne das Passwort
-    users_dict = map(lambda user: user.to_dict_without_pw_hash(), users)
+    users_dict = [user.to_dict_without_pw_hash() for user in users]
 
     # Die dicts brauchen wir, denn daraus können wir JSON erzeugen.
     # Mit jsonify wird automatisch ein Response Object erstellt.
@@ -226,3 +226,50 @@ def create_user():
         )
 
     return jsonify({"id": id, "initial_password": initial_password})
+
+
+@users_routes.delete("/api/users/<uuid:user_id>")
+@login_required(groups=[UserGroup.verwaltung])
+@swag_from(
+    {
+        "tags": ["users"],
+        "parameters": [
+            {
+                "in": "path",
+                "name": "user_id",
+                "required": True,
+                "schema": {"type": "string"},
+            }
+        ],
+        "responses": {
+            200: {
+                "description": "User successfully deleted",
+                "schema": {
+                    "type": "object",
+                    "properties": {"message": {"type": "string"}},
+                },
+            },
+            404: {"description": "User not found"},
+        },
+    }
+)
+def delete_user(user_id: UUID):
+    """Delete a user
+    Delete a user by ID
+
+    Authentication: required
+    Authorization: Verwaltung
+    ---
+    """
+    user = UsersService.get_user_by_id(user_id)
+    if user is None:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Nutzer nicht gefunden",
+                description="Es wurde kein Nutzer mit dieser ID gefunden",
+            )
+        )
+
+    UsersService.delete_user(user)
+    return jsonify({"message": "User successfully deleted"})

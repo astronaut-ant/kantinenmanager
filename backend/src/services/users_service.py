@@ -79,3 +79,12 @@ class UsersService:
         id = UsersRepository.create_user(user)
 
         return id, password
+
+    @staticmethod
+    def delete_user(user: User):
+        """Delete a user from the database.
+
+        :param user_id: The ID of the user to delete
+        """
+
+        UsersRepository.delete_user(user)

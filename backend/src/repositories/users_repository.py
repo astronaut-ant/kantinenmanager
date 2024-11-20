@@ -52,18 +52,14 @@ class UsersRepository:
     @staticmethod
     def create_user(user: User):
         """Create a new user in the database"""
-        db.session.add(
-            user
-        )  # Beginne eine neue DB-Transaktion und speichere user in DB
-        db.session.commit()  # Führe COMMIT aus, um die Transaktion abzuschließen
-        # Bei beiden werden unter der Haube SQL-Statements generiert und an die DB gesendet.
+        db.session.add(user)
+        db.session.commit()
 
-        # Die ID Spalte hat 'AUTO INCREMENT' gesetzt. Jedes eingefügte Element erhält
-        # eine neue, hochgezählte ID.
-        # SQLAlchemy synchronisiert obiges `user` Objekt mit der DB. Wir haben jetzt also
-        # Zugriff auf die zugewiesene ID.
         return user.id
 
     @staticmethod
-    def delete_user(user_id: UUID):
-        raise NotImplementedError()
+    def delete_user(user: User):
+        """Delete a user from the database"""
+
+        db.session.delete(user)
+        db.session.commit()
