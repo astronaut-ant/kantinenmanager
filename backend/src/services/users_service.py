@@ -30,6 +30,17 @@ class UsersService:
         return UsersRepository.get_users()
 
     @staticmethod
+    def get_user_by_id(user_id: UUID) -> User | None:
+        """Retrieve a user by their ID
+
+        :param user_id: The ID of the user to retrieve
+
+        :return: The user with the given ID or None if no user was found
+        """
+
+        return UsersRepository.get_user_by_id(user_id)
+
+    @staticmethod
     def create_user(
         first_name: str,
         last_name: str,

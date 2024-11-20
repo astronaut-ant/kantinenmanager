@@ -83,3 +83,22 @@ class User(db.Model):
 
     def __repr__(self):
         return f"<User {self.id!r} {self.username!r} {self.user_group.value!r}>"
+
+    def to_dict_without_pw_hash(self) -> dict[str, str | int | bool]:
+        """Convert the user to a dictionary without the password hash
+
+        All complex objects are converted to their string representation.
+
+        :return: A dictionary containing the user's information
+        """
+
+        return {
+            "id": str(self.id),
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "username": self.username,
+            "user_group": self.user_group.value,
+            "created": self.created.timestamp(),
+            "last_login": self.last_login.timestamp() if self.last_login else 0,
+            "blocked": self.blocked,
+        }

@@ -1,3 +1,4 @@
+from uuid import UUID
 from marshmallow import ValidationError
 from src.utils.auth_utils import login_required
 from src.utils.error import ErrMsg, abort_with_err
@@ -26,7 +27,7 @@ users_routes = Blueprint("users_routes", __name__)
 
 # Bei jedem GET Request (siehe HTTP) auf /api/users wird die get_users Funktion aufgerufen
 @users_routes.get("/api/users")
-@login_required(disabled=True)
+@login_required(groups=[UserGroup.verwaltung])
 @swag_from(
     {
         "tags": ["users"],
@@ -59,6 +60,9 @@ users_routes = Blueprint("users_routes", __name__)
 def get_users():
     """Get all users
     Get a list of all users
+
+    Authentication: required
+    Authorization: Verwaltung
     ---
     """
     # Der docstring --^ ist wie wir Flasgger über die Parameter und Rückgabewerte
@@ -69,23 +73,54 @@ def get_users():
     users = UsersService.get_users()
 
     # Diese wird in eine Liste an Dicts umgewandelt, aber ohne das Passwort
-    users_dict = [
-        {
-            "id": str(user.id),
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-            "username": user.username,
-            "user_group": user.user_group.value,
-            "created": user.created.timestamp(),
-            "last_login": user.last_login.timestamp() if user.last_login else 0,
-            "blocked": user.blocked,
-        }
-        for user in users
-    ]
+    users_dict = map(lambda user: user.to_dict_without_pw_hash(), users)
 
     # Die dicts brauchen wir, denn daraus können wir JSON erzeugen.
     # Mit jsonify wird automatisch ein Response Object erstellt.
     return jsonify(users_dict)
+
+
+@users_routes.get("/api/users/<uuid:user_id>")
+@login_required(groups=[UserGroup.verwaltung])
+@swag_from(
+    {
+        "tags": ["users"],
+        "parameters": [
+            {
+                "in": "path",
+                "name": "user_id",
+                "required": True,
+                "schema": {"type": "string"},
+            }
+        ],
+        "responses": {
+            200: {
+                "description": "Returns the user with the given ID",
+                "schema": {"$ref": "#/definitions/User"},
+            },
+            404: {"description": "User not found"},
+        },
+    }
+)
+def get_user_by_id(user_id: UUID):
+    """Get a user by ID
+    Get a user by ID
+
+    Authentication: required
+    Authorization: Verwaltung
+    ---
+    """
+    user = UsersService.get_user_by_id(user_id)
+    if user is None:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Nutzer nicht gefunden",
+                description="Es wurde kein Nutzer mit dieser ID gefunden",
+            )
+        )
+
+    return jsonify(user.to_dict_without_pw_hash())
 
 
 # Das folgende kommt aus Marshmallow. https://marshmallow.readthedocs.io/en/stable/#
