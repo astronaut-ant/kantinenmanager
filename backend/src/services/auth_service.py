@@ -66,7 +66,9 @@ class AuthService:
         # Rehash password if necessary
         if AuthService.__needs_rehash(user.hashed_password):
             user.hashed_password = AuthService.hash_password(password)
-            # UsersRepository.update_user(user) # TODO: Implement update_user
+
+        user.last_login = datetime.now()
+        UsersRepository.update_user(user)
 
         # Create authentication and refresh tokens
         jwt_secret = app.config["JWT_SECRET"]

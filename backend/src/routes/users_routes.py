@@ -128,7 +128,7 @@ def get_user_by_id(user_id: UUID):
 # Das Schema gibt an, wie die Daten aussehen sollen, zusammen mit gewissen Einschränkungen.
 class UsersPostBody(Schema):
     """
-    Schema for the POST /users endpoint
+    Schema for the POST /api/users endpoint
     """
 
     first_name = fields.Str(required=True, validate=Length(min=1, max=64))
@@ -228,6 +228,111 @@ def create_user():
     return jsonify({"id": id, "initial_password": initial_password})
 
 
+class UsersUpdateBody(Schema):
+    """
+    Schema for the PUT /api/users/id endpoint
+    """
+
+    first_name = fields.Str(required=True, validate=Length(min=1, max=64))
+    last_name = fields.Str(required=True, validate=Length(min=1, max=64))
+    username = fields.Str(required=True, validate=Length(min=1, max=64))
+    user_group = fields.Enum(UserGroup, required=True)
+
+
+@users_routes.put("/api/users/<uuid:user_id>")
+@login_required(groups=[UserGroup.verwaltung])
+@swag_from(
+    {
+        "tags": ["users"],
+        "parameters": [
+            {
+                "in": "path",
+                "name": "user_id",
+                "required": True,
+                "schema": {"type": "string"},
+            },
+            {
+                "in": "body",
+                "name": "body",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "first_name": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 64,
+                        },
+                        "last_name": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 64,
+                        },
+                        "username": {"type": "string", "minLength": 1, "maxLength": 64},
+                        "user_group": {
+                            "type": "string",
+                            "enum": [
+                                "verwaltung",
+                                "standortleitung",
+                                "gruppenleitung",
+                                "kuechenpersonal",
+                            ],
+                        },
+                    },
+                },
+            },
+        ],
+        "responses": {
+            200: {
+                "description": "Returns the updated user",
+                "schema": {"$ref": "#/definitions/User"},
+            },
+            400: {"description": "Validation error or username already exists"},
+            404: {"description": "User not found"},
+        },
+    }
+)
+def update_user(user_id: UUID):
+    """Update a user
+    Update a user identified by ID
+    ---
+    """
+
+    try:
+        body = UsersUpdateBody().load(request.json)
+    except ValidationError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Validierungsfehler",
+                description="Format der Daten im Request-Body nicht valide",
+                details=err.messages,
+            )
+        )
+
+    user = UsersService.get_user_by_id(user_id)
+    if user is None:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Nutzer nicht gefunden",
+                description="Es wurde kein Nutzer mit dieser ID gefunden",
+            )
+        )
+
+    try:
+        UsersService.update_user(user, **body)
+    except UserAlreadyExistsError:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Nutzername bereits vergeben",
+                description="Der Nutzername ist bereits vergeben",
+            )
+        )
+
+    return jsonify(user.to_dict_without_pw_hash())
+
+
 @users_routes.delete("/api/users/<uuid:user_id>")
 @login_required(groups=[UserGroup.verwaltung])
 @swag_from(
@@ -272,4 +377,4 @@ def delete_user(user_id: UUID):
         )
 
     UsersService.delete_user(user)
-    return jsonify({"message": "User successfully deleted"})
+    return jsonify({"message": "Nutzer erfolgreich gelöscht"})

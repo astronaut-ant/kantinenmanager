@@ -58,6 +58,15 @@ class UsersRepository:
         return user.id
 
     @staticmethod
+    def update_user(user: User):
+        """Update a user in the database"""
+
+        # SQLAlchemy automatically tracks changes to objects
+        # we only need to commit the session to save the changes
+
+        db.session.commit()
+
+    @staticmethod
     def delete_user(user: User):
         """Delete a user from the database"""
 

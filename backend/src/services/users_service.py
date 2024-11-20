@@ -81,6 +81,35 @@ class UsersService:
         return id, password
 
     @staticmethod
+    def update_user(
+        user: User,
+        first_name: str,
+        last_name: str,
+        username: str,
+        user_group: UserGroup,
+    ):
+        """Update a user in the database.
+
+        :param user: The user to update
+        :param first_name: The new first name of the user
+        :param last_name: The new last name of the user
+        :param username: The new username of the user
+        :param user_group: The new user group of the user
+        """
+
+        if username != user.username and UsersRepository.get_user_by_username(username):
+            raise UserAlreadyExistsError(
+                f"User with username {username} already exists"
+            )
+
+        user.first_name = first_name
+        user.last_name = last_name
+        user.username = username
+        user.user_group = user_group
+
+        UsersRepository.update_user(user)
+
+    @staticmethod
     def delete_user(user: User):
         """Delete a user from the database.
 
