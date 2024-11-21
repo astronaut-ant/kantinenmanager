@@ -3,6 +3,7 @@ import gruppenleitung from "../pages/gruppenleitung.vue";
 import index from "../pages/index.vue";
 import kuechenpersonal from "../pages/kuechenpersonal.vue";
 import verwaltung from "../pages/verwaltung.vue";
+import VerwaltungCSVUpload from "@/pages/csv-upload.vue";
 import standortleitung from "../pages/standortleitung.vue";
 import login from "../pages/login.vue";
 import { useAppStore } from "../stores/app.js";
@@ -39,6 +40,18 @@ const routes = [
     //   } else next();
     // },
   },
+  
+  {
+    path: "/verwaltung/behinderung/csv-upload",
+    component: VerwaltungCSVUpload,
+    // beforeEnter: (to, from, next) => {
+    //   const appStore = useAppStore();
+    //   if (!appStore.auth) {
+    //     next("/login");
+    //   } else next();
+    // },
+  },
+  
   {
     path: "/kuechenpersonal",
     component: kuechenpersonal,
