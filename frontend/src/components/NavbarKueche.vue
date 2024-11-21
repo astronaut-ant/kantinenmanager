@@ -16,27 +16,19 @@
       <hr class="text-white mt-4" />
       <div class="d-flex flex-column h-75 justify-space-evenly ps-2">
         <router-link
-          to="/verwaltung/uebersicht"
+          to="/kuechenpersonal/uebersicht"
           class="text-white text-decoration-none"
         >
-          <v-icon class="me-1">mdi-account-multiple</v-icon>
-          Alle Benutzerkonten</router-link
+          <v-icon class="me-1">mdi-list-box-outline</v-icon>
+          Heutige Bestellungen</router-link
         >
 
         <router-link
-          to="/verwaltung/neuerBenutzer"
+          to="/kuechenpersonal/qr"
           class="text-white text-decoration-none"
         >
-          <v-icon class="me-1">mdi-account-edit</v-icon>
-          Neues Benutzerkonto</router-link
-        >
-
-        <router-link
-          to="/verwaltung/behinderung"
-          class="text-white text-decoration-none"
-        >
-          <v-icon class="me-1">mdi-wheelchair</v-icon>
-          Mitarbeiter mit Behinderung</router-link
+          <v-icon class="me-1">mdi-qrcode-scan</v-icon>
+          QR-Scanner</router-link
         >
       </div>
     </v-navigation-drawer>
