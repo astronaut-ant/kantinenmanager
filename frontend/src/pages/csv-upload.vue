@@ -31,7 +31,12 @@
     </div>
     <v-dialog v-model="successDialog" persistent max-width="400">
       <v-card>
-        <v-card-title class="text-success">Erfolg</v-card-title>
+        <v-card-title class="text-success d-flex justify-start">
+          <v-icon left class="mr-2">
+            mdi-check-circle-outline
+          </v-icon>
+          <span class="text-h5">Erfolg</span>  
+        </v-card-title>
         <v-card-text>Datei wurde erfolgreich hochgeladen!</v-card-text>
         <v-card-actions>
           <v-btn color="success" text @click="closeSuccessDialog">OK</v-btn>
@@ -40,8 +45,13 @@
     </v-dialog>
     <v-dialog v-model="errorDialog" persistent max-width="400">
       <v-card>
-        <v-card-title class="text-error">Fehler</v-card-title>
-        <v-card-text>Fehler beim Hochladen der Datei. Bitte versuche es erneut.</v-card-text>
+        <v-card-title class="text-error d-flex justify-start">
+          <v-icon left class="mr-2">
+            mdi-alert-circle-outline
+          </v-icon>
+          <span class="text-h5">Fehler</span>  
+        </v-card-title>
+        <v-card-text>Fehler beim Hochladen der Datei. Bitte versuchen Sie es erneut.</v-card-text>
         <v-card-actions>
           <v-btn color="error" text @click="closeErrorDialog">OK</v-btn>
         </v-card-actions>
