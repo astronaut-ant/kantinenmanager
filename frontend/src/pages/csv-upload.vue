@@ -28,17 +28,36 @@
           </v-col>
         </v-row>
       </div>
-    </div>  
+    </div>
+    <v-dialog v-model="successDialog" persistent max-width="400">
+      <v-card>
+        <v-card-title class="text-success">Erfolg</v-card-title>
+        <v-card-text>Datei wurde erfolgreich hochgeladen!</v-card-text>
+        <v-card-actions>
+          <v-btn color="success" text @click="closeSuccessDialog">OK</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-dialog v-model="errorDialog" persistent max-width="400">
+      <v-card>
+        <v-card-title class="text-error">Fehler</v-card-title>
+        <v-card-text>Fehler beim Hochladen der Datei. Bitte versuche es erneut.</v-card-text>
+        <v-card-actions>
+          <v-btn color="error" text @click="closeErrorDialog">OK</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>  
   </v-container>
 </template>
   
              
   <script setup>
   import axios from "axios";
-  const formdata = new FormData()
   const file = ref(null);
   const fileError = ref(null);
   const loading = ref(false);
+  const successDialog = ref(false);
+  const errorDialog = ref(false);
 
   const onFileChange = () => {
     if (!file.value) {
@@ -54,9 +73,36 @@
   };
   
   const uploadFile = () => {
-    if (fileError.value) return;
-    loading.value = true;
-    formdata.append()
-    axios.post("DUMMY",{body:{data:formdata}})
+  if (fileError.value || !file.value) return;
+  loading.value = true;
+
+  const formData = new FormData();
+  formData.append("file", file.value);
+
+  axios
+    .post("DUMMY", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    })
+    .then((response) => {
+      console.log(response.data);
+      successDialog.value = true;
+    })
+    .catch((err) => {
+      console.error(err);
+      errorDialog.value = true;
+    })
+    .finally(() => {
+      loading.value = false;
+      file.value = null;
+    });
+  };
+  const closeSuccessDialog = () => {
+  successDialog.value = false;
+  };
+
+  const closeErrorDialog = () => {
+  errorDialog.value = false;
   };
   </script>
