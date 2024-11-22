@@ -4,9 +4,10 @@ import enum
 import sqlalchemy
 import uuid
 from datetime import datetime
-from sqlalchemy import UUID, Boolean, DateTime, String
+from sqlalchemy import UUID, Boolean, DateTime, String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
 from src.database import db
+from src.models.person import Person
 
 # Die Models repräsentieren die Datenstrukturen unserer Anwendung.
 # Hier verwenden wir hauptsächlich SQLAlchemy und Flask-SQLAlchemy.
@@ -27,12 +28,10 @@ class UserGroup(enum.Enum):
 # Jede Klasse, die von db.Model erbt, wird auf eine Tabelle unserer
 # Datenbank gemappt. Eine Instanz dieser Klasse kommt einer Zeile
 # der Datenbank gleich.
-class User(db.Model):
+class User(Person):
     """Model to represent a user
 
     :param id: The user's ID as UUID4
-    :param first_name: The user's first name
-    :param last_name: The user's last name
     :param username: The user's username for login
     :param hashed_password: The user's hashed password
     :param user_group: The user's group
@@ -41,19 +40,18 @@ class User(db.Model):
     """
 
     # Das sind die Attribue (Spalten) der Tabelle:
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
-    first_name: Mapped[str] = mapped_column(String(64), nullable=False)
-    last_name: Mapped[str] = mapped_column(String(64), nullable=False)
+    id: Mapped[uuid.UUID] = mapped_column(ForeignKey("person.id"), primary_key=True)
     username: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(256), nullable=False)
     user_group: Mapped[UserGroup] = mapped_column(
         sqlalchemy.Enum(UserGroup), nullable=False
     )
-    created: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     last_login: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     blocked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    __mapper_args__ = {
+        "polymorphic_identity": "user",
+    }
 
     def __init__(
         self,
@@ -72,12 +70,10 @@ class User(db.Model):
         :param user_group: The user's group
         """
 
-        self.first_name = first_name
-        self.last_name = last_name
+        super().__init__(first_name, last_name)
         self.username = username
         self.hashed_password = hashed_password
         self.user_group = user_group
-        self.created = datetime.now()
         self.last_login = None
         self.blocked = False
 
