@@ -5,8 +5,10 @@ import sqlalchemy
 import uuid
 from datetime import datetime
 from sqlalchemy import UUID, Boolean, DateTime, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database import db
+from src.models.user import User
+from src.models.employee import Employee
 
 # Die Models repräsentieren die Datenstrukturen unserer Anwendung.
 # Hier verwenden wir hauptsächlich SQLAlchemy und Flask-SQLAlchemy.
@@ -31,6 +33,18 @@ class Person(db.Model):
     created: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     type: Mapped[str]
 
+    # Das sind die Beziehungen zu anderen Tabellen:
+    user: Mapped["User"] = relationship(
+        back_populates="person", cascade="all, delete-orphan", uselist=False
+    )
+    employee: Mapped["Employee"] = relationship(
+        back_populates="person", cascade="all, delete-orphan", uselist=False
+    )
+
+    # __mapper_args__ ist ein spezielles Attribut, das SQLAlchemy verwendet, um
+    # Informationen über die Vererbungshierarchie zu speichern. In diesem Fall
+    # wird es verwendet, um die Klasse Person als Basisklasse für die Klasse
+    # Employee und User zu kennzeichnen.
     __mapper_args__ = {
         "polymorphic_identity": "person",
         "polymorphic_on": "type",

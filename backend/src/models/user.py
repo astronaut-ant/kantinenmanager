@@ -5,9 +5,11 @@ import sqlalchemy
 import uuid
 from datetime import datetime
 from sqlalchemy import UUID, Boolean, DateTime, String, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database import db
 from src.models.person import Person
+from src.models.group import Group
+from src.models.location import Location
 
 # Die Models repräsentieren die Datenstrukturen unserer Anwendung.
 # Hier verwenden wir hauptsächlich SQLAlchemy und Flask-SQLAlchemy.
@@ -48,6 +50,12 @@ class User(Person):
     )
     last_login: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     blocked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    # Das sind die Beziehungen zu anderen Tabellen:
+    group: Mapped["Group"] = relationship(back_populates="group_leader", uselist=False)
+    location: Mapped["Location"] = relationship(
+        back_populates="location_leader", uselist=False
+    )
 
     __mapper_args__ = {
         "polymorphic_identity": "user",
