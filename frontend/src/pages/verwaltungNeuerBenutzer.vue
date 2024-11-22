@@ -23,6 +23,20 @@
             </div>
           </v-radio-group>
           <v-text-field
+            v-model="first_name"
+            :rules="[required]"
+            class="mb-2"
+            label="Vorname"
+            clearable
+          ></v-text-field>
+          <v-text-field
+            v-model="last_name"
+            :rules="[required]"
+            class="mb-2"
+            label="Nachname"
+            clearable
+          ></v-text-field>
+          <v-text-field
             v-model="username"
             :rules="[required]"
             class="mb-2"
@@ -66,6 +80,8 @@ import axios from "axios";
 const validation = ref("");
 const showConfirm = ref(false);
 const form = ref(false);
+const first_name = ref("");
+const last_name = ref("");
 const username = ref("");
 const password = ref("");
 const user_group = ref("");
@@ -73,6 +89,8 @@ const user_group = ref("");
 const handleSubmit = () => {
   axios
     .post("http://localhost:4200/api/users ", {
+      first_name: first_name.value,
+      last_name: last_name.value,
       username: username.value,
       password: password.value,
       user_group: user_group.value,
