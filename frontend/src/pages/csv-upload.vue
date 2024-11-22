@@ -1,4 +1,5 @@
 <template>
+  <NavbarVerwaltung />
   <v-container>
     <h1 class="text-center mt-5">Import CSV Dateien</h1>
     <div class="d-flex justify-center">
