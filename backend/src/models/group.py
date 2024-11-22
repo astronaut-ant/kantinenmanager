@@ -2,7 +2,9 @@ import sqlalchemy
 import uuid
 from sqlalchemy import UUID, Boolean, DateTime, String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column
+from src.database import db
 from src.models.user import User
+from src.models.location import Location
 
 
 class Group(db.Model):
@@ -26,7 +28,9 @@ class Group(db.Model):
     user_id_replacement: Mapped[uuid.UUID] = mapped_column(
         ForeignKey(User.id), nullable=True
     )
-    location_id: Mapped[uuid.UUID] = mapped_column((Location.id), nullable=False)
+    location_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey(Location.id), nullable=False
+    )
 
     def __init__(
         self,

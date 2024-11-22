@@ -20,6 +20,11 @@ def init_db(app):
     import src.models.employee
     import src.models.person
 
+    import src.models.group
+    import src.models.location
+
+    import src.models.preorder
+
     with app.app_context():
         # Hier werden alle Tabellen erstellt, zu denen
         # SQL-Alchemy Models finden kann. Das ist erstmal nur

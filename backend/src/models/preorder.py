@@ -1,8 +1,18 @@
+import enum
 import uuid
+import sqlalchemy
 from datetime import datetime
 from sqlalchemy import UUID, Boolean, DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
 from src.database import db
+
+
+class MainDish(enum.Enum):
+    """Enum to represent the two different main dishes in the application"""
+
+    # The values need to be lowercase for validation to work
+    rot = "rot"
+    blau = "blau"
 
 
 class Preorder(db.Model):
@@ -23,7 +33,9 @@ class Preorder(db.Model):
     )
     person_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("person.id"))
     date: Mapped[datetime] = mapped_column(DateTime, nullable=True)
-    main_dish: Mapped[str] = mapped_column(String(64), nullable=False)
+    main_dish: Mapped[MainDish] = mapped_column(
+        sqlalchemy.Enum(MainDish), nullable=False
+    )
     salad_option: Mapped[bool] = mapped_column(Boolean, nullable=False)
     last_changed: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
