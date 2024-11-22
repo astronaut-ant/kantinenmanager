@@ -1,8 +1,13 @@
-from src.models.user import User, UserGroup
-from src.services.users_service import UsersService
-from flask import Blueprint, make_response, jsonify, abort
+from uuid import UUID
+from marshmallow import ValidationError
+from src.utils.auth_utils import login_required
+from src.utils.error import ErrMsg, abort_with_err
+from src.models.user import UserGroup
+from src.services.users_service import UserAlreadyExistsError, UsersService
+from flask import Blueprint, jsonify, request
 from marshmallow.validate import Length
-from flasgger import Schema, fields
+from marshmallow import Schema, fields
+from flasgger import swag_from
 
 # Routes sind die Verbindung zur Außenwelt und verantwortlich für die Verarbeitung von HTTP-Requests.
 # Eine Route bekommt einen Request vom Nutzer (Frontend), extrahiert die enthaltenen Daten, gibt
@@ -22,111 +27,403 @@ users_routes = Blueprint("users_routes", __name__)
 
 # Bei jedem GET Request (siehe HTTP) auf /api/users wird die get_users Funktion aufgerufen
 @users_routes.get("/api/users")
+@login_required(groups=[UserGroup.verwaltung])
+@swag_from(
+    {
+        "tags": ["users"],
+        "definitions": {
+            "User": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                    },
+                    "first_name": {"type": "string"},
+                    "last_name": {"type": "string"},
+                    "username": {"type": "string"},
+                    "user_group": {"type": "string"},
+                    "created": {"type": "number"},
+                    "last_login": {"type": "number"},
+                    "blocked": {"type": "boolean"},
+                },
+            }
+        },
+        "responses": {
+            200: {
+                "description": "Returns a list of all users",
+                "schema": {"type": "array", "items": {"$ref": "#/definitions/User"}},
+            }
+        },
+    }
+)
 def get_users():
     """Get all users
     Get a list of all users
+
+    Authentication: required
+    Authorization: Verwaltung
     ---
-    tags:
-      - users
-    definitions:
-      User:
-        type: object
-        properties:
-          id:
-            type: integer
-          username:
-            type: string
-          user_group:
-            type: string
-            enum:
-              - verwaltung
-              - standortleitung
-              - gruppenleitung
-              - kuechenpersonal
-    responses:
-      200:
-        description: Returns a list of all users
-        schema:
-          type: array
-          items:
-            $ref: '#/definitions/User'
     """
     # Der docstring --^ ist wie wir Flasgger über die Parameter und Rückgabewerte
     # dieses Endpunkts informieren. Die Informationen werden extrahiert und
     # graphisch auf http://localhost:4200/apidocs/ angezeigt.
     # Achtung: Im Kommentar wird YAML verwendet, was **2** Leerzeichen als Einrückung verwendet.
 
-    users = (
-        UsersService.get_users()
-    )  # Hier bekommen wir vom Service eine Liste aller Nutzer
+    users = UsersService.get_users()
 
     # Diese wird in eine Liste an Dicts umgewandelt, aber ohne das Passwort
-    users_dict = [
-        {"id": user.id, "username": user.username, "user_group": user.user_group.value}
-        for user in users
-    ]
+    users_dict = [user.to_dict_without_pw_hash() for user in users]
 
     # Die dicts brauchen wir, denn daraus können wir JSON erzeugen.
     # Mit jsonify wird automatisch ein Response Object erstellt.
     return jsonify(users_dict)
 
 
+@users_routes.get("/api/users/<uuid:user_id>")
+@login_required(groups=[UserGroup.verwaltung])
+@swag_from(
+    {
+        "tags": ["users"],
+        "parameters": [
+            {
+                "in": "path",
+                "name": "user_id",
+                "required": True,
+                "schema": {"type": "string"},
+            }
+        ],
+        "responses": {
+            200: {
+                "description": "Returns the user with the given ID",
+                "schema": {"$ref": "#/definitions/User"},
+            },
+            404: {"description": "User not found"},
+        },
+    }
+)
+def get_user_by_id(user_id: UUID):
+    """Get a user by ID
+    Get a user by ID
+
+    Authentication: required
+    Authorization: Verwaltung
+    ---
+    """
+    user = UsersService.get_user_by_id(user_id)
+    if user is None:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Nutzer nicht gefunden",
+                description="Es wurde kein Nutzer mit dieser ID gefunden",
+            )
+        )
+
+    return jsonify(user.to_dict_without_pw_hash())
+
+
 # Das folgende kommt aus Marshmallow. https://marshmallow.readthedocs.io/en/stable/#
 # Mit Marshmallow kann man Objekte serialisieren, deserialisieren und validieren, was eine Menge if Statements ersparen sollte.
-# Das Schema gibt an, wie die Daten aussehen sollen, zusammen mit gewissen Einschränkungen. Diese Schemas können wir auch für
-# Flasgger verwenden, um zu definieren, wie die Eingabedaten (BODY, QUERY) auszusehen haben.
+# Das Schema gibt an, wie die Daten aussehen sollen, zusammen mit gewissen Einschränkungen.
 class UsersPostBody(Schema):
     """
-    Schema for the POST /users endpoint
+    Schema for the POST /api/users endpoint
     """
 
-    username = fields.Str(required=True, validate=Length(min=1, max=50))
-    password = fields.Str(required=True, validate=Length(min=8, max=150))
+    first_name = fields.Str(required=True, validate=Length(min=1, max=64))
+    last_name = fields.Str(required=True, validate=Length(min=1, max=64))
+    username = fields.Str(required=True, validate=Length(min=1, max=64))
+    password = fields.Str(required=True, validate=Length(min=8, max=256))
     user_group = fields.Enum(UserGroup, required=True)
 
-    # Die beiden folgenden Funktionen müssen genauso heißen und werden
-    # von Flasgger aufgerufen.
 
-    def swag_validation_function(self, data, main_def):
-        # data sind quasi die rohen Daten, wie sie aus dem Request kommen.
-        # Mit load (aus Marshmallow) werden die Daten deserialisiert, also in eine Python-Datenstruktur
-        # gewandelt. Dabei werden obige Constrains validiert. Bei Verletzungen
-        # wird ein Error geworfen. In diesem Fall wird die zweite Methode aufgerufen.
-        self.load(data)
-
-    def swag_validation_error_handler(self, err, data, main_def):
-        # Im Fehlerfall wird die gesamte Anfrage mit `abort` vorzeitig unterbrochen.
-        # (abort kommt aus Flask). Hier wird die Fehlermeldung mit einem 400
-        # Status Code (-> Bad Request) zurückgesendet.
-        abort(make_response(jsonify(err.messages), 400))
-
-
-# Bei jedem POST Request auf /api/users wird die create_user Funktion aufgerufen.
-# Flasgger reicht uns den BODY des Requests (Instanz obigen Schemas) als Argument in die Funktion
-# und führt vorher die Validierung aus.
-# Leider ist das ziemlich schlecht von Flasgger dokumentiert. Aber `swag=True` kommt von Flasgger.
-@users_routes.post("/api/users", swag=True)
-def create_user(body: UsersPostBody):
+@users_routes.post("/api/users")
+@swag_from(
+    {
+        "tags": ["users"],
+        "parameters": [
+            {
+                "in": "body",
+                "name": "body",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "first_name": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 64,
+                        },
+                        "last_name": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 64,
+                        },
+                        "username": {"type": "string", "minLength": 1, "maxLength": 64},
+                        "password": {
+                            "type": "string",
+                            "minLength": 8,
+                            "maxLength": 256,
+                        },
+                        "user_group": {
+                            "type": "string",
+                            "enum": [
+                                "verwaltung",
+                                "standortleitung",
+                                "gruppenleitung",
+                                "kuechenpersonal",
+                            ],
+                        },
+                    },
+                },
+            }
+        ],
+        "responses": {
+            200: {
+                "description": "Returns the ID and initial password of the new user",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "example": "123e4567-e89b-12d3-a456-426614174000",
+                        },
+                        "initial_password": {"type": "string"},
+                    },
+                },
+            },
+            400: {"description": "Validation error or username already exists"},
+        },
+    }
+)
+def create_user():
     """Create a new user
-    Create a new user with the given username, password, and user group
+    Create a new user
     ---
-    tags:
-      - users
-    responses:
-      200:
-        description: Returns the ID of the created user
-        schema:
-          type: object
-          properties:
-            id:
-              type: integer
-      400:
-        description: Validation error
     """
 
-    # Alternativ könnten wir über das `request` Objekt von Flask direkt auf den Request zugreifen
-    # und manuell die Daten extrahieren.
+    try:
+        body = UsersPostBody().load(request.json)
+    except ValidationError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Validierungsfehler",
+                description="Format der Daten im Request-Body nicht valide",
+                details=err.messages,
+            )
+        )
 
-    user = User(**body)
-    id = UsersService.create_user(user)
-    return jsonify({"id": id})
+    try:
+        id, initial_password = UsersService.create_user(**body)
+    except UserAlreadyExistsError:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Nutzername bereits vergeben",
+                description="Der Nutzername ist bereits vergeben",
+            )
+        )
+
+    return jsonify({"id": id, "initial_password": initial_password})
+
+
+class UsersUpdateBody(Schema):
+    """
+    Schema for the PUT /api/users/id endpoint
+    """
+
+    first_name = fields.Str(required=True, validate=Length(min=1, max=64))
+    last_name = fields.Str(required=True, validate=Length(min=1, max=64))
+    username = fields.Str(required=True, validate=Length(min=1, max=64))
+    user_group = fields.Enum(UserGroup, required=True)
+
+
+@users_routes.put("/api/users/<uuid:user_id>/reset-password")
+@login_required(groups=[UserGroup.verwaltung])
+@swag_from(
+    {
+        "tags": ["users"],
+        "parameters": [
+            {
+                "in": "path",
+                "name": "user_id",
+                "required": True,
+                "schema": {"type": "string"},
+            }
+        ],
+        "responses": {
+            200: {
+                "description": "Returns the new password of the user",
+                "schema": {
+                    "type": "object",
+                    "properties": {"new_password": {"type": "string"}},
+                },
+            },
+            404: {"description": "User not found"},
+        },
+    }
+)
+def reset_password(user_id: UUID):
+    """Reset the password of a user
+    Reset the password of a user.
+
+    A new random password is generated and returned. All refresh tokens of the user are invalidated.
+
+    Authentication: required
+    Authorization: Verwaltung
+    ---
+    """
+    user = UsersService.get_user_by_id(user_id)
+    if user is None:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Nutzer nicht gefunden",
+                description="Es wurde kein Nutzer mit dieser ID gefunden",
+            )
+        )
+
+    initial_password = UsersService.reset_password(user)
+    return jsonify({"new_password": initial_password})
+
+
+@users_routes.put("/api/users/<uuid:user_id>")
+@login_required(groups=[UserGroup.verwaltung])
+@swag_from(
+    {
+        "tags": ["users"],
+        "parameters": [
+            {
+                "in": "path",
+                "name": "user_id",
+                "required": True,
+                "schema": {"type": "string"},
+            },
+            {
+                "in": "body",
+                "name": "body",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "first_name": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 64,
+                        },
+                        "last_name": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 64,
+                        },
+                        "username": {"type": "string", "minLength": 1, "maxLength": 64},
+                        "user_group": {
+                            "type": "string",
+                            "enum": [
+                                "verwaltung",
+                                "standortleitung",
+                                "gruppenleitung",
+                                "kuechenpersonal",
+                            ],
+                        },
+                    },
+                },
+            },
+        ],
+        "responses": {
+            200: {
+                "description": "Returns the updated user",
+                "schema": {"$ref": "#/definitions/User"},
+            },
+            400: {"description": "Validation error or username already exists"},
+            404: {"description": "User not found"},
+        },
+    }
+)
+def update_user(user_id: UUID):
+    """Update a user
+    Update a user identified by ID
+    ---
+    """
+
+    try:
+        body = UsersUpdateBody().load(request.json)
+    except ValidationError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Validierungsfehler",
+                description="Format der Daten im Request-Body nicht valide",
+                details=err.messages,
+            )
+        )
+
+    user = UsersService.get_user_by_id(user_id)
+    if user is None:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Nutzer nicht gefunden",
+                description="Es wurde kein Nutzer mit dieser ID gefunden",
+            )
+        )
+
+    try:
+        UsersService.update_user(user, **body)
+    except UserAlreadyExistsError:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Nutzername bereits vergeben",
+                description="Der Nutzername ist bereits vergeben",
+            )
+        )
+
+    return jsonify(user.to_dict_without_pw_hash())
+
+
+@users_routes.delete("/api/users/<uuid:user_id>")
+@login_required(groups=[UserGroup.verwaltung])
+@swag_from(
+    {
+        "tags": ["users"],
+        "parameters": [
+            {
+                "in": "path",
+                "name": "user_id",
+                "required": True,
+                "schema": {"type": "string"},
+            }
+        ],
+        "responses": {
+            200: {
+                "description": "User successfully deleted",
+                "schema": {
+                    "type": "object",
+                    "properties": {"message": {"type": "string"}},
+                },
+            },
+            404: {"description": "User not found"},
+        },
+    }
+)
+def delete_user(user_id: UUID):
+    """Delete a user
+    Delete a user by ID
+
+    Authentication: required
+    Authorization: Verwaltung
+    ---
+    """
+    user = UsersService.get_user_by_id(user_id)
+    if user is None:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Nutzer nicht gefunden",
+                description="Es wurde kein Nutzer mit dieser ID gefunden",
+            )
+        )
+
+    UsersService.delete_user(user)
+    return jsonify({"message": "Nutzer erfolgreich gelöscht"})

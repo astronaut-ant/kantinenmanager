@@ -7,6 +7,7 @@ WORKDIR /app/frontend
 
 # install bash (needed for Git in dev container)
 RUN apk add --no-cache bash
+RUN apk add openssh-client 
 
 # copy both 'package.json' and 'package-lock.json' (if available)
 COPY package*.json ./
