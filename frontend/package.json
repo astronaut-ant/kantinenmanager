@@ -13,6 +13,7 @@
     "core-js": "^3.37.1",
     "roboto-fontface": "*",
     "vue": "^3.4.31",
+    "vue-qrcode-reader": "^5.5.11",
     "vuetify": "^3.6.11"
   },
   "devDependencies": {
