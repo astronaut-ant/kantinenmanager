@@ -10,7 +10,7 @@ class Base(DeclarativeBase):
     pass
 
 
-db = SQLAlchemy(model_class=Base)
+db = SQLAlchemy(model_class=Base, engine_options={"echo": True})
 
 
 def init_db(app):
