@@ -17,6 +17,8 @@ def init_db(app):
     db.init_app(app)
 
     import src.models.user
+    import src.models.employee
+    import src.models.person
 
     with app.app_context():
         # Hier werden alle Tabellen erstellt, zu denen
