@@ -55,14 +55,18 @@ const password = ref(null);
 const loading = ref(false);
 const dialog = ref(true);
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
   const appStore = useAppStore();
   if (!form) return;
-  axios
-    .post("https://localhost: ", {
-      userName: userName.value,
-      password: password.value,
-    })
+  await axios
+    .post(
+      "http://localhost:4200/api/login",
+      {
+        username: userName.value,
+        password: password.value,
+      },
+      { withCredentials: true }
+    )
     .then((response) => console.log(response.data))
     .catch((err) => console.log(err));
   loading.value = true;

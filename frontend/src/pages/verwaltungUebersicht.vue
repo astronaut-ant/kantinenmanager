@@ -15,7 +15,7 @@ import axios from "axios";
 const users = ref({});
 onMounted(() => {
   axios
-    .get("http://localhost:4200/api/users")
+    .get("http://localhost:4200/api/users", { withCredentials: true })
     .then((response) => {
       users.value = response.data;
       console.log(users.value);

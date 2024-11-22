@@ -36,7 +36,11 @@ if (
     )
 
 app = Flask(__name__)
-CORS(app)  # disable in production
+CORS(
+    app,
+    resources={r"/api/*": {"origins": "http://localhost:3000"}},
+    supports_credentials=True,
+)
 swagger = Swagger(app)
 
 app.config["SQLALCHEMY_DATABASE_URI"] = (
