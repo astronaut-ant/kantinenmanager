@@ -6,7 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database import db
 from src.models.user import User
 from src.models.location import Location
-from src.models.location import Employee
+from src.models.employee import Employee
 
 
 class Group(db.Model):
@@ -24,19 +24,20 @@ class Group(db.Model):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     group_name: Mapped[str] = mapped_column(String(64), nullable=False)
-    user_id_groupleader: Mapped[uuid.UUID] = relationship(
-        ForeignKey(User.id), nullable=False
+    user_id_groupleader: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("user.id"), nullable=False
     )
     user_id_replacement: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey(User.id), nullable=True
+        ForeignKey("user.id"), nullable=True
     )
     location_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey(Location.id), nullable=False
+        ForeignKey("location.id"), nullable=False
     )
 
     # Das sind die Beziehungen zu anderen Tabellen:
     employees: Mapped[Set["Employee"]] = relationship(back_populates="group")
-    group_leader: Mapped["User"] = relationship(back_populates="group")
+    group_leader: Mapped["User"] = relationship(back_populates="group", uselist=False)
+    # group_leader_replacement: Mapped["User"] = relationship(back_populates="group")
 
     def __init__(
         self,

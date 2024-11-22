@@ -2,9 +2,10 @@ import enum
 import uuid
 import sqlalchemy
 from datetime import datetime
-from sqlalchemy import UUID, Boolean, DateTime, ForeignKey, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import UUID, Boolean, DateTime, ForeignKey, String, Integer
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database import db
+from src.models.person import Person
 
 
 class MainDish(enum.Enum):
@@ -28,16 +29,17 @@ class Preorder(db.Model):
 
     # Das sind die Attribue (Spalten) der Tabelle:
     # Order ID
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     person_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("person.id"))
-    date: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+    date: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     main_dish: Mapped[MainDish] = mapped_column(
-        sqlalchemy.Enum(MainDish), nullable=False
+        sqlalchemy.Enum(MainDish), nullable=True
     )
     salad_option: Mapped[bool] = mapped_column(Boolean, nullable=False)
     last_changed: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+
+    # Das sind die Beziehungen zu anderen Tabellen:
+    person: Mapped["Person"] = relationship(back_populates="preorders")
 
     def __init__(
         self,

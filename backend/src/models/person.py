@@ -3,12 +3,14 @@
 import enum
 import sqlalchemy
 import uuid
+from typing import List
 from datetime import datetime
 from sqlalchemy import UUID, Boolean, DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database import db
 from src.models.user import User
 from src.models.employee import Employee
+from src.models.preorder import Preorder
 
 # Die Models repräsentieren die Datenstrukturen unserer Anwendung.
 # Hier verwenden wir hauptsächlich SQLAlchemy und Flask-SQLAlchemy.
@@ -40,6 +42,7 @@ class Person(db.Model):
     employee: Mapped["Employee"] = relationship(
         back_populates="person", cascade="all, delete-orphan", uselist=False
     )
+    preorders: Mapped[List["Preorder"]] = relationship(back_populates="person")
 
     # __mapper_args__ ist ein spezielles Attribut, das SQLAlchemy verwendet, um
     # Informationen über die Vererbungshierarchie zu speichern. In diesem Fall

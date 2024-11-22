@@ -5,7 +5,7 @@ import sqlalchemy
 import uuid
 from datetime import datetime
 from sqlalchemy import UUID, Boolean, DateTime, String, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database import db
 from src.models.user import User
 
@@ -30,28 +30,33 @@ class Location(db.Model):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
     location_name: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
     user_id_location_leader: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey(User.id), nullable=False
+        ForeignKey("user.id"), nullable=False
+    )
+
+    # Das sind die Beziehungen zu anderen Tabellen:
+    location_leader: Mapped["User"] = relationship(
+        back_populates="location", uselist=False
     )
 
     def __init__(
         self,
         location_name: str,
-        user_id_location_leader: int,
+        user_id_location_leader: uuid.UUID,
     ):
         """Initialize a new location
 
         :param location_name: The loction's name
-        :param location_leader: The ID of the location leader as UUID4
+        :param user_id_location_leader: The ID of the location leader as UUID4
         """
 
         self.location_name = location_name
-        self.location_leader = user_id_location_leader
+        self.user_id_location_leader = user_id_location_leader
 
     def __repr__(self):
-        return f"<User {self.id!r} {self.location_name!r} {self.location_name!r}>"
+        return f"<Location {self.id!r} {self.location_name!r} {self.user_id_location_leader!r}>"
 
     def to_dict(self) -> dict[str, str | int | bool]:
-        """Convert the location to a dictionary without the password hash
+        """Convert the location to a dictionary
 
         All complex objects are converted to their string representation.
 
@@ -60,11 +65,6 @@ class Location(db.Model):
 
         return {
             "id": str(self.id),
-            "first_name": self.first_name,
-            "last_name": self.last_name,
-            "username": self.username,
-            "user_group": self.user_group.value,
-            "created": self.created.timestamp(),
-            "last_login": self.last_login.timestamp() if self.last_login else 0,
-            "blocked": self.blocked,
+            "location_name": self.location_name,
+            "user_id_location_leader": str(self.user_id_location_leader),
         }
