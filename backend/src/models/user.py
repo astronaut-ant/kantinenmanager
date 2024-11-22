@@ -8,8 +8,6 @@ from sqlalchemy import UUID, Boolean, DateTime, String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database import db
 from src.models.person import Person
-from src.models.group import Group
-from src.models.location import Location
 
 # Die Models repräsentieren die Datenstrukturen unserer Anwendung.
 # Hier verwenden wir hauptsächlich SQLAlchemy und Flask-SQLAlchemy.

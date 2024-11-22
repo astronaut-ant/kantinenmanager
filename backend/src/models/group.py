@@ -4,9 +4,6 @@ from typing import Set
 from sqlalchemy import UUID, Boolean, DateTime, String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database import db
-from src.models.user import User
-from src.models.location import Location
-from src.models.employee import Employee
 
 
 class Group(db.Model):

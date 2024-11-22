@@ -9,7 +9,6 @@ from sqlalchemy import UUID, Boolean, DateTime, String, Integer, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database import db
 from src.models.person import Person
-from src.models.group import Group
 
 # Die Models repräsentieren die Datenstrukturen unserer Anwendung.
 # Hier verwenden wir hauptsächlich SQLAlchemy und Flask-SQLAlchemy.
@@ -31,7 +30,6 @@ class Employee(Person):
     group_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("group.id"), nullable=False)
 
     # Das sind die Beziehungen zu anderen Tabellen:
-    person: Mapped["Person"] = relationship(back_populates="employee", uselist=False)
     group: Mapped["Group"] = relationship(back_populates="employees")
 
     __mapper_args__ = {

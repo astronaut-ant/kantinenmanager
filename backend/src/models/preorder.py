@@ -5,7 +5,6 @@ from datetime import datetime
 from sqlalchemy import UUID, Boolean, DateTime, ForeignKey, String, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database import db
-from src.models.person import Person
 
 
 class MainDish(enum.Enum):
