@@ -8,17 +8,17 @@ from src.models.person import Person
 from src.models.maindish import MainDish
 
 
-class PreOrder(db.Model):
-    __tablename__ = "pre_order"
+class OldOrder(db.Model):
+    __tablename__ = "old_order"
 
-    """Model to represent a preorder
+    """Model to represent an old order
 
-    :param id: The pre-order's ID as UUID4
+    :param id: The order's ID as UUID4
     :param person_id: The person's ID (foreign key to the person table)
-    :param date: The date of the pre-order
+    :param date: The date of the order
     :param main_dish: The selected main dish
-    :param salad_option: Whether a salad is included
-    :param last_changed: The date and time when the order was last changed
+    :param salad_option: Whether a salad was included
+    :param handed_out: Whether the order was handed out
     :param person: A reference to the person that made the order
     """
 
@@ -30,30 +30,32 @@ class PreOrder(db.Model):
         sqlalchemy.Enum(MainDish), nullable=True
     )
     salad_option: Mapped[bool] = mapped_column(Boolean, nullable=False)
-    last_changed: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    handed_out: Mapped[bool] = mapped_column(Boolean, nullable=True)
 
     # Beziehung zu anderen Tabellen:
-    person: Mapped["Person"] = relationship(back_populates="preorders")
+    person: Mapped["Person"] = relationship(back_populates="old_orders")
 
     def __init__(
         self,
+        person: "Person",
         date: datetime,
         main_dish: MainDish,
         salad_option: bool,
-        person: "Person",
+        handed_out: bool,
     ):
-        """Initialize a new pre-order
+        """Initialize a new old order
 
-        :param date: The date of the pre-order
+        :param person: The person that made the order
+        :param date: The date of the order
         :param main_dish: The selected main dish
         :param salad_option: Whether a salad is included
-        :param person: The person that made the order
+        :param handed_out: Whether the order was handed out
         """
+        self.person = person
         self.date = date
         self.main_dish = main_dish
         self.salad_option = salad_option
-        self.last_changed = datetime.now()
-        self.person = person
+        self.handed_out = handed_out
 
     def __repr__(self):
-        return f"<Pre-Order {self.id!r} {self.person_id!r} {self.date!r} {self.main_dish!r} {self.salad_option!r}>"
+        return f"<OldOrder {self.id!r} {self.person_id!r} {self.date!r} {self.main_dish!r} {self.salad_option!r} {self.handed_out!r}>"

@@ -24,6 +24,8 @@ def init_db(app):
     import src.models.location
 
     import src.models.preorder
+    import src.models.dailyorder
+    import src.models.oldorder
 
     with app.app_context():
         # Hier werden alle Tabellen erstellt, zu denen
