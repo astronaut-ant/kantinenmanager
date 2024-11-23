@@ -12,7 +12,13 @@ If you open this project in VS Code you should get a list of recommended extensi
 
 ## Getting started
 
-### Using Dev Containers
+### Create .env file
+
+Project configuration is done via a `.env` file. To create `.env` files with default values, run `python scripts/init.py` or `python3 scripts/init.py` from the project root. Alternatively, you can run `docker compose run init` to start a Python container and execute the script automatically.
+
+Once the configuration is complete, you can choose one of the following methods to start the project.
+
+### Using Dev Containers (Recommended)
 
 Dev Containers allow you to connect VS Code directly to a Docker container, enabling you to develop inside the container using autocompletion as well as npm and python commands just like on your local machine.
 
@@ -38,6 +44,23 @@ Dev Containers allow you to connect VS Code directly to a Docker container, enab
 
 - If issues arise, try running `Dev Containers: Rebuild Container`.
 - If the Flask or Node app isn't running in the terminal, disconnect and restart the container (the npm/flask command runs only when the container starts but continues after disconnection).
+
+In the native VS Code terminal you are able to run Python and npm commands.
+
+**Start the backend from within the backend container:**
+
+```bash
+cd backend # change directory from /app to /app/backend
+flask --app startup:app run --host=0.0.0.0 --port=4200 --debug # run the app
+```
+
+**Start debugging the backend:**
+
+1. Make sure you are connected to the backend container
+2. Stop the flask process in the default terminal (press CTRL+C)
+3. Go to the "Run and Debug" tab on the left in VS Code
+4. Select "Python: Dev Container" at the top
+5. Click the little green play button at the top left
 
 ### Using Docker Compose in VS Code UI
 
@@ -69,9 +92,35 @@ docker compose down # Stop and remove containers
 docker compose -f docker-compose.debug.yml up --build # Start the application in debug mode
 ```
 
-**Hint:** Debug mode uses a Python Debugger, allowing you to use the "Run and Debug" tab of VS Code. Select "Backend Python Debugger" and click the small green play button in the top left. This will disable hot-reloading.
+**Hint:** Debug mode uses a Python Debugger, allowing you to use the "Run and Debug" tab of VS Code. Select "Python: Remote Attach" and click the small green play button in the top left. This will disable hot-reloading.
 
 **Hint:** The default backend port is `4200` and the frontend uses `3000`.
+
+## Running Tests
+
+### Backend
+
+To run tests using Dev Containers connected to the backend container, open a new terminal in VS Code (top bar -> Terminal -> New Terminal). Then, execute one of the following commands:
+
+```bash
+pytest backend/  # Run all tests once and then exit
+
+pytest --cov=backend backend/  # Run all tests once and generate a coverage report
+
+ptw backend/  # Start a test runner that will watch for file changes and automatically rerun tests
+```
+
+Alternatively, you can start a separate Docker container to run the tests:
+
+```bash
+docker compose run test-backend  # Run tests and then exit
+
+docker compose run test-backend-watch  # Start a test runner that will watch for file changes and automatically rerun tests
+```
+
+### Frontend
+
+#todo
 
 ## Test and Deploy
 
