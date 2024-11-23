@@ -1,10 +1,8 @@
-"""Models related to storing user information."""
+"""Models related to storing location information."""
 
-import enum
-import sqlalchemy
+from typing import Set
 import uuid
-from datetime import datetime
-from sqlalchemy import UUID, Boolean, DateTime, String, ForeignKey
+from sqlalchemy import UUID, String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database import db
 
@@ -23,10 +21,14 @@ class Location(db.Model):
     :param id: The location's ID as UUID4
     :param location_name: The loction's name
     :param location_leader: The ID of the location leader as UUID4
+    :param location_leader: The location leader
+    :param groups: The groups at the location
     """
 
     # Das sind die Attribue (Spalten) der Tabelle:
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True)
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
     location_name: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
     user_id_location_leader: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("user.id"), nullable=False
@@ -34,25 +36,23 @@ class Location(db.Model):
 
     # Das sind die Beziehungen zu anderen Tabellen:
     location_leader: Mapped["User"] = relationship(
-        back_populates="location", uselist=False
+        back_populates="leader_of_location", uselist=False
     )
+    groups: Mapped[Set["Group"]] = relationship(back_populates="location")
 
     def __init__(
         self,
         location_name: str,
-        user_id_location_leader: uuid.UUID,
     ):
         """Initialize a new location
 
         :param location_name: The loction's name
-        :param user_id_location_leader: The ID of the location leader as UUID4
         """
 
         self.location_name = location_name
-        self.user_id_location_leader = user_id_location_leader
 
     def __repr__(self):
-        return f"<Location {self.id!r} {self.location_name!r} {self.user_id_location_leader!r}>"
+        return f"<Location {self.id!r} {self.location_name!r}>"
 
     def to_dict(self) -> dict[str, str | int | bool]:
         """Convert the location to a dictionary

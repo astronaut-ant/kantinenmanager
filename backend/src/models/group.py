@@ -1,7 +1,6 @@
-import sqlalchemy
 import uuid
 from typing import Set
-from sqlalchemy import UUID, Boolean, DateTime, String, ForeignKey
+from sqlalchemy import UUID, String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database import db
 
@@ -14,6 +13,10 @@ class Group(db.Model):
     :param user_id_groupleader: The ID of the Groupleader as UUID4
     :param user_id_replacement: The ID of the Replacement for the Groupleader as UUID4 else none
     :param location_id: The ID of the Location containing the Group
+    :param employees: The employees working in the group
+    :param group_leader: The Groupleader
+    :param group_leader_replacement: The Replacement for the Groupleader
+    :param location: The Location containing the Group
     """
 
     # Das sind die Attribue (Spalten) der Tabelle:
@@ -33,25 +36,25 @@ class Group(db.Model):
 
     # Das sind die Beziehungen zu anderen Tabellen:
     employees: Mapped[Set["Employee"]] = relationship(back_populates="group")
-    group_leader: Mapped["User"] = relationship(back_populates="group", uselist=False)
-    # group_leader_replacement: Mapped["User"] = relationship(back_populates="group")
+    group_leader: Mapped["User"] = relationship(
+        back_populates="leader_of_group", foreign_keys=[user_id_groupleader]
+    )
+    group_leader_replacement: Mapped["User"] = relationship(
+        back_populates="replacement_leader_of_groups",
+        foreign_keys=[user_id_replacement],
+    )
+    location: Mapped["Location"] = relationship(back_populates="groups")
 
     def __init__(
         self,
         group_name: str,
-        user_id_groupleader: uuid.UUID,
-        location_id: uuid.UUID,
     ):
         """Initialize a new group
 
         :param group_name: Name of the Group
-        :param user_id_groupleader: ID of the Groupleader
-        :param location_id: ID of the Location
         """
 
         self.group_name = group_name
-        self.user_id_groupleader = user_id_groupleader
-        location_id = location_id
 
     def __repr__(self):
-        return f"<Group {self.id!r} {self.group_name!r} {self.user_id_groupleader!r} {self.user_id_replacement} {self.location_id}>"
+        return f"<Group {self.id!r} {self.group_name!r}>"

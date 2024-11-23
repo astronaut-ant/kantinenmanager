@@ -1,12 +1,12 @@
 """Models related to storing user information."""
 
 import enum
+from typing import Set
 import sqlalchemy
 import uuid
 from datetime import datetime
-from sqlalchemy import UUID, Boolean, DateTime, String, ForeignKey
+from sqlalchemy import Boolean, DateTime, String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from src.database import db
 from src.models.person import Person
 
 # Die Models repräsentieren die Datenstrukturen unserer Anwendung.
@@ -32,11 +32,18 @@ class User(Person):
     """Model to represent a user
 
     :param id: The user's ID as UUID4
+    :param first_name: The user's first name
+    :param last_name: The user's last name
     :param username: The user's username for login
     :param hashed_password: The user's hashed password
     :param user_group: The user's group
     :param created: The date and time when the user was created
     :param last_login: The date and time when the user last logged in
+    :param blocked: Whether the user is blocked from logging in
+
+    :param leader_of_group: The group the user is leading
+    :param replacement_leader_of_groups: The groups the user is a replacement leader for
+    :param leader_of_location: The location the user is leading
     """
 
     # Das sind die Attribue (Spalten) der Tabelle:
@@ -50,8 +57,16 @@ class User(Person):
     blocked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     # Das sind die Beziehungen zu anderen Tabellen:
-    group: Mapped["Group"] = relationship(back_populates="group_leader", uselist=False)
-    location: Mapped["Location"] = relationship(
+    leader_of_group: Mapped["Group"] = relationship(
+        back_populates="group_leader",
+        uselist=False,
+        foreign_keys="Group.user_id_groupleader",
+    )
+    replacement_leader_of_groups: Mapped[Set["Group"]] = relationship(
+        back_populates="group_leader_replacement",
+        foreign_keys="Group.user_id_replacement",
+    )
+    leader_of_location: Mapped["Location"] = relationship(
         back_populates="location_leader", uselist=False
     )
 

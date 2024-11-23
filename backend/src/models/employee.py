@@ -1,13 +1,9 @@
-"""Models related to storing user information."""
+"""Models related to storing employee information."""
 
-import enum
 from typing import Optional
-import sqlalchemy
 import uuid
-from datetime import datetime
-from sqlalchemy import UUID, Boolean, DateTime, String, Integer, ForeignKey
+from sqlalchemy import Integer, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from src.database import db
 from src.models.person import Person
 
 # Die Models repräsentieren die Datenstrukturen unserer Anwendung.
@@ -19,9 +15,13 @@ from src.models.person import Person
 class Employee(Person):
     """Model to represent an employee
 
-    :param id: The user's ID as UUID4
+    :param id: The employee's ID as UUID4
+    :param first_name: The employee's first name
+    :param last_name: The employee's last name
     :param employee_number: The employee's number that is used in the organisation
-    :param group_id: The group number the employee is working at
+    :param group_id: The group ID the employee is working at
+    :param group: A reference to the group the employee is working in
+    :param created: The date and time when the employee was created
     """
 
     # Das sind die Attribue (Spalten) der Tabelle:
@@ -36,20 +36,16 @@ class Employee(Person):
         "polymorphic_identity": "employee",
     }
 
-    def __init__(
-        self, first_name: str, last_name: str, employee_number: int, group_id: int
-    ):
+    def __init__(self, first_name: str, last_name: str, employee_number: int):
         """Initialize a new employee
 
         :param first_name: The employee's first name
         :param last_name: The employee's last name
         :param employee_number: The employee's number that is used in the organisation
-        :param group_id: The number of the group the employee is working in
         """
 
         super().__init__(first_name, last_name)
         self.employee_number = employee_number
-        self.group_id = group_id
 
     def __repr__(self):
         return f"<Employee {self.id!r} {self.employee_number!r} {self.group_id!r}>"

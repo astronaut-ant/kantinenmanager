@@ -1,11 +1,9 @@
 """Models related to storing user information."""
 
-import enum
-import sqlalchemy
 import uuid
 from typing import List
 from datetime import datetime
-from sqlalchemy import UUID, Boolean, DateTime, String
+from sqlalchemy import UUID, DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database import db
 

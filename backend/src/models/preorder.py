@@ -2,8 +2,9 @@ import enum
 import uuid
 import sqlalchemy
 from datetime import datetime
-from sqlalchemy import UUID, Boolean, DateTime, ForeignKey, String, Integer
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from src.models.person import Person
 from src.database import db
 
 
@@ -24,6 +25,7 @@ class Preorder(db.Model):
     :param main_dish: The main dish selected
     :param salad_option: Whether a salad is included
     :param last_changed: The date and time when the order was last changed
+    :param person: A reference to the person that made the order
     """
 
     # Das sind die Attribue (Spalten) der Tabelle:
@@ -42,24 +44,23 @@ class Preorder(db.Model):
 
     def __init__(
         self,
-        person_id: uuid.UUID,
         date: datetime,
-        main_dish: str,
+        main_dish: MainDish,
         salad_option: bool,
-        last_changed: datetime,
+        person: "Person",
     ):
         """Initialize a new preorder
 
-        :param person_id: The person's UUID
         :param date: The date of the preorder
         :param main_dish: The selected main dish
         :param salad_option: Whether a salad is included
+        :param person: The person that made the order
         """
-        self.person_id = person_id
         self.date = date
         self.main_dish = main_dish
         self.salad_option = salad_option
         self.last_changed = datetime.now()
+        self.person = person
 
     def __repr__(self):
-        return f"<PreOrder {self.id!r} {self.person_id!r} {self.date!r} {self.main_dish!r} {self.salad_option!r} {self.last_changed!r}>"
+        return f"<PreOrder {self.id!r} {self.person_id!r} {self.date!r} {self.main_dish!r} {self.salad_option!r}>"
