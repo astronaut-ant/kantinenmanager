@@ -72,13 +72,13 @@ class EmployeesRepository:
         return db.session.scalars(
             select(Group)
             .join(Location)
-            .where(Group.name == group_name)
-            .where(Location.name == location_name)
+            .where(Group.group_name == group_name)
+            .where(Location.location_name == location_name)
         ).first()
 
     @staticmethod
     def get_employee_by_id_by_user_scope(
-        employee_id: UUID, user_group: UserGroup, user_id
+        employee_id: UUID, user_group: UserGroup, user_id: UUID
     ) -> Employee | None:
         """Retrieve an employee by their ID
 
@@ -92,13 +92,22 @@ class EmployeesRepository:
             ).first()
 
         elif user_group == UserGroup.standortleitung:
-            pass
+            return db.session.scalars(
+                select(Employee)
+                .join(Group)
+                .join(Location)
+                .filter(Location.user_id_location_leader == user_id)
+                .where(Employee.id == employee_id)
+            ).first()
 
         elif user_group == UserGroup.gruppenleitung:
-            pass
+            return db.session.scalars(
+                select(Employee)
+                .join(Group)
+                .filter(Group.user_id_groupleader == user_id)
+                .where(Employee.id == employee_id)
+            ).first()
 
-        elif user_group == UserGroup.kuechenpersonal:
-            pass
         else:
             None
 

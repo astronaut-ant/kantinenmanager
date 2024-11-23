@@ -29,7 +29,9 @@ class EmployeesService:
         return EmployeesRepository.get_employees_by_user_scope(user_group, user_id)
 
     @staticmethod
-    def get_employee_by_id(employee_id: UUID) -> Employee | None:
+    def get_employee_by_id(
+        employee_id: UUID, user_group: UserGroup, user_id: UUID
+    ) -> Employee | None:
         """Retrieve an employee by their ID
 
         :param employee_id: The ID of the employee to retrieve

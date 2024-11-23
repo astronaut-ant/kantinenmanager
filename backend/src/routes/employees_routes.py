@@ -17,13 +17,13 @@ employees_routes = Blueprint("employees_routes", __name__)
 
 # Bei jedem GET Request (siehe HTTP) auf /api/users wird die get_employees Funktion aufgerufen und alle Emplyoees, die Scope des Nutzers sind zurückgegeben
 @employees_routes.get("/api/employees")
-@login_required(
-    groups=[
-        UserGroup.verwaltung,
-        UserGroup.standortleitung,
-        UserGroup.gruppenleitung,
-    ]
-)
+# @login_required(
+#   groups=[
+#      UserGroup.verwaltung,
+#     UserGroup.standortleitung,
+#    UserGroup.gruppenleitung,
+# ]
+# )
 @swag_from(
     {
         "tags": ["employees"],
@@ -71,18 +71,19 @@ def get_employees():
     user_id = g.user_id
     employees = EmployeesService.get_employees(user_group, user_id)
 
-    return jsonify(employees)
+    employees_dict = [employee.to_dict() for employee in employees]
+
+    return jsonify(employees_dict)
 
 
 @employees_routes.get("/api/employees/<uuid:employee_id>")
-@login_required(
-    groups=[
-        UserGroup.verwaltung,
-        UserGroup.standortleitung,
-        UserGroup.gruppenleitung,
-        UserGroup.kuechenpersonal,
-    ]
-)
+# @login_required(
+#     groups=[
+#         UserGroup.verwaltung,
+#         UserGroup.standortleitung,
+#         UserGroup.gruppenleitung,
+#     ]
+# )
 @swag_from(
     {
         "tags": ["employees"],
@@ -111,7 +112,10 @@ def get_employee_by_id(employee_id: UUID):
     Authorization: Verwaltung
     ---
     """
-    employee = EmployeesService.get_employee_by_id(employee_id)
+
+    user_group = g.user_group
+    user_id = g.user_id
+    employee = EmployeesService.get_employee_by_id(employee_id, user_group, user_id)
     if employee is None:
         abort_with_err(
             ErrMsg(
@@ -124,6 +128,9 @@ def get_employee_by_id(employee_id: UUID):
     return jsonify(employee.to_dict())
 
 
+# TODO: def get_employye_by_id_kitchen(employee_id: UUID):
+
+
 class EmployeesPostBody(Schema):
     """
     Schema for the POST /api/employees endpoint
@@ -131,7 +138,7 @@ class EmployeesPostBody(Schema):
 
     first_name = fields.Str(required=True, validate=Length(min=1, max=64))
     last_name = fields.Str(required=True, validate=Length(min=1, max=64))
-    employee_number = fields.Int(required=True, validate=Length(min=1, max=6))
+    employee_number = fields.Int(required=True)
     group_name = fields.Str(required=True, validate=Length(min=1, max=256))
     location_name = fields.Str(required=True, validate=Length(min=1, max=256))
 
@@ -160,8 +167,6 @@ class EmployeesPostBody(Schema):
                         },
                         "employee_number": {
                             "type": "integer",
-                            "minLength": 1,
-                            "maxLength": 6,
                         },
                         "group_name": {
                             "type": "string",
