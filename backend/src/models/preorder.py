@@ -4,7 +4,6 @@ from datetime import datetime
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database import db
-from src.models.person import Person
 from src.models.maindish import MainDish
 
 
@@ -33,7 +32,7 @@ class PreOrder(db.Model):
     last_changed: Mapped[datetime] = mapped_column(DateTime, nullable=False)
 
     # Beziehung zu anderen Tabellen:
-    person: Mapped["Person"] = relationship(back_populates="preorders")
+    person: Mapped["Person"] = relationship(back_populates="pre_orders")
 
     def __init__(
         self,

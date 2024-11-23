@@ -30,8 +30,10 @@ class Person(db.Model):
     created: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     type: Mapped[str]
 
-    # Das sind die Beziehungen zu anderen Tabellen:
-    preorders: Mapped[List["Preorder"]] = relationship(back_populates="person")
+    # Das sind die Beziehungen zu anderen Tabellen (SQLAlchemy löst den import, auch wenn Fehler angezeigt wird):
+    pre_orders: Mapped[List["Preorder"]] = relationship(back_populates="person")
+    daily_orders: Mapped[List["DailyOrder"]] = relationship(back_populates="person")
+    old_orders: Mapped[List["OldOrder"]] = relationship(back_populates="person")
 
     # __mapper_args__ ist ein spezielles Attribut, das SQLAlchemy verwendet, um
     # Informationen über die Vererbungshierarchie zu speichern. In diesem Fall

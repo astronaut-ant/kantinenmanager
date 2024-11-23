@@ -4,7 +4,6 @@ from datetime import datetime
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database import db
-from src.models.person import Person
 from src.models.maindish import MainDish
 
 
