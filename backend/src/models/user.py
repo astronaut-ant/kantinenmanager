@@ -1,12 +1,13 @@
 """Models related to storing user information."""
 
 import enum
+from typing import Set
 import sqlalchemy
 import uuid
 from datetime import datetime
-from sqlalchemy import UUID, Boolean, DateTime, String
-from sqlalchemy.orm import Mapped, mapped_column
-from src.database import db
+from sqlalchemy import Boolean, DateTime, String, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from src.models.person import Person
 
 # Die Models repräsentieren die Datenstrukturen unserer Anwendung.
 # Hier verwenden wir hauptsächlich SQLAlchemy und Flask-SQLAlchemy.
@@ -27,7 +28,7 @@ class UserGroup(enum.Enum):
 # Jede Klasse, die von db.Model erbt, wird auf eine Tabelle unserer
 # Datenbank gemappt. Eine Instanz dieser Klasse kommt einer Zeile
 # der Datenbank gleich.
-class User(db.Model):
+class User(Person):
     """Model to represent a user
 
     :param id: The user's ID as UUID4
@@ -38,22 +39,40 @@ class User(db.Model):
     :param user_group: The user's group
     :param created: The date and time when the user was created
     :param last_login: The date and time when the user last logged in
+    :param blocked: Whether the user is blocked from logging in
+
+    :param leader_of_group: The group the user is leading
+    :param replacement_leader_of_groups: The groups the user is a replacement leader for
+    :param leader_of_location: The location the user is leading
     """
 
     # Das sind die Attribue (Spalten) der Tabelle:
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
-    first_name: Mapped[str] = mapped_column(String(64), nullable=False)
-    last_name: Mapped[str] = mapped_column(String(64), nullable=False)
+    id: Mapped[uuid.UUID] = mapped_column(ForeignKey("person.id"), primary_key=True)
     username: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(256), nullable=False)
     user_group: Mapped[UserGroup] = mapped_column(
         sqlalchemy.Enum(UserGroup), nullable=False
     )
-    created: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     last_login: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     blocked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+    # Das sind die Beziehungen zu anderen Tabellen:
+    leader_of_group: Mapped["Group"] = relationship(
+        back_populates="group_leader",
+        uselist=False,
+        foreign_keys="Group.user_id_groupleader",
+    )
+    replacement_leader_of_groups: Mapped[Set["Group"]] = relationship(
+        back_populates="group_leader_replacement",
+        foreign_keys="Group.user_id_replacement",
+    )
+    leader_of_location: Mapped["Location"] = relationship(
+        back_populates="location_leader", uselist=False
+    )
+
+    __mapper_args__ = {
+        "polymorphic_identity": "user",
+    }
 
     def __init__(
         self,
@@ -72,12 +91,10 @@ class User(db.Model):
         :param user_group: The user's group
         """
 
-        self.first_name = first_name
-        self.last_name = last_name
+        super().__init__(first_name, last_name)
         self.username = username
         self.hashed_password = hashed_password
         self.user_group = user_group
-        self.created = datetime.now()
         self.last_login = None
         self.blocked = False
 

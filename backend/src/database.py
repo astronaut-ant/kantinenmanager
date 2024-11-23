@@ -17,6 +17,15 @@ def init_db(app):
     db.init_app(app)
 
     import src.models.user
+    import src.models.employee
+    import src.models.person
+
+    import src.models.group
+    import src.models.location
+
+    import src.models.preorder
+    import src.models.dailyorder
+    import src.models.oldorder
 
     with app.app_context():
         # Hier werden alle Tabellen erstellt, zu denen
