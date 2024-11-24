@@ -12,46 +12,51 @@
             :rules="[required]"
             color="primary"
           >
-            <div>
+            <div class="d-flex">
               <v-radio label="Verwaltung" value="verwaltung"></v-radio>
               <v-radio
                 label="Standortleitung"
                 value="standortleitung"
               ></v-radio>
+            </div>
+            <div class="d-flex">
               <v-radio label="Gruppenleitung" value="gruppenleitung"></v-radio>
               <v-radio label="Küchenpersonal" value="kuechenpersonal"></v-radio>
             </div>
           </v-radio-group>
-          <v-text-field
-            v-model="first_name"
-            :rules="[required]"
-            class="mb-2"
-            label="Vorname"
-            clearable
-          ></v-text-field>
-          <v-text-field
-            v-model="last_name"
-            :rules="[required]"
-            class="mb-2"
-            label="Nachname"
-            clearable
-          ></v-text-field>
-          <v-text-field
-            v-model="username"
-            :rules="[required]"
-            class="mb-2"
-            label="Benutzername"
-            clearable
-          ></v-text-field>
-          <v-text-field
-            v-model="password"
-            type="password"
-            :rules="[required]"
-            label="Passwort"
-            clearable
-          ></v-text-field>
+          <div class="d-flex ga-5">
+            <v-text-field
+              v-model="first_name"
+              :rules="[required]"
+              class="mb-2"
+              label="Vorname"
+              clearable
+            ></v-text-field>
+            <v-text-field
+              v-model="last_name"
+              :rules="[required]"
+              class="mb-2"
+              label="Nachname"
+              clearable
+            ></v-text-field>
+          </div>
+          <div class="d-flex ga-5">
+            <v-text-field
+              v-model="username"
+              :rules="[required]"
+              label="Benutzername"
+              clearable
+            ></v-text-field>
+            <v-text-field
+              v-model="password"
+              type="password"
+              :rules="[required]"
+              label="Passwort"
+              clearable
+            ></v-text-field>
+          </div>
           <v-btn
-            class="mt-5"
+            class="mt-2"
             :disabled="!form"
             color="primary"
             size="large"

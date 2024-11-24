@@ -1,15 +1,15 @@
 import { createRouter, createWebHistory } from "vue-router";
-import gruppenleitung from "../pages/gruppenleitung.vue";
+import gruppenleitung from "../pages/Gruppenleitung/Gruppenleitung.vue";
 import index from "../pages/index.vue";
-import kuechenpersonal from "../pages/kuechenpersonal.vue";
-import verwaltung from "../pages/verwaltungNeuerBenutzer.vue";
-import VerwaltungCSVUpload from "@/pages/csv-upload.vue";
-import standortleitung from "../pages/standortleitung.vue";
-import login from "../pages/login.vue";
+import kuechenpersonal from "../pages/Kuechenpersonal/Kuechenpersonal.vue";
+import verwaltung from "../pages/Verwaltung/VerwaltungNeuerBenutzer.vue";
+import VerwaltungCSVUpload from "@/pages/Verwaltung/VerwaltungCsvUpload.vue";
+import standortleitung from "../pages/Standortleitung/Standortleitung.vue";
+import login from "../pages/Login.vue";
 import { useAppStore } from "../stores/app.js";
-import VerwaltungUebersicht from "@/pages/verwaltungUebersicht.vue";
-import VerwaltungNeuerBenutzer from "../pages/verwaltungNeuerBenutzer.vue";
-import VerwaltungBehinderung from "@/pages/verwaltungBehinderung.vue";
+import VerwaltungUebersicht from "@/pages/Verwaltung/VerwaltungUebersicht.vue";
+import VerwaltungNeuerBenutzer from "../pages/Verwaltung/VerwaltungNeuerBenutzer.vue";
+import VerwaltungBehinderung from "@/pages/Verwaltung/VerwaltungBehinderung.vue";
 
 const routes = [
   { path: "/", component: index, redirect: "/login" },
@@ -64,7 +64,7 @@ const routes = [
     //   } else next();
     // },
   },
-  
+
   {
     path: "/verwaltung/behinderung/csv-upload",
     component: VerwaltungCSVUpload,
@@ -75,7 +75,7 @@ const routes = [
     //   } else next();
     // },
   },
-  
+
   {
     path: "/kuechenpersonal",
     component: kuechenpersonal,
