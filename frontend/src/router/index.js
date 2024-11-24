@@ -1,99 +1,66 @@
 import { createRouter, createWebHistory } from "vue-router";
-import gruppenleitung from "../pages/Gruppenleitung/Gruppenleitung.vue";
 import index from "../pages/index.vue";
-import kuechenpersonal from "../pages/Kuechenpersonal/Kuechenpersonal.vue";
-import verwaltung from "../pages/Verwaltung/VerwaltungNeuerBenutzer.vue";
-import VerwaltungCSVUpload from "@/pages/Verwaltung/VerwaltungCsvUpload.vue";
-import standortleitung from "../pages/Standortleitung/Standortleitung.vue";
-import login from "../pages/Login.vue";
+import Login from "../pages/Login.vue";
 import { useAppStore } from "../stores/app.js";
 import VerwaltungUebersicht from "@/pages/Verwaltung/VerwaltungUebersicht.vue";
 import VerwaltungNeuerBenutzer from "../pages/Verwaltung/VerwaltungNeuerBenutzer.vue";
 import VerwaltungBehinderung from "@/pages/Verwaltung/VerwaltungBehinderung.vue";
+import KuecheUebersicht from "@/pages/Kuechenpersonal/KuecheUebersicht.vue";
+import KuecheQR from "@/pages/Kuechenpersonal/KuecheQR.vue";
+import AccessDenied from "@/pages/AccessDenied.vue";
 
 const routes = [
   { path: "/", component: index, redirect: "/login" },
-  {
-    path: "/gruppenleitung",
-    component: gruppenleitung,
-    // beforeEnter: (to, from, next) => {
-    //   const appStore = useAppStore();
-    //   if (!appStore.auth) {
-    //     next("/login");
-    //   } else next();
-    // },
-  },
-  {
-    path: "/standortleitung",
-    component: standortleitung,
-    // beforeEnter: (to, from, next) => {
-    //   const appStore = useAppStore();
-    //   if (!appStore.auth) {
-    //     next("/login");
-    //   } else next();
-    // },
-  },
+  { path: "/login", component: Login },
+  { path: "/accessdenied", component: AccessDenied },
   {
     path: "/verwaltung/uebersicht",
     component: VerwaltungUebersicht,
-    // beforeEnter: (to, from, next) => {
-    //   const appStore = useAppStore();
-    //   if (!appStore.auth) {
-    //     next("/login");
-    //   } else next();
-    // },
+    beforeEnter: (ton, from, next) => {
+      protectRoute(next);
+    },
   },
-
   {
     path: "/verwaltung/neuerBenutzer",
     component: VerwaltungNeuerBenutzer,
-    // beforeEnter: (to, from, next) => {
-    //   const appStore = useAppStore();
-    //   if (!appStore.auth) {
-    //     next("/login");
-    //   } else next();
-    // },
+    beforeEnter: (ton, from, next) => {
+      protectRoute(next);
+    },
   },
   {
     path: "/verwaltung/behinderung",
     component: VerwaltungBehinderung,
-    // beforeEnter: (to, from, next) => {
-    //   const appStore = useAppStore();
-    //   if (!appStore.auth) {
-    //     next("/login");
-    //   } else next();
-    // },
+    beforeEnter: (ton, from, next) => {
+      protectRoute(next);
+    },
   },
-
   {
-    path: "/verwaltung/behinderung/csv-upload",
-    component: VerwaltungCSVUpload,
-    // beforeEnter: (to, from, next) => {
-    //   const appStore = useAppStore();
-    //   if (!appStore.auth) {
-    //     next("/login");
-    //   } else next();
-    // },
+    path: "/kuechenpersonal/uebersicht",
+    component: KuecheUebersicht,
+    beforeEnter: (ton, from, next) => {
+      protectRoute(next);
+    },
   },
-
   {
-    path: "/kuechenpersonal",
-    component: kuechenpersonal,
-    // beforeEnter: (to, from, next) => {
-    //   const appStore = useAppStore();
-    //   if (!appStore.auth) {
-    //     next("/login");
-    //   } else next();
-    // },
+    path: "/kuechenpersonal/qr",
+    component: KuecheQR,
+    beforeEnter: (ton, from, next) => {
+      protectRoute(next);
+    },
   },
-
-  { path: "/login", component: login },
 ];
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
 });
+
+const protectRoute = (next) => {
+  const appStore = useAppStore();
+  if (!appStore.auth) {
+    next("/accessdenied");
+  } else next();
+};
 
 // Workaround for https://github.com/vitejs/vite/issues/11804
 router.onError((err, to) => {
