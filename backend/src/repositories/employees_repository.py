@@ -72,8 +72,8 @@ class EmployeesRepository:
         return db.session.scalars(
             select(Group)
             .join(Location)
-            .where(Group.group_name == group_name)
-            .where(Location.location_name == location_name)
+            .where(Group.group_name.lower() == group_name.lower())
+            .where(Location.location_name.lower() == location_name.lower())
         ).first()
 
     @staticmethod
