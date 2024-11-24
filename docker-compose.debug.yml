@@ -1,28 +1,42 @@
 services:
+  frontend:
+    build: ./frontend
+    container_name: frontend_c
+    ports:
+      - 3000:3000
+    volumes:
+      - ./frontend:/app/frontend
+      - /app/frontend/node_modules
+
   backend:
     image: backend
     build:
       context: ./backend
       dockerfile: ./Dockerfile
     volumes:
-      - ./backend/src:/app/src
-    command:
-      [
-        "sh",
-        "-c",
-        "pip install debugpy -t /tmp && python /tmp/debugpy --wait-for-client --listen 0.0.0.0:5678 -m flask run --no-debugger --no-reload --host 0.0.0.0 --port 4200",
-      ]
+      - ./backend:/app/backend
+    depends_on:
+      - db
     ports:
       - 4200:4200
       - 5678:5678
     environment:
       - FLASK_APP=startup.py
+    command: [ "sh", "-c", "pip install debugpy -t /tmp && python /tmp/debugpy --wait-for-client --listen 0.0.0.0:5678 -m flask run --no-debugger --no-reload --host 0.0.0.0 --port 4200" ]
 
-  frontend:
-    build: ./frontend
-    container_name: frontend_c
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    shm_size: 128mb
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+
+  adminer:
+    image: adminer
+    restart: unless-stopped
+    depends_on:
+      - db
     ports:
-      - '3000:3000'
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
+      - 8080:8080

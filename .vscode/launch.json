@@ -2,7 +2,28 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Backend Python Debugger: Remote Attach",
+      "name": "Python: Dev Container",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "flask",
+      "cwd": "${workspaceFolder}/backend",
+      "env": {
+        "FLASK_APP": "app.py",
+        "FLASK_DEBUG": "1"
+      },
+      "args": [
+        "--app",
+        "startup:app",
+        "run",
+        "--no-debugger",
+        "--no-reload",
+        "--host=0.0.0.0",
+        "--port=4200"
+      ],
+      "justMyCode": true
+    },
+    {
+      "name": "Python: Remote Attach",
       "type": "debugpy",
       "request": "attach",
       "connect": {
@@ -15,6 +36,6 @@
           "remoteRoot": "."
         }
       ]
-    }
+    },
   ]
 }
