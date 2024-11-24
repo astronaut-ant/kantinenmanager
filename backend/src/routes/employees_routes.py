@@ -17,13 +17,13 @@ employees_routes = Blueprint("employees_routes", __name__)
 
 # Bei jedem GET Request (siehe HTTP) auf /api/users wird die get_employees Funktion aufgerufen und alle Emplyoees, die Scope des Nutzers sind zurückgegeben
 @employees_routes.get("/api/employees")
-# @login_required(
-#   groups=[
-#      UserGroup.verwaltung,
-#     UserGroup.standortleitung,
-#    UserGroup.gruppenleitung,
-# ]
-# )
+@login_required(
+    groups=[
+        UserGroup.verwaltung,
+        UserGroup.standortleitung,
+        UserGroup.gruppenleitung,
+    ]
+)
 @swag_from(
     {
         "tags": ["employees"],
@@ -37,9 +37,7 @@ employees_routes = Blueprint("employees_routes", __name__)
                     },
                     "first_name": {"type": "string"},
                     "last_name": {"type": "string"},
-                    "employee_number": {
-                        "type": "integer"
-                    },  # what if employee has no number?
+                    "employee_number": {"type": "integer"},
                     "group_id": {
                         "type": "string",
                         "example": "123e4567-e89b-12d3-a456-426614174000",
@@ -77,13 +75,13 @@ def get_employees():
 
 
 @employees_routes.get("/api/employees/<uuid:employee_id>")
-# @login_required(
-#     groups=[
-#         UserGroup.verwaltung,
-#         UserGroup.standortleitung,
-#         UserGroup.gruppenleitung,
-#     ]
-# )
+@login_required(
+    groups=[
+        UserGroup.verwaltung,
+        UserGroup.standortleitung,
+        UserGroup.gruppenleitung,
+    ]
+)
 @swag_from(
     {
         "tags": ["employees"],
@@ -128,7 +126,7 @@ def get_employee_by_id(employee_id: UUID):
     return jsonify(employee.to_dict())
 
 
-# TODO: def get_employye_by_id_kitchen(employee_id: UUID):
+# TODO: def get_employee_by_id_kitchen(employee_id: UUID):
 
 
 class EmployeesPostBody(Schema):
