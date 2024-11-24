@@ -8,6 +8,7 @@ import VerwaltungBehinderung from "@/pages/Verwaltung/VerwaltungBehinderung.vue"
 import KuecheUebersicht from "@/pages/Kuechenpersonal/KuecheUebersicht.vue";
 import KuecheQR from "@/pages/Kuechenpersonal/KuecheQR.vue";
 import AccessDenied from "@/pages/AccessDenied.vue";
+import VerwaltungCsvUpload from "@/pages/Verwaltung/VerwaltungCsvUpload.vue";
 
 const routes = [
   { path: "/", component: index, redirect: "/login" },
@@ -35,6 +36,13 @@ const routes = [
     },
   },
   {
+    path: "/verwaltung/behinderung/csv-upload",
+    component: VerwaltungCsvUpload,
+    beforeEnter: (ton, from, next) => {
+      protectRoute(next);
+    },
+  },
+  {
     path: "/kuechenpersonal/uebersicht",
     component: KuecheUebersicht,
     beforeEnter: (ton, from, next) => {
@@ -56,10 +64,11 @@ const router = createRouter({
 });
 
 const protectRoute = (next) => {
-  const appStore = useAppStore();
-  if (!appStore.auth) {
-    next("/accessdenied");
-  } else next();
+  next();
+  // const appStore = useAppStore();
+  // if (!appStore.auth) {
+  //   next("/accessdenied");
+  // } else next();
 };
 
 // Workaround for https://github.com/vitejs/vite/issues/11804
