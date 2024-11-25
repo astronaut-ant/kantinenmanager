@@ -46,21 +46,8 @@
         Zurück
       </v-btn>
     </div>
-      
-    <v-dialog v-model="successDialog" persistent max-width="400">
-        <v-card>
-            <v-card-title class="text-success d-flex justify-start">
-                <v-icon left class="mr-2">
-                    mdi-check-circle-outline
-                </v-icon>
-                <span class="text-h5">Erfolg</span>
-            </v-card-title>
-            <v-card-text>Datei wurde erfolgreich hochgeladen!</v-card-text>
-            <v-card-actions>
-                <v-btn color="success" text @click="closeSuccessDialog">OK</v-btn>
-            </v-card-actions>
-        </v-card>
-    </v-dialog>
+
+    <SuccessSnackbar v-model="successSnackbar" :text="snackbarText" @close="successSnackbar = false"></SuccessSnackbar>
 
     <v-dialog v-model="errorDialog" persistent max-width="400">
         <v-card>
@@ -86,7 +73,8 @@ import axios from "axios";
 const file = ref(null);
 const fileError = ref(null);
 const loading = ref(false);
-const successDialog = ref(false);
+const successSnackbar = ref(false);
+const snackbarText = ref("Die Datei wurde erfolgreich hochgeladen!");
 const errorDialog = ref(false);
 
 const onFileChange = () => {
@@ -117,7 +105,7 @@ const uploadFile = () => {
     })
     .then((response) => {
       console.log(response.data);
-      successDialog.value = true;
+      successSnackbar.value = true;
     })
     .catch((err) => {
       console.error(err);
@@ -127,9 +115,6 @@ const uploadFile = () => {
       loading.value = false;
       file.value = null;
     });
-};
-const closeSuccessDialog = () => {
-successDialog.value = false;
 };
 
 const closeErrorDialog = () => {

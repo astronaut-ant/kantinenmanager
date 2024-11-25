@@ -27,10 +27,13 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+  <SuccessSnackbar v-model="snackbar" :text="snackbarText" @close="snackbar = false"></SuccessSnackbar>
 </template>
 
 <script setup>
 import axios from "axios";
+const snackbarText = ref("Der Benutzer wurde erfolgreich gelöscht!");
+const snackbar = ref(false);
 const users = ref({});
 const deleteConfirmation = ref(false);
 const userToDelete = ref(null);
@@ -66,6 +69,7 @@ const confirmDelete = () => {
     .then(() => {
       users.value = users.value.filter((user) => user.id !== userToDelete.value);
       closeDialog();
+      snackbar.value = true;
     })
     .catch((err) => console.log(err));
 };
