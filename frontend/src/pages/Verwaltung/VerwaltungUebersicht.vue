@@ -32,7 +32,7 @@
 
 <script setup>
 import axios from "axios";
-const snackbarText = ref("Der Benutzer wurde erfolgreich gelöscht!");
+const snackbarText = ref(" ");
 const snackbar = ref(false);
 const users = ref({});
 const deleteConfirmation = ref(false);
@@ -69,6 +69,7 @@ const confirmDelete = () => {
     .then(() => {
       users.value = users.value.filter((user) => user.id !== userToDelete.value);
       closeDialog();
+      snackbarText.value = "Der Benutzer wurde erfolgreich gelöscht!"
       snackbar.value = true;
     })
     .catch((err) => console.log(err));

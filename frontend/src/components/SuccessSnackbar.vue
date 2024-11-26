@@ -19,6 +19,7 @@
   </template>
   
   <script setup>
+  const localsnackbar = ref(false);
   const props = defineProps(["text"]);
   const emit = defineEmits(["close"]);
 
