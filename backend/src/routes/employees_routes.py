@@ -11,7 +11,7 @@ from src.services.employees_service import (
 )
 from flask import Blueprint, jsonify, request, g
 from flasgger import swag_from
-import csv, re
+import csv, re, magic
 
 employees_routes = Blueprint("employees_routes", __name__)
 
@@ -257,8 +257,13 @@ def csv_create():
                 description="Es wurde keine Datei hochgeladen",
             )
         )
-
-    if "." in file.filename and file.filename.rsplit(".", 1)[1].lower() == "csv":
+    mime = magic.from_buffer(file.stream.read(2048), mime=True)
+    file.stream.seek(0)
+    if (
+        "." in file.filename
+        and file.filename.rsplit(".", 1)[1].lower() == "csv"
+        and mime in "text/csv"
+    ):
         abort_with_err(
             ErrMsg(
                 status_code=401,
@@ -320,15 +325,24 @@ def csv_create():
         else:
             continue
 
-        try:
-            EmployeesService.create_employee(
-                first_name=firstname,
-                last_name=lastname,
-                employee_number=row["Kunden-Nr."],
-                group_name=row["Gruppen-Name 1"],
-                location_name=row["Bereich"],
+        if len(firstname) < 64 and len(lastname) < 64:
+            try:
+                EmployeesService.create_employee(
+                    first_name=firstname,
+                    last_name=lastname,
+                    employee_number=row["Kunden-Nr."],
+                    group_name=row["Gruppen-Name 1"],
+                    location_name=row["Bereich"],
+                )
+            except EmployeeAlreadyExistsError:
+                continue
+        else:
+            abort_with_err(
+                ErrMsg(
+                    status_code=403,
+                    title="Zu langer Name",
+                    description="Sowohl Vorname als auch Nachname dürfen nicht länger als 64 Zeichen sein",
+                )
             )
-        except EmployeeAlreadyExistsError:
-            continue
 
     return jsonify({"message": "Datei wurde erfolgreich eingelesen"}), 200
