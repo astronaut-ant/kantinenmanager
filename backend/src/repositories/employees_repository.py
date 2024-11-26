@@ -86,7 +86,10 @@ class EmployeesRepository:
 
         :return: The employee with the given ID or None if no employee was found
         """
-        if user_group == UserGroup.verwaltung:
+        if (
+            user_group == UserGroup.verwaltung
+            or user_group == UserGroup.kuechenpersonal
+        ):
             return db.session.scalars(
                 select(Employee).where(Employee.id == employee_id)
             ).first()
@@ -112,9 +115,80 @@ class EmployeesRepository:
             None
 
     @staticmethod
+    def get_employee_by_name_by_user_scope(
+        first_name: str, last_name: str, user_group: UserGroup, user_id: UUID
+    ) -> Employee | None:
+        """Retrieve an employee by their name
+
+        :param first_name: The first name of the employee to retrieve
+        :param last_name: The last name of the employee to retrieve
+
+        :return: The employee with the given name or None if no employee was found
+        """
+        if (
+            user_group == UserGroup.verwaltung
+            or user_group == UserGroup.kuechenpersonal
+        ):
+            return db.session.scalars(
+                select(Employee)
+                .where(Employee.first_name == first_name)
+                .where(Employee.last_name == last_name)
+            ).first()
+
+        elif user_group == UserGroup.standortleitung:
+            return db.session.scalars(
+                select(Employee)
+                .join(Group)
+                .join(Location)
+                .filter(Location.user_id_location_leader == user_id)
+                .where(Employee.first_name == first_name)
+                .where(Employee.last_name == last_name)
+            ).first()
+
+        elif user_group == UserGroup.gruppenleitung:
+            return db.session.scalars(
+                select(Employee)
+                .join(Group)
+                .filter(Group.user_id_groupleader == user_id)
+                .where(Employee.first_name == first_name)
+                .where(Employee.last_name == last_name)
+            ).first()
+
+        else:
+            None
+
+    @staticmethod
     def create_employee(employee: Employee):
         """Create a new employee in the database"""
         db.session.add(employee)
         db.session.commit()
 
         return employee.id
+
+    @staticmethod
+    def get_user_by_employee_number(employee_number: int) -> Employee | None:
+        """Retrieve the employee associated with an employee number
+
+        :param employee_number: The employee number of the employee
+
+        :return: The employee associated with the given employee number or None if no employee was found
+        """
+        return db.session.scalars(
+            select(Employee).where(Employee.employee_number == employee_number)
+        ).first()
+
+    @staticmethod
+    def update_employee(employee: Employee):
+        """Update an employee in the database"""
+
+        # SQLAlchemy automatically tracks changes to objects
+        # we only need to commit the session to save the changes
+
+        db.session.commit()
+
+    @staticmethod
+    def delete_employee(employee: Employee):
+        """Delete a employee from the database"""
+
+        db.session.delete(employee)
+        db.session.commit()

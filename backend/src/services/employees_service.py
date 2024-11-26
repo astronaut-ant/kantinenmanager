@@ -39,7 +39,25 @@ class EmployeesService:
         :return: The employee with the given ID or None if no employee was found
         """
 
-        return EmployeesRepository.get_employee_by_id_by_user_scope(employee_id)
+        return EmployeesRepository.get_employee_by_id_by_user_scope(
+            employee_id, user_group, user_id
+        )
+
+    @staticmethod
+    def get_employee_by_name(
+        first_name: str, last_name: str, user_group: UserGroup, user_id: UUID
+    ) -> Employee | None:
+        """Retrieve an employee by their first and last name
+
+        :param first_name: The first name of the employee to retrieve
+        :param last_name: The last name of the employee to retrieve
+
+        :return: The employee with the given first and last name or None if no employee was found
+        """
+
+        return EmployeesRepository.get_employee_by_name_by_user_scope(
+            first_name, last_name, user_group, user_id
+        )
 
     @staticmethod
     def create_employee(
@@ -86,3 +104,48 @@ class EmployeesService:
         id = EmployeesRepository.create_employee(employee)
 
         return id
+
+    @staticmethod
+    def update_employee(
+        employee: Employee,
+        first_name: str,
+        last_name: str,
+        employee_number: int,
+        group_name: str,
+        location_name: str,
+    ):
+        """Update an employee in the database.
+
+        :param user: The employee to update
+        :param first_name: The new first name of the employee
+        :param last_name: The new last name of the employee
+        :param employee_number: The new number of the employee
+        :param group_name: The new group of the employee
+        :param location_name: The new location of the employee
+        """
+
+        if (
+            employee != employee.employee_number
+            and EmployeesRepository.get_user_by_employee_number(employee_number)
+        ):
+            raise EmployeeAlreadyExistsError(
+                f"User with employee number {employee_number} already exists"
+            )
+
+        employee.first_name = first_name
+        employee.last_name = last_name
+        employee.employee_number = employee_number
+        employee.group = EmployeesRepository.get_group_by_name_and_location(
+            group_name, location_name
+        )
+
+        EmployeesRepository.update_employee(employee)
+
+    @staticmethod
+    def delete_employee(employee: Employee):
+        """Delete an employee from the database.
+
+        :param eemployee: The employee to delete
+        """
+
+        EmployeesRepository.delete_employee(employee)
