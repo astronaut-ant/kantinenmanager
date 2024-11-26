@@ -11,7 +11,7 @@ from src.services.employees_service import (
 )
 from flask import Blueprint, jsonify, request, g
 from flasgger import swag_from
-import csv, re, magic
+import csv, re  # , magic
 
 employees_routes = Blueprint("employees_routes", __name__)
 
@@ -231,7 +231,7 @@ def create_user():
 
 
 @employees_routes.post("/api/employees_csv")
-@login_required(groups=[UserGroup.verwaltung])
+@login_required(groups=[UserGroup.verwaltung], disabled=True)
 # @swag_from kommmt wenn mein GitHub Copilot zugelassen wurde, das hilft einem doch dabei richtig?
 def csv_create():
     """Create Employees contained in a CSV File
@@ -257,16 +257,16 @@ def csv_create():
                 description="Es wurde keine Datei hochgeladen",
             )
         )
-    mime = magic.from_buffer(file.stream.read(2048), mime=True)
+    # mime = magic.from_buffer(file.stream.read(2048), mime=True)
     file.stream.seek(0)
     if (
         "." in file.filename
         and file.filename.rsplit(".", 1)[1].lower() == "csv"
-        and mime in "text/csv"
+        # and mime in "text/csv"
     ):
         abort_with_err(
             ErrMsg(
-                status_code=401,
+                status_code=405,
                 title="Falsches Dateiformat",
                 description="Es werden nur .csv Dateien zugelassen",
             )
