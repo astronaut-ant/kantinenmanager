@@ -49,6 +49,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = (
 )
 
 app.config["JWT_SECRET"] = jwt_secret
+app.config["MAX_CONTENT_LENGTH"] = 20971520
 
 init_db(app)
 

@@ -1,6 +1,6 @@
 """Repository to handle database operations for employee data."""
 
-from sqlalchemy import select
+from sqlalchemy import select, func
 from src.models.user import User
 from src.database import db
 from uuid import UUID
@@ -72,8 +72,8 @@ class EmployeesRepository:
         return db.session.scalars(
             select(Group)
             .join(Location)
-            .where(Group.group_name.lower() == group_name.lower())
-            .where(Location.location_name.lower() == location_name.lower())
+            .where(func.lower(Group.group_name) == group_name.lower())
+            .where(func.lower(Location.location_name) == location_name.lower())
         ).first()
 
     @staticmethod
