@@ -9,6 +9,7 @@ import KuecheUebersicht from "@/pages/Kuechenpersonal/KuecheUebersicht.vue";
 import KuecheQR from "@/pages/Kuechenpersonal/KuecheQR.vue";
 import AccessDenied from "@/pages/AccessDenied.vue";
 import VerwaltungCsvUpload from "@/pages/Verwaltung/VerwaltungCsvUpload.vue";
+import axios from "axios";
 
 const routes = [
   { path: "/", component: index, redirect: "/login" },
@@ -17,43 +18,44 @@ const routes = [
   {
     path: "/verwaltung/uebersicht",
     component: VerwaltungUebersicht,
-    beforeEnter: (ton, from, next) => {
-      protectRoute(next);
+    beforeEnter: async (to, from, next) => {
+      protectRoute(next, "verwaltung");
     },
   },
   {
     path: "/verwaltung/neuerBenutzer",
     component: VerwaltungNeuerBenutzer,
-    beforeEnter: (ton, from, next) => {
-      protectRoute(next);
+    beforeEnter: async (to, from, next) => {
+      protectRoute(next, "verwaltung");
     },
   },
   {
     path: "/verwaltung/behinderung",
     component: VerwaltungBehinderung,
-    beforeEnter: (ton, from, next) => {
-      protectRoute(next);
+    beforeEnter: async (to, from, next) => {
+      protectRoute(next, "verwaltung");
     },
   },
   {
     path: "/verwaltung/behinderung/csv-upload",
     component: VerwaltungCsvUpload,
-    beforeEnter: (ton, from, next) => {
-      protectRoute(next);
+    beforeEnter: async (to, from, next) => {
+      protectRoute(next, "verwaltung");
     },
   },
   {
     path: "/kuechenpersonal/uebersicht",
     component: KuecheUebersicht,
-    beforeEnter: (ton, from, next) => {
-      protectRoute(next);
+    beforeEnter: async (to, from, next) => {
+      protectRoute(next, "kuechenpersonal");
     },
   },
+
   {
     path: "/kuechenpersonal/qr",
     component: KuecheQR,
-    beforeEnter: (ton, from, next) => {
-      protectRoute(next);
+    beforeEnter: async (to, from, next) => {
+      protectRoute(next, "kuechenpersonal");
     },
   },
 ];
@@ -63,12 +65,15 @@ const router = createRouter({
   routes,
 });
 
-const protectRoute = (next) => {
-  next();
-  // const appStore = useAppStore();
-  // if (!appStore.auth) {
-  //   next("/accessdenied");
-  // } else next();
+const protectRoute = (next, user_group) => {
+  const appStore = useAppStore();
+  try {
+    if (appStore.userData.user_group == user_group) {
+      next();
+    } else next("/accessdenied");
+  } catch (e) {
+    next("/accessdenied");
+  }
 };
 
 // Workaround for https://github.com/vitejs/vite/issues/11804
