@@ -53,13 +53,7 @@ package-backend:
     - /kaniko/executor
       --context "${CI_PROJECT_DIR}/backend"
       --dockerfile "${CI_PROJECT_DIR}/backend/Dockerfile"
-      --no-push
       --destination "${CI_REGISTRY_IMAGE}"
-      --tar-path backend.tar
-  artifacts:
-    paths:
-      - backend.tar
-    when: on_success
 
 test-frontend:
   stage: test
@@ -85,7 +79,6 @@ push-frontend:
     CI_REGISTRY_IMAGE: $CI_REGISTRY_FRONTEND_IMAGE:$CI_COMMIT_SHORT_SHA
   script:
     - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - crane push frontend.tar $CI_REGISTRY_IMAGE
     - crane tag $CI_REGISTRY_IMAGE latest # TODO
     - |
       if [[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]]; then
