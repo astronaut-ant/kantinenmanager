@@ -9,7 +9,7 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # Turns off buffering for easier container logging
 ENV PYTHONUNBUFFERED=1
 
-RUN apt-get update && apt-get install openssh-client libmagic1 -y
+RUN apt-get update && apt-get install openssh-client -y
 
 # Install pip requirements
 COPY requirements.txt .
