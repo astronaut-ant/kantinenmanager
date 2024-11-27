@@ -1,10 +1,11 @@
 """Routes for authentication and session management."""
 
-from src.utils.auth_utils import set_token_cookies
+from src.services.users_service import UsersService
+from src.utils.auth_utils import login_required, set_token_cookies
 from src.constants import (
     REFRESH_TOKEN_DURATION,
 )
-from flask import Blueprint, make_response, request
+from flask import Blueprint, g, jsonify, make_response, request
 from marshmallow.validate import Length
 from flasgger import swag_from
 from marshmallow import Schema, fields, ValidationError
@@ -32,7 +33,7 @@ class LoginBodySchema(Schema):
 @auth_routes.post("/api/login")
 @swag_from(
     {
-        "tags": ["users"],
+        "tags": ["auth"],
         "parameters": [
             {
                 "in": "body",
@@ -122,3 +123,28 @@ def login():
     set_token_cookies(resp, auth_token, refresh_token)
 
     return resp
+
+
+@auth_routes.get("/api/is-logged-in")
+@login_required()
+@swag_from(
+    {
+        "tags": ["auth"],
+        "responses": {
+            200: {
+                "description": "Returns user object if user is logged in",
+                "schema": {"$ref": "#/definitions/User"},  # defined in users_routes.py
+            },
+            401: {"description": "Unauthorized"},
+        },
+    }
+)
+def is_logged_in():
+    """Check if user is logged in
+    Returns user object if user is logged in, otherwise 401.
+    ---
+    """
+
+    user = UsersService.get_user_by_id(g.user_id)
+
+    return jsonify(user.to_dict_without_pw_hash())
