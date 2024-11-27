@@ -139,7 +139,7 @@ const confirmDelete = () => {
     })
     .then(() => {
       users.value = users.value.filter((user) => user.id !== userToDelete.value);
-      closeDialog();
+      closedeleteDialog();
       snackbarText.value = "Der Benutzer wurde erfolgreich gelöscht!"
       snackbar.value = true;
     })
