@@ -1,8 +1,9 @@
 """Routes for authentication and session management."""
 
 from src.services.users_service import UsersService
-from src.utils.auth_utils import login_required, set_token_cookies
+from src.utils.auth_utils import delete_token_cookies, login_required, set_token_cookies
 from src.constants import (
+    REFRESH_TOKEN_COOKIE_NAME,
     REFRESH_TOKEN_DURATION,
 )
 from flask import Blueprint, g, jsonify, make_response, request
@@ -148,3 +149,28 @@ def is_logged_in():
     user = UsersService.get_user_by_id(g.user_id)
 
     return jsonify(user.to_dict_without_pw_hash())
+
+
+@auth_routes.post("/api/logout")  # POST, because browsers may prefetch GET requests
+@swag_from(
+    {
+        "tags": ["auth"],
+        "responses": {
+            204: {"description": "Logout successful (No Content)"},
+        },
+    }
+)
+def logout():
+    """Logout
+    Logs out the user by deleting the cookies and invalidating the refresh token.
+    ---
+    """
+
+    refresh_token = request.cookies.get(REFRESH_TOKEN_COOKIE_NAME)
+    AuthService.logout(refresh_token)
+
+    resp = make_response("", 204)
+
+    delete_token_cookies(resp)
+
+    return resp
