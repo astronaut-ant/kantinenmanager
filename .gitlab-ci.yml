@@ -81,7 +81,6 @@ push-frontend:
   script:
     - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - crane push frontend.tar $CI_REGISTRY_IMAGE
-    - crane tag $CI_REGISTRY_IMAGE latest # TODO
     - |
       if [[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]]; then
         crane tag $CI_REGISTRY_IMAGE latest
@@ -96,11 +95,9 @@ push-backend:
     CI_REGISTRY_IMAGE: $CI_REGISTRY_BACKEND_IMAGE:$CI_COMMIT_SHORT_SHA
   script:
     - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - crane push backend.tar $CI_REGISTRY_IMAGE
-    - |
-      if [[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]]; then
-        crane tag $CI_REGISTRY_IMAGE latest
-      fi
+    - crane tag $CI_REGISTRY_IMAGE latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 deploy-job:
   stage: deploy
