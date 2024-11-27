@@ -316,7 +316,7 @@ def csv_create():
                 description="Es wurde keine Datei hochgeladen",
             )
         )
-    mime = magic.from_buffer(file.stream.read(2048), mime=True)
+
     file.stream.seek(0)
     if not ("." in file.filename and file.filename.rsplit(".", 1)[1].lower() == "csv"):
         abort_with_err(
