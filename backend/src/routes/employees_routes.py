@@ -11,7 +11,7 @@ from src.services.employees_service import (
 )
 from flask import Blueprint, jsonify, request, g
 from flasgger import swag_from
-import csv, re, magic
+import csv, re
 
 employees_routes = Blueprint("employees_routes", __name__)
 
@@ -318,12 +318,7 @@ def csv_create():
         )
     mime = magic.from_buffer(file.stream.read(2048), mime=True)
     file.stream.seek(0)
-    if not (
-        "." in file.filename
-        and file.filename.rsplit(".", 1)[1].lower() == "csv"
-        # and mime in ["text/csv", "application/vnd.ms-excel"]
-    ):
-        # print(mime)  ---> tests sagen text/plain???? whyyy :C
+    if not ("." in file.filename and file.filename.rsplit(".", 1)[1].lower() == "csv"):
         abort_with_err(
             ErrMsg(
                 status_code=415,

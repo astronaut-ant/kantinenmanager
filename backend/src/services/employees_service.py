@@ -96,6 +96,8 @@ class EmployeesService:
                 f"Group {group_name} at location {location_name} does not exist"
             )
 
+        print("HALLLLLLLLOOOO: ", first_name, " ; ", last_name)
+
         employee = Employee(
             first_name=first_name,
             last_name=last_name,
@@ -188,7 +190,7 @@ class EmployeesService:
                     )
                 )
 
-            match = re.match(r"([A-Z][a-z]+)([A-Z][a-z][1-9]*)", row["Kürzel"])
+            match = re.match(r"([A-Z][a-z]+)([A-Z][a-z]*[1-9]*)", row["Kürzel"])
             if match:
                 firstname = match.group(1)
                 lastname = match.group(2)
@@ -209,23 +211,10 @@ class EmployeesService:
                 )
                 print(group)
                 if group is None:
-                    abort_with_err(
-                        ErrMsg(
-                            status_code=404,
-                            title="Gruppe nicht gefunden",
-                            description="Die Zugehörige Gruppe wurde nicht gefunden",
-                        )
-                    )
+                    raise GroupDoesNotExistError
 
                 if EmployeesRepository.get_employee_by_number(row["Kunden-Nr."]):
-                    KNr = {row["Kunden-Nr."]}
-                    abort_with_err(
-                        ErrMsg(
-                            status_code=409,
-                            title="Ein Mitarbeiter mit der Nummer {KNr} existiert bereits",
-                            description="Es existiert bereits ein Mitarbeiter in der CSV Datei welche deswegen nicht hinzugefügt werden konnte",
-                        )
-                    )
+                    raise EmployeeAlreadyExistsError
 
                 first_name = firstname
                 last_name = lastname
