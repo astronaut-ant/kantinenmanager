@@ -192,3 +192,14 @@ class EmployeesRepository:
 
         db.session.delete(employee)
         db.session.commit()
+
+    @staticmethod
+    def bulk_create_employees(employees: Employee):
+        """Create a bunch of new employees in the database
+
+        :param employees: List of the Employees which will be created
+        """
+        for employee in employees:
+            db.session.add(employee)
+
+        db.session.commit()

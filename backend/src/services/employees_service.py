@@ -1,10 +1,12 @@
 """Service for handling employee management."""
 
+import csv, re
 from uuid import UUID
 from src.services.auth_service import AuthService
 from src.models.user import UserGroup
 from src.models.employee import Employee
 from src.repositories.employees_repository import EmployeesRepository
+from src.utils.error import ErrMsg, abort_with_err
 
 
 class EmployeeAlreadyExistsError(Exception):
@@ -149,3 +151,105 @@ class EmployeesService:
         """
 
         EmployeesRepository.delete_employee(employee)
+
+    @staticmethod
+    def bulk_create_employees(file):
+        """Creates new Emplyoees from a csv-file with utf-8 and komma or iso-8859-1 with semicolons
+
+        :param reader: The File in csv-format
+        """
+
+        try:
+            file.stream.seek(0)
+            reader = csv.DictReader(file.stream.read().decode("utf-8").splitlines())
+        except UnicodeDecodeError:
+            file.stream.seek(0)
+            reader = csv.DictReader(
+                file.stream.read().decode("iso-8859-1").splitlines(), delimiter=";"
+            )
+
+        employees = []
+
+        for row in reader:
+            print(row)
+            if (
+                not row.get("Kunden-Nr.")
+                or not row.get("Kürzel")
+                or not row.get("Bereich")
+                or not row.get("Gruppe-Nr.")
+                or not row.get("Gruppen-Name 1")
+                or not row.get("Gruppen-Name 2")
+            ):
+                abort_with_err(
+                    ErrMsg(
+                        status_code=400,
+                        title="Falsche Daten oder unlesbares Format",
+                        description="Die Daten in der CSV entsprechen nicht der normalen Vorlage",
+                    )
+                )
+
+            match = re.match(r"([A-Z][a-z]+)([A-Z][a-z][1-9]*)", row["Kürzel"])
+            if match:
+                firstname = match.group(1)
+                lastname = match.group(2)
+            else:
+                print("Zeile: ", row)
+                abort_with_err(
+                    ErrMsg(
+                        status_code=422,
+                        title="Vorname und Nachname nicht trennbar",
+                        description="Es konnte kein eindeutiger Vor- und Nachname erkannt werden",
+                    )
+                )
+
+            if len(firstname) < 64 and len(lastname) < 64:
+
+                group = EmployeesRepository.get_group_by_name_and_location(
+                    row["Gruppen-Name 1"], row["Bereich"]
+                )
+                print(group)
+                if group is None:
+                    abort_with_err(
+                        ErrMsg(
+                            status_code=404,
+                            title="Gruppe nicht gefunden",
+                            description="Die Zugehörige Gruppe wurde nicht gefunden",
+                        )
+                    )
+
+                if EmployeesRepository.get_employee_by_number(row["Kunden-Nr."]):
+                    KNr = {row["Kunden-Nr."]}
+                    abort_with_err(
+                        ErrMsg(
+                            status_code=409,
+                            title="Ein Mitarbeiter mit der Nummer {KNr} existiert bereits",
+                            description="Es existiert bereits ein Mitarbeiter in der CSV Datei welche deswegen nicht hinzugefügt werden konnte",
+                        )
+                    )
+
+                first_name = firstname
+                last_name = lastname
+                employee_number = row["Kunden-Nr."]
+
+                employee = Employee(
+                    first_name=first_name,
+                    last_name=last_name,
+                    employee_number=employee_number,
+                    group_id=group.id,
+                )
+                employees.append(employee)
+            else:
+                abort_with_err(
+                    ErrMsg(
+                        status_code=422,
+                        title="Zu langer Name",
+                        description="Sowohl Vorname als auch Nachname dürfen nicht länger als 64 Zeichen sein",
+                    )
+                )
+
+        EmployeesRepository.bulk_create_employees(employees)
+
+        return {
+            "message": "Mitarbeiter erfolgreich erstellt",
+            "count": len(employees),
+        }
