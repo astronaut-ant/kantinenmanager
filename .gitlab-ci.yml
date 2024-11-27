@@ -105,6 +105,8 @@ deploy-job:
     name: bitnami/kubectl:latest
     entrypoint: [""]
   script:
+    - kubectl config get-contexts
+    - kubectl config use-context $K8S_AGENT
     - kubectl cluster-info
     - echo "Deploying application..."
     - echo "Application successfully deployed."
