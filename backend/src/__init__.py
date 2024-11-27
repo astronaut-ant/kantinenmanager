@@ -6,6 +6,7 @@ from .middlewares.auth_middleware import register_auth_middleware
 from .database import init_db
 from .routes.users_routes import users_routes
 from .routes.auth_routes import auth_routes
+from .routes.employees_routes import employees_routes
 from dotenv import load_dotenv
 import os
 
@@ -48,6 +49,7 @@ app.config["SQLALCHEMY_DATABASE_URI"] = (
 )
 
 app.config["JWT_SECRET"] = jwt_secret
+app.config["MAX_CONTENT_LENGTH"] = 20971520
 
 init_db(app)
 
@@ -55,3 +57,4 @@ register_auth_middleware(app)
 
 app.register_blueprint(users_routes)
 app.register_blueprint(auth_routes)
+app.register_blueprint(employees_routes)

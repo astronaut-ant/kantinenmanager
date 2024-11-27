@@ -8,7 +8,7 @@
       <v-card-subtitle>{{ formattedRole }} </v-card-subtitle>
       <div class="mt-5 d-flex ga-1 justify-end">
         <v-btn class="mt-2 bg-primary"><v-icon>mdi-lead-pencil</v-icon></v-btn>
-        <v-btn class="mt-2 bg-red"
+        <v-btn class="mt-2 bg-red" @click="handleDelete"
           ><v-icon>mdi-trash-can-outline</v-icon></v-btn
         >
       </div>
@@ -18,8 +18,14 @@
 
 <script setup>
 const props = defineProps(["id", "name", "role"]);
+const emit = defineEmits(["delete"]);
+
 const formattedRole = computed(() => {
   let capitalized = props.role.charAt(0).toUpperCase() + props.role.slice(1);
   return capitalized.replace("ue", "ü");
 });
+
+const handleDelete = () => {
+  emit("delete", props.id);
+};
 </script>
