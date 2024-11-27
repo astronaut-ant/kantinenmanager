@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
         - name: frontend-deployment
-          image: leschuster/sep-test-fe:latest
+          image: swpgruppe16/frontend:latest
           imagePullPolicy: Always
       imagePullSecrets:
         - name: regcred

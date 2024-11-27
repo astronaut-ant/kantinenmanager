@@ -35,7 +35,7 @@ spec:
     spec:
       containers:
         - name: backend-deployment
-          image: leschuster/sep-test:latest
+          image: swpgruppe16/backend:latest
           imagePullPolicy: Always
           resources:
             limits:
