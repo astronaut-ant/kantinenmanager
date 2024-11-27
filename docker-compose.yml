@@ -56,3 +56,29 @@ services:
     profiles:
       - init
     command: ["python", "/app/scripts/init.py"]
+
+  # docker compose run test-backend
+  # Run backend tests and exit
+  test-backend:
+    image: backend
+    profiles:
+      - manual
+    build:
+      context: ./backend
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./backend:/app/backend
+    command: bash -c "pytest /app/backend"
+
+  # docker compose run test-backend-watch
+  # Run backend tests and watch for changes
+  test-backend-watch:
+    image: backend
+    profiles:
+      - manual
+    build:
+      context: ./backend
+      dockerfile: ./Dockerfile
+    volumes:
+      - ./backend:/app/backend
+    command: bash -c "ptw /app/backend"

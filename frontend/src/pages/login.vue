@@ -39,6 +39,7 @@
         >
           Sign In
         </v-btn>
+        <LoginAlert v-if="showAlert" />
       </v-form>
     </v-card>
   </v-dialog>
@@ -48,12 +49,14 @@
 import axios from "axios";
 import router from "../router";
 import { useAppStore } from "../stores/app.js";
+import LoginAlert from "@/components/LoginAlert.vue";
 
 const form = ref(false);
 const userName = ref(null);
 const password = ref(null);
 const loading = ref(false);
 const dialog = ref(true);
+const showAlert = ref(false);
 
 const handleSubmit = async () => {
   const appStore = useAppStore();
@@ -67,12 +70,32 @@ const handleSubmit = async () => {
       },
       { withCredentials: true }
     )
-    .then((response) => console.log(response.data))
+    .then((response) => {
+      appStore.userData = response.data;
+      // console.log(appStore.userData);
+    })
     .catch((err) => console.log(err));
-  loading.value = true;
-  setTimeout(() => (loading.value = false), 2000);
-  router.push({ path: "/verwaltung/uebersicht" });
+  // loading.value = true;
+  // setTimeout(() => (loading.value = false), 2000);
+
+  switch (appStore.userData.user_group) {
+    case "verwaltung":
+      router.push({ path: "/verwaltung/uebersicht" });
+      break;
+    case "standortleitung":
+      router.push({ path: "/standortleitung" });
+      break;
+    case "gruppenleitung":
+      router.push({ path: "/gruppenleitung" });
+      break;
+    case "kuechenpersonal":
+      router.push({ path: "/kuechenpersonal" });
+      break;
+    default:
+      showAlert.value = true;
+  }
 };
+
 const required = (v) => {
   return !!v || "Eingabe erforderlich";
 };

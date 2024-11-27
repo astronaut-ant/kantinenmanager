@@ -7,7 +7,7 @@ from src.database import db
 from src.models.maindish import MainDish
 
 
-class PreOrder(db.Model):
+class Preorder(db.Model):
     __tablename__ = "pre_order"
 
     """Model to represent a preorder

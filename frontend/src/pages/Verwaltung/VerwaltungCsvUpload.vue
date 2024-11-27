@@ -73,7 +73,8 @@ import axios from "axios";
 const file = ref(null);
 const fileError = ref(null);
 const loading = ref(false);
-const successDialog = ref(false);
+const successSnackbar = ref(false);
+const snackbarText = ref("Die Datei wurde erfolgreich hochgeladen!");
 const errorDialog = ref(false);
 
 const onFileChange = () => {
@@ -104,7 +105,7 @@ const uploadFile = () => {
     })
     .then((response) => {
       console.log(response.data);
-      successDialog.value = true;
+      successSnackbar.value = true;
     })
     .catch((err) => {
       console.error(err);
@@ -114,9 +115,6 @@ const uploadFile = () => {
       loading.value = false;
       file.value = null;
     });
-};
-const closeSuccessDialog = () => {
-successDialog.value = false;
 };
 
 const closeErrorDialog = () => {
