@@ -45,13 +45,14 @@ class RefreshTokenSessionRepository:
         db.session.commit()
 
     @staticmethod
-    def delete_token(token: str):
+    def delete_token(token: RefreshTokenSession):
         """Delete a refresh token from the database
 
         :param token: The refresh token to delete
         """
 
-        raise NotImplementedError("Not implemented yet")
+        db.session.delete(token)
+        db.session.commit()
 
     @staticmethod
     def delete_user_tokens(user_id: str):
