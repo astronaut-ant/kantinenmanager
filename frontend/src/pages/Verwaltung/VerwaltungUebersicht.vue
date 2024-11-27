@@ -44,7 +44,7 @@ onMounted(() => {
     .get("http://localhost:4200/api/users", { withCredentials: true })
     .then((response) => {
       users.value = response.data;
-      console.log(users.value);
+      // console.log(users.value);
     })
     .catch((err) => console.log(err));
 });

@@ -72,7 +72,7 @@ const handleSubmit = async () => {
     )
     .then((response) => {
       appStore.userData = response.data;
-      // console.log(appStore.userData);
+      console.log(appStore.userData);
     })
     .catch((err) => console.log(err));
   // loading.value = true;
@@ -89,7 +89,7 @@ const handleSubmit = async () => {
       router.push({ path: "/gruppenleitung" });
       break;
     case "kuechenpersonal":
-      router.push({ path: "/kuechenpersonal" });
+      router.push({ path: "/kuechenpersonal/uebersicht" });
       break;
     default:
       showAlert.value = true;

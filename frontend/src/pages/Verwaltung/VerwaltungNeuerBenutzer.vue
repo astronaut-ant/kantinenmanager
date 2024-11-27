@@ -1,6 +1,6 @@
 <template>
   <NavbarVerwaltung @click="emptyForm" />
-  <div class="mt-10 d-flex justify-center" @click="emptyForm">
+  <div class="mt-7 d-flex justify-center" @click="emptyForm">
     <div>
       <v-card class="elevation-7 px-6 py-4 w-100">
         <v-card-text class="mb-2 text-h5">
@@ -24,37 +24,33 @@
               <v-radio label="Küchenpersonal" value="kuechenpersonal"></v-radio>
             </div>
           </v-radio-group>
-          <div class="d-flex ga-5">
-            <v-text-field
-              v-model="first_name"
-              :rules="[required]"
-              class="mb-2"
-              label="Vorname"
-              clearable
-            ></v-text-field>
-            <v-text-field
-              v-model="last_name"
-              :rules="[required]"
-              class="mb-2"
-              label="Nachname"
-              clearable
-            ></v-text-field>
-          </div>
-          <div class="d-flex ga-5">
-            <v-text-field
-              v-model="username"
-              :rules="[required]"
-              label="Benutzername"
-              clearable
-            ></v-text-field>
-            <v-text-field
-              v-model="password"
-              type="password"
-              :rules="[required]"
-              label="Passwort"
-              clearable
-            ></v-text-field>
-          </div>
+          <v-text-field
+            v-model="first_name"
+            :rules="[required]"
+            class="mb-2"
+            label="Vorname"
+            clearable
+          ></v-text-field>
+          <v-text-field
+            v-model="last_name"
+            :rules="[required]"
+            class="mb-2"
+            label="Nachname"
+            clearable
+          ></v-text-field>
+          <v-text-field
+            v-model="username"
+            :rules="[required]"
+            label="Benutzername"
+            clearable
+          ></v-text-field>
+          <v-text-field
+            v-model="password"
+            type="password"
+            :rules="[required]"
+            label="Passwort"
+            clearable
+          ></v-text-field>
           <v-btn
             class="mt-2"
             :disabled="!form"
