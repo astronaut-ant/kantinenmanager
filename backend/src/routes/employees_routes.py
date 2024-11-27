@@ -8,6 +8,8 @@ from src.services.employees_service import (
     EmployeesService,
     EmployeeAlreadyExistsError,
     GroupDoesNotExistError,
+    NameNotAppropriateError,
+    FileNotProcessableError,
 )
 from flask import Blueprint, jsonify, request, g
 from flasgger import swag_from
@@ -291,7 +293,34 @@ def create_user():
 
 @employees_routes.post("/api/employees_csv")
 @login_required(groups=[UserGroup.verwaltung], disabled=True)
-# @swag_from kommmt wenn mein GitHub Copilot zugelassen wurde, das hilft einem doch dabei richtig?
+@swag_from(
+    {
+        "tags": ["employees"],
+        "parameters": [
+            {
+                "in": "path",
+                "name": "employee_csv",
+                "required": True,
+                "schema": {"type": "string"},
+            },
+            {
+                "name": "file",
+                "in": "formData",
+                "type": "file",
+                "required": True,
+                "description": "Die CSV-Datei, die hochgeladen werden soll.",
+            },
+        ],
+        "responses": {
+            200: {
+                "description": "File read in successfully",
+                "schema": {"$ref": "#/definitions/Employee"},
+            },
+            400: {"description": "Bad Request: No File in Request"},
+            404: {"description": "Wrong file Format: Need CSV"},
+        },
+    }
+)
 def csv_create():
     """Create Employees contained in a CSV File
     Create Employees contained in a CSV File
@@ -326,10 +355,40 @@ def csv_create():
                 description="Es werden nur .csv Dateien zugelassen",
             )
         )
-
-    EmployeesService.bulk_create_employees(file)
-
-    # ToDo return Fault from bulk_create_employees
+    try:
+        EmployeesService.bulk_create_employees(file)
+    except EmployeeAlreadyExistsError:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Ein Nutzer existiert bereits",
+                description="Einer der Nutzer existiert bereits",
+            )
+        )
+    except GroupDoesNotExistError:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Gruppe wurde nicht gefunden",
+                description="Die Gruppe zu einem der Benutzer existiert nicht",
+            )
+        )
+    except NameNotAppropriateError:
+        abort_with_err(
+            ErrMsg(
+                status_code=422,
+                title="Ein Name ist nicht verarbeitbar",
+                description="Der Vor-/Nachname ist entweder zu lang, oder Namen können nicht getrennt werden",
+            )
+        )
+    except FileNotProcessableError:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Datei hat unlesbares Format",
+                description="Datei muss utf-8 mit , oder iso-8859-1 mit ; sein",
+            )
+        )
 
     return jsonify({"message": "Datei wurde erfolgreich eingelesen"}), 200
 
@@ -442,7 +501,7 @@ def update_employee(employee_id: UUID):
     return jsonify(employee.to_dict())
 
 
-@employees_routes.delete("/api/users/<uuid:user_id>")
+@employees_routes.delete("/api/employees/<uuid:user_id>")
 @login_required(groups=[UserGroup.verwaltung])
 @swag_from(
     {
@@ -467,7 +526,7 @@ def update_employee(employee_id: UUID):
         },
     }
 )
-def delete_user(employee_id: UUID):
+def delete_employee(employee_id: UUID):
     """Delete an employee
     Delete an employee by ID
 

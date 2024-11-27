@@ -21,6 +21,18 @@ class GroupDoesNotExistError(Exception):
     pass
 
 
+class NameNotAppropriateError(Exception):
+    """Exception raised when a Name is to long or not splitable"""
+
+    pass
+
+
+class FileNotProcessableError(Exception):
+    """Exception raised when a File has wrong contents and cannot be read"""
+
+    pass
+
+
 class EmployeesService:
     """Service for handling employee management."""
 
@@ -95,8 +107,6 @@ class EmployeesService:
             raise GroupDoesNotExistError(
                 f"Group {group_name} at location {location_name} does not exist"
             )
-
-        print("HALLLLLLLLOOOO: ", first_name, " ; ", last_name)
 
         employee = Employee(
             first_name=first_name,
