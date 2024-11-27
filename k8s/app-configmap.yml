@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-configmap
+data:
+  FLASK_ENV: production
+  DB_DATABASE: postgres
+  DB_USER: postgres
+  DB_HOST: db-service.default.svc.cluster.local
+  DB_PORT: "5432"
