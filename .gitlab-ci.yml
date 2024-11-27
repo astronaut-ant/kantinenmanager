@@ -50,6 +50,7 @@ package-backend:
   variables:
     CI_REGISTRY_IMAGE: $CI_REGISTRY_BACKEND_IMAGE:$CI_COMMIT_SHORT_SHA
   script:
+    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
     - /kaniko/executor
       --context "${CI_PROJECT_DIR}/backend"
       --dockerfile "${CI_PROJECT_DIR}/backend/Dockerfile"
@@ -79,6 +80,7 @@ push-frontend:
     CI_REGISTRY_IMAGE: $CI_REGISTRY_FRONTEND_IMAGE:$CI_COMMIT_SHORT_SHA
   script:
     - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - crane push frontend.tar $CI_REGISTRY_IMAGE
     - crane tag $CI_REGISTRY_IMAGE latest # TODO
     - |
       if [[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]]; then
