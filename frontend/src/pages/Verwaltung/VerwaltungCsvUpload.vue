@@ -1,7 +1,7 @@
 <template>
   <NavbarVerwaltung />
   <v-container class="py-5">
-    
+
     <div class="d-flex justify-center">
       <h1 class="text-center">Import CSV Dateien</h1>
     </div>
@@ -98,7 +98,7 @@ const uploadFile = () => {
   formData.append("file", file.value);
 
   axios
-    .post("DUMMY", formData, {
+    .post("http://localhost:4200/api/employees_csv", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
