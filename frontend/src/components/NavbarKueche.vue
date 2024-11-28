@@ -5,6 +5,7 @@
       <v-toolbar-title>
         <span>Küchenpersonal</span>
       </v-toolbar-title>
+      <Avatar />
     </v-toolbar>
     <v-navigation-drawer
       :disable-resize-watcher="true"

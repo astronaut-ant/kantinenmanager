@@ -15,7 +15,7 @@
       <v-form
         ref="validation"
         v-model="form"
-        validate-on="invalid-input"
+        validate-on="lazy invalid-input"
         @submit.prevent="handleSubmit"
       >
         <v-card-text class="mx-auto w-75">
