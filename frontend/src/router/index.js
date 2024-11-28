@@ -72,6 +72,7 @@ const protectRoute = (next, user_group) => {
       next();
     } else next("/accessdenied");
   } catch (e) {
+    console.log("TEST");
     next("/accessdenied");
   }
 };

@@ -39,7 +39,12 @@
         >
           Sign In
         </v-btn>
-        <LoginAlert v-if="showAlert" />
+        <LoginAlert
+          color="red"
+          icon="$error"
+          text="Ungültiger Benutzername oder Passwort"
+          v-if="showAlert"
+        />
       </v-form>
     </v-card>
   </v-dialog>
