@@ -88,10 +88,10 @@ const handleSubmit = async () => {
       router.push({ path: "/verwaltung/uebersicht" });
       break;
     case "standortleitung":
-      router.push({ path: "/standortleitung" });
+      router.push({ path: "/standortleitung/uebersicht" });
       break;
     case "gruppenleitung":
-      router.push({ path: "/gruppenleitung" });
+      router.push({ path: "/gruppenleitung/uebersicht" });
       break;
     case "kuechenpersonal":
       router.push({ path: "/kuechenpersonal/uebersicht" });

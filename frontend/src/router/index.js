@@ -10,6 +10,8 @@ import KuecheQR from "@/pages/Kuechenpersonal/KuecheQR.vue";
 import AccessDenied from "@/pages/AccessDenied.vue";
 import VerwaltungCsvUpload from "@/pages/Verwaltung/VerwaltungCsvUpload.vue";
 import axios from "axios";
+import Gruppenleitung from "@/pages/Gruppenleitung/Gruppenleitung.vue";
+import Standortleitung from "@/pages/Standortleitung/Standortleitung.vue";
 
 const routes = [
   { path: "/", component: index, redirect: "/login" },
@@ -41,6 +43,20 @@ const routes = [
     component: VerwaltungCsvUpload,
     beforeEnter: (to, from, next) => {
       protectRoute(next, "verwaltung");
+    },
+  },
+  {
+    path: "/gruppenleitung/uebersicht",
+    component: Gruppenleitung,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "gruppenleitung");
+    },
+  },
+  {
+    path: "/standortleitung/uebersicht",
+    component: Standortleitung,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "standortleitung");
     },
   },
   {

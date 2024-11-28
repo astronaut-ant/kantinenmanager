@@ -1,9 +1,6 @@
 <template>
   <h1 class="text-center mt-5 text-pink">Standortleitung</h1>
-  <div class="d-flex justify-center mt-5 ga-5">
-    <v-btn class="text-dark" to="../">back</v-btn>
-  </div>
+  <h3 class="text-center mt-5 text-pink">...under construction!</h3>
 </template>
 
-<script setup>
-</script>
+<script setup></script>
