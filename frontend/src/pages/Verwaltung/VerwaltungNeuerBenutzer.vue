@@ -95,7 +95,7 @@ const handleSubmit = () => {
       username: username.value,
       password: password.value,
       user_group: user_group.value,
-    })
+    }, { withCredentials: true })
     .then((response) => console.log(response.data))
     .catch((err) => console.log(err));
   showConfirm.value = true;

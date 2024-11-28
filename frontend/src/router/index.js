@@ -9,6 +9,8 @@ import KuecheUebersicht from "@/pages/Kuechenpersonal/KuecheUebersicht.vue";
 import KuecheQR from "@/pages/Kuechenpersonal/KuecheQR.vue";
 import AccessDenied from "@/pages/AccessDenied.vue";
 import VerwaltungCsvUpload from "@/pages/Verwaltung/VerwaltungCsvUpload.vue";
+import StandortUebersicht from "@/pages/Standortleitung/StandortleitungUebersicht.vue"
+import StandortVertretung from "@/pages/Standortleitung/StandortleitungVertretung.vue"
 import axios from "axios";
 
 const routes = [
@@ -58,6 +60,23 @@ const routes = [
       protectRoute(next, "kuechenpersonal");
     },
   },
+
+  {
+    path: "/standortleitung/uebersicht",
+    component: StandortUebersicht,
+    beforeEnter: async (to, from, next) => {
+      protectRoute(next, "standortleitung");
+    },
+  },
+
+  {
+    path: "/standortleitung/vertretung",
+    component: StandortVertretung,
+    beforeEnter: async (to, from, next) => {
+      protectRoute(next, "standortleitung");
+    },
+  },
+
 ];
 
 const router = createRouter({
