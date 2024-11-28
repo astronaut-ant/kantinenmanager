@@ -18,35 +18,35 @@ const routes = [
   {
     path: "/verwaltung/uebersicht",
     component: VerwaltungUebersicht,
-    beforeEnter: async (to, from, next) => {
+    beforeEnter: (to, from, next) => {
       protectRoute(next, "verwaltung");
     },
   },
   {
     path: "/verwaltung/neuerBenutzer",
     component: VerwaltungNeuerBenutzer,
-    beforeEnter: async (to, from, next) => {
+    beforeEnter: (to, from, next) => {
       protectRoute(next, "verwaltung");
     },
   },
   {
     path: "/verwaltung/behinderung",
     component: VerwaltungBehinderung,
-    beforeEnter: async (to, from, next) => {
+    beforeEnter: (to, from, next) => {
       protectRoute(next, "verwaltung");
     },
   },
   {
     path: "/verwaltung/behinderung/csv-upload",
     component: VerwaltungCsvUpload,
-    beforeEnter: async (to, from, next) => {
+    beforeEnter: (to, from, next) => {
       protectRoute(next, "verwaltung");
     },
   },
   {
     path: "/kuechenpersonal/uebersicht",
     component: KuecheUebersicht,
-    beforeEnter: async (to, from, next) => {
+    beforeEnter: (to, from, next) => {
       protectRoute(next, "kuechenpersonal");
     },
   },
@@ -54,7 +54,7 @@ const routes = [
   {
     path: "/kuechenpersonal/qr",
     component: KuecheQR,
-    beforeEnter: async (to, from, next) => {
+    beforeEnter: (to, from, next) => {
       protectRoute(next, "kuechenpersonal");
     },
   },
@@ -66,15 +66,17 @@ const router = createRouter({
 });
 
 const protectRoute = (next, user_group) => {
-  const appStore = useAppStore();
-  try {
-    if (appStore.userData.user_group == user_group) {
-      next();
-    } else next("/accessdenied");
-  } catch (e) {
-    console.log("TEST");
-    next("/accessdenied");
-  }
+  axios
+    .get("http://localhost:4200/api/is-logged-in", { withCredentials: true })
+    .then((response) => {
+      console.log(response.data);
+      if (response.data.user_group === user_group) {
+        next();
+      } else {
+        next("/accessdenied");
+      }
+    })
+    .catch((err) => next("/accessdenied"));
 };
 
 // Workaround for https://github.com/vitejs/vite/issues/11804
