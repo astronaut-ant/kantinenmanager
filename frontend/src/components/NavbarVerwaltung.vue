@@ -5,6 +5,7 @@
       <v-toolbar-title>
         <span>Verwaltung</span>
       </v-toolbar-title>
+      <Avatar />
     </v-toolbar>
     <v-navigation-drawer
       :disable-resize-watcher="true"
@@ -44,6 +45,8 @@
 </template>
 
 <script setup>
+import Avatar from "./Avatar.vue";
+
 const drawer = ref(false);
 const showDrawer = () => {
   drawer.value = !drawer.value;

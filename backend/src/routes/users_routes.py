@@ -139,7 +139,7 @@ class UsersPostBody(Schema):
 
 
 @users_routes.post("/api/users")
-@login_required(groups=[UserGroup.verwaltung])
+# @login_required(groups=[UserGroup.verwaltung])
 @swag_from(
     {
         "tags": ["users"],

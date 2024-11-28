@@ -3,11 +3,13 @@
     <v-card-item>
       <div class="d-flex justify-space-between">
         <v-card-title>{{ props.name }}</v-card-title>
-        <v-chip color="primary" label> #{{ props.id }}</v-chip>
+        <!-- <v-chip color="primary" label> #{{ props.id }}</v-chip> -->
       </div>
       <v-card-subtitle>{{ formattedRole }} </v-card-subtitle>
       <div class="mt-5 d-flex ga-1 justify-end">
-        <v-btn class="mt-2 bg-primary" @click="handleEdit"><v-icon>mdi-lead-pencil</v-icon></v-btn>
+        <v-btn class="mt-2 bg-primary" @click="handleEdit"
+          ><v-icon>mdi-lead-pencil</v-icon></v-btn
+        >
         <v-btn class="mt-2 bg-red" @click="handleDelete"
           ><v-icon>mdi-trash-can-outline</v-icon></v-btn
         >
@@ -32,5 +34,4 @@ const handleDelete = () => {
 const handleEdit = () => {
   emit("edit", props.id);
 };
-
 </script>
