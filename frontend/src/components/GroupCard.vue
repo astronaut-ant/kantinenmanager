@@ -3,7 +3,7 @@
         <v-card-text>
             <div class="d-flex flex-wrap justify-space-between mb-4">
                 <div class="text-center">
-                    <v-chip color="primary" label> <p class="text-h5 font-weight-black"> Montage/Verpackung 4 - Zedtlitz </p> </v-chip>
+                    <v-chip color="primary" label> <p class="text-h5 font-weight-black"> Montage/Verpackung 4</p> </v-chip>
 
                 </div>
                 <v-chip color="primary" label> 17004 </v-chip>
@@ -26,7 +26,7 @@
         <v-card>
             <v-card-title color="primary">
                 <div class="text-center mt-4">
-                    <v-chip color="primary" label> <p class="text-h5 font-weight-black"> Montage/Verpackung 4 - Zedtlitz </p> </v-chip>
+                    <v-chip color="primary" label> <p class="text-h5 font-weight-black"> Montage/Verpackung 4</p> </v-chip>
                 </div>
             </v-card-title>
             <div class="mb-2">
