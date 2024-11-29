@@ -19,13 +19,13 @@ class GroupsService:
     def create_group(
             db,
             group_name: str,
-            user_id_groupleader: UUID,
+            user_id_group_leader: UUID,
             location_id: UUID,
             user_id_replacement: UUID = None,
     ):
-        group_leader_exists = db.query(User).filter(User.id == user_id_groupleader).first()
+        group_leader_exists = db.query(User).filter(User.id == user_id_group_leader).first()
         if not group_leader_exists:
-            raise ValueError(f"Der User mit der ID {user_id_groupleader} existiert nicht.")
+            raise ValueError(f"Der User mit der ID {user_id_group_leader} existiert nicht.")
         
         location_exists = db.query(Location).filter(Location.id == location_id).first()
         if not location_exists:
@@ -34,7 +34,7 @@ class GroupsService:
         return GroupsRepository.create_group(
             db,
             group_name,
-            user_id_groupleader,
+            user_id_group_leader,
             location_id,
             user_id_replacement,
         )

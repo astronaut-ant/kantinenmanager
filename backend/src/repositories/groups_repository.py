@@ -10,14 +10,14 @@ class GroupsRepository:
     @staticmethod
     def create_group(
         group_name: str,
-        user_id_groupleader: UUID,
+        user_id_group_leader: UUID,
         location_id: UUID,
         user_id_replacement: UUID = None,
     ) -> Group:
         """Create a new group in the database."""
         new_group = Group(
             group_name=group_name,
-            user_id_groupleader=user_id_groupleader,
+            user_id_group_leader=user_id_group_leader,
             user_id_replacement=user_id_replacement,
             location_id=location_id,
         )
@@ -36,7 +36,7 @@ class GroupsRepository:
         """Assign a user as the leader of a group."""
         group = GroupsRepository._get_group(db, group_id)
         if group:
-            group.user_id_groupleader = user_id
+            group.user_id_group_leader = user_id
             db.commit()
             db.refresh(group)
             return group
@@ -47,7 +47,7 @@ class GroupsRepository:
         """Remove the leader from a group."""
         group = GroupsRepository._get_group(db, group_id)
         if group:
-            group.user_id_groupleader = None
+            group.user_id_group_leader = None
             db.commit()
             db.refresh(group)
             return group
