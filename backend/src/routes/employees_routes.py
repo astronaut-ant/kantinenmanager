@@ -292,7 +292,7 @@ def create_user():
 
 
 @employees_routes.post("/api/employees_csv")
-@login_required(groups=[UserGroup.verwaltung], disabled=True)
+@login_required(groups=[UserGroup.verwaltung])
 @swag_from(
     {
         "tags": ["employees"],
@@ -546,3 +546,39 @@ def delete_employee(employee_id: UUID):
 
     EmployeesService.delete_employee(employee)
     return jsonify({"message": "Mitarbeiter:in erfolgreich gelöscht"})
+
+
+@employees_routes.get("/api/employees/create-qr-code/<uuid:user_id>")
+@login_required(groups=[UserGroup.verwaltung])
+@swag_from(
+    {
+        "tags": ["employees"],
+        "parameters": [
+            {
+                "in": "path",
+                "name": "employee_id",
+                "required": True,
+                "schema": {"type": "string"},
+            }
+        ],
+        "responses": {
+            200: {
+                "description": "Created successfully QR code for employee",
+                "schema": {
+                    "type": "object",
+                    "properties": {"message": {"type": "string"}},
+                },
+            },
+            404: {"description": "QR code could not be created"},
+        },
+    }
+)
+def create_qr_code_for_employee(employee_id: UUID):
+    """Create the QR code for an employee by ID
+    Create the QR code for an employee by ID
+
+    Authentication: required
+    Authorization: Verwaltung
+    ---
+    """
+    return EmployeesService.create_qr_code(employee_id, g.user_group, g.user_id)
