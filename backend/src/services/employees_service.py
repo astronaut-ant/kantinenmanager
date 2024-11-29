@@ -266,7 +266,8 @@ class EmployeesService:
             box_size=10,
             border=4,
         )
-        qr.add_data(employee.id)
+        # qr.add_data(employee.id)
+        qr.add_data(1234)
         qr.make(fit=True)
         img = qr.make_image(fill="black", back_color="white")
 

@@ -563,13 +563,16 @@ def delete_employee(employee_id: UUID):
         ],
         "responses": {
             200: {
-                "description": "Created successfully QR code for employee",
-                "schema": {
-                    "type": "object",
-                    "properties": {"message": {"type": "string"}},
+                "description": "Successfully created QR code as a PDF for the employee",
+                "content": {
+                    "application/pdf": {
+                        "schema": {"type": "string", "format": "binary"}
+                    }
                 },
             },
-            404: {"description": "QR code could not be created"},
+            404: {
+                "description": "QR code could not be created for the employee",
+            },
         },
     }
 )
