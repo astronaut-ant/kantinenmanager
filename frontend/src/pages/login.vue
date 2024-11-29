@@ -55,6 +55,7 @@ import axios from "axios";
 import router from "../router";
 import { useAppStore } from "../stores/app.js";
 import LoginAlert from "@/components/LoginAlert.vue";
+import { onBeforeMount } from "vue";
 
 const form = ref(false);
 const userName = ref(null);
@@ -77,35 +78,29 @@ const handleSubmit = () => {
     )
     .then((response) => {
       appStore.userData = response.data;
-      console.log(appStore.userData);
+      switch (appStore.userData.user_group) {
+        case "verwaltung":
+          console.log("v");
+          router.push({ path: "/verwaltung/uebersicht" });
+          break;
+        case "standortleitung":
+          console.log("s");
+          router.push({ path: "/standortleitung/uebersicht" });
+          break;
+        case "gruppenleitung":
+          console.log("g");
+          router.push({ path: "/gruppenleitung/uebersicht" });
+          break;
+        case "kuechenpersonal":
+          console.log("k");
+          router.push({ path: "/kuechenpersonal/uebersicht" });
+          break;
+      }
     })
-    .catch((err) => console.log(err));
-  // loading.value = true;
-  // setTimeout(() => (loading.value = false), 2000);
+    .catch((err) => (showAlert.value = true));
 
-  switch (appStore.userData.user_group) {
-    case "verwaltung":
-      console.log("v");
-      router.push({ path: "/verwaltung/uebersicht" });
-      break;
-    case "standortleitung":
-      console.log("s");
-      router.push({ path: "/standortleitung/uebersicht" });
-      break;
-    case "gruppenleitung":
-      console.log("g");
-      router.push({ path: "/gruppenleitung/uebersicht" });
-      break;
-    case "kuechenpersonal":
-      console.log("k");
-      router.push({ path: "/kuechenpersonal/uebersicht" });
-      break;
-    default:
-      showAlert.value = true;
-  }
-};
-
-const required = (v) => {
-  return !!v || "Eingabe erforderlich";
+  const required = (v) => {
+    return !!v || "Eingabe erforderlich";
+  };
 };
 </script>

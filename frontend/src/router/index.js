@@ -15,8 +15,23 @@ import Standortleitung from "@/pages/Standortleitung/Standortleitung.vue";
 
 const routes = [
   { path: "/", component: index, redirect: "/login" },
-  { path: "/login", component: Login },
   { path: "/accessdenied", component: AccessDenied },
+  {
+    path: "/login",
+    component: Login,
+    beforeEnter: (to, from, next) => {
+      let user_group = "";
+      axios
+        .get("http://localhost:4200/api/is-logged-in", {
+          withCredentials: true,
+        })
+        .then((response) => {
+          user_group = response.data.user_group;
+          next(`/${user_group}/uebersicht`);
+        })
+        .catch((err) => next());
+    },
+  },
   {
     path: "/verwaltung/uebersicht",
     component: VerwaltungUebersicht,
