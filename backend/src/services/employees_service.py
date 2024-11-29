@@ -1,36 +1,25 @@
 """Service for handling employee management."""
 
 import csv, re
+from flask import send_file
+import qrcode
+from io import BytesIO
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from reportlab.lib.utils import ImageReader
 from uuid import UUID
 from src.services.auth_service import AuthService
 from src.models.user import UserGroup
 from src.models.employee import Employee
 from src.repositories.employees_repository import EmployeesRepository
 from src.utils.error import ErrMsg, abort_with_err
-
-
-class EmployeeAlreadyExistsError(Exception):
-    """Exception raised when an employee number already exists."""
-
-    pass
-
-
-class GroupDoesNotExistError(Exception):
-    """Exception raised when a group does not exist at a given location."""
-
-    pass
-
-
-class NameNotAppropriateError(Exception):
-    """Exception raised when a Name is to long or not splitable"""
-
-    pass
-
-
-class FileNotProcessableError(Exception):
-    """Exception raised when a File has wrong contents and cannot be read"""
-
-    pass
+from src.utils.exceptions import (
+    EmployeeAlreadyExistsError,
+    GroupDoesNotExistError,
+    EmployeeDoesNotExistError,
+    NameNotAppropriateError,
+    FileNotProcessableError,
+)
 
 
 class EmployeesService:
@@ -252,3 +241,68 @@ class EmployeesService:
             "message": "Mitarbeiter erfolgreich erstellt",
             "count": len(employees),
         }
+
+    @staticmethod
+    def create_qr_code(employee_id: UUID, user_group: UserGroup, user_id: UUID):
+        """Create a QR code for an employee.
+
+        :param employee_id: The ID of the employee to create the QR code for
+
+        :return: The QR code as a Response object
+        """
+
+        employee = EmployeesRepository.get_employee_by_id_by_user_scope(
+            employee_id,
+            user_group,
+            user_id,
+        )
+        if not employee:
+            raise EmployeeDoesNotExistError
+
+        # QR-Code generieren
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        # qr.add_data(employee.id)
+        qr.add_data(1234)
+        qr.make(fit=True)
+        img = qr.make_image(fill="black", back_color="white")
+
+        # QR-Code-Bild in einem BytesIO-Objekt im Speicher speichern
+        qr_buffer = BytesIO()
+        img.save(qr_buffer, format="PNG")
+        qr_buffer.seek(0)
+
+        pdf_buffer = BytesIO()
+        page_width, page_height = A4
+        c = canvas.Canvas(pdf_buffer, pagesize=A4)
+
+        # Position für den QR-Code
+        qr_size = 200
+        x_center = (page_width - qr_size) / 2
+        y_position = (page_height / 2) + 180  # Position in der oberen Hälfte
+
+        # BytesIO-Objekt in ein ImageReader-Objekt umwandeln, um das QR-Code-Bild in die Canvas einzubetten
+        qr_image = ImageReader(qr_buffer)
+        c.drawImage(qr_image, x_center, y_position, width=qr_size, height=qr_size)
+
+        # Text unterhalb des QR-Codes hinzufügen
+        text_y_position = y_position - 20
+        c.setFont("Helvetica", 12)
+        c.drawCentredString(
+            page_width / 2,
+            text_y_position,
+            f"{employee.first_name} {employee.last_name}",
+        )
+        c.save()
+        pdf_buffer.seek(0)
+
+        return send_file(
+            pdf_buffer,
+            mimetype="application/pdf",
+            as_attachment=True,
+            download_name=f"qr-code_{employee.first_name}{employee.last_name}.pdf",
+        )
