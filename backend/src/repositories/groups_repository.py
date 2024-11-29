@@ -4,7 +4,7 @@ from uuid import UUID
 from src.database import db
 
 
-class GroupRepository:
+class GroupsRepository:
     """Repository to handle database operations for group data."""
 
     @staticmethod
@@ -34,7 +34,7 @@ class GroupRepository:
     @staticmethod
     def assign_group_leader(group_id: UUID, user_id: UUID) -> Group | None:
         """Assign a user as the leader of a group."""
-        group = GroupRepository._get_group(db, group_id)
+        group = GroupsRepository._get_group(db, group_id)
         if group:
             group.user_id_groupleader = user_id
             db.commit()
@@ -45,7 +45,7 @@ class GroupRepository:
     @staticmethod
     def remove_group_leader(group_id: UUID) -> Group | None:
         """Remove the leader from a group."""
-        group = GroupRepository._get_group(db, group_id)
+        group = GroupsRepository._get_group(db, group_id)
         if group:
             group.user_id_groupleader = None
             db.commit()
@@ -56,7 +56,7 @@ class GroupRepository:
     @staticmethod
     def assign_group_replacement(group_id: UUID, user_id: UUID) -> Group | None:
         """Assign a user as the replacement for a group leader."""
-        group = GroupRepository._get_group(db, group_id)
+        group = GroupsRepository._get_group(db, group_id)
         if group:
             group.user_id_replacement = user_id
             db.commit()
@@ -67,7 +67,7 @@ class GroupRepository:
     @staticmethod
     def remove_group_replacement(group_id: UUID) -> Group | None:
         """Remove the replacement from a group leader."""
-        group = GroupRepository._get_group(db, group_id)
+        group = GroupsRepository._get_group(db, group_id)
         if group:
             group.user_id_replacement = None
             db.commit()
