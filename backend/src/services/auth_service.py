@@ -145,7 +145,9 @@ class AuthService:
 
         # Generate new tokens
         user = UsersRepository.get_user_by_id(session.user_id)
-        print(user)
+
+        if user is None:
+            raise UnauthenticatedException("User not found")
 
         new_auth_token = AuthService.__make_auth_token(user, jwt_secret)
         new_refresh_token = AuthService.__make_refresh_token(user)

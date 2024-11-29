@@ -1,3 +1,4 @@
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 
@@ -13,7 +14,7 @@ class Base(DeclarativeBase):
 db = SQLAlchemy(model_class=Base, engine_options={"echo": True})
 
 
-def init_db(app):
+def init_db(app: Flask):
     db.init_app(app)
 
     import src.models.user
@@ -33,3 +34,27 @@ def init_db(app):
         # temporär. Später würde man das mit DB-Migrationen
         # machen.
         db.create_all()
+
+
+def create_initial_admin(app: Flask, username: str, password: str):
+    """Create an initial admin user if no users of group 'verwaltung' exist yet."""
+
+    from src.models.user import UserGroup
+    from src.repositories.users_repository import UsersRepository
+    from src.services.users_service import UsersService
+
+    with app.app_context():
+        users = UsersRepository.get_users_by_user_group(UserGroup.verwaltung)
+
+        if len(users) > 0:
+            return
+
+        UsersService.create_user(
+            first_name=username,
+            last_name=username,
+            username=username,
+            password=password,
+            user_group=UserGroup.verwaltung,
+        )
+
+        print(f"Created initial admin user {username}")
