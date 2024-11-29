@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import text
 from sqlalchemy.orm import DeclarativeBase
 
 
@@ -58,3 +59,15 @@ def create_initial_admin(app: Flask, username: str, password: str):
         )
 
         print(f"Created initial admin user {username}")
+
+
+def check_db_connection():
+    """Check if the database connection is working."""
+
+    try:
+        db.session.execute(text("SELECT 1"))
+    except Exception as e:
+        print("Database connection failed")
+        print(e)
+        return False
+    return True

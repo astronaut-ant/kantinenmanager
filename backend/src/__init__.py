@@ -1,14 +1,18 @@
+from datetime import datetime
 from flask import Flask
 from flasgger import Swagger
 from flask_cors import CORS
 
 from .middlewares.auth_middleware import register_auth_middleware
 from .database import create_initial_admin, init_db
+from .routes.general_routes import general_routes
 from .routes.users_routes import users_routes
 from .routes.auth_routes import auth_routes
 from .routes.employees_routes import employees_routes
 from dotenv import load_dotenv
 import os
+
+start_time = datetime.now()  # Record the start time of the application
 
 load_dotenv()
 
@@ -55,12 +59,14 @@ app.config["SQLALCHEMY_DATABASE_URI"] = (
 
 app.config["JWT_SECRET"] = jwt_secret
 app.config["MAX_CONTENT_LENGTH"] = 20971520
+app.config["APP_START_TIME"] = start_time
 
 init_db(app)
 create_initial_admin(app, initial_admin_username, initial_admin_password)
 
 register_auth_middleware(app)
 
+app.register_blueprint(general_routes)
 app.register_blueprint(users_routes)
 app.register_blueprint(auth_routes)
 app.register_blueprint(employees_routes)
