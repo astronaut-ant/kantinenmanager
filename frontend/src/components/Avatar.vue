@@ -53,6 +53,7 @@
 </template>
 
 <script setup>
+import axios from "axios";
 import router from "@/router";
 import { useAppStore } from "@/stores/app";
 import PasswordReset from "./PasswordReset.vue";
@@ -71,6 +72,11 @@ const formatUserGroup = (raw) => {
 const formattedUserGroup = formatUserGroup(appStore.userData.user_group);
 
 const signOut = () => {
+  appStore.userData = {};
   router.push("/login");
+  axios
+    .post("http://localhost:4200/api/logout", {}, { withCredentials: true })
+    .then((response) => console.log(response))
+    .catch((error) => console.log(error));
 };
 </script>

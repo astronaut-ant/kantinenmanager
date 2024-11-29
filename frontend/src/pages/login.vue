@@ -63,10 +63,10 @@ const loading = ref(false);
 const dialog = ref(true);
 const showAlert = ref(false);
 
-const handleSubmit = async () => {
+const handleSubmit = () => {
   const appStore = useAppStore();
   if (!form) return;
-  await axios
+  axios
     .post(
       "http://localhost:4200/api/login",
       {
@@ -85,15 +85,19 @@ const handleSubmit = async () => {
 
   switch (appStore.userData.user_group) {
     case "verwaltung":
+      console.log("v");
       router.push({ path: "/verwaltung/uebersicht" });
       break;
     case "standortleitung":
+      console.log("s");
       router.push({ path: "/standortleitung/uebersicht" });
       break;
     case "gruppenleitung":
+      console.log("g");
       router.push({ path: "/gruppenleitung/uebersicht" });
       break;
     case "kuechenpersonal":
+      console.log("k");
       router.push({ path: "/kuechenpersonal/uebersicht" });
       break;
     default:
