@@ -3,6 +3,8 @@ from flask import Flask
 from flasgger import Swagger
 from flask_cors import CORS
 
+from src.utils.error import register_error_handlers
+
 from .middlewares.auth_middleware import register_auth_middleware
 from .database import create_initial_admin, init_db
 from .routes.general_routes import general_routes
@@ -63,6 +65,8 @@ app.config["APP_START_TIME"] = start_time
 
 init_db(app)
 create_initial_admin(app, initial_admin_username, initial_admin_password)
+
+register_error_handlers(app)
 
 register_auth_middleware(app)
 
