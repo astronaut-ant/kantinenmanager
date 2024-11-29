@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from models.group import Group
 from uuid import UUID
+from src.database import db
 
 
 class GroupRepository:
@@ -8,7 +9,6 @@ class GroupRepository:
 
     @staticmethod
     def create_group(
-        db: Session,
         group_name: str,
         user_id_groupleader: UUID,
         location_id: UUID,
@@ -27,12 +27,12 @@ class GroupRepository:
         return new_group
 
     @staticmethod
-    def _get_group(db: Session, group_id: UUID) -> Group | None:
+    def _get_group(group_id: UUID) -> Group | None:
         """Helper method to retrieve a group by ID."""
         return db.query(Group).filter(Group.id == group_id).first()
 
     @staticmethod
-    def assign_group_leader(db: Session, group_id: UUID, user_id: UUID) -> Group | None:
+    def assign_group_leader(group_id: UUID, user_id: UUID) -> Group | None:
         """Assign a user as the leader of a group."""
         group = GroupRepository._get_group(db, group_id)
         if group:
@@ -43,7 +43,7 @@ class GroupRepository:
         return None
 
     @staticmethod
-    def remove_group_leader(db: Session, group_id: UUID) -> Group | None:
+    def remove_group_leader(group_id: UUID) -> Group | None:
         """Remove the leader from a group."""
         group = GroupRepository._get_group(db, group_id)
         if group:
@@ -54,7 +54,7 @@ class GroupRepository:
         return None
 
     @staticmethod
-    def assign_group_replacement(db: Session, group_id: UUID, user_id: UUID) -> Group | None:
+    def assign_group_replacement(group_id: UUID, user_id: UUID) -> Group | None:
         """Assign a user as the replacement for a group leader."""
         group = GroupRepository._get_group(db, group_id)
         if group:
@@ -65,7 +65,7 @@ class GroupRepository:
         return None
 
     @staticmethod
-    def remove_group_replacement(db: Session, group_id: UUID) -> Group | None:
+    def remove_group_replacement(group_id: UUID) -> Group | None:
         """Remove the replacement from a group leader."""
         group = GroupRepository._get_group(db, group_id)
         if group:
