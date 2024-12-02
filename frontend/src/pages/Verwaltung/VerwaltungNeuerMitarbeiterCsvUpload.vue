@@ -40,7 +40,7 @@
     <div class="d-flex justify-center mt-4">
       <v-btn
         :disabled="loading"
-        to="/verwaltung/behinderung"
+        to="/verwaltung/mitarbeiter/neuerMitarbeiter"
         class="bg-red"
       >
         Zurück
@@ -101,7 +101,7 @@ const uploadFile = () => {
     .post("http://localhost:4200/api/employees_csv", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
-      },
+      }, withCredentials: true,
     })
     .then((response) => {
       console.log(response.data);
