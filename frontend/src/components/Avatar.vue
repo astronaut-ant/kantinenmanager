@@ -19,13 +19,13 @@
                 {{ fullName }}
               </h3>
               <div class="w-75 mx-auto mt-2">
-                <p class="text-caption mt-1 text-start">
+                <p class="text-caption mt-1 text-start text-no-wrap">
                   {{ "Benutzername: " }}
                   <span class="font-weight-bold"
                     >{{ appStore.userData.username }}
                   </span>
                 </p>
-                <p class="text-caption mt-1 text-start">
+                <p class="text-caption mt-1 text-start text-no-wrap">
                   {{ "Benutzerrechte: " }}
                   <span class="font-weight-bold"
                     >{{ formattedUserGroup }}
