@@ -145,13 +145,13 @@ def get_employee_by_id(employee_id: UUID):
         "tags": ["employees"],
         "parameters": [
             {
-                "in": "path",
+                "in": "query",
                 "name": "first_name",
                 "required": True,
                 "schema": {"type": "string"},
             },
             {
-                "in": "path",
+                "in": "query",
                 "name": "last_name",
                 "required": True,
                 "schema": {"type": "string"},
