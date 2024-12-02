@@ -10,21 +10,19 @@
       @edit="openeditDialog"
     />
   </div>
-  <v-dialog v-model="deleteConfirmation" persistent max-width="400">
+  <v-dialog v-model="deleteDialog" persistent max-width="400">
     <v-card>
-      <v-card-title class="text-red d-flex justify-start">
-        <v-icon left class="mr-2"> mdi-account-remove-outline </v-icon>
-        <span class="text-h5">Benutzer löschen</span>
-      </v-card-title>
       <v-card-text>
-        Sind Sie sicher, dass Sie den Benutzer
-        <strong>{{ userToDeleteName }}</strong> löschen möchten?
+        <div class="d-flex justify-center text-red mb-4">
+          <p class="text-h5 font-weight-black" >Benutzer löschen</p>
+        </div>
+        <div class="text-medium-emphasis">
+          <p> Sind Sie sicher, dass Sie den Benutzer <strong>{{ userToDeleteName }}</strong> löschen möchten?</p>
+        </div>
       </v-card-text>
       <v-card-actions>
         <v-btn text @click="closedeleteDialog">Abbrechen</v-btn>
-        <v-btn color="red" variant="elevated" @click="confirmDelete"
-          >Löschen</v-btn
-        >
+        <v-btn color="red" variant="elevated" @click="confirmDelete">Löschen</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -106,7 +104,7 @@ import axios from "axios";
 const snackbarText = ref(" ");
 const snackbar = ref(false);
 const users = ref({});
-const deleteConfirmation = ref(false);
+const deleteDialog = ref(false);
 const editDialog = ref(false);
 const userToEdit = ref(null);
 const userToDelete = ref(null);
@@ -132,12 +130,12 @@ onMounted(() => {
 const opendeleteDialog = (id) => {
   const user = users.value.find((user) => user.id === id);
   userToDelete.value = id;
-  userToDeleteName.value = user?.username;
-  deleteConfirmation.value = true;
+  userToDeleteName.value = user?.last_name + ", " + user?.first_name  + " (Benutzername: "+ user?.username + ")";
+  deleteDialog.value = true;
 };
 
 const closedeleteDialog = () => {
-  deleteConfirmation.value = false;
+  deleteDialog.value = false;
   userToDelete.value = null;
 };
 
