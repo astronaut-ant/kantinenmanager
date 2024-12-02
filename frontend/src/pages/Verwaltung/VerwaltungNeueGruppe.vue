@@ -3,34 +3,49 @@
   <div class="mt-7 d-flex justify-center" @click="emptyForm">
     <div>
       <v-card class="elevation-7 px-6 py-4 w-100">
-        <v-card-text class="mb-2 text-h5"> Neuen Standort anlegen </v-card-text>
+        <v-card-text class="mb-2 text-h5"> Neue Gruppe anlegen </v-card-text>
         <CustomAlert
-          v-if="noStandortleiter"
+          v-if="noGruppenleiter"
           class="mb-7"
-          text="Es existieren keine Standortleiter "
+          text="Es existieren keine Gruppenleiter"
+          color="red"
+          icon="$error"
+        />
+        <CustomAlert
+          v-if="noStandorte"
+          class="mb-7"
+          text="Es existieren keine Standorte"
           color="red"
           icon="$error"
         />
         <v-form ref="validation" v-model="form" @submit.prevent="handleSubmit">
           <v-text-field
-            v-if="!noStandortleiter"
-            v-model="standortName"
+            v-if="!noGruppenleiter && !noStandorte"
+            v-model="gruppenName"
             :rules="[required]"
             class="mb-2"
-            label="Standort"
+            label="Gruppe"
             required
             clearable
           ></v-text-field>
           <v-select
-            v-if="!noStandortleiter"
-            label="Standortleiter"
-            v-model="standortLeitung"
+            class="mb-2"
+            v-if="!noGruppenleiter && !noStandorte"
+            label="Gruppenleiter"
+            v-model="gruppenleitung"
             :rules="[required]"
-            :items="standortleiterList"
+            :items="gruppenleiterList"
+          ></v-select>
+          <v-select
+            v-if="!noGruppenleiter && !noStandorte"
+            label="Standort"
+            v-model="standort"
+            :rules="[required]"
+            :items="standortList"
           ></v-select>
 
           <v-btn
-            v-if="!noStandortleiter"
+            v-if="!noGruppenleiter && !noStandorte"
             class="mt-3"
             :disabled="!form"
             color="primary"
@@ -61,27 +76,33 @@ import axios from "axios";
 const validation = ref("");
 const showConfirm = ref(false);
 const form = ref(false);
-const standortName = ref("");
-const standortLeitung = ref(null);
-const standortleiterList = ref([]);
-const noStandortleiter = ref(false);
-const standortLeiterLookupTable = {};
+const gruppenName = ref("");
+const gruppenleitung = ref(null);
+const gruppenleiterList = ref([]);
+const noGruppenleiter = ref(false);
+const gruppenleiterLookupTable = {};
 
-//fill Dropdown-Menu and id-Lookup
+//Dummy for Location-Endpoint
+const standort = ref(null);
+const standortList = ref(["W1", "W2", "W3"]);
+const noStandorte = ref(false);
+const standortLookupTable = {};
+
+//fill Dropdown-Menus and id-Lookup
 onMounted(() => {
   axios
     .get("http://localhost:4200/api/users", { withCredentials: true })
     .then((response) => {
       response.data.forEach((user) => {
-        if (user.user_group === "standortleitung") {
-          standortLeiterLookupTable[`${user.first_name} ${user.last_name}`] =
+        if (user.user_group === "gruppenleitung") {
+          gruppenleiterLookupTable[`${user.first_name} ${user.last_name}`] =
             user.id;
         }
       });
-      if (Object.keys(standortLeiterLookupTable).length === 0) {
-        noStandortleiter.value = true;
+      if (Object.keys(gruppenleiterLookupTable).length === 0) {
+        noGruppenleiter.value = true;
       } else {
-        standortleiterList.value = Object.keys(standortLeiterLookupTable);
+        gruppenleiterList.value = Object.keys(gruppenleiterLookupTable);
       }
     })
     .catch((err) => console.log(err));
@@ -90,13 +111,15 @@ onMounted(() => {
 //send to Backend needs Endpoint
 const handleSubmit = () => {
   console.log({
-    location_name: standortName.value,
-    user_id: standortLeiterLookupTable[standortLeitung.value],
+    location_name: gruppenName.value,
+    user_id: gruppenleiterLookupTable[gruppenleitung.value],
+    location_id: standortLookupTable[standort.value],
   });
   axios
-    .post("http://localhost:4200/api/locations", {
-      location_name: standortName.value,
-      user_id: standortLeiterLookupTable[standortLeitung.value],
+    .post("http://localhost:4200/api/groups", {
+      location_name: gruppenName.value,
+      user_id: gruppenleiterLookupTable[gruppenleitung.value],
+      location_id: standortLookupTable[standort.value],
     })
     .then((response) => console.log(response.data))
     .catch((err) => console.log(err));
