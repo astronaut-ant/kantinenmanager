@@ -34,23 +34,6 @@
         />
 
         <Dropdown
-          menuName="Mitarbeiter"
-          menuIcon="mdi-wheelchair"
-          :items="[
-            {
-              title: 'Alle Mitarbeiter',
-              icon: 'mdi-format-list-bulleted',
-              link: '/verwaltung/mitarbeiter/uebersicht',
-            },
-            {
-              title: 'Neuer Mitarbeiter',
-              icon: 'mdi-pencil-plus-outline',
-              link: '/verwaltung/mitarbeiter/neuerMitarbeiter',
-            },
-          ]"
-        />
-
-        <Dropdown
           menuName="Standorte"
           menuIcon="mdi-home-group"
           :items="[
@@ -80,6 +63,23 @@
               title: 'Neue Gruppe',
               icon: 'mdi-pencil-plus-outline',
               link: '/verwaltung/gruppen/neueGruppe',
+            },
+          ]"
+        />
+
+        <Dropdown
+          menuName="Mitarbeiter"
+          menuIcon="mdi-wheelchair"
+          :items="[
+            {
+              title: 'Alle Mitarbeiter',
+              icon: 'mdi-format-list-bulleted',
+              link: '/verwaltung/mitarbeiter/uebersicht',
+            },
+            {
+              title: 'Neuer Mitarbeiter',
+              icon: 'mdi-pencil-plus-outline',
+              link: '/verwaltung/mitarbeiter/neuerMitarbeiter',
             },
           ]"
         />
