@@ -39,7 +39,7 @@
         >
           Sign In
         </v-btn>
-        <LoginAlert
+        <CustomAlert
           color="red"
           icon="$error"
           text="Ungültiger Benutzername oder Passwort"
@@ -54,7 +54,7 @@
 import axios from "axios";
 import router from "../router";
 import { useAppStore } from "../stores/app.js";
-import LoginAlert from "@/components/LoginAlert.vue";
+import CustomAlert from "@/components/CustomAlert.vue";
 import { onBeforeMount } from "vue";
 
 const form = ref(false);
@@ -81,7 +81,7 @@ const handleSubmit = () => {
       switch (appStore.userData.user_group) {
         case "verwaltung":
           console.log("v");
-          router.push({ path: "/verwaltung/uebersicht" });
+          router.push({ path: "/verwaltung/benutzer/uebersicht" });
           break;
         case "standortleitung":
           console.log("s");
