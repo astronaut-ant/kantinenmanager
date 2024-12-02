@@ -55,7 +55,6 @@ import axios from "axios";
 import router from "../router";
 import { useAppStore } from "../stores/app.js";
 import CustomAlert from "@/components/CustomAlert.vue";
-import { onBeforeMount } from "vue";
 
 const form = ref(false);
 const userName = ref(null);
@@ -63,6 +62,10 @@ const password = ref(null);
 const loading = ref(false);
 const dialog = ref(true);
 const showAlert = ref(false);
+
+const required = (v) => {
+  return !!v || "Eingabe erforderlich";
+};
 
 const handleSubmit = () => {
   const appStore = useAppStore();
@@ -98,9 +101,5 @@ const handleSubmit = () => {
       }
     })
     .catch((err) => (showAlert.value = true));
-
-  const required = (v) => {
-    return !!v || "Eingabe erforderlich";
-  };
 };
 </script>
