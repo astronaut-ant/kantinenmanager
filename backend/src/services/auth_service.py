@@ -178,6 +178,34 @@ class AuthService:
             RefreshTokenSessionRepository.delete_token(session)
 
     @staticmethod
+    def change_password(user_id: UUID, old_password: str, new_password: str):
+        """Change the password of a user
+
+        :param user_id: The ID of the user
+        :param old_password: The current password
+        :param new_password: The new password
+
+        :raises auth_service.UserNotFoundException: If the user does not exist
+        :raises auth_service.InvalidCredentialsException: If the old password is incorrect
+        """
+
+        # Fetch user from DB
+        user = UsersRepository.get_user_by_id(user_id)
+        if user is None:
+            raise UserNotFoundException(f"User with id '{str(user_id)}' not found")
+
+        # Check password
+        if not AuthService.__check_password(old_password, user.hashed_password):
+            raise InvalidCredentialsException("Invalid password")
+
+        # Set new password
+        user.hashed_password = AuthService.hash_password(new_password)
+        UsersRepository.update_user(user)
+
+        # Invalidate all sessions
+        AuthService.invalidate_all_refresh_tokens(user_id)
+
+    @staticmethod
     def invalidate_all_refresh_tokens(user_id: UUID):
         """Invalidate all refresh tokens for a user
 
