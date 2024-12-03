@@ -7,7 +7,7 @@
         Fügen Sie einen Mitarbeiter manuell hinzu, indem Sie alle notwendigen
         Informationen direkt in das Formular eingeben.
       </p>
-      <v-btn color="primary" to="/verwaltung/uebersicht"
+      <v-btn color="primary" to="/verwaltung/mitarbeiter/neuerMitarbeiterManuell"
         ><v-icon>mdi-arrow-right-thin-circle-outline</v-icon></v-btn
       >
     </div>

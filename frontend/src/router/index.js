@@ -17,6 +17,7 @@ import VerwaltungAlleStandorte from "@/pages/Verwaltung/VerwaltungAlleStandorte.
 import VerwaltungNeuerStandort from "@/pages/Verwaltung/VerwaltungNeuerStandort.vue";
 import VerwaltungAlleGruppen from "@/pages/Verwaltung/VerwaltungAlleGruppen.vue";
 import VerwaltungNeueGruppe from "@/pages/Verwaltung/VerwaltungNeueGruppe.vue";
+import VerwaltungMitarbeiterManuell from "@/pages/Verwaltung/VerwaltungMitarbeiterManuell.vue";
 
 const routes = [
   { path: "/", component: index, redirect: "/login" },
@@ -77,6 +78,65 @@ const routes = [
     },
   },
 
+  {
+    path: "/verwaltung/standorte/uebersicht",
+    component: VerwaltungAlleStandorte,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "verwaltung");
+    },
+  },
+  {
+    path: "/verwaltung/standorte/neuerStandort",
+    component: VerwaltungNeuerStandort,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "verwaltung");
+    },
+  },
+
+  {
+    path: "/verwaltung/gruppen/uebersicht",
+    component: VerwaltungAlleGruppen,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "verwaltung");
+    },
+  },
+
+  {
+    path: "/verwaltung/gruppen/neueGruppe",
+    component: VerwaltungNeueGruppe,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "verwaltung");
+    },
+  },
+
+  {
+    path: "/gruppenleitung/uebersicht",
+    component: Gruppenleitung,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "gruppenleitung");
+    },
+  },
+  {
+    path: "/verwaltung/mitarbeiter/neuerMitarbeiter",
+    component: VerwaltungNeuerMitarbeiter,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "verwaltung");
+    },
+  },
+  {
+    path: "/verwaltung/mitarbeiter/neuerMitarbeiterCsvUpload",
+    component: VerwaltungNeuerMitarbeiterCsvUpload,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "verwaltung");
+    },
+  },
+  {
+    path: "/verwaltung/mitarbeiter/neuerMitarbeiterManuell",
+    component: VerwaltungMitarbeiterManuell,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "verwaltung");
+    },
+  },
   {
     path: "/verwaltung/standorte/uebersicht",
     component: VerwaltungAlleStandorte,
