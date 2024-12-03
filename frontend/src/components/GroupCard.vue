@@ -1,19 +1,20 @@
 <template>
-    <v-card class="mx-auto" max-width="500" elevation="16" min-width="20em">
+    <v-card class="mx-4 my-4" width="450" elevation="16" min-width="20em">
         <v-card-text>
-            <div class="d-flex flex-wrap justify-space-between mb-4">
-                <div class="text-center">
-                    <v-chip color="primary" label> <p class="text-h5 font-weight-black"> Montage/Verpackung 4</p> </v-chip>
-
+            <div class="d-flex flex-warp justify-space-between mb-4">
+                <div class="text-left ml-1">
+                    <p class="text-h6 font-weight-black text-primary"> {{ props.name }} </p>
                 </div>
-                <v-chip color="primary" label> 17004 </v-chip>
+                <div style="max-width: 100px; overflow: hidden;">
+                    <v-chip color="primary" label> {{ props.number }} </v-chip>
+                </div>
             </div>
             <v-divider></v-divider>
             <div class="d-flex flex-wrap justify-space-between">
                 <div class="mt-4 ml-2 text-medium-emphasis">
-                    <p color="text-primary"> Gruppenleiter: Nutzer1 </p>
+                    <p color="text-primary"> Gruppenleiter: {{ props.group_leader }}</p>
                     <p color="text-primary"> Mitgliederanzahl: 99 </p>
-                    <p color="text-primary"> Standort: Zedtlitz </p>
+                    <p color="text-primary"> Standort: {{ props.loaction }} </p>
                 </div>
                 <div class="mt-5 d-flex ga-1">
                     <v-btn class="mt-2 bg-primary" @click="openDialog"><v-icon>mdi-dots-horizontal-circle-outline</v-icon></v-btn>
@@ -26,7 +27,7 @@
         <v-card>
             <v-card-title color="primary">
                 <div class="text-center mt-4">
-                    <v-chip color="primary" label> <p class="text-h5 font-weight-black"> Montage/Verpackung 4</p> </v-chip>
+                    <v-chip color="primary" label> <p class="text-h5 font-weight-black"> {{ props.name }} </p> </v-chip>
                 </div>
             </v-card-title>
             <div class="mb-2">
@@ -44,9 +45,9 @@
                         <p class="font-weight-black"> Gruppe </p>
                     </div>
                     <div class="ml-5 mb-4 text-medium-emphasis">
-                        <p color="text-primary"> Gruppennummer: 17004 </p>
+                        <p color="text-primary"> Gruppennummer: {{ props.number }} </p>
                         <p color="text-primary"> Mitgliederanzahl: 99 </p>
-                        <p color="text-primary"> Standort: Zedtlitz </p>
+                        <p color="text-primary"> Standort: {{ props.loaction }} </p>
                     </div>
                     <v-divider></v-divider>
                     <div class="text-left ml-4 mb-2 mt-4">
@@ -69,7 +70,9 @@
                             variant="solo-filled"
                             flat
                             hide-details
+                            clearable
                             single-line
+                            rounded
                         ></v-text-field>
                         <v-data-table-virtual :items="items" :search="search" density="compact">
                             <template v-slot:item.Essen="{ item }">
@@ -109,6 +112,7 @@
 </template>
 
 <script setup>
+    const props = defineProps(["id", "name", "loaction" , "group_leader" , "number"]);
     const more = ref(false);
     const tab = ref("");
     const search = ref("");
