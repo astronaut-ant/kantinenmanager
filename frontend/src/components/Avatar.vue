@@ -19,13 +19,13 @@
                 {{ fullName }}
               </h3>
               <div class="w-75 mx-auto mt-2">
-                <p class="text-caption mt-1 text-start">
+                <p class="text-caption mt-1 text-start text-no-wrap">
                   {{ "Benutzername: " }}
                   <span class="font-weight-bold"
                     >{{ appStore.userData.username }}
                   </span>
                 </p>
-                <p class="text-caption mt-1 text-start">
+                <p class="text-caption mt-1 text-start text-no-wrap">
                   {{ "Benutzerrechte: " }}
                   <span class="font-weight-bold"
                     >{{ formattedUserGroup }}
@@ -34,7 +34,7 @@
               </div>
               <v-divider color="white" class="my-3"></v-divider>
 
-              <PasswordReset />
+              <PasswordChange />
               <!-- <v-btn variant="text" rounded>
                 <v-icon class="me-4">mdi-key-variant</v-icon>
                 Passwort ändern
@@ -56,7 +56,7 @@
 import axios from "axios";
 import router from "@/router";
 import { useAppStore } from "@/stores/app";
-import PasswordReset from "./PasswordReset.vue";
+import PasswordChange from "./PasswordChange.vue";
 const appStore = useAppStore();
 const fullName =
   appStore.userData.first_name + " " + appStore.userData.last_name;
