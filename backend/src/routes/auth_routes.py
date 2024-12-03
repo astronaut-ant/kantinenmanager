@@ -42,11 +42,17 @@ class LoginBodySchema(Schema):
                 "schema": {
                     "type": "object",
                     "properties": {
-                        "username": {"type": "string", "minLength": 1, "maxLength": 64},
+                        "username": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 64,
+                            "example": "admin",
+                        },
                         "password": {
                             "type": "string",
                             "minLength": 1,
                             "maxLength": 256,
+                            "example": "password",
                         },
                     },
                 },

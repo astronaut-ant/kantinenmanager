@@ -40,7 +40,9 @@ def startup() -> None:
         # Don't create the initial admin user when running migrations
         # because the required tables might not exist yet
         create_initial_admin(
-            app, app.config["INITIAL_ADMIN_USERNAME"], "INITIAL_ADMIN_PASSWORD"
+            app,
+            app.config["INITIAL_ADMIN_USERNAME"],
+            app.config["INITIAL_ADMIN_PASSWORD"],
         )
 
     if app.config["ENV"] == Environment.DEVELOPMENT:
