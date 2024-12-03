@@ -55,6 +55,8 @@ def startup() -> None:
 
     register_routes(app)
 
+    print(f"Application started in {app.config['ENV'].value} mode.")
+
 
 def configure(app: Flask, start_time: datetime) -> None:
     """Configure the application based on the environment variables."""
