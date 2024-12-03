@@ -6,6 +6,25 @@ from sqlalchemy import pool
 
 from alembic import context
 
+# This import is needed for the alembic_postgresql_enum package to work
+import alembic_postgresql_enum  # noqa: F401
+
+if os.getenv("FLASK_ENV") != "migration":
+    raise Exception(
+        "This script should only be run in the migration environment. Please set the FLASK_ENV environment variable to 'migration'."
+    )
+
+from src.database import Base
+import src.models.dailyorder
+import src.models.employee
+import src.models.group
+import src.models.location
+import src.models.oldorder
+import src.models.person
+import src.models.preorder
+import src.models.user
+import src.models.refresh_token_session  # noqa: F401
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
@@ -17,9 +36,7 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-# from myapp import mymodel
-# target_metadata = mymodel.Base.metadata
-target_metadata = None
+target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

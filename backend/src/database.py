@@ -16,25 +16,17 @@ db = SQLAlchemy(model_class=Base, engine_options={"echo": False})
 
 
 def init_db(app: Flask):
-    db.init_app(app)
-
-    import src.models.user
+    import src.models.dailyorder
     import src.models.employee
-    import src.models.person
-
     import src.models.group
     import src.models.location
-
-    import src.models.preorder
-    import src.models.dailyorder
     import src.models.oldorder
+    import src.models.person
+    import src.models.preorder
+    import src.models.user
+    import src.models.refresh_token_session  # noqa: F401
 
-    with app.app_context():
-        # Hier werden alle Tabellen erstellt, zu denen
-        # SQL-Alchemy Models finden kann. Das ist erstmal nur
-        # temporär. Später würde man das mit DB-Migrationen
-        # machen.
-        db.create_all()
+    db.init_app(app)
 
 
 def create_initial_admin(app: Flask, username: str, password: str):
