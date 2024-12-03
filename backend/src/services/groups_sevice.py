@@ -1,7 +1,7 @@
 from models.group import Group
 from models.location import Location
 from models.user import User
-from repositories.group_repository import GroupRepository
+from repositories.groups_repository import GroupsRepository
 from uuid import UUID
 
 
@@ -12,29 +12,29 @@ class GroupDoesNotExistError(Exception):
         super().__init__(f"Die Gruppe mit der ID {group_id} existiert nicht.")
 
 
-class GroupService:
+class GroupsService:
     """Service for managing groups, group leaders, and replacements."""
     
     @staticmethod
     def create_group(
             db,
             group_name: str,
-            user_id_groupleader: UUID,
+            user_id_group_leader: UUID,
             location_id: UUID,
             user_id_replacement: UUID = None,
     ):
-        group_leader_exists = db.query(User).filter(User.id == user_id_groupleader).first()
+        group_leader_exists = db.query(User).filter(User.id == user_id_group_leader).first()
         if not group_leader_exists:
-            raise ValueError(f"Der User mit der ID {user_id_groupleader} existiert nicht.")
+            raise ValueError(f"Der User mit der ID {user_id_group_leader} existiert nicht.")
         
         location_exists = db.query(Location).filter(Location.id == location_id).first()
         if not location_exists:
             raise ValueError(f"Die Location mit der ID {location_id} existiert nicht.")
         
-        return GroupRepository.create_group(
+        return GroupsRepository.create_group(
             db,
             group_name,
-            user_id_groupleader,
+            user_id_group_leader,
             location_id,
             user_id_replacement,
         )
@@ -42,7 +42,7 @@ class GroupService:
     @staticmethod
     def add_group_leader(db, group_id: UUID, user_id: UUID):
         """Assign a user as the leader of a group."""
-        group = GroupRepository.assign_group_leader(db, group_id, user_id)
+        group = GroupsRepository.assign_group_leader(db, group_id, user_id)
         if not group:
             raise GroupDoesNotExistError(group_id)
         return group
@@ -50,7 +50,7 @@ class GroupService:
     @staticmethod
     def remove_group_leader(db, group_id: UUID):
         """Remove the leader from a group."""
-        group = GroupRepository.remove_group_leader(db, group_id)
+        group = GroupsRepository.remove_group_leader(db, group_id)
         if not group:
             raise GroupDoesNotExistError(group_id)
         return group
@@ -58,7 +58,7 @@ class GroupService:
     @staticmethod
     def add_group_replacement(db, group_id: UUID, user_id: UUID):
         """Assign a user as the replacement for a group leader."""
-        group = GroupRepository.assign_group_replacement(db, group_id, user_id)
+        group = GroupsRepository.assign_group_replacement(db, group_id, user_id)
         if not group:
             raise GroupDoesNotExistError(group_id)
         return group
@@ -66,7 +66,7 @@ class GroupService:
     @staticmethod
     def remove_group_replacement(db, group_id: UUID):
         """Remove the replacement from a group leader."""
-        group = GroupRepository.remove_group_replacement(db, group_id)
+        group = GroupsRepository.remove_group_replacement(db, group_id)
         if not group:
             raise GroupDoesNotExistError(group_id)
         return group
