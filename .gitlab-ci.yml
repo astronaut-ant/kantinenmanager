@@ -65,11 +65,10 @@ test-frontend:
 
 test-backend:
   stage: test
-  image: docker:cli
-  services:
-    - docker:dind
+  image: $CI_REGISTRY_BACKEND_IMAGE:$CI_COMMIT_SHORT_SHA
   script:
-    - echo "run tests ...."
+    - ls
+    - pytest backend
 
 push-frontend:
   stage: push
