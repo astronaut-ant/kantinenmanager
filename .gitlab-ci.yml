@@ -78,10 +78,9 @@ test-backend:
     - set +a
     - FLASK_ENV=unit_testing  # Override environment
     - export # Test
-    - cd backend
     - echo "Installing requirements..."
-    - python -m pip install -r requirements.txt
-    - pytest backend
+    - python -m pip install -r backend/requirements.txt
+    - pytest --cov=backend backend/
 
 push-frontend:
   stage: push
