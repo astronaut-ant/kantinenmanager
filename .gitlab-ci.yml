@@ -71,7 +71,15 @@ test-backend:
     PYTHONUNBUFFERED: 1
     FLASK_ENV: unit_testing
   script:
-    - ls
+    - echo "Reading environment variables..."
+    - python scripts/init.py  # Generate .env
+    - set -a                  # auto export all further variables
+    - source .env             # read env variables from .env
+    - set +a
+    - FLASK_ENV=unit_testing  # Override environment
+    - export # Test
+    - cd backend
+    - echo "Installing requirements..."
     - python -m pip install -r requirements.txt
     - pytest backend
 
