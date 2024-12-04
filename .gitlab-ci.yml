@@ -8,22 +8,9 @@ cache:
   paths:
     - frontend/node_modules/
 
-test-docker:
-  stage: build
-  image: docker:24.0.5
-  services:
-    - docker:24.0.5-dind
-  before_script:
-    - docker info
-  script:
-    - docker pull postgres:17-alpine
-    - docker run postgres:17-alpine -d
-
 build-frontend:
   stage: build
   image: node
-  needs:
-    - test-docker
   script:
     - cd frontend
     - npm ci
@@ -57,8 +44,6 @@ package-frontend:
 
 package-backend:
   stage: build
-  needs:
-    - test-docker
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
@@ -80,9 +65,14 @@ test-frontend:
 
 test-backend:
   stage: test
-  image: $CI_REGISTRY_BACKEND_IMAGE:$CI_COMMIT_SHORT_SHA
+  image: python:3-slim
+  variables:
+    PYTHONDONTWRITEBYTECODE: 1
+    PYTHONUNBUFFERED: 1
+    FLASK_ENV: unit_testing
   script:
     - ls
+    - python -m pip install -r requirements.txt
     - pytest backend
 
 push-frontend:
