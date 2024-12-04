@@ -9,7 +9,7 @@ from src.services.persons_service import PersonsService
 persons_routes = Blueprint("persons_routes", __name__)
 
 
-@persons_routes.get("/api/persons/create-qr-code/<uuid:person_id>")
+@persons_routes.get("/api/persons/create-qr/<uuid:person_id>")
 @login_required(groups=[UserGroup.verwaltung])
 @swag_from(
     {
