@@ -54,6 +54,5 @@ def create_qr_code(person_id: UUID):
                 status_code=400,
                 title="Person existiert nicht",
                 description="Es existiert keine Person zu der ID in der Datenbank",
-                details=err.messages,
             )
         )
