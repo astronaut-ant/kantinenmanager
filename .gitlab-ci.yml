@@ -23,7 +23,7 @@ build-frontend:
   stage: build
   image: node
   needs:
-    - default
+    - test-docker
   script:
     - cd frontend
     - npm ci
@@ -58,7 +58,7 @@ package-frontend:
 package-backend:
   stage: build
   needs:
-    - default
+    - test-docker
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
