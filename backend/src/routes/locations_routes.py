@@ -24,64 +24,28 @@ class LocationsPostBody(Schema):
 @login_required(groups=["verwaltung"])
 @swag_from(
     {
-        "tags": ["Locations"],
-        "summary": "Create a new location",
-        "description": "Create a new location",
-        "requestBody": {
-            "content": {
-                "application/json": {
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                            "location_name": {"type": "string"},
-                            "location_leader_id": {"type": "string"},
-                        },
-                    }
-                }
-            }
-        },
+        "tags": ["locations"],
+        "parameters": [
+            {
+                "in": "path",
+                "name": "location_name",
+                "required": True,
+                "schema": {"type": "string"},
+            },
+            {
+                "in": "path",
+                "name": "location_leader_id",
+                "required": True,
+                "schema": {"type": "string"},
+            },
+        ],
         "responses": {
-            "201": {
-                "description": "Location created",
-                "content": {
-                    "application/json": {
-                        "schema": {
-                            "type": "object",
-                            "properties": {"id": {"type": "string"}},
-                        }
-                    }
-                },
+            200: {
+                "description": "Returns the ID of the created location",
+                "schema": {"$ref": "#/definitions/Locations"},
             },
-            "400": {
-                "description": "Validation error",
-                "content": {
-                    "application/json": {
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "title": {"type": "string"},
-                                "description": {"type": "string"},
-                                "details": {"type": "object"},
-                            },
-                        }
-                    }
-                },
-            },
-            "409": {
-                "description": "Location already exists",
-                "content": {
-                    "application/json": {
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "title": {"type": "string"},
-                                "description": {"type": "string"},
-                                "details": {"type": "object"},
-                            },
-                        }
-                    }
-                },
-            },
+            400: {"description": "Validation error"},
+            409: {"description": "Location already exists"},
         },
     }
 )

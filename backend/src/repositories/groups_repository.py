@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from models.group import Group
+from src.models.group import Group
 from uuid import UUID
 from src.database import db
 
@@ -74,3 +74,8 @@ class GroupsRepository:
             db.refresh(group)
             return group
         return None
+
+    @staticmethod
+    def get_all_groups_with_locations() -> list[Group]:
+        """Get all groups with locations."""
+        return db.session.query(Group).all()

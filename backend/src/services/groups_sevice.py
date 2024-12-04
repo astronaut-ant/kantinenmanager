@@ -1,8 +1,9 @@
-from models.group import Group
-from models.location import Location
-from models.user import User
-from repositories.groups_repository import GroupsRepository
+from src.models.group import Group
+from src.models.location import Location
+from src.models.user import User
+from src.repositories.groups_repository import GroupsRepository
 from uuid import UUID
+import re
 
 
 class GroupDoesNotExistError(Exception):
@@ -14,23 +15,27 @@ class GroupDoesNotExistError(Exception):
 
 class GroupsService:
     """Service for managing groups, group leaders, and replacements."""
-    
+
     @staticmethod
     def create_group(
-            db,
-            group_name: str,
-            user_id_group_leader: UUID,
-            location_id: UUID,
-            user_id_replacement: UUID = None,
+        db,
+        group_name: str,
+        user_id_group_leader: UUID,
+        location_id: UUID,
+        user_id_replacement: UUID = None,
     ):
-        group_leader_exists = db.query(User).filter(User.id == user_id_group_leader).first()
+        group_leader_exists = (
+            db.query(User).filter(User.id == user_id_group_leader).first()
+        )
         if not group_leader_exists:
-            raise ValueError(f"Der User mit der ID {user_id_group_leader} existiert nicht.")
-        
+            raise ValueError(
+                f"Der User mit der ID {user_id_group_leader} existiert nicht."
+            )
+
         location_exists = db.query(Location).filter(Location.id == location_id).first()
         if not location_exists:
             raise ValueError(f"Die Location mit der ID {location_id} existiert nicht.")
-        
+
         return GroupsRepository.create_group(
             db,
             group_name,
@@ -38,7 +43,7 @@ class GroupsService:
             location_id,
             user_id_replacement,
         )
-    
+
     @staticmethod
     def add_group_leader(db, group_id: UUID, user_id: UUID):
         """Assign a user as the leader of a group."""
@@ -70,3 +75,17 @@ class GroupsService:
         if not group:
             raise GroupDoesNotExistError(group_id)
         return group
+
+    @staticmethod
+    def get_all_groups_with_locations():
+        """Get all groups with locations."""
+        locations = {}
+        groups = GroupsRepository.get_all_groups_with_locations()
+        for group in groups:
+            match = re.match(r"^(.*?)\s*-\s*(.*)$", group.group_name)
+            group_name = match.group(1)
+            group_location = match.group(2)
+            if group_location not in locations:
+                locations[group_location] = []
+            locations[group_location].append(group_name)
+        return locations
