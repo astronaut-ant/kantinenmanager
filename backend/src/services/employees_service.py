@@ -1,7 +1,6 @@
 """Service for handling employee management."""
 
 import csv, re
-from flask import send_file
 import qrcode
 from io import BytesIO
 from reportlab.lib.pagesizes import A4
