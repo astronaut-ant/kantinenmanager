@@ -32,3 +32,9 @@ class FileNotProcessableError(Exception):
     """Exception raised when a File has wrong contents and cannot be read"""
 
     pass
+
+
+class PersonDoesNotExistError(Exception):
+    """Exception raised when a person does not exist at a given location."""
+
+    pass
