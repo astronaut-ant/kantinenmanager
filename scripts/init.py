@@ -22,7 +22,9 @@ if not path.isfile(template):
     print("The template file does not exist.")
     exit(1)
 
-alphabet = string.ascii_letters + string.digits + "#$%&*?@_"
+alphabet = (
+    string.ascii_letters + string.digits + "%*?@_"
+)  # don't use $ as docker compose will interpret it as a variable
 
 flask_env = "development"
 initial_admin_username = "admin"
