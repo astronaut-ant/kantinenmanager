@@ -1,43 +1,32 @@
 from src.models.group import Group
-from src.models.location import Location
-from src.models.user import User
 from src.repositories.groups_repository import GroupsRepository
+from src.utils.exceptions import GroupDoesNotExistError
 from uuid import UUID
 import re
-
-
-class GroupDoesNotExistError(Exception):
-    """Exception raised when a group does not exist at a given location."""
-
-    def __init__(self, group_id: UUID):
-        super().__init__(f"Die Gruppe mit der ID {group_id} existiert nicht.")
-
 
 class GroupsService:
     """Service for managing groups, group leaders, and replacements."""
 
     @staticmethod
     def create_group(
-        db,
         group_name: str,
         user_id_group_leader: UUID,
         location_id: UUID,
         user_id_replacement: UUID = None,
-    ):
-        group_leader_exists = (
-            db.query(User).filter(User.id == user_id_group_leader).first()
-        )
+    ) -> Group:
+        group_leader_exists = GroupsRepository.get_user_by_id(user_id_group_leader)
         if not group_leader_exists:
             raise ValueError(
                 f"Der User mit der ID {user_id_group_leader} existiert nicht."
             )
 
-        location_exists = db.query(Location).filter(Location.id == location_id).first()
+        location_exists = GroupsRepository.get_location_by_id(location_id)
         if not location_exists:
-            raise ValueError(f"Die Location mit der ID {location_id} existiert nicht.")
+            raise ValueError(
+                f"Die Location mit der ID {location_id} existiert nicht."
+            )
 
         return GroupsRepository.create_group(
-            db,
             group_name,
             user_id_group_leader,
             location_id,
@@ -45,33 +34,41 @@ class GroupsService:
         )
 
     @staticmethod
-    def add_group_leader(db, group_id: UUID, user_id: UUID):
+    def get_group_by_id(group_id: UUID) -> Group:
+        """Retrieve a group by its ID or raise an error."""
+        group = GroupsRepository.get_group_by_id(group_id)
+        if not group:
+            raise GroupDoesNotExistError(group_id)
+        return group
+    
+    @staticmethod
+    def add_group_leader(group_id: UUID, user_id: UUID) -> Group:
         """Assign a user as the leader of a group."""
-        group = GroupsRepository.assign_group_leader(db, group_id, user_id)
+        group = GroupsRepository.assign_group_leader(group_id, user_id)
         if not group:
             raise GroupDoesNotExistError(group_id)
         return group
 
     @staticmethod
-    def remove_group_leader(db, group_id: UUID):
+    def remove_group_leader(group_id: UUID) -> Group:
         """Remove the leader from a group."""
-        group = GroupsRepository.remove_group_leader(db, group_id)
+        group = GroupsRepository.remove_group_leader(group_id)
         if not group:
             raise GroupDoesNotExistError(group_id)
         return group
 
     @staticmethod
-    def add_group_replacement(db, group_id: UUID, user_id: UUID):
+    def add_group_replacement(group_id: UUID, user_id: UUID) -> Group:
         """Assign a user as the replacement for a group leader."""
-        group = GroupsRepository.assign_group_replacement(db, group_id, user_id)
+        group = GroupsRepository.assign_group_replacement(group_id, user_id)
         if not group:
             raise GroupDoesNotExistError(group_id)
         return group
 
     @staticmethod
-    def remove_group_replacement(db, group_id: UUID):
+    def remove_group_replacement(group_id: UUID) -> Group:
         """Remove the replacement from a group leader."""
-        group = GroupsRepository.remove_group_replacement(db, group_id)
+        group = GroupsRepository.remove_group_replacement(group_id)
         if not group:
             raise GroupDoesNotExistError(group_id)
         return group

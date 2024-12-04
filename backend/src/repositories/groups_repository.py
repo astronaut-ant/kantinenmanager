@@ -1,4 +1,3 @@
-from sqlalchemy.orm import Session
 from src.models.group import Group
 from uuid import UUID
 from src.database import db
@@ -34,7 +33,7 @@ class GroupsRepository:
     @staticmethod
     def assign_group_leader(group_id: UUID, user_id: UUID) -> Group | None:
         """Assign a user as the leader of a group."""
-        group = GroupsRepository._get_group(db, group_id)
+        group = GroupsRepository._get_group(group_id)
         if group:
             group.user_id_group_leader = user_id
             db.commit()
@@ -45,7 +44,7 @@ class GroupsRepository:
     @staticmethod
     def remove_group_leader(group_id: UUID) -> Group | None:
         """Remove the leader from a group."""
-        group = GroupsRepository._get_group(db, group_id)
+        group = GroupsRepository._get_group(group_id)
         if group:
             group.user_id_group_leader = None
             db.commit()
@@ -56,7 +55,7 @@ class GroupsRepository:
     @staticmethod
     def assign_group_replacement(group_id: UUID, user_id: UUID) -> Group | None:
         """Assign a user as the replacement for a group leader."""
-        group = GroupsRepository._get_group(db, group_id)
+        group = GroupsRepository._get_group(group_id)
         if group:
             group.user_id_replacement = user_id
             db.commit()
@@ -67,7 +66,7 @@ class GroupsRepository:
     @staticmethod
     def remove_group_replacement(group_id: UUID) -> Group | None:
         """Remove the replacement from a group leader."""
-        group = GroupsRepository._get_group(db, group_id)
+        group = GroupsRepository._get_group(group_id)
         if group:
             group.user_id_replacement = None
             db.commit()
