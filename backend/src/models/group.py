@@ -48,13 +48,18 @@ class Group(db.Model):
     def __init__(
         self,
         group_name: str,
+        user_id_group_leader: uuid.UUID,
+        user_id_replacement: uuid.UUID,
+        location_id: uuid.UUID,
     ):
         """Initialize a new group
 
         :param group_name: Name of the Group
         """
-
         self.group_name = group_name
+        self.user_id_group_leader = user_id_group_leader
+        self.user_id_replacement = user_id_replacement
+        self.location_id = location_id
 
     def __repr__(self):
         return f"<Group {self.id!r} {self.group_name!r}>"
