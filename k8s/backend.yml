@@ -55,5 +55,10 @@ spec:
                 secretKeyRef:
                   name: jwtsecret
                   key: JWT_SECRET
+            - name: INITIAL_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: initialadminpassword
+                  key: INITIAL_ADMIN_PASSWORD
       imagePullSecrets:
         - name: regcred

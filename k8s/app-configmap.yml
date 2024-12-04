@@ -8,3 +8,4 @@ data:
   DB_USER: postgres
   DB_HOST: db-service.default.svc.cluster.local
   DB_PORT: "5432"
+  INITIAL_ADMIN_USERNAME: admin
