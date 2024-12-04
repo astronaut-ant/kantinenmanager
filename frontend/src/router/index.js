@@ -10,7 +10,7 @@ import KuecheQR from "@/pages/Kuechenpersonal/KuecheQR.vue";
 import AccessDenied from "@/pages/AccessDenied.vue";
 import VerwaltungNeuerMitarbeiterCsvUpload from "@/pages/Verwaltung/VerwaltungNeuerMitarbeiterCsvUpload.vue";
 import axios from "axios";
-import Gruppenleitung from "@/pages/Gruppenleitung/Gruppenleitung.vue";
+import Gruppenleitung from "@/pages/Gruppenleitung/GruppenleitungMeineGruppen.vue";
 import Standortleitung from "@/pages/Standortleitung/Standortleitung.vue";
 import VerwaltungAlleMitarbeiter from "@/pages/Verwaltung/VerwaltungAlleMitarbeiter.vue";
 import VerwaltungAlleStandorte from "@/pages/Verwaltung/VerwaltungAlleStandorte.vue";
@@ -18,6 +18,9 @@ import VerwaltungNeuerStandort from "@/pages/Verwaltung/VerwaltungNeuerStandort.
 import VerwaltungAlleGruppen from "@/pages/Verwaltung/VerwaltungAlleGruppen.vue";
 import VerwaltungNeueGruppe from "@/pages/Verwaltung/VerwaltungNeueGruppe.vue";
 import VerwaltungMitarbeiterManuell from "@/pages/Verwaltung/VerwaltungMitarbeiterManuell.vue";
+import GruppenleitungMeineGruppen from "@/pages/Gruppenleitung/GruppenleitungMeineGruppen.vue";
+import GruppenleitungHeutigeBestellungen from "@/pages/Gruppenleitung/GruppenleitungHeutigeBestellungen.vue";
+import GruppenleitungVorbestellungen from "@/pages/Gruppenleitung/GruppenleitungVorbestellungen.vue";
 
 const routes = [
   { path: "/", component: index, redirect: "/login" },
@@ -169,8 +172,22 @@ const routes = [
   },
 
   {
-    path: "/gruppenleitung/uebersicht",
-    component: Gruppenleitung,
+    path: "/gruppenleitung/meineGruppen",
+    component: GruppenleitungMeineGruppen,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "gruppenleitung");
+    },
+  },
+  {
+    path: "/gruppenleitung/heutigeBestellungen",
+    component: GruppenleitungHeutigeBestellungen,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "gruppenleitung");
+    },
+  },
+  {
+    path: "/gruppenleitung/vorbestellungen",
+    component: GruppenleitungVorbestellungen,
     beforeEnter: (to, from, next) => {
       protectRoute(next, "gruppenleitung");
     },
