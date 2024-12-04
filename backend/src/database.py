@@ -16,6 +16,8 @@ db = SQLAlchemy(model_class=Base, engine_options={"echo": False})
 
 
 def init_db(app: Flask):
+    """Initialize the database with the given Flask app."""
+
     import src.models.dailyorder
     import src.models.employee
     import src.models.group
@@ -27,6 +29,15 @@ def init_db(app: Flask):
     import src.models.refresh_token_session  # noqa: F401
 
     db.init_app(app)
+
+
+def setup_test_db(app: Flask):
+    """Setup a test database and create all tables."""
+
+    init_db(app)
+    with app.app_context():
+        db.create_all()
+        print("Database created for testing")
 
 
 def create_initial_admin(app: Flask, username: str, password: str):

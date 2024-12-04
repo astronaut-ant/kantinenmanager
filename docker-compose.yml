@@ -69,6 +69,16 @@ services:
       dockerfile: ./Dockerfile
     volumes:
       - ./backend:/app/backend
+    environment:
+      FLASK_ENV: unit_testing
+      INITIAL_ADMIN_USERNAME: ${INITIAL_ADMIN_USERNAME}
+      INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USER: ${DB_USER}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
     command: bash -c "pytest /app/backend"
 
   # docker compose run test-backend-watch
@@ -82,4 +92,14 @@ services:
       dockerfile: ./Dockerfile
     volumes:
       - ./backend:/app/backend
+    environment:
+      FLASK_ENV: unit_testing
+      INITIAL_ADMIN_USERNAME: ${INITIAL_ADMIN_USERNAME}
+      INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD}
+      DB_DATABASE: ${DB_DATABASE}
+      DB_USER: ${DB_USER}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
     command: bash -c "ptw /app/backend"

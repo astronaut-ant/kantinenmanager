@@ -5,11 +5,11 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 import os
 
-from src.models.environment import Environment
+from src.environment import Environment, get_features
 from src.utils.error import register_error_handlers
 
 from .middlewares.auth_middleware import register_auth_middleware
-from .database import create_initial_admin, init_db
+from .database import create_initial_admin, init_db, setup_test_db
 from .routes.general_routes import general_routes
 from .routes.users_routes import users_routes
 from .routes.auth_routes import auth_routes
@@ -30,52 +30,84 @@ swagger_template = {
 def startup() -> None:
     """Start the application."""
 
-    start_time = datetime.now()  # Record the start time of the application
+    configure(app)
 
-    configure(app, start_time)
+    print(f"Application starting in {app.config['ENV'].value} mode.")
 
-    init_db(app)
+    features = app.config["FEATURES"]
 
-    if app.config["ENV"] != Environment.MIGRATION:
-        # Don't create the initial admin user when running migrations
-        # because the required tables might not exist yet
-        create_initial_admin(
-            app,
-            app.config["INITIAL_ADMIN_USERNAME"],
-            app.config["INITIAL_ADMIN_PASSWORD"],
+    print("\nFeatures:")
+
+    if features.DATABASE == "real":
+        print("--- Database enabled             ---")
+        init_db(app)
+    elif features.DATABASE == "in-memory":
+        print("--- In-memory database enabled   ---")
+        app.config["SQLALCHEMY_DATABASE_URI"] = (
+            "sqlite:///:memory:"  # Override the database URI
         )
+        setup_test_db(app)
+    else:
+        print("--- Database disabled            ---")
 
-    if app.config["ENV"] == Environment.DEVELOPMENT:
+    if features.TESTING_MODE:
+        print("--- Testing mode enabled         ---")
+        app.config["TESTING"] = True
+    else:
+        print("--- Testing mode disabled        ---")
+
+    if features.CORS:
+        print("--- CORS enabled                 ---")
         CORS(
             app,
             resources={r"/api/*": {"origins": "http://localhost:3000"}},
             supports_credentials=True,
         )
-        swagger = Swagger(app, template=swagger_template)
+    else:
+        print("--- CORS disabled                ---")
+
+    if features.SWAGGER:
+        print("--- Swagger enabled              ---")
+        Swagger(app, template=swagger_template)
+    else:
+        print("--- Swagger disabled             ---")
+
+    if features.INSERT_DEFAULT_DATA:
+        print("--- Inserting default data       ---")
+        create_initial_admin(
+            app,
+            app.config["INITIAL_ADMIN_USERNAME"],
+            app.config["INITIAL_ADMIN_PASSWORD"],
+        )
+    else:
+        print("--- Default data insertion disabled ---")
+
+    if features.INSERT_MOCK_DATA:
+        print("--- Inserting mock data          ---")
+        # TODO
+    else:
+        print("--- Mock data insertion disabled ---")
 
     register_routes(app)
 
-    print(f"Application started in {app.config['ENV'].value} mode.")
 
-
-def configure(app: Flask, start_time: datetime) -> None:
-    """Configure the application based on the environment variables."""
+def configure(app: Flask) -> None:
+    """Configure the application based on environment variables."""
 
     load_dotenv()  # parse .env file if it exists
 
+    # Get environment variables
     env = os.getenv("FLASK_ENV")
-
     initial_admin_username = os.getenv("INITIAL_ADMIN_USERNAME")
     initial_admin_password = os.getenv("INITIAL_ADMIN_PASSWORD")
-
     db_database = os.getenv("DB_DATABASE")
     db_user = os.getenv("DB_USER")
     db_host = os.getenv("DB_HOST")
     db_port = os.getenv("DB_PORT")
     db_password = os.getenv("DB_PASSWORD")
-
     jwt_secret = os.getenv("JWT_SECRET")
 
+    # Check if all environment variables are set
     if (
         not env
         or not db_database
@@ -91,21 +123,29 @@ def configure(app: Flask, start_time: datetime) -> None:
             "Missing environment variables. Please run `docker compose run init` to create the .env file."
         )
 
+    # Check if the environment is valid
     all_env = set(item.value for item in Environment)
     if env not in all_env:
         raise Exception(
             f"Invalid environment. Please use one of the following: {all_env}"
         )
 
-    app.config["APP_START_TIME"] = start_time
+    app.config["APP_START_TIME"] = (
+        datetime.now()
+    )  # Record the start time of the application
+
     app.config["ENV"] = Environment(env)
+    app.config["FEATURES"] = get_features(app.config["ENV"])
+
     app.config["SQLALCHEMY_DATABASE_URI"] = (
         f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_database}"
     )
+
     app.config["JWT_SECRET"] = jwt_secret
-    app.config["MAX_CONTENT_LENGTH"] = 20971520
     app.config["INITIAL_ADMIN_USERNAME"] = initial_admin_username
     app.config["INITIAL_ADMIN_PASSWORD"] = initial_admin_password
+
+    app.config["MAX_CONTENT_LENGTH"] = 20971520
 
 
 def register_routes(app: Flask) -> None:
