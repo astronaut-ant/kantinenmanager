@@ -24,7 +24,7 @@ spec:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 1
-      maxUnavailable: 2
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: backend-deployment
@@ -33,6 +33,11 @@ spec:
       labels:
         app: backend-deployment
     spec:
+      initContainers:
+        - name: db-migrations
+          image: swpgruppe16/backend:latest
+          imagePullPolicy: Always
+          command: ["sh", "-c", "FLASK_ENV=migration alembic upgrade head"]
       containers:
         - name: backend-deployment
           image: swpgruppe16/backend:latest
