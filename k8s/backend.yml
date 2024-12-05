@@ -36,8 +36,28 @@ spec:
       initContainers:
         - name: db-migrations
           image: swpgruppe16/backend:latest
-          imagePullPolicy: Always
-          command: ["sh", "-c", "FLASK_ENV=migration alembic upgrade head"]
+          command: ["alembic", "upgrade", "head"]
+          envFrom:
+            - configMapRef:
+                name: app-configmap
+          env:
+            - name: FLASK_ENV # Override environment
+              value: migration
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: dbpassword
+                  key: DB_PASSWORD
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: jwtsecret
+                  key: JWT_SECRET
+            - name: INITIAL_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: initialadmin
+                  key: INITIAL_ADMIN_PASSWORD
       containers:
         - name: backend-deployment
           image: swpgruppe16/backend:latest
