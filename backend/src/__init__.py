@@ -7,7 +7,6 @@ from .database import init_db
 from .routes.users_routes import users_routes
 from .routes.auth_routes import auth_routes
 from .routes.employees_routes import employees_routes
-from .routes.locations_routes import locations_routes
 from .routes.groups_routes import groups_routes
 from dotenv import load_dotenv
 import os
@@ -60,5 +59,4 @@ register_auth_middleware(app)
 app.register_blueprint(users_routes)
 app.register_blueprint(auth_routes)
 app.register_blueprint(employees_routes)
-app.register_blueprint(locations_routes)
 app.register_blueprint(groups_routes)
