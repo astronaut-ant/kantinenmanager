@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import index from "../pages/index.vue";
-import Login from "../pages/Login.vue";
+import Login from "../pages/login.vue";
 import { useAppStore } from "../stores/app.js";
 import VerwaltungAlleBenutzer from "@/pages/Verwaltung/VerwaltungAlleBenutzer.vue";
 import VerwaltungNeuerBenutzer from "../pages/Verwaltung/VerwaltungNeuerBenutzer.vue";
