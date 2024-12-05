@@ -120,4 +120,9 @@ deploy-job:
     - kubectl config use-context $K8S_AGENT
     - kubectl cluster-info
     - echo "Deploying application..."
+    - kubectl apply -f k8s
+    - kubectl set image deployment/frontend-deployment frontend-deployment=$CI_REGISTRY_FRONTEND_IMAGE:$CI_COMMIT_SHORT_SHA
+    - kubectl set image deployment/backend-deployment backend-deployment=$CI_REGISTRY_BACKEND_IMAGE:$CI_COMMIT_SHORT_SHA
+    - kubectl rollout status deployment/frontend-deployment
+    - kubectl rollout status deployment/backend-deployment
     - echo "Application successfully deployed."
