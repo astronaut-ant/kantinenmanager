@@ -4,9 +4,13 @@ from marshmallow.validate import Length
 from src.utils.auth_utils import login_required
 from src.utils.error import ErrMsg, abort_with_err
 from src.models.user import UserGroup
-from flask import Blueprint, jsonify, request, g
+from flask import Blueprint, jsonify, request
 from flasgger import swag_from
 from src.services.locations_service import LocationsService
+from src.utils.exceptions import (
+    LocationAlreadyExistsError,
+    GroupLeaderDoesNotExistError,
+)
 
 
 locations_routes = Blueprint("locations_routes", __name__)
@@ -15,7 +19,7 @@ locations_routes = Blueprint("locations_routes", __name__)
 @locations_routes.get("api/locations")
 @login_required(groups=[UserGroup.verwaltung])
 # swag_from()
-def get_all_locations():
+def get_locations():
     """Get all locations"""
     locations = LocationsService.get_locations()
     return jsonify([location.to_dict() for location in locations])
@@ -65,12 +69,22 @@ def create_location():
 
     try:
         location_id = LocationsService.create_location(**body)
-    except Exception as err:
+    except LocationAlreadyExistsError as err:
         abort_with_err(
             ErrMsg(
                 status_code=500,
                 title="Standort konnte nicht erstellt werden",
                 description="Der Standort konnte nicht erstellt werden",
+                detail=str(err),
+            )
+        )
+    except GroupLeaderDoesNotExistError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=500,
+                title="Standort konnte nicht erstellt werden",
+                description="Der Standort konnte nicht erstellt werden",
+                detail=str(err),
             )
         )
     return jsonify({"location_id": location_id})
@@ -98,6 +112,7 @@ def update_location(location_id: UUID):
                 status_code=400,
                 title="Ungültige Anfrage",
                 description="Die Anfrage ist ungültig",
+                details=err.messages,
             )
         )
 

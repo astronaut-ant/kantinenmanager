@@ -38,3 +38,15 @@ class PersonDoesNotExistError(Exception):
     """Exception raised when a person does not exist at a given location."""
 
     pass
+
+
+class LocationAlreadyExistsError(Exception):
+    """Exception raised when a location already exists."""
+
+    pass
+
+
+class GroupLeaderDoesNotExistError(Exception):
+    """Exception raised when a group leader does not exist."""
+
+    pass

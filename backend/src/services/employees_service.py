@@ -127,7 +127,7 @@ class EmployeesService:
         """
 
         if (
-            employee != employee.employee_number
+            employee_number != employee.employee_number
             and EmployeesRepository.get_user_by_employee_number(employee_number)
         ):
             raise EmployeeAlreadyExistsError(
