@@ -107,8 +107,8 @@ def get_employees():
     }
 )
 def get_employee_by_id(employee_id: UUID):
-    """Get a employee by ID
-    Get a employee by ID
+    """Get an employee by ID
+    Get an employee by ID
 
     Authentication: required
     Authorization: Verwaltung, Standortleitung, Gruppenleitung, Kuechenpersonal
