@@ -1,10 +1,12 @@
 """Routes for authentication and session management."""
 
-from src.utils.auth_utils import set_token_cookies
+from src.services.users_service import UsersService
+from src.utils.auth_utils import delete_token_cookies, login_required, set_token_cookies
 from src.constants import (
+    REFRESH_TOKEN_COOKIE_NAME,
     REFRESH_TOKEN_DURATION,
 )
-from flask import Blueprint, make_response, request
+from flask import Blueprint, g, jsonify, make_response, request
 from marshmallow.validate import Length
 from flasgger import swag_from
 from marshmallow import Schema, fields, ValidationError
@@ -32,7 +34,7 @@ class LoginBodySchema(Schema):
 @auth_routes.post("/api/login")
 @swag_from(
     {
-        "tags": ["users"],
+        "tags": ["auth"],
         "parameters": [
             {
                 "in": "body",
@@ -40,11 +42,17 @@ class LoginBodySchema(Schema):
                 "schema": {
                     "type": "object",
                     "properties": {
-                        "username": {"type": "string", "minLength": 1, "maxLength": 64},
+                        "username": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 64,
+                            "example": "admin",
+                        },
                         "password": {
                             "type": "string",
                             "minLength": 1,
                             "maxLength": 256,
+                            "example": "password",
                         },
                     },
                 },
@@ -122,3 +130,137 @@ def login():
     set_token_cookies(resp, auth_token, refresh_token)
 
     return resp
+
+
+@auth_routes.get("/api/is-logged-in")
+@login_required()
+@swag_from(
+    {
+        "tags": ["auth"],
+        "responses": {
+            200: {
+                "description": "Returns user object if user is logged in",
+                "schema": {"$ref": "#/definitions/User"},  # defined in users_routes.py
+            },
+            401: {"description": "Unauthorized"},
+        },
+    }
+)
+def is_logged_in():
+    """Check if user is logged in
+    Returns user object if user is logged in, otherwise 401.
+    ---
+    """
+
+    user = UsersService.get_user_by_id(g.user_id)
+
+    return jsonify(user.to_dict_without_pw_hash())
+
+
+@auth_routes.post("/api/logout")  # POST, because browsers may prefetch GET requests
+@swag_from(
+    {
+        "tags": ["auth"],
+        "responses": {
+            204: {"description": "Logout successful (No Content)"},
+        },
+    }
+)
+def logout():
+    """Logout
+    Logs out the user by deleting the cookies and invalidating the refresh token.
+    ---
+    """
+
+    refresh_token = request.cookies.get(REFRESH_TOKEN_COOKIE_NAME)
+    AuthService.logout(refresh_token)
+
+    resp = make_response("", 204)
+
+    delete_token_cookies(resp)
+
+    return resp
+
+
+class ChangePasswordBodySchema(Schema):
+    """
+    Schema to validate POST /api/account/change-password request body
+    """
+
+    old_password = fields.Str(required=True, validate=Length(min=1, max=256))
+    new_password = fields.Str(required=True, validate=Length(min=8, max=256))
+
+
+@auth_routes.post("/api/account/change-password")
+@login_required()
+@swag_from(
+    {
+        "tags": ["auth"],
+        "parameters": [
+            {
+                "in": "body",
+                "name": "body",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "old_password": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 256,
+                        },
+                        "new_password": {
+                            "type": "string",
+                            "minLength": 8,
+                            "maxLength": 256,
+                        },
+                    },
+                },
+            }
+        ],
+        "responses": {
+            204: {"description": "Password changed successfully"},
+            400: {"description": "Validation error"},
+            401: {"description": "Unauthorized"},
+        },
+    }
+)
+def change_password():
+    """Change password
+    Change the password of the currently logged in user.
+    ---
+    """
+
+    try:
+        body = ChangePasswordBodySchema().load(request.json)
+    except ValidationError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Validierungsfehler",
+                description="Format der Daten im Request-Body nicht valide",
+                details=err.messages,
+            )
+        )
+
+    try:
+        AuthService.change_password(
+            g.user_id, body.get("old_password"), body.get("new_password")
+        )
+    except UserNotFoundException:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Passwort ändern fehlgeschlagen",
+                description="Nutzer nicht gefunden",
+            )
+        )
+    except InvalidCredentialsException:
+        abort_with_err(
+            ErrMsg(
+                status_code=401,
+                title="Passwort ändern fehlgeschlagen",
+                description="Altes Passwort falsch",
+            )
+        )
+
+    return "", 204

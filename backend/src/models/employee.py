@@ -26,7 +26,7 @@ class Employee(Person):
 
     # Das sind die Attribue (Spalten) der Tabelle:
     id: Mapped[uuid.UUID] = mapped_column(ForeignKey("person.id"), primary_key=True)
-    employee_number: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    employee_number: Mapped[int] = mapped_column(Integer, nullable=False)
     group_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("group.id"), nullable=False)
 
     # Das sind die Beziehungen zu anderen Tabellen:
@@ -36,16 +36,20 @@ class Employee(Person):
         "polymorphic_identity": "employee",
     }
 
-    def __init__(self, first_name: str, last_name: str, employee_number: int):
+    def __init__(
+        self, first_name: str, last_name: str, employee_number: int, group_id: uuid.UUID
+    ):
         """Initialize a new employee
 
         :param first_name: The employee's first name
         :param last_name: The employee's last name
         :param employee_number: The employee's number that is used in the organisation
+        :param group_id: The group ID the employee is working at
         """
 
         super().__init__(first_name, last_name)
         self.employee_number = employee_number
+        self.group_id = group_id
 
     def __repr__(self):
         return f"<Employee {self.id!r} {self.employee_number!r} {self.group_id!r}>"

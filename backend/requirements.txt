@@ -4,7 +4,6 @@ flasgger==0.9.7b2
 SQLAlchemy==2.0.36
 Flask-SQLAlchemy==3.1.1
 psycopg2-binary==2.9.10
-alembic==1.14.0
 marshmallow==3.23.1
 setuptools
 apispec==6.7.1
@@ -17,3 +16,8 @@ pytest-mock==3.14.0
 pytest-describe==2.2.0
 pytest-cov==6.0.0
 pytest-watch==4.2.0
+qrcode==8.0
+reportlab==4.2.5
+alembic==1.14.0
+alembic-postgresql-enum==1.4.0
+flask-cors==5.0.0

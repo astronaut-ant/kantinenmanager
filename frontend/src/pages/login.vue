@@ -39,6 +39,12 @@
         >
           Sign In
         </v-btn>
+        <CustomAlert
+          color="red"
+          icon="$error"
+          text="Ungültiger Benutzername oder Passwort"
+          v-if="showAlert"
+        />
       </v-form>
     </v-card>
   </v-dialog>
@@ -48,17 +54,23 @@
 import axios from "axios";
 import router from "../router";
 import { useAppStore } from "../stores/app.js";
+import CustomAlert from "@/components/CustomAlert.vue";
 
 const form = ref(false);
 const userName = ref(null);
 const password = ref(null);
 const loading = ref(false);
 const dialog = ref(true);
+const showAlert = ref(false);
 
-const handleSubmit = async () => {
+const required = (v) => {
+  return !!v || "Eingabe erforderlich";
+};
+
+const handleSubmit = () => {
   const appStore = useAppStore();
   if (!form) return;
-  await axios
+  axios
     .post(
       "http://localhost:4200/api/login",
       {
@@ -67,13 +79,27 @@ const handleSubmit = async () => {
       },
       { withCredentials: true }
     )
-    .then((response) => console.log(response.data))
-    .catch((err) => console.log(err));
-  loading.value = true;
-  setTimeout(() => (loading.value = false), 2000);
-  router.push({ path: "/verwaltung/uebersicht" });
-};
-const required = (v) => {
-  return !!v || "Eingabe erforderlich";
+    .then((response) => {
+      appStore.userData = response.data;
+      switch (appStore.userData.user_group) {
+        case "verwaltung":
+          console.log("v");
+          router.push({ path: "/verwaltung/benutzer/uebersicht" });
+          break;
+        case "standortleitung":
+          console.log("s");
+          router.push({ path: "/standortleitung/uebersicht" });
+          break;
+        case "gruppenleitung":
+          console.log("g");
+          router.push({ path: "/gruppenleitung/uebersicht" });
+          break;
+        case "kuechenpersonal":
+          console.log("k");
+          router.push({ path: "/kuechenpersonal/uebersicht" });
+          break;
+      }
+    })
+    .catch((err) => (showAlert.value = true));
 };
 </script>

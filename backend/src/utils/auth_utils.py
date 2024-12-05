@@ -4,7 +4,6 @@ import functools
 
 from flask import Response, g, request
 from src.utils.error import ErrMsg, abort_with_err
-from src.services.auth_service import AuthService, UnauthenticatedException
 from src.constants import (
     AUTHENTICATION_TOKEN_COOKIE_NAME,
     AUTHENTICATION_TOKEN_DURATION,
@@ -40,6 +39,16 @@ def set_token_cookies(resp: Response, new_auth_token: str, new_refresh_token: st
         # secure=True,  # TODO: Enable in production
         # samesite="Strict",  # TODO: Enable in production
     )
+
+
+def delete_token_cookies(resp: Response):
+    """Helper function to delete authentication and refresh token cookies
+
+    :param resp: The response object to delete the cookies on
+    """
+
+    resp.delete_cookie(AUTHENTICATION_TOKEN_COOKIE_NAME)
+    resp.delete_cookie(REFRESH_TOKEN_COOKIE_NAME)
 
 
 def login_required(
