@@ -54,7 +54,7 @@ class User(Person):
         sqlalchemy.Enum(UserGroup), nullable=False
     )
     location_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("location.id"), nullable=False
+        ForeignKey("location.id"), nullable=True
     )
     last_login: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     blocked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
