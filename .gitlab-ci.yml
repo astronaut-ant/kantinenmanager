@@ -72,11 +72,11 @@ test-backend:
     FLASK_ENV: unit_testing
   script:
     - echo "Reading environment variables..."
-    - python scripts/init.py  # Generate .env
-    - set -a                  # auto export all further variables
-    - source .env             # read env variables from .env
+    - python scripts/init.py # Generate .env
+    - set -a # auto export all further variables
+    - source .env # read env variables from .env
     - set +a
-    - FLASK_ENV=unit_testing  # Override environment
+    - FLASK_ENV=unit_testing # Override environment
     - export # Test
     - echo "Installing requirements..."
     - python -m pip install -r backend/requirements.txt
@@ -107,8 +107,8 @@ push-backend:
   script:
     - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - crane tag $CI_REGISTRY_IMAGE latest
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+#  rules:
+#    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 deploy-job:
   stage: deploy
