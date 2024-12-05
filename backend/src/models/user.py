@@ -70,9 +70,13 @@ class User(Person):
         foreign_keys="Group.user_id_replacement",
     )
     leader_of_location: Mapped["Location"] = relationship(
-        back_populates="location_leader", uselist=False
+        back_populates="location_leader",
+        uselist=False,
+        foreign_keys="Location.user_id_location_leader",
     )
-    location: Mapped["Location"] = relationship(back_populates="users")
+    location: Mapped["Location"] = relationship(
+        back_populates="users", foreign_keys=[location_id]
+    )
 
     __mapper_args__ = {
         "polymorphic_identity": "user",
