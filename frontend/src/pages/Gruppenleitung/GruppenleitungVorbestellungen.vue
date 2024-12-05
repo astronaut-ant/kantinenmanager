@@ -3,7 +3,7 @@
   <h1 class="text-center mt-5 mb-5">Vorbestellungen</h1>
   <div class="ps-10 pe-10">
     <FullCalendar :options="calendarOptions" />
-    <CalendarDialog :show="showDialog"></CalendarDialog>
+    <CalendarDialog :showDialog="showDialog" @close="this.showDialog = false" />
   </div>
 </template>
 
@@ -39,7 +39,7 @@ export default {
   methods: {
     handleDateClick: function (arg) {
       //alert("date click! " + arg.dateStr);
-      this.showDialog;
+      this.showDialog = true;
       this.calendarOptions.events.push({ title: "Gruppe1", date: arg.dateStr });
     },
   },
