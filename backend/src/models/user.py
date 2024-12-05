@@ -53,6 +53,9 @@ class User(Person):
     user_group: Mapped[UserGroup] = mapped_column(
         sqlalchemy.Enum(UserGroup), nullable=False
     )
+    location_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("location.id"), nullable=False
+    )
     last_login: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     blocked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
@@ -69,6 +72,7 @@ class User(Person):
     leader_of_location: Mapped["Location"] = relationship(
         back_populates="location_leader", uselist=False
     )
+    location: Mapped["Location"] = relationship(back_populates="users")
 
     __mapper_args__ = {
         "polymorphic_identity": "user",

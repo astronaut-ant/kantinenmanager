@@ -39,6 +39,10 @@ class Location(db.Model):
         back_populates="leader_of_location", uselist=False
     )
     groups: Mapped[Set["Group"]] = relationship(back_populates="location")
+    users: Mapped[Set["User"]] = relationship(back_populates="location")
+    daily_orders: Mapped[Set["DailyOrder"]] = relationship(back_populates="location")
+    pre_orders: Mapped[Set["PreOrder"]] = relationship(back_populates="location")
+    old_orders: Mapped[Set["OldOrder"]] = relationship(back_populates="location")
 
     def __init__(
         self,
