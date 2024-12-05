@@ -11,7 +11,8 @@ Typical usage example:
 """
 
 import time
-from flask import abort, make_response, request
+from flask import abort, make_response, request, Flask
+from werkzeug.exceptions import HTTPException
 from werkzeug.http import HTTP_STATUS_CODES
 
 
@@ -45,7 +46,7 @@ class ErrMsg:
         :param details (optional): Additional details about the error that may be converted to JSON (str, int, dict, list, ...)
         """
 
-        self.status = HTTP_STATUS_CODES[status_code]
+        self.status = HTTP_STATUS_CODES[status_code] or "Unknown"
         self.status_code = status_code
         self.title = title
         self.description = description
@@ -75,3 +76,17 @@ def abort_with_err(err: ErrMsg):
     resp = make_response(err.to_dict(), err.status_code)
 
     abort(resp)
+
+
+def register_error_handlers(app: Flask):
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        return make_response(
+            ErrMsg(
+                status_code=500,
+                title="Interner Serverfehler",
+                description="Ein unerwarteter Fehler ist aufgetreten",
+                details=str(e),
+            ).to_dict(),
+            500,
+        )
