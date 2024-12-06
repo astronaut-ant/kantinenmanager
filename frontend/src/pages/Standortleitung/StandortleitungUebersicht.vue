@@ -37,7 +37,7 @@ const groups = [
         name: 'Montage/Verpackung 3 - W3',
         loaction: 'W3',
         group_leader: 'Herr z/Frau z',
-        number: '100'
+        number: '10003'
     },
     {
         id: 'eb3bb231-8e58-41f3-aee2-2a0e3501f68d',
@@ -51,7 +51,7 @@ const groups = [
         name: 'Montage',
         loaction: 'W4',
         group_leader: 'Herr a',
-        number: '1000400000000000000'
+        number: '10005'
     },
 ];
 

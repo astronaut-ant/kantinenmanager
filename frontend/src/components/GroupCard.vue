@@ -1,5 +1,5 @@
 <template>
-    <v-card class="mx-4 my-4" width="450" elevation="16" min-width="20em">
+    <v-card class="mx-4 my-4" width="430" elevation="16" min-width="20em">
         <v-card-text>
             <div class="d-flex flex-warp justify-space-between mb-4">
                 <div class="text-left ml-1">
