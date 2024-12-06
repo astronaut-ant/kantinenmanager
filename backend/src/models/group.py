@@ -24,6 +24,7 @@ class Group(db.Model):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     group_name: Mapped[str] = mapped_column(String(64), nullable=False)
+    # group_number: Mapped[int] = mapped_column(String(64), nullable=False)
     user_id_group_leader: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("user.id"), nullable=False
     )
@@ -48,6 +49,7 @@ class Group(db.Model):
     def __init__(
         self,
         group_name: str,
+        # group_number: int,
         user_id_group_leader: uuid.UUID,
         user_id_replacement: Optional[uuid.UUID],
         location_id: uuid.UUID,
@@ -60,6 +62,7 @@ class Group(db.Model):
         self.user_id_group_leader = user_id_group_leader
         self.user_id_replacement = user_id_replacement
         self.location_id = location_id
+        # self.group_number=group_number
 
     def __repr__(self):
         return f"<Group {self.id!r} {self.group_name!r}>"
@@ -75,6 +78,7 @@ class Group(db.Model):
         return {
             "id": str(self.id),
             "group_name": self.group_name,
+            # "group_number": self.group_number,
             "user_id_group_leader": str(self.user_id_group_leader),
             "user_id_replacement": str(self.user_id_replacement),
             "location_id": str(self.location_id),

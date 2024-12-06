@@ -162,7 +162,6 @@ class EmployeesService:
         employees = []
 
         for row in reader:
-            print(row)
             if (
                 not row.get("Kunden-Nr.")
                 or not row.get("Kürzel")
@@ -179,7 +178,9 @@ class EmployeesService:
                     )
                 )
 
-            match = re.match(r"([A-Z][a-z]+)([A-Z][a-z]*[1-9]*)", row["Kürzel"])
+            match = re.match(
+                r"([A-ZÄÖÜ][a-zßäöüéèáà]+)([A-ZÄÖÜ][a-zßäöüéèáà]*[1-9]*)", row["Kürzel"]
+            )
             if match:
                 firstname = match.group(1)
                 lastname = match.group(2)
@@ -198,21 +199,20 @@ class EmployeesService:
                 group = EmployeesRepository.get_group_by_name_and_location(
                     row["Gruppen-Name 1"], row["Bereich"]
                 )
-                print(group)
                 if group is None:
-                    raise GroupDoesNotExistError
+                    raise GroupDoesNotExistError(
+                        f"Gruppe {row['Gruppen-Name 1']} existiert nicht"
+                    )
 
                 if EmployeesRepository.get_employee_by_number(row["Kunden-Nr."]):
-                    raise EmployeeAlreadyExistsError
-
-                first_name = firstname
-                last_name = lastname
-                employee_number = row["Kunden-Nr."]
+                    raise EmployeeAlreadyExistsError(
+                        f"Nutzer mit Nummer {row['Kunden-Nr.']} existiert bereits"
+                    )
 
                 employee = Employee(
-                    first_name=first_name,
-                    last_name=last_name,
-                    employee_number=employee_number,
+                    first_name=firstname,
+                    last_name=lastname,
+                    employee_number=row["Kunden-Nr."],
                     group_id=group.id,
                 )
                 employees.append(employee)

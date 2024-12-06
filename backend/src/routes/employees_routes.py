@@ -284,7 +284,7 @@ def create_user():
             {
                 "in": "path",
                 "name": "employee_csv",
-                "required": True,
+                "required": False,
                 "schema": {"type": "string"},
             },
             {
@@ -354,7 +354,7 @@ def csv_create():
             ErrMsg(
                 status_code=404,
                 title="Gruppe wurde nicht gefunden",
-                description="Die Gruppe zu einem der Benutzer existiert nicht",
+                description="Die Gruppe zu mindestens einem der Benutzer existiert nicht",
             )
         )
     except NameNotAppropriateError:
