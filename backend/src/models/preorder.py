@@ -41,7 +41,7 @@ class PreOrder(db.Model):
         date: datetime,
         main_dish: MainDish,
         salad_option: bool,
-        person: "Person",
+        person_id: uuid.UUID,
     ):
         """Initialize a new pre-order
 
@@ -54,7 +54,7 @@ class PreOrder(db.Model):
         self.main_dish = main_dish
         self.salad_option = salad_option
         self.last_changed = datetime.now()
-        self.person = person
+        self.person_id = person_id
 
     def __repr__(self):
         return f"<Pre-Order {self.id!r} {self.person_id!r} {self.date!r} {self.main_dish!r} {self.salad_option!r}>"
