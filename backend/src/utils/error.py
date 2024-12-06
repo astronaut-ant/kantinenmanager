@@ -81,6 +81,7 @@ def abort_with_err(err: ErrMsg):
 def register_error_handlers(app: Flask):
     @app.errorhandler(Exception)
     def handle_exception(e):
+        print(f"Exception: {e}")
         return make_response(
             ErrMsg(
                 status_code=500,

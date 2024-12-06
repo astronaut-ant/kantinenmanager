@@ -1,7 +1,12 @@
 from src.models.group import Group
 from src.repositories.groups_repository import GroupsRepository
 from src.repositories.users_repository import UsersRepository
-from src.utils.exceptions import GroupDoesNotExistError
+from src.repositories.locations_repository import LocationsRepository
+from src.utils.exceptions import (
+    GroupDoesNotExistError,
+    GroupLeaderDoesNotExist,
+    LocationDoesNotExist,
+)
 from uuid import UUID
 import re
 
@@ -15,23 +20,25 @@ class GroupsService:
         user_id_group_leader: UUID,
         location_id: UUID,
         user_id_replacement: UUID = None,
-    ) -> Group:
+    ) -> UUID:
         group_leader_exists = UsersRepository.get_user_by_id(user_id_group_leader)
         if not group_leader_exists:
-            raise ValueError(
+            raise GroupLeaderDoesNotExist(
                 f"Der User mit der ID {user_id_group_leader} existiert nicht."
             )
 
-        """location_exists = GroupsRepository.get_location_by_id(location_id)
+        location_exists = LocationsRepository.get_location_by_id(location_id)
         if not location_exists:
-            raise ValueError(f"Die Location mit der ID {location_id} existiert nicht.")
-        """
-        return GroupsRepository.create_group(
+            raise LocationDoesNotExist(
+                f"Die Location mit der ID {location_id} existiert nicht."
+            )
+        group_id = GroupsRepository.create_group(
             group_name,
             user_id_group_leader,
             location_id,
             user_id_replacement,
         )
+        return group_id
 
     @staticmethod
     def get_group_by_id(group_id: UUID) -> Group:

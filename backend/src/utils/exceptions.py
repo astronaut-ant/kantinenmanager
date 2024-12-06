@@ -1,4 +1,3 @@
-
 from uuid import UUID
 
 
@@ -59,5 +58,17 @@ class LocationAlreadyExistsError(Exception):
 
 class GroupLeaderDoesNotExistError(Exception):
     """Exception raised when a group leader does not exist."""
+
+    pass
+
+
+class GroupLeaderDoesNotExist(Exception):
+    """Exception raised when a group leader does not exist."""
+
+    pass
+
+
+class LocationDoesNotExist(Exception):
+    """Exception raised when a location does not exist."""
 
     pass

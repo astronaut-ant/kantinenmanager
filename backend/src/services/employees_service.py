@@ -25,10 +25,14 @@ class EmployeesService:
     """Service for handling employee management."""
 
     @staticmethod
-    def get_employees(user_group: UserGroup, user_id: UUID) -> list[Employee]:
+    def get_employees_optional_by_name(
+        user_group: UserGroup, user_id: UUID, first_name=None, last_name=None
+    ) -> list[Employee]:
         """Get all employees the user has access to based on their user group and id."""
 
-        return EmployeesRepository.get_employees_by_user_scope(user_group, user_id)
+        return EmployeesRepository.get_employees_by_user_scope(
+            user_group, user_id, first_name=first_name, last_name=last_name
+        )
 
     @staticmethod
     def get_employee_by_id(
@@ -43,22 +47,6 @@ class EmployeesService:
 
         return EmployeesRepository.get_employee_by_id_by_user_scope(
             employee_id, user_group, user_id
-        )
-
-    @staticmethod
-    def get_employee_by_name(
-        first_name: str, last_name: str, user_group: UserGroup, user_id: UUID
-    ) -> Employee | None:
-        """Retrieve an employee by their first and last name
-
-        :param first_name: The first name of the employee to retrieve
-        :param last_name: The last name of the employee to retrieve
-
-        :return: The employee with the given first and last name or None if no employee was found
-        """
-
-        return EmployeesRepository.get_employee_by_name_by_user_scope(
-            first_name, last_name, user_group, user_id
         )
 
     @staticmethod
@@ -102,10 +90,7 @@ class EmployeesService:
             employee_number=employee_number,
             group_id=group.id,
         )
-
-        id = EmployeesRepository.create_employee(employee)
-
-        return id
+        return EmployeesRepository.create_employee(employee)
 
     @staticmethod
     def update_employee(

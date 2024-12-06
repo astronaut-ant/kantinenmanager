@@ -126,8 +126,8 @@ class LocationsPostBody(Schema):
             }
         ],
         "responses": {
-            200: {
-                "description": "Returns the ID of the new location",
+            201: {
+                "description": "Location sucessfully created, returns ID of the new location",
                 "schema": {
                     "type": "object",
                     "properties": {
@@ -162,7 +162,7 @@ def create_location():
     except LocationAlreadyExistsError as err:
         abort_with_err(
             ErrMsg(
-                status_code=500,
+                status_code=400,
                 title="Standort konnte nicht erstellt werden",
                 description="Der Standort konnte nicht erstellt werden",
                 detail=str(err),
@@ -171,13 +171,13 @@ def create_location():
     except GroupLeaderDoesNotExistError as err:
         abort_with_err(
             ErrMsg(
-                status_code=500,
+                status_code=400,
                 title="Standort konnte nicht erstellt werden",
                 description="Der Standort konnte nicht erstellt werden",
                 detail=str(err),
             )
         )
-    return jsonify({"location_id": location_id})
+    return jsonify({"location_id": location_id}), 201
 
 
 class LocationsUpdateBody(Schema):

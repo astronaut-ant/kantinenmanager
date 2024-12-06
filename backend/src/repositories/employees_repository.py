@@ -8,6 +8,7 @@ from src.models.user import UserGroup
 from src.models.employee import Employee
 from src.models.group import Group
 from src.models.location import Location
+from typing import List, Optional
 
 
 class EmployeesRepository:
@@ -15,36 +16,49 @@ class EmployeesRepository:
 
     @staticmethod
     def get_employees_by_user_scope(
-        user_group: UserGroup, user_id: UUID
-    ) -> list[Employee]:
+        user_group: UserGroup,
+        user_id: UUID,
+        first_name: Optional[str] = None,
+        last_name: Optional[str] = None,
+    ) -> List[Employee]:
         """Retrieve all employees the user has access to based on their user group and id.
 
         :param user_group: The user group of the user
         :param user_id: The ID of the user
+        :param first_name: The first name of the employee to retrieve (optional)
+        :param last_name: The last name of the employee to retrieve (optional)
 
-        :return: A list of all employees the user has access to"""
-        # TODO: Test this method
+        :return: A list of all employees the user has access to and that fit the optional name parameters
+        """
+        if user_group in [
+            UserGroup.verwaltung,
+            UserGroup.standortleitung,
+            UserGroup.gruppenleitung,
+        ]:
+            query = select(Employee)
 
-        if user_group == UserGroup.verwaltung:
-            return db.session.scalars(select(Employee)).all()
+            if user_group == UserGroup.verwaltung:
+                query = query
+            elif user_group == UserGroup.standortleitung:
+                query = (
+                    query.join(Group)
+                    .join(Location)
+                    .filter(Location.user_id_location_leader == user_id)
+                )
+            elif user_group == UserGroup.gruppenleitung:
+                query = query.join(Group).filter(Group.user_id_groupleader == user_id)
 
-        elif user_group == UserGroup.standortleitung:
-            return db.session.scalars(
-                select(Employee)
-                .join(Group)
-                .join(Location)
-                .filter(Location.user_id_location_leader == user_id)
-            ).all()
+            if first_name:
+                query = query.filter(
+                    func.lower(Employee.first_name) == first_name.lower()
+                )
+            if last_name:
+                query = query.filter(
+                    func.lower(Employee.last_name) == last_name.lower()
+                )
 
-        elif user_group == UserGroup.gruppenleitung:
-            return db.session.scalars(
-                select(Employee)
-                .join(Group)
-                .filter(Group.user_id_groupleader == user_id)
-            ).all()
-
-        else:
-            return []
+            return db.session.scalars(query).all()
+        return []
 
     @staticmethod
     def get_employee_by_number(employee_number: int) -> Employee | None:
@@ -72,8 +86,10 @@ class EmployeesRepository:
         return db.session.scalars(
             select(Group)
             .join(Location)
-            .where(func.lower(Group.group_name) == group_name.lower())
-            .where(func.lower(Location.location_name) == location_name.lower())
+            .where(
+                func.lower(Group.group_name) == group_name.lower(),
+                func.lower(Location.location_name) == location_name.lower(),
+            )
         ).first()
 
     @staticmethod

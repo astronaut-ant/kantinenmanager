@@ -41,15 +41,35 @@ class GroupCreateSchema(Schema):
                             "minLength": 1,
                             "maxLength": 256,
                         },
-                        "user_id_group_leader": {"type": "string"},
-                        "location_id": {"type": "string"},
-                        "user_id_replacement": {"type": "string"},
+                        "user_id_group_leader": {
+                            "type": "string",
+                            "example": "123e4567-e89b-12d3-a456-426614174000",
+                        },
+                        "location_id": {
+                            "type": "string",
+                            "example": "123e4567-e89b-12d3-a456-426614174000",
+                        },
+                        "user_id_replacement": {
+                            "type": "string",
+                            "example": "123e4567-e89b-12d3-a456-426614174000",
+                        },
                     },
                 },
             }
         ],
         "responses": {
-            201: {"description": "Group created successfully."},
+            201: {
+                "description": "Group successfully created.",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "example": "123e4567-e89b-12d3-a456-426614174000",
+                        }
+                    },
+                },
+            },
             400: {"description": "Validation error."},
         },
     }
@@ -58,7 +78,7 @@ def create_group():
     """Creates a new group."""
     try:
         body = GroupCreateSchema().load(request.json)
-    except ValidationError as err:
+    except Exception as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
@@ -68,8 +88,8 @@ def create_group():
             )
         )
 
-    group = GroupsService.create_group(**body)
-    return jsonify({"id": str(group.id)}), 201
+    group_id = GroupsService.create_group(**body)
+    return jsonify({"id": group_id}), 201
 
 
 @groups_routes.put("/api/groups/<uuid:group_id>")

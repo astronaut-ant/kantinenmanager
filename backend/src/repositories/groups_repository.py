@@ -23,7 +23,7 @@ class GroupsRepository:
         db.session.add(new_group)
         db.session.commit()
 
-        return new_group
+        return new_group.id
 
     @staticmethod
     def get_group_by_id(group_id: UUID) -> Group | None:
