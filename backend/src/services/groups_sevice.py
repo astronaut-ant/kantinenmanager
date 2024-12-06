@@ -1,3 +1,4 @@
+from src.models.user import UserGroup
 from src.models.group import Group
 from src.repositories.groups_repository import GroupsRepository
 from src.repositories.users_repository import UsersRepository
@@ -83,7 +84,7 @@ class GroupsService:
     def get_all_groups_with_locations() -> dict[str, list[str]]:
         """Get all groups with locations."""
         locations = {}
-        groups = GroupsRepository.get_all_groups()
+        groups = GroupsRepository.get_groups_by_userscope(0, UserGroup.verwaltung)
         for group in groups:
             match = re.match(r"^(.*?)\s*-\s*(.*)$", group.group_name)
             group_name = match.group(1)
@@ -94,9 +95,9 @@ class GroupsService:
         return locations
 
     @staticmethod
-    def get_all_groups() -> list[Group]:
-        """Get all groups."""
-        return GroupsRepository.get_all_groups()
+    def get_groups(user_id, user_group) -> list[Group]:
+        """Get all groups for respective user."""
+        return GroupsRepository.get_groups_by_userscope(user_id, user_group)
 
     @staticmethod
     def delete_group(group_id: UUID) -> None:

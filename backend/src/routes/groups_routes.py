@@ -1,5 +1,5 @@
 from uuid import UUID
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, g, request, jsonify
 from flasgger import swag_from
 from marshmallow import ValidationError, Schema, fields
 from marshmallow.validate import Length
@@ -236,7 +236,9 @@ def get_group(group_id: UUID):
 
 
 @groups_routes.get("/api/groups")
-@login_required(groups=[UserGroup.verwaltung, UserGroup.standortleitung])
+@login_required(
+    groups=[UserGroup.verwaltung, UserGroup.standortleitung, UserGroup.gruppenleitung]
+)
 @swag_from(
     {
         "tags": ["groups"],
@@ -251,9 +253,11 @@ def get_group(group_id: UUID):
         },
     }
 )
-def get_all_groups():
-    """Fetches all groups."""
-    groups = GroupsService.get_all_groups()
+def get_groups():
+    """Fetches all groups for respective user."""
+    user_id = g.user.id
+    user_group = g.user.group
+    groups = GroupsService.get_groups(user_id, user_group)
     groups_to_dict = [group.to_dict() for group in groups]
     return jsonify(groups_to_dict)
 
