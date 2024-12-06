@@ -16,18 +16,66 @@ from src.utils.exceptions import (
 locations_routes = Blueprint("locations_routes", __name__)
 
 
-@locations_routes.get("api/locations")
+@locations_routes.get("/api/locations")
 @login_required(groups=[UserGroup.verwaltung])
-# swag_from()
+@swag_from(
+    {
+        "tags": ["locations"],
+        "definitions": {
+            "Location": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                    },
+                    "location_name": {"type": "string"},
+                    "user_id_location_leader": {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                    },
+                },
+            }
+        },
+        "responses": {
+            200: {
+                "description": "Returns a list of all locations",
+                "schema": {
+                    "type": "array",
+                    "items": {"$ref": "#/definitions/Location"},
+                },
+            }
+        },
+    }
+)
 def get_locations():
     """Get all locations"""
     locations = LocationsService.get_locations()
     return jsonify([location.to_dict() for location in locations])
 
 
-@locations_routes.get("api/locations/<uuid:location_id>")
+@locations_routes.get("/api/locations/<uuid:location_id>")
 @login_required(groups=[UserGroup.verwaltung])
-# swag_from()
+@swag_from(
+    {
+        "tags": ["locations"],
+        "parameters": [
+            {
+                "in": "path",
+                "name": "location_id",
+                "required": True,
+                "schema": {"type": "string"},
+            }
+        ],
+        "responses": {
+            200: {
+                "description": "Returns the location with the given ID",
+                "schema": {"$ref": "#/definitions/Location"},
+            },
+            404: {"description": "Location not found"},
+        },
+    }
+)
 def get_location_by_id(location_id: UUID):
     """Get a location by ID"""
     location = LocationsService.get_location_by_id(location_id)
@@ -51,9 +99,51 @@ class LocationsPostBody(Schema):
     user_id_location_leader = fields.UUID(required=True)
 
 
-@locations_routes.post("api/locations")
+@locations_routes.post("/api/locations")
 @login_required(groups=[UserGroup.verwaltung])
-# swag_from()
+@swag_from(
+    {
+        "tags": ["locations"],
+        "parameters": [
+            {
+                "in": "body",
+                "name": "body",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "location_name": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 256,
+                        },
+                        "user_id_location_leader": {
+                            "type": "string",
+                            "format": "uuid",
+                            "example": "123e4567-e89b-12d3-a456-426614174000",
+                        },
+                    },
+                },
+            }
+        ],
+        "responses": {
+            200: {
+                "description": "Returns the ID of the new location",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "string",
+                            "example": "123e4567-e89b-12d3-a456-426614174000",
+                        }
+                    },
+                },
+            },
+            400: {
+                "description": "Validation error or location_name already exists or group leader does not exist"
+            },
+        },
+    }
+)
 def create_location():
     """Create a new location"""
     try:
@@ -99,9 +189,50 @@ class LocationsUpdateBody(Schema):
     user_id_location_leader = fields.UUID(required=True)
 
 
-@locations_routes.put("api/locations/<uuid:location_id>")
+@locations_routes.put("/api/locations/<uuid:location_id>")
 @login_required(groups=[UserGroup.verwaltung])
-# swag_from()
+@swag_from(
+    {
+        "tags": ["locations"],
+        "parameters": [
+            {
+                "in": "path",
+                "name": "location_id",
+                "required": True,
+                "schema": {"type": "string"},
+            },
+            {
+                "in": "body",
+                "name": "body",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "location_name": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 256,
+                        },
+                        "user_id_location_leader": {
+                            "type": "string",
+                            "format": "uuid",
+                            "example": "123e4567-e89b-12d3-a456-426614174000",
+                        },
+                    },
+                },
+            },
+        ],
+        "responses": {
+            200: {
+                "description": "Returns the updated location",
+                "schema": {"$ref": "#/definitions/Location"},
+            },
+            400: {
+                "description": "Validation error or you tried to change the location name to an already existing one"
+            },
+            404: {"description": "Location not found"},
+        },
+    }
+)
 def update_location(location_id: UUID):
     """Update a location"""
     try:
@@ -128,10 +259,10 @@ def update_location(location_id: UUID):
 
     try:
         LocationsService.update_location(location, **body)
-    except Exception as err:
+    except LocationAlreadyExistsError as err:
         abort_with_err(
             ErrMsg(
-                status_code=500,
+                status_code=400,
                 title="Standort konnte nicht aktualisiert werden",
                 description="Der Standort konnte nicht aktualisiert werden",
             )
@@ -139,9 +270,31 @@ def update_location(location_id: UUID):
     return jsonify(location.to_dict())
 
 
-@locations_routes.delete("api/locations/<uuid:location_id>")
+@locations_routes.delete("/api/locations/<uuid:location_id>")
 @login_required(groups=[UserGroup.verwaltung])
-# swag_from()
+@swag_from(
+    {
+        "tags": ["locations"],
+        "parameters": [
+            {
+                "in": "path",
+                "name": "location_id",
+                "required": True,
+                "schema": {"type": "string"},
+            },
+        ],
+        "responses": {
+            200: {
+                "description": "Location successfully deleted",
+                "schema": {
+                    "type": "object",
+                    "properties": {"message": {"type": "string"}},
+                },
+            },
+            404: {"description": "Location not found"},
+        },
+    }
+)
 def delete_location(location_id: UUID):
     """Delete a location"""
     location = LocationsService.get_location_by_id(location_id)
