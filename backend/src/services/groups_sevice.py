@@ -22,6 +22,20 @@ class GroupsService:
             raise ValueError(
                 f"Der User mit der ID {user_id_group_leader} existiert nicht."
             )
+        if group_leader_exists.user_group != UserGroup.gruppenleitung:
+            raise ValueError(
+                f"Der User mit der ID {user_id_group_leader} ist kein Gruppenleiter."
+            )
+        if user_id_replacement:
+            group_replacement_exists = UsersRepository.get_user_by_id(user_id_replacement)
+            if not group_replacement_exists:
+                raise ValueError(
+                    f"Der User mit der ID {user_id_replacement} existiert nicht."
+                )
+            if group_replacement_exists.user_group != UserGroup.gruppenleitung:
+                raise ValueError(
+                    f"Der Ersatz-User mit der ID {user_id_replacement} ist kein Gruppenleiter."
+                )
 
         """location_exists = GroupsRepository.get_location_by_id(location_id)
         if not location_exists:
@@ -125,12 +139,31 @@ class GroupsService:
             group.group_name = group_name
             changes = True
         if not user_id_group_leader == group.user_id_group_leader:
+            group_leader_exists = UsersRepository.get_user_by_id(user_id_group_leader)
+            if not group_leader_exists:
+                raise ValueError(
+                    f"Der User mit der ID {user_id_group_leader} existiert nicht."
+                )
+            if group_leader_exists.user_group != UserGroup.gruppenleitung:
+                raise ValueError(
+                    f"Der User mit der ID {user_id_group_leader} ist kein Gruppenleiter."
+                )
             group.user_id_group_leader = user_id_group_leader
             changes = True
         if not location_id == group.location_id:
             group.location_id = location_id
             changes = True
         if not user_id_replacement == group.user_id_replacement:
+            if user_id_replacement:
+                group_replacement_exists = UsersRepository.get_user_by_id(user_id_replacement)
+                if not group_replacement_exists:
+                    raise ValueError(
+                        f"Der User mit der ID {user_id_replacement} existiert nicht."
+                    )
+                if group_replacement_exists.user_group != UserGroup.gruppenleitung:
+                    raise ValueError(
+                        f"Der Ersatz-User mit der ID {user_id_replacement} ist kein Gruppenleiter."
+                    )
             group.user_id_replacement = user_id_replacement
             changes = True
         if changes:

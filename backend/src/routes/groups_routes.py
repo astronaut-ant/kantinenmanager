@@ -67,6 +67,15 @@ def create_group():
                 details=err.messages,
             )
         )
+    except ValueError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Ungültige Anfrage",
+                description="Ungültige Anfrage.",
+                details=str(err),
+            )
+        )
 
     group = GroupsService.create_group(**body)
     return jsonify({"id": str(group.id)}), 201
@@ -120,6 +129,15 @@ def update_group(group_id: UUID):
                 title="Validierungsfehler",
                 description="Ungültige Daten wurden übergeben.",
                 details=err.messages,
+            )
+        )
+    except ValueError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Ungültige Anfrage",
+                description="Ungültige Anfrage.",
+                details=str(err),
             )
         )
     except GroupDoesNotExistError:
@@ -257,7 +275,25 @@ def get_groups():
     """Fetches all groups for respective user."""
     user_id = g.user.id
     user_group = g.user.group
-    groups = GroupsService.get_groups(user_id, user_group)
+    try:
+        groups = GroupsService.get_groups(user_id, user_group)
+    except GroupDoesNotExistError:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Gruppe nicht gefunden",
+                description="Die Gruppe mit der angegebenen ID existiert nicht.",
+            )
+        )
+    except ValueError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Ungültige Anfrage",
+                description="Ungültige Anfrage.",
+                details=str(err),
+            )
+        )
     groups_to_dict = [group.to_dict() for group in groups]
     return jsonify(groups_to_dict)
 
