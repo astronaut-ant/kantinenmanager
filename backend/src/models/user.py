@@ -63,7 +63,7 @@ class User(Person):
     leader_of_group: Mapped["Group"] = relationship(
         back_populates="group_leader",
         uselist=False,
-        foreign_keys="Group.user_id_groupleader",
+        foreign_keys="Group.user_id_group_leader",
     )
     replacement_leader_of_groups: Mapped[Set["Group"]] = relationship(
         back_populates="group_leader_replacement",
