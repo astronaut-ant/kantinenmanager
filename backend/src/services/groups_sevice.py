@@ -27,7 +27,9 @@ class GroupsService:
                 f"Der User mit der ID {user_id_group_leader} ist kein Gruppenleiter."
             )
         if user_id_replacement:
-            group_replacement_exists = UsersRepository.get_user_by_id(user_id_replacement)
+            group_replacement_exists = UsersRepository.get_user_by_id(
+                user_id_replacement
+            )
             if not group_replacement_exists:
                 raise ValueError(
                     f"Der User mit der ID {user_id_replacement} existiert nicht."
@@ -95,10 +97,10 @@ class GroupsService:
             return None
 
     @staticmethod
-    def get_all_groups_with_locations() -> dict[str, list[str]]:
+    def get_all_groups_with_locations(user_id, user_group) -> dict[str, list[str]]:
         """Get all groups with locations."""
         locations = {}
-        groups = GroupsRepository.get_groups_by_userscope(0, UserGroup.verwaltung)
+        groups = GroupsRepository.get_groups_by_userscope(user_id, user_group)
         for group in groups:
             match = re.match(r"^(.*?)\s*-\s*(.*)$", group.group_name)
             group_name = match.group(1)
@@ -155,7 +157,9 @@ class GroupsService:
             changes = True
         if not user_id_replacement == group.user_id_replacement:
             if user_id_replacement:
-                group_replacement_exists = UsersRepository.get_user_by_id(user_id_replacement)
+                group_replacement_exists = UsersRepository.get_user_by_id(
+                    user_id_replacement
+                )
                 if not group_replacement_exists:
                     raise ValueError(
                         f"Der User mit der ID {user_id_replacement} existiert nicht."

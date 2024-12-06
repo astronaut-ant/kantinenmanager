@@ -194,7 +194,7 @@ def delete_group(group_id: UUID):
 
 
 @groups_routes.get("/api/groups/with-locations")
-@login_required(groups=[UserGroup.verwaltung, UserGroup.standortleitung])
+@login_required(groups=[UserGroup.verwaltung])
 @swag_from(
     {
         "tags": ["groups"],
@@ -214,8 +214,11 @@ def delete_group(group_id: UUID):
 )
 def get_all_groups_with_locations():
     """Get all groups and their associated locations."""
-
-    groups_with_locations = GroupsService.get_all_groups_with_locations()
+    user_id = g.user_id
+    user_group = g.user_group
+    groups_with_locations = GroupsService.get_all_groups_with_locations(
+        user_id, user_group
+    )
     return jsonify(groups_with_locations)
 
 
@@ -273,18 +276,10 @@ def get_group(group_id: UUID):
 )
 def get_groups():
     """Fetches all groups for respective user."""
-    user_id = g.user.id
-    user_group = g.user.group
+    user_id = g.user_id
+    user_group = g.user_group
     try:
         groups = GroupsService.get_groups(user_id, user_group)
-    except GroupDoesNotExistError:
-        abort_with_err(
-            ErrMsg(
-                status_code=404,
-                title="Gruppe nicht gefunden",
-                description="Die Gruppe mit der angegebenen ID existiert nicht.",
-            )
-        )
     except ValueError as err:
         abort_with_err(
             ErrMsg(
