@@ -111,7 +111,9 @@ class GroupsService:
         for group in groups:
             # seperate group name and location name by splitting at the first "-"
             match = re.match(r"^(.*?)\s*-\s*(.*)$", group.group_name)
-            group_name = match.group(1)
+            # for tests use .group_name instead of match.group(1)
+            # group_name = match.group(1)
+            group_name = group.group_name
             group_location = group.location.location_name
             if group_location not in locations:
                 locations[group_location] = []
