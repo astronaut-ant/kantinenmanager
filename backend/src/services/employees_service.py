@@ -1,17 +1,13 @@
 """Service for handling employee management."""
 
 import csv, re
-import qrcode
-from io import BytesIO
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
-from reportlab.lib.utils import ImageReader
 from uuid import UUID
 from src.services.auth_service import AuthService
 from src.models.user import UserGroup
 from src.models.employee import Employee
 from src.repositories.employees_repository import EmployeesRepository
 from src.utils.error import ErrMsg, abort_with_err
+from typing import Optional
 from src.utils.exceptions import (
     EmployeeAlreadyExistsError,
     GroupDoesNotExistError,
@@ -25,13 +21,23 @@ class EmployeesService:
     """Service for handling employee management."""
 
     @staticmethod
-    def get_employees_optional_by_name(
-        user_group: UserGroup, user_id: UUID, first_name=None, last_name=None
+    def get_employees(
+        user_group: UserGroup,
+        user_id: UUID,
+        first_name: Optional[str] = None,
+        last_name: Optional[str] = None,
+        group_name: Optional[str] = None,
+        group_id: Optional[UUID] = None,
     ) -> list[Employee]:
         """Get all employees the user has access to based on their user group and id."""
 
         return EmployeesRepository.get_employees_by_user_scope(
-            user_group, user_id, first_name=first_name, last_name=last_name
+            user_group,
+            user_id,
+            first_name=first_name,
+            last_name=last_name,
+            group_name=group_name,
+            group_id=group_id,
         )
 
     @staticmethod

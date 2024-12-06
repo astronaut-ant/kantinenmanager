@@ -62,6 +62,18 @@ employees_routes = Blueprint("employees_routes", __name__)
                 "required": False,
                 "schema": {"type": "string"},
             },
+            {
+                "in": "query",
+                "name": "group_name",
+                "required": False,
+                "schema": {"type": "string"},
+            },
+            {
+                "in": "query",
+                "name": "group_id",
+                "required": False,
+                "schema": {"type": "string"},
+            },
         ],
         "responses": {
             200: {
@@ -85,8 +97,15 @@ def get_employees():
     """
     first_name = request.args.get("first_name")
     last_name = request.args.get("last_name")
-    employees = EmployeesService.get_employees_optional_by_name(
-        g.user_group, g.user_id, first_name=first_name, last_name=last_name
+    group_name = request.args.get("group_name")
+    group_id = request.args.get("group_id")
+    employees = EmployeesService.get_employees(
+        g.user_group,
+        g.user_id,
+        first_name=first_name,
+        last_name=last_name,
+        group_name=group_name,
+        group_id=group_id,
     )
 
     if employees is None:

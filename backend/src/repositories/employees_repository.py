@@ -20,6 +20,8 @@ class EmployeesRepository:
         user_id: UUID,
         first_name: Optional[str] = None,
         last_name: Optional[str] = None,
+        group_name: Optional[str] = None,
+        group_id: Optional[UUID] = None,
     ) -> List[Employee]:
         """Retrieve all employees the user has access to based on their user group and id.
 
@@ -56,6 +58,12 @@ class EmployeesRepository:
                 query = query.filter(
                     func.lower(Employee.last_name) == last_name.lower()
                 )
+            if group_name:
+                query = query.join(Group).filter(
+                    func.lower(Group.group_name) == group_name.lower()
+                )
+            elif group_id:
+                query = query.filter(Employee.group_id == group_id)
 
             return db.session.scalars(query).all()
         return []
