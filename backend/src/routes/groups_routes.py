@@ -93,7 +93,7 @@ def create_group():
     """Create a new group."""
     try:
         body = GroupCreateSchema().load(request.json)
-    except Exception as err:
+    except ValidationError as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
@@ -159,8 +159,6 @@ def create_group():
 )
 def update_group(group_id: UUID):
     """Update a group."""
-    if not request.is_json:
-        raise ValueError("Request body must be JSON")
     try:
         body = GroupCreateSchema().load(request.json)
         changes = GroupsService.update_group(group_id, **body)

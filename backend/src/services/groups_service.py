@@ -131,7 +131,9 @@ class GroupsService:
         """Delete a group by its ID."""
         group = GroupsRepository.get_group_by_id(group_id)
         if not group:
-            raise GroupDoesNotExistError(group_id)
+            raise GroupDoesNotExistError(
+                f"Die Gruppe mit der ID {group_id} existiert nicht."
+            )
         GroupsRepository.delete_group(group)
         return None
 
