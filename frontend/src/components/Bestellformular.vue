@@ -7,7 +7,12 @@
   >
     <v-card :title="'Bestellung für ' + props.date">
       <v-card-text>
-        <v-data-table :items="items"></v-data-table>
+        <v-data-table :items="items">
+          <template v-slot:item.hauptgericht1="{ item }">
+            <v-checkbox
+              :model-value="item.hauptgericht1"
+            ></v-checkbox> </template
+        ></v-data-table>
       </v-card-text>
 
       <v-card-actions>
@@ -23,12 +28,14 @@
 const items = [
   {
     name: "African Elephant",
+    hauptgericht1: true,
     species: "Loxodonta africana",
     diet: "Herbivore",
     habitat: "Savanna, Forests",
   },
   {
     name: "African Elephant",
+    hauptgericht1: true,
     species: "Loxodonta africana",
     diet: "Herbivore",
     habitat: "Savanna, Forests",
