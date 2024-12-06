@@ -7,7 +7,8 @@ from flask import Blueprint, jsonify, request, g
 from flasgger import swag_from
 from src.models.user import UserGroup
 from src.models.maindish import MainDish
-from src.services.orders_service import PreOrdersService
+from src.services.orders_service import OrdersService
+from src.utils.exceptions import OrderAlreadyExistsForPersonAndDate
 
 
 orders_routes = Blueprint("orders_routes", __name__)
@@ -20,20 +21,13 @@ class OrdersPostBody(Schema):
 
     person_id = fields.UUID(required=True)
     location_id = fields.UUID(required=True)
-    date = fields.DateTime(required=True)
+    date = fields.Date(required=True)  # ISO 8601-formatted date string
     main_dish = fields.Enum(MainDish, required=False)
     salad_option = fields.Boolean(required=False)
 
 
 @orders_routes.post("/api/orders")
-@login_required(
-    groups=[
-        UserGroup.verwaltung,
-        UserGroup.standortleitung,
-        UserGroup.gruppenleitung,
-        UserGroup.kuechenpersonal,
-    ]
-)
+@login_required(groups=[UserGroup.gruppenleitung])
 @swag_from(
     {
         "tags": ["orders"],
@@ -55,13 +49,30 @@ class OrdersPostBody(Schema):
                 "in": "body",
                 "name": "body",
                 "schema": {
-                    "type": "object",
-                    "properties": {
-                        "person_id": {"type": "string"},
-                        "location_id": {"type": "string"},
-                        "date": {"type": "string"},
-                        "main_dish": {"type": "string"},
-                        "salad_option": {"type": "boolean"},
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "person_id": {
+                                "type": "string",
+                                "format": "uuid",
+                            },
+                            "location_id": {
+                                "type": "string",
+                                "format": "uuid",
+                            },
+                            "date": {
+                                "type": "string",
+                                "format": "date",
+                            },
+                            "main_dish": {"type": "string"},
+                            "salad_option": {"type": "boolean"},
+                        },
+                        "required": [
+                            "person_id",
+                            "location_id",
+                            "date",
+                        ],
                     },
                 },
             },
@@ -102,11 +113,17 @@ def create_orders():
                 details=err.messages,
             )
         )
-
-        order_ids = []
-        for order in orders:
-            order_id = PreOrdersService.create_order(**order)
-            order_ids.append(order_id)
-
-        # Return success response with created order IDs
+        try:
+            order_ids = OrdersService.create_bulk_orders(
+                orders, g.user_group, g.user_id
+            )
+        except OrderAlreadyExistsForPersonAndDate as err:
+            abort_with_err(
+                ErrMsg(
+                    status_code=400,
+                    title="Bestellung existiert bereits",
+                    description="Eine Bestellung für eine der Person und existiert bereits für diesen Tag",
+                    details=str(err),
+                )
+            )
         return jsonify({"ids": order_ids}), 201

@@ -71,3 +71,9 @@ class LocationDoesNotExist(Exception):
     """Exception raised when a location does not exist."""
 
     pass
+
+
+class OrderAlreadyExistsForPersonAndDate(Exception):
+    """Exception raised when an order already exists for a person and date."""
+
+    pass

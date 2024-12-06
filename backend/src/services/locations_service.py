@@ -3,7 +3,6 @@ from src.services.auth_service import AuthService
 from src.models.user import UserGroup
 from src.models.location import Location
 from src.repositories.locations_repository import LocationsRepository
-from src.utils.error import ErrMsg, abort_with_err
 from src.utils.exceptions import (
     LocationAlreadyExistsError,
     GroupLeaderDoesNotExistError,
