@@ -3,6 +3,7 @@ from src.models.user import UserGroup
 from src.models.group import Group
 from uuid import UUID
 from src.database import db
+from sqlalchemy import or_
 
 
 class GroupsRepository:
@@ -14,7 +15,7 @@ class GroupsRepository:
         user_id_group_leader: UUID,
         location_id: UUID,
         user_id_replacement: UUID = None,
-    ) -> Group:
+    ) -> UUID:
         """Create a new group in the database."""
         new_group = Group(
             group_name=group_name,
@@ -115,7 +116,12 @@ class GroupsRepository:
         if user_group == UserGroup.gruppenleitung:
             return (
                 db.session.query(Group)
-                .filter(Group.user_id_group_leader == user_id)
+                .filter(
+                    or_(
+                        Group.user_id_group_leader == user_id,
+                        Group.user_id_replacement == user_id,
+                    )
+                )
                 .all()
             )
 
