@@ -1,3 +1,13 @@
+
+from uuid import UUID
+
+
+class LocationAlreadyExistsError(Exception):
+    """Exception raised when a location with the same name already exists."""
+
+    pass
+
+
 class UserAlreadyExistsError(Exception):
     """Exception raised when a username is already taken."""
 
@@ -13,7 +23,8 @@ class EmployeeAlreadyExistsError(Exception):
 class GroupDoesNotExistError(Exception):
     """Exception raised when a group does not exist at a given location."""
 
-    pass
+    def __init__(self, group_id: UUID):
+        super().__init__(f"Die Gruppe mit der ID {group_id} existiert nicht.")
 
 
 class EmployeeDoesNotExistError(Exception):
