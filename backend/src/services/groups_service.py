@@ -109,11 +109,13 @@ class GroupsService:
         locations = {}
         groups = GroupsRepository.get_groups_by_userscope(user_id, user_group)
         for group in groups:
+            # seperate group name and location name by splitting at the first "-"
             match = re.match(r"^(.*?)\s*-\s*(.*)$", group.group_name)
             group_name = match.group(1)
-            group_location = match.group(2)
+            group_location = group.location.location_name
             if group_location not in locations:
                 locations[group_location] = []
+                # are group objects or only group names needed?
             locations[group_location].append(group_name)
         return locations
 

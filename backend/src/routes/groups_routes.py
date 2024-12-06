@@ -7,7 +7,7 @@ from src.models.user import UserGroup
 from src.utils.exceptions import GroupDoesNotExistError
 from src.utils.auth_utils import login_required
 from src.utils.error import ErrMsg, abort_with_err
-from src.services.groups_sevice import GroupsService
+from src.services.groups_service import GroupsService
 from src.services.users_service import UsersService
 
 groups_routes = Blueprint("groups_routes", __name__)
@@ -29,6 +29,21 @@ class GroupCreateSchema(Schema):
 @swag_from(
     {
         "tags": ["groups"],
+        "defenitions": {
+            "Group": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                    },
+                    "group_name": {"type": "string"},
+                    "user_id_group_leader": {"type": "string"},
+                    "location_id": {"type": "string"},
+                    "user_id_replacement": {"type": "string"},
+                },
+            }
+        },
         "parameters": [
             {
                 "in": "body",
@@ -132,7 +147,13 @@ def create_group():
             },
         ],
         "responses": {
-            200: {"description": "Group successfully updated."},
+            200: {
+                "description": "Group successfully updated.",
+                "schema": {
+                    "type": "object",
+                    "properties": {"message": {"type": "string"}},
+                },
+            },
             404: {"description": "Group not found."},
         },
     }
@@ -193,7 +214,13 @@ def update_group(group_id: UUID):
             },
         ],
         "responses": {
-            200: {"description": "Group successfully deleted."},
+            200: {
+                "description": "Group successfully deleted.",
+                "schema": {
+                    "type": "object",
+                    "properties": {"message": {"type": "string"}},
+                },
+            },
             404: {"description": "Group not found."},
         },
     }
@@ -214,7 +241,9 @@ def delete_group(group_id: UUID):
 
 
 @groups_routes.get("/api/groups/with-locations")
-@login_required(groups=[UserGroup.verwaltung])
+@login_required(
+    groups=[UserGroup.verwaltung, UserGroup.standortleitung, UserGroup.gruppenleitung]
+)
 @swag_from(
     {
         "tags": ["groups"],
@@ -256,12 +285,15 @@ def get_all_groups_with_locations():
             },
         ],
         "responses": {
-            200: {"description": "Group details retrieved successfully."},
+            200: {
+                "description": "Group details retrieved successfully.",
+                "schema": {"$ref": "#/definitions/Group"},
+            },
             404: {"description": "Group not found."},
         },
     }
 )
-def get_group(group_id: UUID):
+def get_group_by_id(group_id: UUID):
     """Fetches the details of a specific group."""
     try:
         group = GroupsService.get_group_by_id(group_id)
@@ -295,7 +327,7 @@ def get_group(group_id: UUID):
     }
 )
 def get_groups():
-    """Fetches all groups for respective user."""
+    """Get all groups for respective user."""
     user_id = g.user_id
     user_group = g.user_group
     try:
@@ -313,8 +345,8 @@ def get_groups():
     return jsonify(groups_to_dict)
 
 
-@groups_routes.put("/api/groups/<uuid:group_id>/remove-replacement")
-@login_required(groups=[UserGroup.verwaltung, UserGroup.standortleitung])
+@groups_routes.put("/api/groups/remove-replacement/<uuid:group_id>/")
+@login_required(groups=[UserGroup.standortleitung])
 @swag_from(
     {
         "tags": ["groups"],
@@ -341,23 +373,21 @@ def remove_group_replacement(group_id: UUID):
         abort_with_err(
             ErrMsg(
                 status_code=404,
-                title="Group not found",
-                description="The group with the specified ID does not exist.",
+                title="Gruppe nicht gefunden",
+                description="Die Gruppe mit der angegebenen ID existiert nicht.",
             )
         )
     if group_replacement is None:
         abort_with_err(
             ErrMsg(
                 status_code=404,
-                title="Group Replacement not found",
-                description="The group with the specified ID does not have a replacement.",
+                title="Gruppen Vertretung nicht gefunden",
+                description="Die Gruppenvertretung wurde nicht gefunden.",
             )
         )
     user = UsersService.get_user_by_id(group_replacement)
-    last_name = user.last_name
-    first_name = user.first_name
     return jsonify(
         {
-            "message": f"Group Replacement: '{last_name}', ' {first_name}' successfully removed."
+            "message": f"Group Replacement: '{user.first_name}', ' {user.last_name}' successfully removed."
         }
     )

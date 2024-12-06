@@ -119,6 +119,8 @@ class GroupsRepository:
                 .all()
             )
 
+        return []
+
     @staticmethod
     def delete_group(group: Group) -> None:
         """Delete a group from the database."""
