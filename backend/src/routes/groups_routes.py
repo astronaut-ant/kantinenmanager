@@ -93,7 +93,7 @@ def create_group():
     """Create a new group."""
     try:
         body = GroupCreateSchema().load(request.json)
-    except ValidationError as err:
+    except Exception as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
