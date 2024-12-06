@@ -63,3 +63,19 @@ class Group(db.Model):
 
     def __repr__(self):
         return f"<Group {self.id!r} {self.group_name!r}>"
+
+    def to_dict(self) -> dict[str, str | int | bool]:
+        """Convert the group to a dictionary
+
+        All complex objects are converted to their string representation.
+
+        :return: A dictionary containing the group's information
+        """
+
+        return {
+            "id": str(self.id),
+            "group_name": self.group_name,
+            "user_id_group_leader": str(self.user_id_group_leader),
+            "user_id_replacement": str(self.user_id_replacement),
+            "location_id": str(self.location_id),
+        }

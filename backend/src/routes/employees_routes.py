@@ -292,7 +292,7 @@ def create_user():
 
 
 @employees_routes.post("/api/employees_csv")
-@login_required(groups=[UserGroup.verwaltung], disabled=True)
+@login_required(groups=[UserGroup.verwaltung])
 @swag_from(
     {
         "tags": ["employees"],
