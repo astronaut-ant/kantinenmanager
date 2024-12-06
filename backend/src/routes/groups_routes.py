@@ -111,7 +111,7 @@ def create_group():
 def update_group(group_id: UUID):
     """Updates the details of a specific group."""
     try:
-        body = GroupCreateSchema(partial=True).load(request.json)
+        body = GroupCreateSchema.load(request.json)
         changes = GroupsService.update_group(group_id, **body)
     except ValidationError as err:
         abort_with_err(
@@ -235,7 +235,7 @@ def get_group(group_id: UUID):
     return jsonify(group.to_dict())
 
 
-@groups_routes.get("/api/groups/all")
+@groups_routes.get("/api/groups")
 @login_required(groups=[UserGroup.verwaltung, UserGroup.standortleitung])
 @swag_from(
     {
@@ -258,7 +258,7 @@ def get_all_groups():
     return jsonify(groups_to_dict)
 
 
-@groups_routes.put("/api/groups/<uuid:group_id>/remove/replacement")
+@groups_routes.put("/api/groups/<uuid:group_id>/remove-replacement")
 @login_required(groups=[UserGroup.verwaltung, UserGroup.standortleitung])
 @swag_from(
     {

@@ -1,5 +1,5 @@
 import uuid
-from typing import Set
+from typing import Optional, Set
 from sqlalchemy import UUID, String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database import db
@@ -49,7 +49,7 @@ class Group(db.Model):
         self,
         group_name: str,
         user_id_group_leader: uuid.UUID,
-        user_id_replacement: uuid.UUID,
+        user_id_replacement: Optional[uuid.UUID],
         location_id: uuid.UUID,
     ):
         """Initialize a new group
