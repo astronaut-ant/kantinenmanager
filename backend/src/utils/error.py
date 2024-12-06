@@ -10,9 +10,11 @@ Typical usage example:
     abort_with_err(msg)
 """
 
+import sys
 import time
+import traceback
 from flask import abort, make_response, request, Flask
-from werkzeug.exceptions import HTTPException
+import werkzeug
 from werkzeug.http import HTTP_STATUS_CODES
 
 
@@ -79,8 +81,101 @@ def abort_with_err(err: ErrMsg):
 
 
 def register_error_handlers(app: Flask):
+    """Register global error handlers for the Flask app."""
+
+    @app.errorhandler(werkzeug.exceptions.BadRequest)
+    def handle_bad_request(e):
+        """Handle 400 Bad Request errors."""
+
+        return make_response(
+            ErrMsg(
+                status_code=400,
+                title="Ungültige Anfrage",
+                description="Die Anfrage ist fehlerhaft",
+                details=str(e),
+            ).to_dict(),
+            400,
+        )
+
+    @app.errorhandler(werkzeug.exceptions.Unauthorized)
+    def handle_unauthorized(e):
+        """Handle 401 Unauthorized errors."""
+
+        return make_response(
+            ErrMsg(
+                status_code=401,
+                title="Nicht autorisiert",
+                description="Die Anfrage erfordert eine Authentifizierung",
+                details=str(e),
+            ).to_dict(),
+            401,
+        )
+
+    @app.errorhandler(werkzeug.exceptions.Forbidden)
+    def handle_forbidden(e):
+        """Handle 403 Forbidden errors."""
+
+        return make_response(
+            ErrMsg(
+                status_code=403,
+                title="Zugriff verweigert",
+                description="Sie haben keine Berechtigung für diese Aktion",
+                details=str(e),
+            ).to_dict(),
+            403,
+        )
+
+    @app.errorhandler(werkzeug.exceptions.NotFound)
+    def handle_not_found(e):
+        """Handle 404 Not Found errors."""
+
+        return make_response(
+            ErrMsg(
+                status_code=404,
+                title="Nicht gefunden",
+                description="Die angeforderte Ressource wurde nicht gefunden",
+                details=str(e),
+            ).to_dict(),
+            404,
+        )
+
+    @app.errorhandler(werkzeug.exceptions.MethodNotAllowed)
+    def handle_method_not_allowed(e):
+        """Handle 405 Method Not Allowed errors."""
+
+        return make_response(
+            ErrMsg(
+                status_code=405,
+                title="Methode nicht erlaubt",
+                description="Die angeforderte Methode ist nicht erlaubt",
+                details=str(e),
+            ).to_dict(),
+            405,
+        )
+
+    @app.errorhandler(werkzeug.exceptions.InternalServerError)
+    def handle_internal_server_error(e):
+        """Handle 500 Internal Server Error errors."""
+
+        sys.stderr.write(f"An internal server error occurred: {e}\n")
+
+        return make_response(
+            ErrMsg(
+                status_code=500,
+                title="Interner Serverfehler",
+                description="Ein unerwarteter Fehler ist aufgetreten",
+                details=str(e),
+            ).to_dict(),
+            500,
+        )
+
     @app.errorhandler(Exception)
     def handle_exception(e):
+        """Handle all exceptions that are not caught by other error handlers."""
+
+        sys.stderr.write(f"An unhandled exception occurred: {e}\n")
+        traceback.print_exc()
+
         return make_response(
             ErrMsg(
                 status_code=500,
