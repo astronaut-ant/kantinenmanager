@@ -66,7 +66,7 @@
         </v-data-table-virtual>
         <v-progress-linear
           v-model="progress"
-          :color="progress == 100 ? 'success' : 'purple'"
+          :color="progress == 100 ? 'success' : 'red'"
           height="25"
           class="mt-10"
           rounded
