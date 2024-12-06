@@ -42,11 +42,17 @@ class LoginBodySchema(Schema):
                 "schema": {
                     "type": "object",
                     "properties": {
-                        "username": {"type": "string", "minLength": 1, "maxLength": 64},
+                        "username": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 64,
+                            "example": "admin",
+                        },
                         "password": {
                             "type": "string",
                             "minLength": 1,
                             "maxLength": 256,
+                            "example": "password",
                         },
                     },
                 },
@@ -174,3 +180,87 @@ def logout():
     delete_token_cookies(resp)
 
     return resp
+
+
+class ChangePasswordBodySchema(Schema):
+    """
+    Schema to validate POST /api/account/change-password request body
+    """
+
+    old_password = fields.Str(required=True, validate=Length(min=1, max=256))
+    new_password = fields.Str(required=True, validate=Length(min=8, max=256))
+
+
+@auth_routes.post("/api/account/change-password")
+@login_required()
+@swag_from(
+    {
+        "tags": ["auth"],
+        "parameters": [
+            {
+                "in": "body",
+                "name": "body",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "old_password": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 256,
+                        },
+                        "new_password": {
+                            "type": "string",
+                            "minLength": 8,
+                            "maxLength": 256,
+                        },
+                    },
+                },
+            }
+        ],
+        "responses": {
+            204: {"description": "Password changed successfully"},
+            400: {"description": "Validation error"},
+            401: {"description": "Unauthorized"},
+        },
+    }
+)
+def change_password():
+    """Change password
+    Change the password of the currently logged in user.
+    ---
+    """
+
+    try:
+        body = ChangePasswordBodySchema().load(request.json)
+    except ValidationError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Validierungsfehler",
+                description="Format der Daten im Request-Body nicht valide",
+                details=err.messages,
+            )
+        )
+
+    try:
+        AuthService.change_password(
+            g.user_id, body.get("old_password"), body.get("new_password")
+        )
+    except UserNotFoundException:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Passwort ändern fehlgeschlagen",
+                description="Nutzer nicht gefunden",
+            )
+        )
+    except InvalidCredentialsException:
+        abort_with_err(
+            ErrMsg(
+                status_code=401,
+                title="Passwort ändern fehlgeschlagen",
+                description="Altes Passwort falsch",
+            )
+        )
+
+    return "", 204

@@ -10,17 +10,15 @@
       @edit="openeditDialog"
     />
   </div>
-  <v-dialog v-model="deleteConfirmation" persistent max-width="400">
+  <v-dialog v-model="deleteDialog" persistent max-width="400">
     <v-card>
-      <v-card-title class="text-red d-flex justify-start">
-        <v-icon left class="mr-2">
-            mdi-account-remove-outline
-        </v-icon>
-        <span class="text-h5">Benutzer löschen</span>
-      </v-card-title>
       <v-card-text>
-        Sind Sie sicher, dass Sie den Benutzer 
-        <strong>{{ userToDeleteName }}</strong> löschen möchten?
+        <div class="d-flex justify-center text-red mb-4">
+          <p class="text-h5 font-weight-black" >Benutzer löschen</p>
+        </div>
+        <div class="text-medium-emphasis">
+          <p> Sind Sie sicher, dass Sie den Benutzer <strong>{{ userToDeleteName }}</strong> löschen möchten?</p>
+        </div>
       </v-card-text>
       <v-card-actions>
         <v-btn text @click="closedeleteDialog">Abbrechen</v-btn>
@@ -32,17 +30,22 @@
   <v-dialog v-model="editDialog" persistent max-width="400">
     <v-card>
       <v-card-title class="primary d-flex justify-start">
-        <v-icon left class="mr-2">
-            mdi-account-edit-outline
-        </v-icon>
+        <v-icon left class="mr-2"> mdi-account-edit-outline </v-icon>
         <span class="text-h5">Benutzer bearbeiten</span>
       </v-card-title>
       <v-card-text>
         <v-form ref="validation" v-model="form">
-          <v-radio-group v-model="user_group" :rules="[required]" color="primary">
+          <v-radio-group
+            v-model="user_group"
+            :rules="[required]"
+            color="primary"
+          >
             <div class="d-flex">
               <v-radio label="Verwaltung" value="verwaltung"></v-radio>
-              <v-radio label="Standortleitung" value="standortleitung"></v-radio>
+              <v-radio
+                label="Standortleitung"
+                value="standortleitung"
+              ></v-radio>
             </div>
             <div class="d-flex">
               <v-radio label="Gruppenleitung" value="gruppenleitung"></v-radio>
@@ -77,7 +80,7 @@
       </v-card-text>
       <v-card-actions>
         <v-btn text @click="closeeditDialog">Abbrechen</v-btn>
-        <v-btn 
+        <v-btn
           color="primary"
           :disabled="!form"
           type="submit"
@@ -88,15 +91,20 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-  <SuccessSnackbar v-model="snackbar" :text="snackbarText" @close="snackbar = false"></SuccessSnackbar>
+  <SuccessSnackbar
+    v-model="snackbar"
+    :text="snackbarText"
+    @close="snackbar = false"
+  ></SuccessSnackbar>
 </template>
 
 <script setup>
+import UserCard from "@/components/UserCard.vue";
 import axios from "axios";
 const snackbarText = ref(" ");
 const snackbar = ref(false);
 const users = ref({});
-const deleteConfirmation = ref(false);
+const deleteDialog = ref(false);
 const editDialog = ref(false);
 const userToEdit = ref(null);
 const userToDelete = ref(null);
@@ -108,7 +116,6 @@ const first_name = ref("");
 const last_name = ref("");
 const username = ref("");
 const user_group = ref("");
-
 
 onMounted(() => {
   axios
@@ -123,12 +130,12 @@ onMounted(() => {
 const opendeleteDialog = (id) => {
   const user = users.value.find((user) => user.id === id);
   userToDelete.value = id;
-  userToDeleteName.value = user?.username;
-  deleteConfirmation.value = true;
+  userToDeleteName.value = user?.last_name + ", " + user?.first_name  + " (Benutzername: "+ user?.username + ")";
+  deleteDialog.value = true;
 };
 
 const closedeleteDialog = () => {
-  deleteConfirmation.value = false;
+  deleteDialog.value = false;
   userToDelete.value = null;
 };
 
@@ -138,9 +145,11 @@ const confirmDelete = () => {
       withCredentials: true,
     })
     .then(() => {
-      users.value = users.value.filter((user) => user.id !== userToDelete.value);
+      users.value = users.value.filter(
+        (user) => user.id !== userToDelete.value
+      );
       closedeleteDialog();
-      snackbarText.value = "Der Benutzer wurde erfolgreich gelöscht!"
+      snackbarText.value = "Der Benutzer wurde erfolgreich gelöscht!";
       snackbar.value = true;
     })
     .catch((err) => console.log(err));
@@ -153,7 +162,7 @@ const closeeditDialog = () => {
 
 const openeditDialog = (id) => {
   const user = users.value.find((user) => user.id === id);
-  
+
   userToEdit.value = id;
   first_name.value = user.first_name;
   last_name.value = user.last_name;
@@ -191,5 +200,4 @@ const confirmEdit = () => {
       console.error("Error updating user:", err);
     });
 };
-
 </script>

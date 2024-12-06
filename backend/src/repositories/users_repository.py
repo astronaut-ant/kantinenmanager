@@ -1,7 +1,7 @@
 """Repository to handle database operations for user data."""
 
 from sqlalchemy import select
-from src.models.user import User
+from src.models.user import User, UserGroup
 from src.database import db
 from uuid import UUID
 
@@ -48,6 +48,17 @@ class UsersRepository:
         """
 
         return list(db.session.scalars(select(User)).all())
+
+    @staticmethod
+    def get_users_by_user_group(group: UserGroup) -> list[User]:
+        """Get users by user group
+
+        :return: A list of all users with user group
+        """
+
+        return list(
+            db.session.scalars(select(User).where(User.user_group == group)).all()
+        )
 
     @staticmethod
     def create_user(user: User):

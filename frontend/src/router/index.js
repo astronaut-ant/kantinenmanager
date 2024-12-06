@@ -2,16 +2,22 @@ import { createRouter, createWebHistory } from "vue-router";
 import index from "../pages/index.vue";
 import Login from "../pages/Login.vue";
 import { useAppStore } from "../stores/app.js";
-import VerwaltungUebersicht from "@/pages/Verwaltung/VerwaltungUebersicht.vue";
+import VerwaltungAlleBenutzer from "@/pages/Verwaltung/VerwaltungAlleBenutzer.vue";
 import VerwaltungNeuerBenutzer from "../pages/Verwaltung/VerwaltungNeuerBenutzer.vue";
-import VerwaltungBehinderung from "@/pages/Verwaltung/VerwaltungBehinderung.vue";
+import VerwaltungNeuerMitarbeiter from "@/pages/Verwaltung/VerwaltungNeuerMitarbeiter.vue";
 import KuecheUebersicht from "@/pages/Kuechenpersonal/KuecheUebersicht.vue";
 import KuecheQR from "@/pages/Kuechenpersonal/KuecheQR.vue";
 import AccessDenied from "@/pages/AccessDenied.vue";
-import VerwaltungCsvUpload from "@/pages/Verwaltung/VerwaltungCsvUpload.vue";
+import VerwaltungNeuerMitarbeiterCsvUpload from "@/pages/Verwaltung/VerwaltungNeuerMitarbeiterCsvUpload.vue";
 import axios from "axios";
 import Gruppenleitung from "@/pages/Gruppenleitung/Gruppenleitung.vue";
 import Standortleitung from "@/pages/Standortleitung/Standortleitung.vue";
+import VerwaltungAlleMitarbeiter from "@/pages/Verwaltung/VerwaltungAlleMitarbeiter.vue";
+import VerwaltungAlleStandorte from "@/pages/Verwaltung/VerwaltungAlleStandorte.vue";
+import VerwaltungNeuerStandort from "@/pages/Verwaltung/VerwaltungNeuerStandort.vue";
+import VerwaltungAlleGruppen from "@/pages/Verwaltung/VerwaltungAlleGruppen.vue";
+import VerwaltungNeueGruppe from "@/pages/Verwaltung/VerwaltungNeueGruppe.vue";
+import VerwaltungMitarbeiterManuell from "@/pages/Verwaltung/VerwaltungMitarbeiterManuell.vue";
 
 const routes = [
   { path: "/", component: index, redirect: "/login" },
@@ -27,39 +33,141 @@ const routes = [
         })
         .then((response) => {
           user_group = response.data.user_group;
-          next(`/${user_group}/uebersicht`);
+          if (user_group === "verwaltung") {
+            next("/verwaltung/benutzer/uebersicht");
+          } else {
+            next(`/${user_group}/uebersicht`);
+          }
         })
         .catch((err) => next());
     },
   },
   {
-    path: "/verwaltung/uebersicht",
-    component: VerwaltungUebersicht,
+    path: "/verwaltung/benutzer/uebersicht",
+    component: VerwaltungAlleBenutzer,
     beforeEnter: (to, from, next) => {
       protectRoute(next, "verwaltung");
     },
   },
   {
-    path: "/verwaltung/neuerBenutzer",
+    path: "/verwaltung/benutzer/neuerBenutzer",
     component: VerwaltungNeuerBenutzer,
     beforeEnter: (to, from, next) => {
       protectRoute(next, "verwaltung");
     },
   },
   {
-    path: "/verwaltung/behinderung",
-    component: VerwaltungBehinderung,
+    path: "/verwaltung/mitarbeiter/uebersicht",
+    component: VerwaltungAlleMitarbeiter,
     beforeEnter: (to, from, next) => {
       protectRoute(next, "verwaltung");
     },
   },
   {
-    path: "/verwaltung/behinderung/csv-upload",
-    component: VerwaltungCsvUpload,
+    path: "/verwaltung/mitarbeiter/neuerMitarbeiter",
+    component: VerwaltungNeuerMitarbeiter,
     beforeEnter: (to, from, next) => {
       protectRoute(next, "verwaltung");
     },
   },
+  {
+    path: "/verwaltung/mitarbeiter/neuerMitarbeiterCsvUpload",
+    component: VerwaltungNeuerMitarbeiterCsvUpload,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "verwaltung");
+    },
+  },
+
+  {
+    path: "/verwaltung/standorte/uebersicht",
+    component: VerwaltungAlleStandorte,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "verwaltung");
+    },
+  },
+  {
+    path: "/verwaltung/standorte/neuerStandort",
+    component: VerwaltungNeuerStandort,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "verwaltung");
+    },
+  },
+
+  {
+    path: "/verwaltung/gruppen/uebersicht",
+    component: VerwaltungAlleGruppen,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "verwaltung");
+    },
+  },
+
+  {
+    path: "/verwaltung/gruppen/neueGruppe",
+    component: VerwaltungNeueGruppe,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "verwaltung");
+    },
+  },
+
+  {
+    path: "/gruppenleitung/uebersicht",
+    component: Gruppenleitung,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "gruppenleitung");
+    },
+  },
+  {
+    path: "/verwaltung/mitarbeiter/neuerMitarbeiter",
+    component: VerwaltungNeuerMitarbeiter,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "verwaltung");
+    },
+  },
+  {
+    path: "/verwaltung/mitarbeiter/neuerMitarbeiterCsvUpload",
+    component: VerwaltungNeuerMitarbeiterCsvUpload,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "verwaltung");
+    },
+  },
+  {
+    path: "/verwaltung/mitarbeiter/neuerMitarbeiterManuell",
+    component: VerwaltungMitarbeiterManuell,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "verwaltung");
+    },
+  },
+  {
+    path: "/verwaltung/standorte/uebersicht",
+    component: VerwaltungAlleStandorte,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "verwaltung");
+    },
+  },
+  {
+    path: "/verwaltung/standorte/neuerStandort",
+    component: VerwaltungNeuerStandort,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "verwaltung");
+    },
+  },
+
+  {
+    path: "/verwaltung/gruppen/uebersicht",
+    component: VerwaltungAlleGruppen,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "verwaltung");
+    },
+  },
+
+  {
+    path: "/verwaltung/gruppen/neueGruppe",
+    component: VerwaltungNeueGruppe,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "verwaltung");
+    },
+  },
+
   {
     path: "/gruppenleitung/uebersicht",
     component: Gruppenleitung,

@@ -130,27 +130,28 @@ def get_employee_by_id(employee_id: UUID):
     return jsonify(employee.to_dict())
 
 
-@employees_routes.get("/api/employees/<first_name>/<last_name>")
+# get employee by name with request.args
+@employees_routes.get("/api/employees")
 @login_required(
     groups=[
         UserGroup.verwaltung,
         UserGroup.standortleitung,
         UserGroup.gruppenleitung,
         UserGroup.kuechenpersonal,
-    ]
+    ],
 )
 @swag_from(
     {
         "tags": ["employees"],
         "parameters": [
             {
-                "in": "path",
+                "in": "query",
                 "name": "first_name",
                 "required": True,
                 "schema": {"type": "string"},
             },
             {
-                "in": "path",
+                "in": "query",
                 "name": "last_name",
                 "required": True,
                 "schema": {"type": "string"},
@@ -165,7 +166,7 @@ def get_employee_by_id(employee_id: UUID):
         },
     }
 )
-def get_employee_by_name(first_name: str, last_name: str):
+def get_employee_by_name():
     """Get an employee by name
     Get an employee by name
 
@@ -176,6 +177,16 @@ def get_employee_by_name(first_name: str, last_name: str):
 
     user_group = g.user_group
     user_id = g.user_id
+    first_name = request.args.get("first_name")
+    last_name = request.args.get("last_name")
+    if first_name is None or last_name is None:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Fehlende Parameter",
+                description="Es wurden nicht alle benötigten Parameter übergeben",
+            )
+        )
     employee = EmployeesService.get_employee_by_name(
         first_name, last_name, user_group, user_id
     )

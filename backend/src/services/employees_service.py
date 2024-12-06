@@ -1,36 +1,24 @@
 """Service for handling employee management."""
 
 import csv, re
+import qrcode
+from io import BytesIO
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfgen import canvas
+from reportlab.lib.utils import ImageReader
 from uuid import UUID
 from src.services.auth_service import AuthService
 from src.models.user import UserGroup
 from src.models.employee import Employee
 from src.repositories.employees_repository import EmployeesRepository
 from src.utils.error import ErrMsg, abort_with_err
-
-
-class EmployeeAlreadyExistsError(Exception):
-    """Exception raised when an employee number already exists."""
-
-    pass
-
-
-class GroupDoesNotExistError(Exception):
-    """Exception raised when a group does not exist at a given location."""
-
-    pass
-
-
-class NameNotAppropriateError(Exception):
-    """Exception raised when a Name is to long or not splitable"""
-
-    pass
-
-
-class FileNotProcessableError(Exception):
-    """Exception raised when a File has wrong contents and cannot be read"""
-
-    pass
+from src.utils.exceptions import (
+    EmployeeAlreadyExistsError,
+    GroupDoesNotExistError,
+    EmployeeDoesNotExistError,
+    NameNotAppropriateError,
+    FileNotProcessableError,
+)
 
 
 class EmployeesService:

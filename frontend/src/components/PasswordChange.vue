@@ -22,7 +22,7 @@
           <h2 class="mt-8 mb-8">
             <v-icon class="me-4">mdi-key-variant</v-icon>Passwort ändern
           </h2>
-          <LoginAlert
+          <CustomAlert
             class="mb-6"
             v-if="showAlert"
             :color="alertColor"
@@ -81,6 +81,7 @@
 
 <script setup>
 import { useAppStore } from "@/stores/app";
+import CustomAlert from "./CustomAlert.vue";
 const appStore = useAppStore();
 const dialog = ref(false);
 const passwordOld = ref("");

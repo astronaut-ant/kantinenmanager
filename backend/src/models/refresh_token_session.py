@@ -36,6 +36,8 @@ class RefreshTokenSession(db.Model):
     expires: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     last_used: Mapped[datetime] = mapped_column(DateTime, nullable=True)
 
+    # TODO: Cascade delete
+
     def __init__(self, refresh_token: str, user_id: uuid.UUID, expires: datetime):
         """Initialize a new refresh token session
 
