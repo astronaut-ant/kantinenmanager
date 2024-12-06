@@ -1,3 +1,5 @@
+from src.models.location import Location
+from src.models.user import UserGroup
 from src.models.group import Group
 from uuid import UUID
 from src.database import db
@@ -97,9 +99,25 @@ class GroupsRepository:
         db.session.commit()
 
     @staticmethod
-    def get_all_groups() -> list[Group]:
+    def get_groups_by_userscope(user_id, user_group) -> list[Group]:
         """Get all groups with locations."""
-        return db.session.query(Group).all()
+        if user_group == UserGroup.verwaltung:
+            return db.session.query(Group).all()
+
+        if user_group == UserGroup.standortleitung:
+            return (
+                db.session.query(Group)
+                .join(Location)
+                .filter(Location.user_id_location_leader == user_id)
+                .all()
+            )
+
+        if user_group == UserGroup.gruppenleitung:
+            return (
+                db.session.query(Group)
+                .filter(Group.user_id_group_leader == user_id)
+                .all()
+            )
 
     @staticmethod
     def delete_group(group: Group) -> None:
