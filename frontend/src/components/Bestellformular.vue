@@ -79,7 +79,11 @@
         <v-spacer></v-spacer>
 
         <v-btn text="Schließen" @click="close"></v-btn>
-        <v-btn class="bg-primary" text="Speichern" @click="close"></v-btn>
+        <v-btn
+          class="bg-primary elevation-7"
+          text="Speichern"
+          @click="close"
+        ></v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
