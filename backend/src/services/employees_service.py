@@ -28,6 +28,7 @@ class EmployeesService:
         last_name: Optional[str] = None,
         group_name: Optional[str] = None,
         group_id: Optional[UUID] = None,
+        employee_number: Optional[int] = None,
     ) -> list[Employee]:
         """Get all employees the user has access to based on their user group and id."""
 
@@ -38,6 +39,7 @@ class EmployeesService:
             last_name=last_name,
             group_name=group_name,
             group_id=group_id,
+            employee_number=employee_number,
         )
 
     @staticmethod
