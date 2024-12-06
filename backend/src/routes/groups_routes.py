@@ -15,7 +15,7 @@ groups_routes = Blueprint("groups_routes", __name__)
 
 class GroupCreateSchema(Schema):
     """
-    Schema for creating or updating a group.
+    Schema for POST and PUT api/groups endpoints.
     """
 
     group_name = fields.Str(required=True, validate=Length(min=1, max=256))
@@ -90,7 +90,7 @@ class GroupCreateSchema(Schema):
     }
 )
 def create_group():
-    """Creates a new group."""
+    """Create a new group."""
     try:
         body = GroupCreateSchema().load(request.json)
     except Exception as err:
@@ -99,7 +99,6 @@ def create_group():
                 status_code=400,
                 title="Validierungsfehler",
                 description="Ungültige Daten wurden übergeben.",
-                details=err.messages,
             )
         )
     except ValueError as err:
@@ -159,9 +158,11 @@ def create_group():
     }
 )
 def update_group(group_id: UUID):
-    """Updates the details of a specific group."""
+    """Update a group."""
+    if not request.is_json:
+        raise ValueError("Request body must be JSON")
     try:
-        body = GroupCreateSchema.load(request.json)
+        body = GroupCreateSchema().load(request.json)
         changes = GroupsService.update_group(group_id, **body)
     except ValidationError as err:
         abort_with_err(
@@ -226,7 +227,7 @@ def update_group(group_id: UUID):
     }
 )
 def delete_group(group_id: UUID):
-    """Deletes a specific group."""
+    """Delete a group."""
     try:
         GroupsService.delete_group(group_id)
     except GroupDoesNotExistError:
@@ -294,7 +295,7 @@ def get_all_groups_with_locations():
     }
 )
 def get_group_by_id(group_id: UUID):
-    """Fetches the details of a specific group."""
+    """Get a group by ID."""
     try:
         group = GroupsService.get_group_by_id(group_id)
     except GroupDoesNotExistError:
@@ -345,7 +346,7 @@ def get_groups():
     return jsonify(groups_to_dict)
 
 
-@groups_routes.put("/api/groups/remove-replacement/<uuid:group_id>/")
+@groups_routes.put("/api/groups/remove-replacement/<uuid:group_id>")
 @login_required(groups=[UserGroup.standortleitung])
 @swag_from(
     {
