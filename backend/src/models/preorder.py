@@ -24,6 +24,7 @@ class PreOrder(db.Model):
     # Felder der Tabelle:
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     person_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("person.id"))
+    location_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("location.id"))
     date: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     main_dish: Mapped[MainDish] = mapped_column(
         sqlalchemy.Enum(MainDish), nullable=True
@@ -33,6 +34,7 @@ class PreOrder(db.Model):
 
     # Beziehung zu anderen Tabellen:
     person: Mapped["Person"] = relationship(back_populates="pre_orders")
+    location: Mapped["Location"] = relationship(back_populates="pre_orders")
 
     def __init__(
         self,

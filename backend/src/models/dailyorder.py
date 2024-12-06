@@ -22,6 +22,7 @@ class DailyOrder(db.Model):
     # Felder der Tabelle:
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     person_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("person.id"))
+    location_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("location.id"))
     main_dish: Mapped[MainDish] = mapped_column(
         sqlalchemy.Enum(MainDish), nullable=True
     )
@@ -30,6 +31,7 @@ class DailyOrder(db.Model):
 
     # Beziehung zu anderen Tabellen:
     person: Mapped["Person"] = relationship(back_populates="daily_orders")
+    location: Mapped["Location"] = relationship(back_populates="daily_orders")
 
     def __init__(
         self,

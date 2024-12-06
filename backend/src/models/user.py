@@ -53,6 +53,9 @@ class User(Person):
     user_group: Mapped[UserGroup] = mapped_column(
         sqlalchemy.Enum(UserGroup), nullable=False
     )
+    location_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("location.id"), nullable=True
+    )
     last_login: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     blocked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
@@ -67,7 +70,12 @@ class User(Person):
         foreign_keys="Group.user_id_replacement",
     )
     leader_of_location: Mapped["Location"] = relationship(
-        back_populates="location_leader", uselist=False
+        back_populates="location_leader",
+        uselist=False,
+        foreign_keys="Location.user_id_location_leader",
+    )
+    location: Mapped["Location"] = relationship(
+        back_populates="users", foreign_keys=[location_id]
     )
 
     __mapper_args__ = {
