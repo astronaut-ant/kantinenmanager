@@ -1,4 +1,4 @@
-from flask import send_file
+from flask import send_file, make_response
 import qrcode
 from io import BytesIO
 from reportlab.lib.pagesizes import A4
@@ -68,9 +68,14 @@ class PersonsService:
         c.save()
         pdf_buffer.seek(0)
 
-        return send_file(
-            pdf_buffer,
-            mimetype="application/pdf",
-            as_attachment=True,
-            download_name=f"qr-code_{person.first_name}{person.last_name}.pdf",
+        response = make_response(
+            send_file(
+                pdf_buffer,
+                mimetype="application/pdf",
+                as_attachment=True,
+                download_name=f"qr-code_{person.first_name}{person.last_name}.pdf",
+            )
         )
+        # Explicitly expose the Content-Disposition header for the frontend
+        response.headers["Access-Control-Expose-Headers"] = "Content-Disposition"
+        return response
