@@ -2,7 +2,12 @@ from src.models.user import UserGroup
 from src.models.group import Group
 from src.repositories.groups_repository import GroupsRepository
 from src.repositories.users_repository import UsersRepository
-from src.utils.exceptions import GroupDoesNotExistError
+from src.repositories.locations_repository import LocationsRepository
+from src.utils.exceptions import (
+    GroupDoesNotExistError,
+    GroupLeaderDoesNotExist,
+    LocationDoesNotExist,
+)
 from uuid import UUID
 import re
 
@@ -16,10 +21,10 @@ class GroupsService:
         user_id_group_leader: UUID,
         location_id: UUID,
         user_id_replacement: UUID = None,
-    ) -> Group:
+    ) -> UUID:
         group_leader_exists = UsersRepository.get_user_by_id(user_id_group_leader)
         if not group_leader_exists:
-            raise ValueError(
+            raise GroupLeaderDoesNotExist(
                 f"Der User mit der ID {user_id_group_leader} existiert nicht."
             )
         if group_leader_exists.user_group != UserGroup.gruppenleitung:
@@ -39,16 +44,18 @@ class GroupsService:
                     f"Der Ersatz-User mit der ID {user_id_replacement} ist kein Gruppenleiter."
                 )
 
-        """location_exists = GroupsRepository.get_location_by_id(location_id)
+        location_exists = LocationsRepository.get_location_by_id(location_id)
         if not location_exists:
-            raise ValueError(f"Die Location mit der ID {location_id} existiert nicht.")
-        """
-        return GroupsRepository.create_group(
+            raise LocationDoesNotExist(
+                f"Die Location mit der ID {location_id} existiert nicht."
+            )
+        group_id = GroupsRepository.create_group(
             group_name,
             user_id_group_leader,
             location_id,
             user_id_replacement,
         )
+        return group_id
 
     @staticmethod
     def get_group_by_id(group_id: UUID) -> Group:
@@ -102,11 +109,15 @@ class GroupsService:
         locations = {}
         groups = GroupsRepository.get_groups_by_userscope(user_id, user_group)
         for group in groups:
+            # seperate group name and location name by splitting at the first "-"
             match = re.match(r"^(.*?)\s*-\s*(.*)$", group.group_name)
-            group_name = match.group(1)
-            group_location = match.group(2)
+            # for tests use .group_name instead of match.group(1)
+            # group_name = match.group(1)
+            group_name = group.group_name
+            group_location = group.location.location_name
             if group_location not in locations:
                 locations[group_location] = []
+                # are group objects or only group names needed?
             locations[group_location].append(group_name)
         return locations
 
@@ -120,7 +131,9 @@ class GroupsService:
         """Delete a group by its ID."""
         group = GroupsRepository.get_group_by_id(group_id)
         if not group:
-            raise GroupDoesNotExistError(group_id)
+            raise GroupDoesNotExistError(
+                f"Die Gruppe mit der ID {group_id} existiert nicht."
+            )
         GroupsRepository.delete_group(group)
         return None
 

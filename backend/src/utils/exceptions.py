@@ -1,4 +1,3 @@
-
 from uuid import UUID
 
 
@@ -23,8 +22,7 @@ class EmployeeAlreadyExistsError(Exception):
 class GroupDoesNotExistError(Exception):
     """Exception raised when a group does not exist at a given location."""
 
-    def __init__(self, group_id: UUID):
-        super().__init__(f"Die Gruppe mit der ID {group_id} existiert nicht.")
+    pass
 
 
 class EmployeeDoesNotExistError(Exception):
@@ -47,5 +45,29 @@ class FileNotProcessableError(Exception):
 
 class PersonDoesNotExistError(Exception):
     """Exception raised when a person does not exist at a given location."""
+
+    pass
+
+
+class LocationAlreadyExistsError(Exception):
+    """Exception raised when a location already exists."""
+
+    pass
+
+
+class GroupLeaderDoesNotExistError(Exception):
+    """Exception raised when a group leader does not exist."""
+
+    pass
+
+
+class GroupLeaderDoesNotExist(Exception):
+    """Exception raised when a group leader does not exist."""
+
+    pass
+
+
+class LocationDoesNotExist(Exception):
+    """Exception raised when a location does not exist."""
 
     pass

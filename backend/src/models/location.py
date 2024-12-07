@@ -51,13 +51,16 @@ class Location(db.Model):
     def __init__(
         self,
         location_name: str,
+        user_id_location_leader: uuid.UUID,
     ):
         """Initialize a new location
 
         :param location_name: The loction's name
+        :param user_id_location_leader: The ID of the location leader as UUID4
         """
 
         self.location_name = location_name
+        self.user_id_location_leader = user_id_location_leader
 
     def __repr__(self):
         return f"<Location {self.id!r} {self.location_name!r}>"
