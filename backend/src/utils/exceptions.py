@@ -13,6 +13,12 @@ class UserAlreadyExistsError(Exception):
     pass
 
 
+class UserCannotBeDeletedError(Exception):
+    """Exception raised when a user cannot be deleted."""
+
+    pass
+
+
 class EmployeeAlreadyExistsError(Exception):
     """Exception raised when an employee number already exists."""
 

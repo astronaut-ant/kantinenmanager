@@ -3,7 +3,11 @@ from marshmallow import ValidationError
 from src.utils.auth_utils import login_required
 from src.utils.error import ErrMsg, abort_with_err
 from src.models.user import UserGroup
-from src.services.users_service import UserAlreadyExistsError, UsersService
+from src.services.users_service import (
+    UserAlreadyExistsError,
+    UsersService,
+    UserCannotBeDeletedError,
+)
 from flask import Blueprint, jsonify, request
 from marshmallow.validate import Length
 from marshmallow import Schema, fields
@@ -426,5 +430,14 @@ def delete_user(user_id: UUID):
             )
         )
 
-    UsersService.delete_user(user)
+    try:
+        UsersService.delete_user(user)
+    except UserCannotBeDeletedError:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Nutzer:in kann nicht gelöscht werden",
+                description="Nutzer:in kann nicht gelöscht werden, da er/sie aktive Standort- oder Gruppenleitung ist",
+            )
+        )
     return jsonify({"message": "Nutzer erfolgreich gelöscht"})
