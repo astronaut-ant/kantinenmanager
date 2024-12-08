@@ -23,14 +23,13 @@
         single-line
         clearable
         rounded
-        max-width="800"
         ></v-text-field>
       </v-expand-transition>
     </div>
     <div>
       <v-data-table :headers="headers"  :items="items" :search="search">
       <template v-slot:[`item.actions`]="{ item }">
-        <v-btn icon="mdi-qrcode" class="bg-green mr-2" @click="openDialog(item)" size="small"></v-btn>
+        <v-btn icon="mdi-qrcode" class="bg-green mr-2" @click="getQRCode(item)" size="small"></v-btn>
         <v-btn icon="mdi-lead-pencil" class="bg-primary mr-2" @click="openDialog(item)" size="small"></v-btn>
         <v-btn icon="mdi-trash-can-outline" class="bg-red" @click="opendeleteDialog(item)" size="small"></v-btn>
       </template>
@@ -53,14 +52,27 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+  <SuccessSnackbar
+    v-model="snackbar"
+    :text="snackbarText"
+    @close="snackbar = false"
+  ></SuccessSnackbar>
 </template>
  
  
 <script setup>
+  import axios from "axios";
   const search = ref("");
   const isSearchVisible = ref(false);
   const deleteDialog = ref(false);
   const employeeToDelete = ref("");
+  const snackbar = ref(false);
+  const snackbarText = ref("");
+  const items = ref([]);
+  const groups = ref([]);
+  const locations = ref([]);
+  const employees = ref([]);
+
   const toggleSearchField = () => {
     if (isSearchVisible.value) {
       search.value = "";
@@ -77,33 +89,85 @@
     deleteDialog.value = false;
   };
 
+  const getQRCode = (item) => {
+  axios
+    .get(`http://localhost:4200/api/persons/create-qr/${item.id}`, {
+      responseType: "blob",
+      withCredentials: true,
+    })
+    .then((response) => {
+      const blob = new Blob([response.data], { type: response.headers["content-type"] });
+      const url = window.URL.createObjectURL(blob);
 
-  const items = ref([
-     {
-         employee_number: 0,
-         lastname: 'Müller',
-         firstname: 'Max',
-         group: 'Berufsbildungsbereich 1 - W1',
-         location: 'W8',
-         ID: 'GWUGDWUAG'
-     },
-     {
-         employee_number: 1,
-         lastname: 'Schmidt',
-         firstname: 'Lisa',
-         group: 'Stanzanlage/Spritzgußmaschine - Zedtlitz',
-         location: 'Zedtlitz',
-         ID: 'uiawduiogawui'
-     },
-  ]);
- 
+      const link = document.createElement("a");
+      link.href = url;
+
+      const contentDisposition = response.headers["content-disposition"];
+      let filename = "download";
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename\*?=(['"]?)(.+?)\1(;|$)/i);
+        if (filenameMatch) {
+          filename = decodeURIComponent(filenameMatch[2]);
+        }
+      }
+
+      link.download = filename;
+      link.click();
+      window.URL.revokeObjectURL(url);
+
+      snackbarText.value = "Der QR-Code wurde erfolgreich generiert!";
+      snackbar.value = true;
+    })
+    .catch((err) => {
+      console.error("Error getting QR Code", err);
+    });
+  };
+
+  onMounted(async () => {
+    try {
+      const [employeesResponse, groupsResponse, locationsResponse] = await Promise.all([
+        axios.get("http://localhost:4200/api/employees", { withCredentials: true }),
+        axios.get("http://localhost:4200/api/groups", { withCredentials: true }),
+        axios.get("http://localhost:4200/api/locations", { withCredentials: true }),
+      ]);
+
+      employees.value = employeesResponse.data;
+      groups.value = groupsResponse.data;
+      locations.value = locationsResponse.data;
+
+      items.value = [];
+      items.value = employees.value.map((employee) => {
+        const group = groups.value.find((g) => g.id === employee.group_id);
+        const groupName = group ? group.group_name : "Unbekannt";
+        const groupId = group ? group.id : null;
+        const locationId = group ? group.location_id : null;
+
+        const location = locations.value.find((l) => l.id === (group ? group.location_id : null));
+        const locationName = location ? location.location_name : "Unbekannt";
+        return {
+          id: employee.id,
+          first_name: employee.first_name,
+          last_name: employee.last_name,
+          employee_number: employee.employee_number,
+          group_id: employee.group_id,
+          group_id: groupId,
+          group_name: groupName,
+          location_id: locationId,
+          location_name: locationName,
+        };
+      });
+      console.log(items.value);
+    } catch (err) {
+      console.error("Error fetching data", err);
+    }
+  });
  
   const headers = ref([
      { title: "Nummer", key: "employee_number" },
-     { title: "Nachname", key: "lastname" },
-     { title: "Vorname", key: "firstname" },
-     { title: "Gruppe", key: "group" },
-     { title: "Standort", key: "location"},
+     { title: "Nachname", key: "last_name" },
+     { title: "Vorname", key: "first_name" },
+     { title: "Gruppe", key: "group_name" },
+     { title: "Standort", key: "location_name"},
      { title: "", key: "actions", sortable: false },]);
 </script>
  

@@ -95,7 +95,7 @@ class LocationsPostBody(Schema):
     Schema for the POST /api/locations endpoint
     """
 
-    location_name = fields.Str(required=True, validate=Length(min=1, max=256))
+    location_name = fields.Str(required=True, validate=Length(min=1, max=64))
     user_id_location_leader = fields.UUID(required=True)
 
 

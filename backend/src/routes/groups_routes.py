@@ -29,7 +29,7 @@ class GroupCreateSchema(Schema):
 @swag_from(
     {
         "tags": ["groups"],
-        "defenitions": {
+        "definitions": {
             "Group": {
                 "type": "object",
                 "properties": {
@@ -345,7 +345,7 @@ def get_groups():
     return jsonify(groups_to_dict)
 
 
-@groups_routes.put("/api/groups/remove-replacement/<uuid:group_id>")
+@groups_routes.delete("/api/groups/remove-replacement/<uuid:group_id>")
 @login_required(groups=[UserGroup.standortleitung])
 @swag_from(
     {

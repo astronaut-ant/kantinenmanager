@@ -116,15 +116,6 @@ def get_employees():
         employee_number=employee_number,
     )
 
-    if employees is None:
-        abort_with_err(
-            ErrMsg(
-                status_code=404,
-                title="Mitarbeiter:innen nicht gefunden",
-                description="Es wurde kein:e Mitarbeiter:innen mit diesem Namen gefunden",
-            )
-        )
-
     employees_dict = [employee.to_dict() for employee in employees]
 
     return jsonify(employees_dict)

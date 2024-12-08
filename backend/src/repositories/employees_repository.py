@@ -1,6 +1,6 @@
 """Repository to handle database operations for employee data."""
 
-from sqlalchemy import select, func
+from sqlalchemy import select, func, or_
 from src.models.user import User
 from src.database import db
 from uuid import UUID
@@ -49,7 +49,12 @@ class EmployeesRepository:
                     .filter(Location.user_id_location_leader == user_id)
                 )
             elif user_group == UserGroup.gruppenleitung:
-                query = query.join(Group).filter(Group.user_id_groupleader == user_id)
+                query = query.join(Group).filter(
+                    or_(
+                        Group.user_id_group_leader == user_id,
+                        Group.user_id_replacement == user_id,
+                    )
+                )
 
             if first_name:
                 query = query.filter(
