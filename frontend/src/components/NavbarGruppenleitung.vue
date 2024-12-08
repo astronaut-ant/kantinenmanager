@@ -9,6 +9,7 @@
     </v-toolbar>
     <v-navigation-drawer
       :disable-resize-watcher="true"
+      :mobile="true"
       class="elevation-10 bg-red"
       v-model="drawer"
       app
@@ -17,6 +18,7 @@
       <hr class="text-white mt-4" />
       <div class="d-flex flex-column h-75 justify-space-evenly ps-2">
         <router-link
+          @click="drawer = false"
           to="/gruppenleitung/meineGruppen"
           class="text-white text-decoration-none"
         >
@@ -24,6 +26,7 @@
           Meine Gruppen</router-link
         >
         <router-link
+          @click="drawer = false"
           to="/gruppenleitung/heutigeBestellungen"
           class="text-white text-decoration-none"
         >
@@ -31,6 +34,7 @@
           Heutige Bestellungen</router-link
         >
         <router-link
+          @click="drawer = false"
           to="/gruppenleitung/vorbestellungen"
           class="text-white text-decoration-none"
         >

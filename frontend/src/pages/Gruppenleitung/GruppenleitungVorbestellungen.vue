@@ -17,6 +17,7 @@
       @close="showBestellformular = false"
     />
   </div>
+  <p>{{ groupData }}</p>
 </template>
 
 <script>
@@ -25,22 +26,28 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import CalendarDialog from "@/components/CalendarDialog.vue";
 import Bestellformular from "@/components/Bestellformular.vue";
+import deLocale from "@fullcalendar/core/locales/de";
+import axios from "axios";
 
 const calcCalendarEdges = () => {
   const range = 14;
   const hourOfOrderStop = 8;
   const startDate = new Date();
-  const endDate = new Date(startDate);
-  //added 1 for including the endDate itself
-  endDate.setDate(endDate.getDate() + range + 1);
+  const hintDate = new Date(startDate);
+  hintDate.setDate(hintDate.getDate() + range);
+  //added 1 for including the hintDate itself
+  const endDate = new Date(hintDate);
+  endDate.setDate(endDate.getDate() + 1);
+
   const startTime = startDate.getHours();
   //no order possible after hour of orderstop
   // if (startTime >= hourOfOrderStop) {
   //   startDate.setDate(startDate.getDate() + 1);
   // }
   const startDateIso = startDate.toISOString().split("T")[0];
+  const hintDateIso = hintDate.toISOString().split("T")[0];
   const endDateIso = endDate.toISOString().split("T")[0];
-  return { start: startDateIso, end: endDateIso };
+  return { start: startDateIso, hint: hintDateIso, end: endDateIso };
 };
 
 const edges = calcCalendarEdges();
@@ -51,25 +58,50 @@ export default {
   },
   data() {
     return {
+      groupData: {},
       showDialog: false,
       showBestellformular: false,
       clickedDate: "",
       calendarOptions: {
         plugins: [dayGridPlugin, interactionPlugin],
-        initialView: "dayGridMonth",
+        headerToolbar: {
+          start: "title",
+          center: "",
+          end: "",
+        },
+        height: "auto",
+        views: {
+          timeGrid2Weeks: {
+            type: "dayGridMonth",
+            duration: { weeks: 3 },
+          },
+        },
+        initialView: "timeGrid2Weeks",
+        fixedWeekCount: false,
+        locale: deLocale,
         dateClick: this.handleDateClick,
         validRange: {
           start: edges.start,
           end: edges.end,
         },
+        visibleRange: {
+          start: edges.start,
+          end: edges.end,
+        },
         events: [
           {
-            start: "2024-12-21",
-            end: "2024-12-21",
+            start: edges.hint,
+            end: edges.hint,
             color: "red",
             display: "background",
           },
         ],
+        eventContent: function (arg) {
+          console.log(arg.event.title);
+          return {
+            html: `<div style='padding-left: 5px'><h5 style='white-space: wrap !important;word-break: break-word'>${arg.event.title}</h5></div>`,
+          };
+        },
       },
     };
   },
@@ -91,6 +123,16 @@ export default {
         this.showBestellformular = true;
       }, "250");
     },
+  },
+  mounted: function () {
+    console.log("Test");
+    axios
+      .get("http://localhost:4000/groupOrdersByPersonId")
+      .then((response) => {
+        this.groupData = response.data;
+        console.log(this.groupData);
+      })
+      .catch((err) => console.log(err));
   },
 };
 </script>
