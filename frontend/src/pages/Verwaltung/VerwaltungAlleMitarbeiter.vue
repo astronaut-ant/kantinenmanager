@@ -6,7 +6,7 @@
         <p class="text-h5 font-weight-black" >Übersicht Mitarbeiter</p>
         <v-spacer></v-spacer>
         <v-btn icon="mdi-magnify" @click="toggleSearchField"></v-btn>
-        <v-btn icon="mdi-reload"></v-btn>
+        <v-btn icon="mdi-reload" @click="fetchData"></v-btn>
       </v-toolbar>
     </div>
     <div class="d-flex justify-center">
@@ -27,7 +27,7 @@
       </v-expand-transition>
     </div>
     <div>
-      <v-data-table :headers="headers"  :items="items" :search="search">
+      <v-data-table :headers="headers"  :items="items" :search="search" :sort-by="sortBy" :loading="loading" item-value="employee_number">
       <template v-slot:[`item.actions`]="{ item }">
         <v-btn icon="mdi-qrcode" class="bg-green mr-2" @click="getQRCode(item)" size="small"></v-btn>
         <v-btn icon="mdi-lead-pencil" class="bg-primary mr-2" @click="openDialog(item)" size="small"></v-btn>
@@ -63,9 +63,11 @@
 <script setup>
   import axios from "axios";
   const search = ref("");
+  const loading = ref(true);
   const isSearchVisible = ref(false);
   const deleteDialog = ref(false);
   const employeeToDelete = ref("");
+  const employeeToDeleteID = ref("");
   const snackbar = ref(false);
   const snackbarText = ref("");
   const items = ref([]);
@@ -81,12 +83,29 @@
   };
 
   const opendeleteDialog = (item) => {
-    employeeToDelete.value = item.lastname + ", " + item.firstname;
+    employeeToDelete.value = item.last_name + ", " + item.first_name;
+    employeeToDeleteID.value = item.id;
     deleteDialog.value= true;
   };
 
   const closedeleteDialog = () => {
     deleteDialog.value = false;
+  };
+
+  const confirmDelete = () => {
+    axios
+      .delete(`http://localhost:4200/api/employees/${employeeToDeleteID.value}`, { withCredentials: true })
+      .then(() => {
+        items.value = items.value.filter((item) => item.id !== employeeToDeleteID.value);
+
+        snackbar.value = false;
+        snackbarText.value = `${employeeToDelete.value} wurde erfolgreich gelöscht!`;
+        snackbar.value = true;
+        deleteDialog.value = false;
+      })
+      .catch((err) => {
+        console.error(err);
+      })
   };
 
   const getQRCode = (item) => {
@@ -115,6 +134,7 @@
       link.click();
       window.URL.revokeObjectURL(url);
 
+      snackbar.value = false;
       snackbarText.value = "Der QR-Code wurde erfolgreich generiert!";
       snackbar.value = true;
     })
@@ -123,8 +143,9 @@
     });
   };
 
-  onMounted(async () => {
+  const fetchData = async () => {
     try {
+      loading.value = true;
       const [employeesResponse, groupsResponse, locationsResponse] = await Promise.all([
         axios.get("http://localhost:4200/api/employees", { withCredentials: true }),
         axios.get("http://localhost:4200/api/groups", { withCredentials: true }),
@@ -135,39 +156,38 @@
       groups.value = groupsResponse.data;
       locations.value = locationsResponse.data;
 
-      items.value = [];
       items.value = employees.value.map((employee) => {
         const group = groups.value.find((g) => g.id === employee.group_id);
-        const groupName = group ? group.group_name : "Unbekannt";
-        const groupId = group ? group.id : null;
-        const locationId = group ? group.location_id : null;
+        const location = group ? locations.value.find((l) => l.id === group.location_id) : null;
 
-        const location = locations.value.find((l) => l.id === (group ? group.location_id : null));
-        const locationName = location ? location.location_name : "Unbekannt";
         return {
           id: employee.id,
           first_name: employee.first_name,
           last_name: employee.last_name,
           employee_number: employee.employee_number,
-          group_id: employee.group_id,
-          group_id: groupId,
-          group_name: groupName,
-          location_id: locationId,
-          location_name: locationName,
+          group_id: group?.id || null,
+          group_name: group?.group_name || "Unbekannt",
+          location_id: location?.id || null,
+          location_name: location?.location_name || "Unbekannt",
         };
       });
-      console.log(items.value);
+      loading.value = false;
     } catch (err) {
       console.error("Error fetching data", err);
     }
+  };
+
+  onMounted(() => {
+    fetchData();
   });
  
-  const headers = ref([
-     { title: "Nummer", key: "employee_number" },
+  const headers = [
+     { title: "Nummer", key: "employee_number"},
      { title: "Nachname", key: "last_name" },
      { title: "Vorname", key: "first_name" },
      { title: "Gruppe", key: "group_name" },
      { title: "Standort", key: "location_name"},
-     { title: "", key: "actions", sortable: false },]);
+     { title: "", key: "actions", sortable: false },];
+  const sortBy = [{ key: 'employee_number', order: 'asc' }]
 </script>
  
