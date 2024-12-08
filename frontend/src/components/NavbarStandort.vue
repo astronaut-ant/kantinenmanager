@@ -5,6 +5,7 @@
       <v-toolbar-title>
         <span>Standortleitung</span>
       </v-toolbar-title>
+      <Avatar />
     </v-toolbar>
     <v-navigation-drawer
       :disable-resize-watcher="true"

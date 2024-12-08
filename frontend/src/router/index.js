@@ -196,7 +196,7 @@ const routes = [
   {
     path: "/standortleitung/uebersicht",
     component: StandortUebersicht,
-    beforeEnter: async (to, from, next) => {
+    beforeEnter: (to, from, next) => {
       protectRoute(next, "standortleitung");
     },
   },
@@ -204,7 +204,7 @@ const routes = [
   {
     path: "/standortleitung/vertretung",
     component: StandortVertretung,
-    beforeEnter: async (to, from, next) => {
+    beforeEnter: (to, from, next) => {
       protectRoute(next, "standortleitung");
     },
   },
