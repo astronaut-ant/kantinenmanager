@@ -1,8 +1,8 @@
 """Service for handling employee management."""
 
-import csv, re
+import csv
+import re
 from uuid import UUID
-from src.services.auth_service import AuthService
 from src.models.user import UserGroup
 from src.models.employee import Employee
 from src.repositories.employees_repository import EmployeesRepository
@@ -11,9 +11,6 @@ from typing import Optional
 from src.utils.exceptions import (
     EmployeeAlreadyExistsError,
     GroupDoesNotExistError,
-    EmployeeDoesNotExistError,
-    NameNotAppropriateError,
-    FileNotProcessableError,
 )
 
 

@@ -4,7 +4,12 @@ from flasgger import swag_from
 from marshmallow import ValidationError, Schema, fields
 from marshmallow.validate import Length
 from src.models.user import UserGroup
-from src.utils.exceptions import GroupDoesNotExistError
+from src.utils.exceptions import (
+    GroupAlreadyExists,
+    GroupDoesNotExistError,
+    GroupLeaderDoesNotExist,
+    LocationDoesNotExist,
+)
 from src.utils.auth_utils import login_required
 from src.utils.error import ErrMsg, abort_with_err
 from src.services.groups_service import GroupsService
@@ -98,8 +103,30 @@ def create_group():
         abort_with_err(
             ErrMsg(
                 status_code=400,
-                title="Validierungsfehler",
-                description="Ungültige Daten wurden übergeben.",
+                title="Ungültige Anfrage",
+                description="Ungültige Anfrage.",
+                details=str(err),
+            )
+        )
+
+    try:
+        group_id = GroupsService.create_group(**body)
+    except GroupAlreadyExists as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Gruppe existiert bereits",
+                description="Eine Gruppe mit diesem Namen existiert bereits.",
+                details=str(err),
+            )
+        )
+    except GroupLeaderDoesNotExist as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Gruppenleiter existiert nicht",
+                description="Der Gruppenleiter existiert nicht.",
+                details=str(err),
             )
         )
     except ValueError as err:
@@ -111,8 +138,16 @@ def create_group():
                 details=str(err),
             )
         )
+    except LocationDoesNotExist as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Standort existiert nicht",
+                description="Der Standort existiert nicht.",
+                details=str(err),
+            )
+        )
 
-    group_id = GroupsService.create_group(**body)
     return jsonify({"id": group_id}), 201
 
 

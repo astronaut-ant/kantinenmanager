@@ -128,6 +128,17 @@ class GroupsRepository:
         return []
 
     @staticmethod
+    def get_group_by_name_and_location(
+        group_name: str, location_id: UUID
+    ) -> Group | None:
+        """Retrieve a group by its name and location."""
+        return (
+            db.session.query(Group)
+            .filter(Group.group_name == group_name, Group.location_id == location_id)
+            .first()
+        )
+
+    @staticmethod
     def delete_group(group: Group) -> None:
         """Delete a group from the database."""
         db.session.delete(group)

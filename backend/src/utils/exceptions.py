@@ -1,6 +1,3 @@
-from uuid import UUID
-
-
 class LocationAlreadyExistsError(Exception):
     """Exception raised when a location with the same name already exists."""
 
@@ -81,5 +78,11 @@ class LocationDoesNotExist(Exception):
 
 class OrderAlreadyExistsForPersonAndDate(Exception):
     """Exception raised when an order already exists for a person and date."""
+
+    pass
+
+
+class GroupAlreadyExists(Exception):
+    """Exception raised when a group that should be created already exists."""
 
     pass

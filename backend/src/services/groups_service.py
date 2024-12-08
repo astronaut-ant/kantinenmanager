@@ -4,6 +4,7 @@ from src.repositories.groups_repository import GroupsRepository
 from src.repositories.users_repository import UsersRepository
 from src.repositories.locations_repository import LocationsRepository
 from src.utils.exceptions import (
+    GroupAlreadyExists,
     GroupDoesNotExistError,
     GroupLeaderDoesNotExist,
     LocationDoesNotExist,
@@ -22,6 +23,11 @@ class GroupsService:
         location_id: UUID,
         user_id_replacement: UUID = None,
     ) -> UUID:
+        if GroupsRepository.get_group_by_name_and_location(group_name, location_id):
+            raise GroupAlreadyExists(
+                f"Die Gruppe {group_name} existiert bereits an diesem Standort."
+            )
+
         group_leader_exists = UsersRepository.get_user_by_id(user_id_group_leader)
         if not group_leader_exists:
             raise GroupLeaderDoesNotExist(

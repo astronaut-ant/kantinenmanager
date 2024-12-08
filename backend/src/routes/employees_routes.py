@@ -1,19 +1,18 @@
 from uuid import UUID
 from marshmallow import ValidationError, Schema, fields
 from marshmallow.validate import Length
+from src.utils.exceptions import (
+    EmployeeAlreadyExistsError,
+    FileNotProcessableError,
+    GroupDoesNotExistError,
+    NameNotAppropriateError,
+)
 from src.utils.auth_utils import login_required
 from src.utils.error import ErrMsg, abort_with_err
 from src.models.user import UserGroup
-from src.services.employees_service import (
-    EmployeesService,
-    EmployeeAlreadyExistsError,
-    GroupDoesNotExistError,
-    NameNotAppropriateError,
-    FileNotProcessableError,
-)
+from src.services.employees_service import EmployeesService
 from flask import Blueprint, jsonify, request, g
 from flasgger import swag_from
-import csv, re
 
 employees_routes = Blueprint("employees_routes", __name__)
 

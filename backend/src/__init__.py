@@ -5,6 +5,7 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 import os
 
+from src.utils.db_utils import insert_mock_data
 from src.environment import Environment, get_features
 from src.utils.error import register_error_handlers
 
@@ -88,7 +89,7 @@ def startup() -> None:
 
     if features.INSERT_MOCK_DATA:
         print("--- Inserting mock data          ---")
-        # TODO
+        insert_mock_data(app)
     else:
         print("--- Mock data insertion disabled ---")
 
