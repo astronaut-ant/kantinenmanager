@@ -6,7 +6,7 @@ from flask import Blueprint, jsonify, request, g
 from flasgger import swag_from
 from src.models.user import UserGroup
 from src.models.maindish import MainDish
-from src.services.orders_service import OrdersService
+from src.services.orders_service import OrdersFilters, OrdersService
 from src.utils.exceptions import OrderAlreadyExistsForPersonAndDate
 
 
@@ -109,7 +109,8 @@ def get_orders():
     """
 
     try:
-        filters = OrdersGetQuery().load(request.args)
+        quesry_params = OrdersGetQuery().load(request.args)
+        filters = OrdersFilters(**quesry_params)
         pprint(filters)
 
     except ValidationError as err:
@@ -121,6 +122,9 @@ def get_orders():
                 details=err.messages,
             )
         )
+
+    orders = OrdersService.get_orders(filters)
+    pprint(orders)
 
     return []
 
