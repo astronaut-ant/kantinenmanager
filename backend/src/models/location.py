@@ -36,20 +36,31 @@ class Location(db.Model):
 
     # Das sind die Beziehungen zu anderen Tabellen:
     location_leader: Mapped["User"] = relationship(
-        back_populates="leader_of_location", uselist=False
+        back_populates="leader_of_location",
+        uselist=False,
+        foreign_keys=[user_id_location_leader],
     )
     groups: Mapped[Set["Group"]] = relationship(back_populates="location")
+    users: Mapped[Set["User"]] = relationship(
+        back_populates="location", foreign_keys="User.location_id"
+    )
+    daily_orders: Mapped[Set["DailyOrder"]] = relationship(back_populates="location")
+    pre_orders: Mapped[Set["PreOrder"]] = relationship(back_populates="location")
+    old_orders: Mapped[Set["OldOrder"]] = relationship(back_populates="location")
 
     def __init__(
         self,
         location_name: str,
+        user_id_location_leader: uuid.UUID,
     ):
         """Initialize a new location
 
         :param location_name: The loction's name
+        :param user_id_location_leader: The ID of the location leader as UUID4
         """
 
         self.location_name = location_name
+        self.user_id_location_leader = user_id_location_leader
 
     def __repr__(self):
         return f"<Location {self.id!r} {self.location_name!r}>"

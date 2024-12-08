@@ -1,7 +1,9 @@
 """Repository to handle database operations for user data."""
 
-from sqlalchemy import select
-from src.models.user import User
+from sqlalchemy import select, or_
+from src.models.user import User, UserGroup
+from src.models.group import Group
+from src.models.location import Location
 from src.database import db
 from uuid import UUID
 
@@ -50,6 +52,17 @@ class UsersRepository:
         return list(db.session.scalars(select(User)).all())
 
     @staticmethod
+    def get_users_by_user_group(group: UserGroup) -> list[User]:
+        """Get users by user group
+
+        :return: A list of all users with user group
+        """
+
+        return list(
+            db.session.scalars(select(User).where(User.user_group == group)).all()
+        )
+
+    @staticmethod
     def create_user(user: User):
         """Create a new user in the database"""
         db.session.add(user)
@@ -72,3 +85,17 @@ class UsersRepository:
 
         db.session.delete(user)
         db.session.commit()
+
+    def get_group_and_location_leaders():
+        """Get all group and location leaders"""
+        return db.session.scalars(
+            select(User)
+            .where(
+                or_(
+                    User.id == Group.user_id_group_leader,
+                    User.id == Location.user_id_location_leader,
+                )
+            )
+            .join(Group, Group.user_id_group_leader == User.id)
+            .join(Location, Location.user_id_location_leader == User.id)
+        ).all()

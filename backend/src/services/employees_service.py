@@ -7,40 +7,40 @@ from src.models.user import UserGroup
 from src.models.employee import Employee
 from src.repositories.employees_repository import EmployeesRepository
 from src.utils.error import ErrMsg, abort_with_err
-
-
-class EmployeeAlreadyExistsError(Exception):
-    """Exception raised when an employee number already exists."""
-
-    pass
-
-
-class GroupDoesNotExistError(Exception):
-    """Exception raised when a group does not exist at a given location."""
-
-    pass
-
-
-class NameNotAppropriateError(Exception):
-    """Exception raised when a Name is to long or not splitable"""
-
-    pass
-
-
-class FileNotProcessableError(Exception):
-    """Exception raised when a File has wrong contents and cannot be read"""
-
-    pass
+from typing import Optional
+from src.utils.exceptions import (
+    EmployeeAlreadyExistsError,
+    GroupDoesNotExistError,
+    EmployeeDoesNotExistError,
+    NameNotAppropriateError,
+    FileNotProcessableError,
+)
 
 
 class EmployeesService:
     """Service for handling employee management."""
 
     @staticmethod
-    def get_employees(user_group: UserGroup, user_id: UUID) -> list[Employee]:
+    def get_employees(
+        user_group: UserGroup,
+        user_id: UUID,
+        first_name: Optional[str] = None,
+        last_name: Optional[str] = None,
+        group_name: Optional[str] = None,
+        group_id: Optional[UUID] = None,
+        employee_number: Optional[int] = None,
+    ) -> list[Employee]:
         """Get all employees the user has access to based on their user group and id."""
 
-        return EmployeesRepository.get_employees_by_user_scope(user_group, user_id)
+        return EmployeesRepository.get_employees_by_user_scope(
+            user_group,
+            user_id,
+            first_name=first_name,
+            last_name=last_name,
+            group_name=group_name,
+            group_id=group_id,
+            employee_number=employee_number,
+        )
 
     @staticmethod
     def get_employee_by_id(
@@ -55,22 +55,6 @@ class EmployeesService:
 
         return EmployeesRepository.get_employee_by_id_by_user_scope(
             employee_id, user_group, user_id
-        )
-
-    @staticmethod
-    def get_employee_by_name(
-        first_name: str, last_name: str, user_group: UserGroup, user_id: UUID
-    ) -> Employee | None:
-        """Retrieve an employee by their first and last name
-
-        :param first_name: The first name of the employee to retrieve
-        :param last_name: The last name of the employee to retrieve
-
-        :return: The employee with the given first and last name or None if no employee was found
-        """
-
-        return EmployeesRepository.get_employee_by_name_by_user_scope(
-            first_name, last_name, user_group, user_id
         )
 
     @staticmethod
@@ -114,10 +98,7 @@ class EmployeesService:
             employee_number=employee_number,
             group_id=group.id,
         )
-
-        id = EmployeesRepository.create_employee(employee)
-
-        return id
+        return EmployeesRepository.create_employee(employee)
 
     @staticmethod
     def update_employee(
@@ -139,7 +120,7 @@ class EmployeesService:
         """
 
         if (
-            employee != employee.employee_number
+            employee_number != employee.employee_number
             and EmployeesRepository.get_user_by_employee_number(employee_number)
         ):
             raise EmployeeAlreadyExistsError(
@@ -183,7 +164,6 @@ class EmployeesService:
         employees = []
 
         for row in reader:
-            print(row)
             if (
                 not row.get("Kunden-Nr.")
                 or not row.get("Kürzel")
@@ -200,7 +180,9 @@ class EmployeesService:
                     )
                 )
 
-            match = re.match(r"([A-Z][a-z]+)([A-Z][a-z]*[1-9]*)", row["Kürzel"])
+            match = re.match(
+                r"([A-ZÄÖÜ][a-zßäöüéèáà]+)([A-ZÄÖÜ][a-zßäöüéèáà]*[1-9]*)", row["Kürzel"]
+            )
             if match:
                 firstname = match.group(1)
                 lastname = match.group(2)
@@ -219,21 +201,20 @@ class EmployeesService:
                 group = EmployeesRepository.get_group_by_name_and_location(
                     row["Gruppen-Name 1"], row["Bereich"]
                 )
-                print(group)
                 if group is None:
-                    raise GroupDoesNotExistError
+                    raise GroupDoesNotExistError(
+                        f"Gruppe {row['Gruppen-Name 1']} existiert nicht"
+                    )
 
                 if EmployeesRepository.get_employee_by_number(row["Kunden-Nr."]):
-                    raise EmployeeAlreadyExistsError
-
-                first_name = firstname
-                last_name = lastname
-                employee_number = row["Kunden-Nr."]
+                    raise EmployeeAlreadyExistsError(
+                        f"Nutzer mit Nummer {row['Kunden-Nr.']} existiert bereits"
+                    )
 
                 employee = Employee(
-                    first_name=first_name,
-                    last_name=last_name,
-                    employee_number=employee_number,
+                    first_name=firstname,
+                    last_name=lastname,
+                    employee_number=row["Kunden-Nr."],
                     group_id=group.id,
                 )
                 employees.append(employee)

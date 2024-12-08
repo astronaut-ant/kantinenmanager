@@ -39,7 +39,12 @@
         >
           Sign In
         </v-btn>
-        <LoginAlert v-if="showAlert" />
+        <CustomAlert
+          color="red"
+          icon="$error"
+          text="Ungültiger Benutzername oder Passwort"
+          v-if="showAlert"
+        />
       </v-form>
     </v-card>
   </v-dialog>
@@ -49,7 +54,7 @@
 import axios from "axios";
 import router from "../router";
 import { useAppStore } from "../stores/app.js";
-import LoginAlert from "@/components/LoginAlert.vue";
+import CustomAlert from "@/components/CustomAlert.vue";
 
 const form = ref(false);
 const userName = ref(null);
@@ -58,10 +63,14 @@ const loading = ref(false);
 const dialog = ref(true);
 const showAlert = ref(false);
 
-const handleSubmit = async () => {
+const required = (v) => {
+  return !!v || "Eingabe erforderlich";
+};
+
+const handleSubmit = () => {
   const appStore = useAppStore();
   if (!form) return;
-  await axios
+  axios
     .post(
       "http://localhost:4200/api/login",
       {
@@ -72,31 +81,25 @@ const handleSubmit = async () => {
     )
     .then((response) => {
       appStore.userData = response.data;
-      console.log(appStore.userData);
+      switch (appStore.userData.user_group) {
+        case "verwaltung":
+          console.log("v");
+          router.push({ path: "/verwaltung/benutzer/uebersicht" });
+          break;
+        case "standortleitung":
+          console.log("s");
+          router.push({ path: "/standortleitung/uebersicht" });
+          break;
+        case "gruppenleitung":
+          console.log("g");
+          router.push({ path: "/gruppenleitung/uebersicht" });
+          break;
+        case "kuechenpersonal":
+          console.log("k");
+          router.push({ path: "/kuechenpersonal/uebersicht" });
+          break;
+      }
     })
-    .catch((err) => console.log(err));
-  // loading.value = true;
-  // setTimeout(() => (loading.value = false), 2000);
-
-  switch (appStore.userData.user_group) {
-    case "verwaltung":
-      router.push({ path: "/verwaltung/uebersicht" });
-      break;
-    case "standortleitung":
-      router.push({ path: "/standortleitung/uebersicht" });
-      break;
-    case "gruppenleitung":
-      router.push({ path: "/gruppenleitung" });
-      break;
-    case "kuechenpersonal":
-      router.push({ path: "/kuechenpersonal/uebersicht" });
-      break;
-    default:
-      showAlert.value = true;
-  }
-};
-
-const required = (v) => {
-  return !!v || "Eingabe erforderlich";
+    .catch((err) => (showAlert.value = true));
 };
 </script>

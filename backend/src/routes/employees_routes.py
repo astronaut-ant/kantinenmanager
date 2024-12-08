@@ -49,6 +49,38 @@ employees_routes = Blueprint("employees_routes", __name__)
                 },
             }
         },
+        "parameters": [
+            {
+                "in": "query",
+                "name": "first_name",
+                "required": False,
+                "schema": {"type": "string"},
+            },
+            {
+                "in": "query",
+                "name": "last_name",
+                "required": False,
+                "schema": {"type": "string"},
+            },
+            {
+                "in": "query",
+                "name": "employee_number",
+                "required": False,
+                "schema": {"type": "string"},
+            },
+            {
+                "in": "query",
+                "name": "group_name",
+                "required": False,
+                "schema": {"type": "string"},
+            },
+            {
+                "in": "query",
+                "name": "group_id",
+                "required": False,
+                "schema": {"type": "string"},
+            },
+        ],
         "responses": {
             200: {
                 "description": "Returns a list of the employees belonging to the scope of the user",
@@ -60,17 +92,29 @@ employees_routes = Blueprint("employees_routes", __name__)
         },
     }
 )
+# get employee by name with request.args.get
 def get_employees():
-    """Get all employees that the current user has access to
-    Get a list of employees
+    """Get all employees that the current user has access to optionally filtered by name
+    Get a list of employees (optionally filtered by name)
 
     Authentication: required
     Authorization: Verwaltung, Standortleitung, Gruppenleitung, Küchenpersonal
     ---
     """
-    user_group = g.user_group
-    user_id = g.user_id
-    employees = EmployeesService.get_employees(user_group, user_id)
+    first_name = request.args.get("first_name")
+    last_name = request.args.get("last_name")
+    group_name = request.args.get("group_name")
+    group_id = request.args.get("group_id")
+    employee_number = request.args.get("employee_number")
+    employees = EmployeesService.get_employees(
+        g.user_group,
+        g.user_id,
+        first_name=first_name,
+        last_name=last_name,
+        group_name=group_name,
+        group_id=group_id,
+        employee_number=employee_number,
+    )
 
     employees_dict = [employee.to_dict() for employee in employees]
 
@@ -107,8 +151,8 @@ def get_employees():
     }
 )
 def get_employee_by_id(employee_id: UUID):
-    """Get a employee by ID
-    Get a employee by ID
+    """Get an employee by ID
+    Get an employee by ID
 
     Authentication: required
     Authorization: Verwaltung, Standortleitung, Gruppenleitung, Kuechenpersonal
@@ -124,67 +168,6 @@ def get_employee_by_id(employee_id: UUID):
                 status_code=404,
                 title="Mitarbeiter nicht gefunden",
                 description="Es wurde kein Mitarbeiter mit dieser ID gefunden",
-            )
-        )
-
-    return jsonify(employee.to_dict())
-
-
-@employees_routes.get("/api/employees/<first_name>/<last_name>")
-@login_required(
-    groups=[
-        UserGroup.verwaltung,
-        UserGroup.standortleitung,
-        UserGroup.gruppenleitung,
-        UserGroup.kuechenpersonal,
-    ]
-)
-@swag_from(
-    {
-        "tags": ["employees"],
-        "parameters": [
-            {
-                "in": "path",
-                "name": "first_name",
-                "required": True,
-                "schema": {"type": "string"},
-            },
-            {
-                "in": "path",
-                "name": "last_name",
-                "required": True,
-                "schema": {"type": "string"},
-            },
-        ],
-        "responses": {
-            200: {
-                "description": "Returns the employee with the given name",
-                "schema": {"$ref": "#/definitions/Employee"},
-            },
-            404: {"description": "Employee not found"},
-        },
-    }
-)
-def get_employee_by_name(first_name: str, last_name: str):
-    """Get an employee by name
-    Get an employee by name
-
-    Authentication: required
-    Authorization: Verwaltung, Standortleitung, Gruppenleitung, Kuechenpersonal
-    ---
-    """
-
-    user_group = g.user_group
-    user_id = g.user_id
-    employee = EmployeesService.get_employee_by_name(
-        first_name, last_name, user_group, user_id
-    )
-    if employee is None:
-        abort_with_err(
-            ErrMsg(
-                status_code=404,
-                title="Mitarbeiter:in nicht gefunden",
-                description="Es wurde kein:e Mitarbeiter:in mit diesem Namen gefunden",
             )
         )
 
@@ -283,8 +266,8 @@ def create_user():
         abort_with_err(
             ErrMsg(
                 status_code=400,
-                title="Nutzername bereits vergeben",
-                description="Der Nutzername ist bereits vergeben",
+                title="Kunden-Nr. bereits vergeben",
+                description="Die Kunden-Nr. ist bereits vergeben",
             )
         )
 
@@ -292,7 +275,7 @@ def create_user():
 
 
 @employees_routes.post("/api/employees_csv")
-@login_required(groups=[UserGroup.verwaltung], disabled=True)
+@login_required(groups=[UserGroup.verwaltung])
 @swag_from(
     {
         "tags": ["employees"],
@@ -300,7 +283,7 @@ def create_user():
             {
                 "in": "path",
                 "name": "employee_csv",
-                "required": True,
+                "required": False,
                 "schema": {"type": "string"},
             },
             {
@@ -370,7 +353,7 @@ def csv_create():
             ErrMsg(
                 status_code=404,
                 title="Gruppe wurde nicht gefunden",
-                description="Die Gruppe zu einem der Benutzer existiert nicht",
+                description="Die Gruppe zu mindestens einem der Benutzer existiert nicht",
             )
         )
     except NameNotAppropriateError:
@@ -405,7 +388,7 @@ class EmployeeUpdateBody(Schema):
     location_name = fields.Str(required=True, validate=Length(min=1, max=256))
 
 
-@employees_routes.put("/api/employees/<uuid:user_id>")
+@employees_routes.put("/api/employees/<uuid:employee_id>")
 @login_required(groups=[UserGroup.verwaltung])
 @swag_from(
     {
@@ -475,9 +458,7 @@ def update_employee(employee_id: UUID):
                 details=err.messages,
             )
         )
-    user_group = g.user_group
-    user_id = g.user_id
-    employee = EmployeesService.get_employee_by_id(employee_id, user_group, user_id)
+    employee = EmployeesService.get_employee_by_id(employee_id, g.user_group, g.user_id)
     if employee is None:
         abort_with_err(
             ErrMsg(
@@ -501,7 +482,7 @@ def update_employee(employee_id: UUID):
     return jsonify(employee.to_dict())
 
 
-@employees_routes.delete("/api/employees/<uuid:user_id>")
+@employees_routes.delete("/api/employees/<uuid:employee_id>")
 @login_required(groups=[UserGroup.verwaltung])
 @swag_from(
     {
@@ -534,7 +515,7 @@ def delete_employee(employee_id: UUID):
     Authorization: Verwaltung
     ---
     """
-    employee = EmployeesService.get_employee_by_id(employee_id)
+    employee = EmployeesService.get_employee_by_id(employee_id, g.user_group, g.user_id)
     if employee is None:
         abort_with_err(
             ErrMsg(

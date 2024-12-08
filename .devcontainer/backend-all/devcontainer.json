@@ -4,10 +4,7 @@
   "name": "Backend All",
   // Update the 'dockerComposeFile' list if you have more compose files or use different names.
   // The .devcontainer/docker-compose.yml file contains any overrides you need/want to make.
-  "dockerComposeFile": [
-    "../../docker-compose.yml",
-    "docker-compose.yml"
-  ],
+  "dockerComposeFile": ["../../docker-compose.yml", "docker-compose.yml"],
   // The 'service' property is the name of the service for the container that VS Code should
   // use. Update this value and .devcontainer/docker-compose.yml to the real service name.
   "service": "backend",
@@ -19,20 +16,13 @@
     "ghcr.io/devcontainers/features/git:1": {}
   },
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
-  "forwardPorts": [
-    4200
-  ],
+  "forwardPorts": [4200],
   // Uncomment the next line if you want start specific services in your Docker Compose config.
-  "runServices": [
-    "db",
-    "frontend",
-    "adminer",
-    "backend"
-  ],
+  "runServices": ["db", "frontend", "adminer", "backend"],
   // Uncomment the next line if you want to keep your containers running after VS Code shuts down.
   "shutdownAction": "stopCompose",
   // Uncomment the next line to run commands after the container is created.
-  "postStartCommand": "cd backend && flask --app startup:app run --host=0.0.0.0 --port=4200 --debug",
+  "postStartCommand": "cd backend && FLASK_ENV=migration alembic upgrade head && flask --app startup:app run --host=0.0.0.0 --port=4200 --debug",
   // Configure tool-specific properties.
   "customizations": {
     "vscode": {

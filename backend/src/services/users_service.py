@@ -4,6 +4,7 @@ from uuid import UUID
 from src.services.auth_service import AuthService
 from src.models.user import User, UserGroup
 from src.repositories.users_repository import UsersRepository
+from src.utils.exceptions import UserAlreadyExistsError, UserCannotBeDeletedError
 
 # Services enthalten die Businesslogik der Anwendung.
 # Sie werden von den Routen aufgerufen und ziehen sich
@@ -12,12 +13,6 @@ from src.repositories.users_repository import UsersRepository
 # Hier würde so etwas reinkommen wie die Ertellung des QR-Codes
 # oder die Validierung, dass ein Nutzer die korrekten Anmeldedaten
 # eingegeben hat.
-
-
-class UserAlreadyExistsError(Exception):
-    """Exception raised when a username is already taken."""
-
-    pass
 
 
 class UsersService:
@@ -115,6 +110,14 @@ class UsersService:
 
         :param user: The user to delete
         """
+        leader_ids = {
+            leader.id for leader in UsersRepository.get_group_and_location_leaders()
+        }
+
+        if user.id in leader_ids:
+            raise UserCannotBeDeletedError(
+                f"The user {user.first_name} {user.last_name} is a group or location leader and cannot be deleted right now."
+            )
 
         UsersRepository.delete_user(user)
 

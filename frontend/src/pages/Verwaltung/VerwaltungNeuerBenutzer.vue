@@ -44,13 +44,24 @@
             label="Benutzername"
             clearable
           ></v-text-field>
+          <div class="d-flex justify-center mt-2 mb-5">
+            <v-btn size="large" class="w-100 bg-red" @click="generatePassword"
+              >Generiere Passwort</v-btn
+            >
+          </div>
           <v-text-field
+            :append-inner-icon="
+              showPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline'
+            "
             v-model="password"
-            type="password"
+            :type="showPassword ? 'text' : 'password'"
             :rules="[required]"
+            :readonly="true"
             label="Passwort"
-            clearable
-          ></v-text-field>
+            @click:append-inner="showPassword = !showPassword"
+          >
+          </v-text-field>
+
           <v-btn
             class="mt-2"
             :disabled="!form"
@@ -86,7 +97,16 @@ const last_name = ref("");
 const username = ref("");
 const password = ref("");
 const user_group = ref("");
+const showPassword = ref(false);
 
+//Dummy => fetch from Backend
+const generatePassword = () => {
+  password.value = "12345678";
+};
+
+const test = () => {
+  console.log("test");
+};
 const handleSubmit = () => {
   axios
     .post("http://localhost:4200/api/users ", {

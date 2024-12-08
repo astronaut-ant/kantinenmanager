@@ -122,6 +122,32 @@ docker compose run test-backend-watch  # Start a test runner that will watch for
 
 #todo
 
+## Database Migrations
+
+All database migrations are checked in with Git. They are applied automatically when starting the backend container.
+
+After changing SQLAlchemy models it is necessary to generate a new migration script to apply those changes.
+
+```bash
+# Generate a new migration
+# In the backend container (or locally with all Python dependencies installed) run the following commands:
+cd backend # change directory
+FLASK_ENV=migration alembic revision --autogenerate -m "<YOUR_MESSAGE>"
+
+# Apply pending revisions
+cd backend
+FLASK_ENV=migration alembic upgrade head
+# Alternatively, restart the backend container
+
+# Downgrade revisions
+FLASK_ENV=migration alembic downgrade -1
+
+# Get information
+FLASK_ENV=migration alembic current
+```
+
+[Alembic Documentation](https://alembic.sqlalchemy.org/en/latest/tutorial.html)
+
 ## Test and Deploy
 
 Use the built-in continuous integration in GitLab.
