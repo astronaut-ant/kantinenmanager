@@ -6,7 +6,7 @@
                     <p class="text-h6 font-weight-black text-primary"> {{ props.name }} </p>
                 </div>
                 <div style="max-width: 100px; overflow: hidden;">
-                    <v-chip color="primary" label> {{ props.number }} </v-chip>
+                    <v-chip color="primary" label> {{ props.id }} </v-chip>
                 </div>
             </div>
             <v-divider></v-divider>
@@ -14,7 +14,6 @@
                 <div class="mt-4 ml-2 text-medium-emphasis">
                     <p color="text-primary"> Gruppenleiter: {{ props.group_leader }}</p>
                     <p color="text-primary"> Mitgliederanzahl: 99 </p>
-                    <p color="text-primary"> Standort: {{ props.loaction }} </p>
                 </div>
                 <div class="mt-5 d-flex ga-1">
                     <v-btn class="mt-2 bg-primary" @click="openDialog"><v-icon>mdi-dots-horizontal-circle-outline</v-icon></v-btn>
@@ -34,31 +33,28 @@
                 <v-tabs v-model="tab" align-tabs="center" color="primary">
                     <v-tab value="one">Übersicht</v-tab>
                     <v-tab value="two">Mitglieder</v-tab>
-                    <v-tab value="three">--</v-tab>
                 </v-tabs>
             </div>
 
             <v-card-text>
                 <v-tabs-window v-model="tab">
                     <v-tabs-window-item value="one">
-                    <div class="text-left ml-4 mb-2 mt-2">
-                        <p class="font-weight-black"> Gruppe </p>
-                    </div>
-                    <div class="ml-5 mb-4 text-medium-emphasis">
-                        <p color="text-primary"> Gruppennummer: {{ props.number }} </p>
-                        <p color="text-primary"> Mitgliederanzahl: 99 </p>
-                        <p color="text-primary"> Standort: {{ props.loaction }} </p>
-                    </div>
-                    <v-divider></v-divider>
-                    <div class="text-left ml-4 mb-2 mt-4">
-                        <p class="font-weight-black"> Gruppenleitung </p>
-                    </div>
-                    <div class="ml-5 text-medium-emphasis">
-                        <p color="text-primary"> Vorname: Max </p>
-                        <p color="text-primary"> Nachname: Mustermann </p>
-                        <p color="text-primary"> Benutzername: testtest </p>
-                    </div>
-
+                        <div class="text-left ml-4 mb-2 mt-2">
+                            <p class="font-weight-black"> Gruppe </p>
+                        </div>
+                        <div class="ml-5 mb-4 text-medium-emphasis">
+                            <p color="text-primary"> Gruppennummer: {{ props.number }} </p>
+                            <p color="text-primary"> Mitgliederanzahl: 99 </p>
+                        </div>
+                        <v-divider></v-divider>
+                        <div class="text-left ml-4 mb-2 mt-4">
+                            <p class="font-weight-black"> Gruppenleitung </p>
+                        </div>
+                        <div class="ml-5 text-medium-emphasis">
+                            <p color="text-primary"> Vorname: Max </p>
+                            <p color="text-primary"> Nachname: Mustermann </p>
+                            <p color="text-primary"> Benutzername: testtest </p>
+                        </div>
                     </v-tabs-window-item>
 
                     <v-tabs-window-item value="two">
@@ -74,31 +70,8 @@
                             single-line
                             rounded
                         ></v-text-field>
-                        <v-data-table-virtual :items="items" :search="search" density="compact">
-                            <template v-slot:item.Essen="{ item }">
-                                <div class="text-left">
-                                    <v-chip
-                                    :color="item.Essen === 'rot' ? 'red' : (item.Essen === 'blau' ? 'blue' : 'gray')"
-                                    :text="item.Essen === 'rot' ? 'Rot' : (item.Essen === 'blau' ? 'Blau' : 'kein Essen')"
-                                    class="text-uppercase"
-                                    size="small"
-                                    label
-                                    ></v-chip>
-                                </div>
-                            </template>
-                            <template v-slot:item.Salat="{ item }">
-                                <v-checkbox-btn
-                                    v-model="item.Salat"
-                                    readonly
-                                    color="success"
-                                ></v-checkbox-btn>
-                            </template>
-
+                        <v-data-table-virtual :items="items" :search="search" :headers="headers" density="compact">
                         </v-data-table-virtual>
-                    </v-tabs-window-item>
-
-                    <v-tabs-window-item value="three">
-                        ---
                     </v-tabs-window-item>
                 </v-tabs-window>
             </v-card-text>
@@ -112,102 +85,34 @@
 </template>
 
 <script setup>
-    const props = defineProps(["id", "name", "loaction" , "group_leader" , "number"]);
+    import axios from "axios";
+    const props = defineProps(["id", "name" , "group_leader"]);
     const more = ref(false);
     const tab = ref("");
     const search = ref("");
 
-    const items = [
-    {
-        Vorname: 'Max',
-        Nachname: 'Müller',
-        Essen: 'rot',
-        Salat: true
-    },
-    {
-        Vorname: 'Lina',
-        Nachname: 'Schmidt',
-        Essen: 'rot',
-        Salat: true
-    },
-    {
-        Vorname: 'Tom',
-        Nachname: 'Schneider',
-        Essen: '',
-        Salat: false
-    },
-    {
-        Vorname: 'Emma',
-        Nachname: 'Fischer',
-        Essen: 'blau',
-        Salat: false
-    },
-    {
-        Vorname: 'John',
-        Nachname: 'Weber',
-        Essen: 'blau',
-        Salat: false
-    },
-    {
-        Vorname: 'Anna',
-        Nachname: 'Meyer',
-        Essen: 'rot',
-        Salat: true
-    },
-    {
-        Vorname: 'Chris',
-        Nachname: 'Wagner',
-        Essen: '',
-        Salat: true
-    },
-    {
-        Vorname: 'Sophia',
-        Nachname: 'Becker',
-        Essen: 'blau',
-        Salat: true
-    },
-    {
-        Vorname: 'Michael',
-        Nachname: 'Hoffmann',
-        Essen: 'blau',
-        Salat: true
-    },
-    {
-        Vorname: 'Isabella',
-        Nachname: 'Koch',
-        Essen: 'rot',
-        Salat: false
-    },
-    {
-        Vorname: 'David',
-        Nachname: 'Bauer',
-        Essen: 'rot',
-        Salat: false
-    },
-    {
-        Vorname: 'Olivia',
-        Nachname: 'Richter',
-        Essen: 'rot',
-        Salat: true
-    },
-    {
-        Vorname: 'Lucas',
-        Nachname: 'Klein',
-        Essen: 'blau',
-        Salat: true
-    },
-    {
-        Vorname: 'Mia',
-        Nachname: 'Wolf',
-        Essen: 'blau',
-        Salat: false
-    },
-    {
-        Vorname: 'Ethan',
-        Nachname: 'Scholz',
-        Essen: 'rot',
-        Salat: false
-    },];
+    const items = ref([]);
+
+    watch(tab, (newTab) => {
+        if (newTab === 'two') {
+            fetchMitarbeiterData();
+        }
+    });
+
+    const fetchMitarbeiterData = () => {
+        axios
+          .get(`http://localhost:4200/api/employees?group_id=${props.id}`, {withCredentials: true})
+          .then((response) => {
+            items.value = response.data;
+          })
+          .catch((err) => console.log(err));
+    };
+
+    const headers = [
+     { title: "Nummer", key: "employee_number"},
+     { title: "Nachname", key: "last_name" },
+     { title: "Vorname", key: "first_name" },
+    ];
 
 
 
