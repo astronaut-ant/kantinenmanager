@@ -219,7 +219,7 @@ def create_orders_employees():
     try:
         orders = OrdersPostPutBody(many=True).load(request.json)
         if not orders:
-            return jsonify({"message": "Keine neuen Bestellungen" }), 200
+            return jsonify({"message": "Keine neuen Bestellungen"}), 200
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
@@ -268,6 +268,7 @@ def create_orders_employees():
             )
         )
     return jsonify({"message": "Bestellungen erfolgreich erstellt"}), 201
+
 
 @orders_routes.put("/api/orders")
 @login_required(groups=[UserGroup.gruppenleitung])
@@ -327,7 +328,7 @@ def update_orders_employees():
     try:
         orders = OrdersPostPutBody(many=True).load(request.json)
         if not orders:
-            return jsonify({"message" : "Keine übermittelten Bestellungen"}), 200
+            return jsonify({"message": "Keine übermittelten Bestellungen"}), 200
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
@@ -376,6 +377,7 @@ def update_orders_employees():
             )
         )
     return jsonify({"message": "Bestellungen erfolgreich erstellt"}), 201
+
 
 @orders_routes.post("/api/orders/<uuid:user_id>")
 @login_required(
@@ -479,7 +481,15 @@ def create_order_user(user_id: UUID):
         )
     return jsonify({"message": "Bestellung erfolgreich erstellt"}), 201
 
+
 @orders_routes.put("/api/orders/<uuid:user_id>")
 @login_required(
     groups=[UserGroup.verwaltung, UserGroup.standortleitung, UserGroup.gruppenleitung]
 )
+# swag_from()
+def update_order_user(user_id: UUID):
+    """
+    Update a preorder for an user
+    """
+    #
+    return jsonify({"message": "Bestellung erfolgreich geändert"}), 201
