@@ -7,6 +7,7 @@
       v-if="showDialog"
       :showDialog="showDialog"
       :date="clickedDate"
+      :groups="allGroupsArray"
       @close="this.showDialog = false"
       @save="addEvent"
     />
@@ -59,6 +60,7 @@ export default {
     return {
       groupleaderId: 1,
       groupData: {},
+      allGroupsArray: [],
       showDialog: false,
       showBestellformular: false,
       clickedDate: "",
@@ -145,6 +147,7 @@ export default {
           this.groupData = response.data;
           const groupedEvents = [];
           this.groupData.groups.forEach((group) => {
+            this.allGroupsArray.push(group.groupName);
             groupedEvents.push({
               groupName: group.groupName,
               isHomegroup: group.isHomegroup,
