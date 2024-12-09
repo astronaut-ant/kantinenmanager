@@ -147,19 +147,20 @@ export default {
           this.groupData.groups.forEach((group) => {
             groupedEvents.push({
               groupName: group.groupName,
-              groupClass: group.groupClass,
+              isHomegroup: group.isHomegroup,
               groupOrderDatesList: this.getGroupDates(group.groupOrders),
             });
           });
           console.log(groupedEvents);
           groupedEvents.forEach((groupedEvent) => {
-            const isHomeGroup = groupedEvent.groupClass === "Homegroup";
             groupedEvent.groupOrderDatesList.forEach((groupOrderDate) => {
               this.calendarOptions.events.push({
                 title: groupedEvent.groupName,
                 date: groupOrderDate,
-                backgroundColor: isHomeGroup ? "#1867C0" : "#F44336",
-                borderColor: isHomeGroup ? "#1867C0" : "#F44336",
+                backgroundColor: groupedEvent.isHomegroup
+                  ? "#1867C0"
+                  : "#F44336",
+                borderColor: groupedEvent.isHomegroup ? "#1867C0" : "#F44336",
               });
             });
           });

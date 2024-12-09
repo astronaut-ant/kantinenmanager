@@ -5,7 +5,7 @@
       "groups": [
         {
           "groupName": "Stanzanlage",
-          "groupClass": "Homegroup",
+          "isHomegroup": true,
           "groupEmployees": { "100": "Inga Baumgartner", "101": "Meinhard Raskob", "102": "Selina Schmitz", "103": "Else Kolbe", "104": "Jürgen Keil" },
           "groupOrders": [
             { "orderId": "1000", "date": "2024-12-10", "maindish": 0, "salad": true, "nothing": false },
@@ -17,7 +17,7 @@
         },
         {
           "groupName": "Verpackung",
-          "groupClass": "Proxy",
+          "isHomegroup": false,
           "groupEmployees": { "105": "Raphael Holland", "106": "Justus Knochenmus", "107": "Gerold Arbeit", "108": "Ursel Stauss", "109": "Kaspar Sauber" },
           "groupOrders": [
             { "orderId": "1005", "date": "2024-12-15", "maindish": 2, "salad": false, "nothing": false },
