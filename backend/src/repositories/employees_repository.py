@@ -190,7 +190,7 @@ class EmployeesRepository:
             None
 
     @staticmethod
-    def create_employee(employee: Employee):
+    def create_employee(employee: Employee) -> UUID:
         """Create a new employee in the database"""
         db.session.add(employee)
         db.session.commit()

@@ -27,6 +27,7 @@ class GroupCreateSchema(Schema):
     user_id_group_leader = fields.UUID(required=True)
     location_id = fields.UUID(required=True)
     user_id_replacement = fields.UUID(required=False)
+    # group_number = fields.Int(required=True)
 
 
 @groups_routes.post("/api/groups")

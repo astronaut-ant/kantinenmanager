@@ -1,4 +1,5 @@
 from pprint import pprint
+from uuid import UUID
 from marshmallow import ValidationError, Schema, fields
 from src.utils.auth_utils import login_required
 from src.utils.error import ErrMsg, abort_with_err
@@ -6,8 +7,14 @@ from flask import Blueprint, jsonify, request, g
 from flasgger import swag_from
 from src.models.user import UserGroup
 from src.models.maindish import MainDish
-from src.services.orders_service import OrdersFilters, OrdersService
-from src.utils.exceptions import OrderAlreadyExistsForPersonAndDate
+from src.services.orders_service import (
+    OrdersFilters,
+    OrdersService,
+    OrderAlreadyExistsForPersonAndDate,
+    PersonNotPartOfGroup,
+    PersonNotPartOfLocation,
+    WrongUserError,
+)
 
 
 orders_routes = Blueprint("orders_routes", __name__)
@@ -129,16 +136,16 @@ def get_orders():
     return []
 
 
-class OrdersPostBody(Schema):
+class OrdersPostPutBody(Schema):
     """
-    Schema for the POST /api/locations endpoint
+    Schema for the POST and PUT /api/locations endpoint
     """
 
     person_id = fields.UUID(required=True)
     location_id = fields.UUID(required=True)
     date = fields.Date(required=True)  # ISO 8601-formatted date string
-    main_dish = fields.Enum(MainDish, required=False)
-    salad_option = fields.Boolean(required=False)
+    main_dish = fields.Enum(MainDish, required=False, default=None)
+    salad_option = fields.Boolean(required=False, default=False)
 
 
 @orders_routes.post("/api/orders")
@@ -150,15 +157,123 @@ class OrdersPostBody(Schema):
             "Order": {
                 "type": "object",
                 "properties": {
-                    "id": {"type": "string"},
+                    "id": {"type": "integer"},
                     "person_id": {"type": "string"},
                     "location_id": {"type": "string"},
-                    "date": {"type": "string"},
+                    "date": {"type": "string", "format": "date"},
                     "main_dish": {"type": "string"},
                     "salad_option": {"type": "boolean"},
                 },
             }
         },
+        "parameters": [
+            {
+                "in": "body",
+                "name": "body",
+                "schema": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "person_id": {
+                                "type": "string",
+                                "format": "uuid",
+                            },
+                            "location_id": {
+                                "type": "string",
+                                "format": "uuid",
+                            },
+                            "date": {
+                                "type": "string",
+                                "format": "date",
+                            },
+                            "main_dish": {"type": "string", "nullable": True},
+                            "salad_option": {"type": "boolean"},
+                        },
+                        "required": [
+                            "person_id",
+                            "location_id",
+                            "date",
+                        ],
+                    },
+                },
+            },
+        ],
+        "responses": {
+            201: {
+                "description": "Orders created",
+                "schema": {
+                    "type": "object",
+                    "properties": {"message": {"type": "string"}},
+                },
+            },
+            400: {"description": "Bad request"},
+            404: {"description": "Not found"},
+        },
+    }
+)
+def create_orders_employees():
+    """
+    Bulk create preorders for employees
+    """
+    try:
+        orders = OrdersPostPutBody(many=True).load(request.json)
+        if not orders:
+            return jsonify({"message": "Keine neuen Bestellungen" }), 200
+    except ValidationError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Validierungsfehler",
+                description="Format der Daten im Request-Body nicht valide",
+                details=err.messages,
+            )
+        )
+    try:
+        OrdersService.create_bulk_orders(orders, g.user_group, g.user_id)
+    except ValueError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Datum liegt in der Vergangenheit",
+                description="Das Datum liegt in der Vergangenheit.",
+                details=str(err),
+            )
+        )
+    except PersonNotPartOfGroup as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=401,
+                title="Person gehört nicht zur Gruppe",
+                description="Eine der Personen gehört nicht zur Gruppe.",
+                details=str(err),
+            )
+        )
+    except OrderAlreadyExistsForPersonAndDate as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Bestellung existiert bereits",
+                description="Eine Bestellung für eine der Personen existiert bereits für diesen Tag.",
+                details=str(err),
+            )
+        )
+    except PersonNotPartOfLocation as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=401,
+                title="Person gehört nicht zum Standort",
+                description="Eine der Personen gehört nicht zum Standort.",
+                details=str(err),
+            )
+        )
+    return jsonify({"message": "Bestellungen erfolgreich erstellt"}), 201
+
+@orders_routes.put("/api/orders")
+@login_required(groups=[UserGroup.gruppenleitung])
+@swag_from(
+    {
+        "tags": ["orders"],
         "parameters": [
             {
                 "in": "body",
@@ -194,31 +309,25 @@ class OrdersPostBody(Schema):
         ],
         "responses": {
             201: {
-                "description": "Order created",
+                "description": "Order changed",
                 "schema": {
                     "type": "object",
-                    "properties": {
-                        "id": {"type": "string"},
-                    },
+                    "properties": {"message": {"type": "string"}},
                 },
             },
             400: {"description": "Bad request"},
-            401: {"description": "Unauthorized"},
-            403: {"description": "Forbidden"},
             404: {"description": "Not found"},
         },
     }
 )
-def create_orders():
+def update_orders_employees():
     """
-    Create a new order
+    Bulk update preorders for employees
     """
     try:
-        orders_data = request.json
-        orders = []
-        for order_data in orders_data:
-            order = OrdersPostBody().load(order_data)
-            orders.append(order)
+        orders = OrdersPostPutBody(many=True).load(request.json)
+        if not orders:
+            return jsonify({"message" : "Keine übermittelten Bestellungen"}), 200
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
@@ -228,17 +337,149 @@ def create_orders():
                 details=err.messages,
             )
         )
-        try:
-            order_ids = OrdersService.create_bulk_orders(
-                orders, g.user_group, g.user_id
+    try:
+        OrdersService.create_bulk_orders(orders, g.user_group, g.user_id)
+    except ValueError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Datum liegt in der Vergangenheit",
+                description="Das Datum liegt in der Vergangenheit.",
+                details=str(err),
             )
-        except OrderAlreadyExistsForPersonAndDate as err:
-            abort_with_err(
-                ErrMsg(
-                    status_code=400,
-                    title="Bestellung existiert bereits",
-                    description="Eine Bestellung für eine der Person und existiert bereits für diesen Tag",
-                    details=str(err),
-                )
+        )
+    except PersonNotPartOfGroup as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=401,
+                title="Person gehört nicht zur Gruppe",
+                description="Eine der Personen gehört nicht zur Gruppe.",
+                details=str(err),
             )
-        return jsonify({"ids": order_ids}), 201
+        )
+    except OrderAlreadyExistsForPersonAndDate as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Bestellung existiert bereits",
+                description="Eine Bestellung für eine der Personen existiert bereits für diesen Tag.",
+                details=str(err),
+            )
+        )
+    except PersonNotPartOfLocation as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=401,
+                title="Person gehört nicht zum Standort",
+                description="Eine der Personen gehört nicht zum Standort.",
+                details=str(err),
+            )
+        )
+    return jsonify({"message": "Bestellungen erfolgreich erstellt"}), 201
+
+@orders_routes.post("/api/orders/<uuid:user_id>")
+@login_required(
+    groups=[UserGroup.verwaltung, UserGroup.standortleitung, UserGroup.gruppenleitung]
+)
+@swag_from(
+    {
+        "tags": ["orders"],
+        "parameters": [
+            {
+                "in": "path",
+                "name": "user_id",
+                "required": True,
+                "schema": {"type": "string", "format": "uuid"},
+            },
+            {
+                "in": "body",
+                "name": "body",
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "person_id": {
+                            "type": "string",
+                            "format": "uuid",
+                        },
+                        "location_id": {
+                            "type": "string",
+                            "format": "uuid",
+                        },
+                        "date": {
+                            "type": "string",
+                            "format": "date",
+                        },
+                        "main_dish": {"type": "string"},
+                        "salad_option": {"type": "boolean"},
+                    },
+                    "required": [
+                        "person_id",
+                        "location_id",
+                        "date",
+                    ],
+                },
+            },
+        ],
+        "responses": {
+            201: {
+                "description": "Order changed",
+                "schema": {
+                    "type": "object",
+                    "properties": {"message": {"type": "string"}},
+                },
+            },
+            400: {"description": "Bad request"},
+            404: {"description": "Not found"},
+        },
+    }
+)
+def create_order_user(user_id: UUID):
+    """
+    Create a new preorder for an user
+    """
+    try:
+        order = OrdersPostPutBody().load(request.json)
+    except ValidationError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Validierungsfehler",
+                description="Format der Daten im Request-Body nicht valide",
+                details=err.messages,
+            )
+        )
+    try:
+        OrdersService.create_order_user(order, g.user_group, g.user_id)
+    except ValueError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Datum liegt in der Vergangenheit",
+                description="Das Datum liegt in der Vergangenheit.",
+                details=str(err),
+            )
+        )
+    except WrongUserError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=401,
+                title="Falscher Benutzer",
+                description="Der Benutzer hat keine Berechtigung für diese Aktion.",
+                details=str(err),
+            )
+        )
+    except OrderAlreadyExistsForPersonAndDate as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Bestellung existiert bereits",
+                description="Eine Bestellung für eine der Personen existiert bereits für diesen Tag.",
+                details=str(err),
+            )
+        )
+    return jsonify({"message": "Bestellung erfolgreich erstellt"}), 201
+
+@orders_routes.put("/api/orders/<uuid:user_id>")
+@login_required(
+    groups=[UserGroup.verwaltung, UserGroup.standortleitung, UserGroup.gruppenleitung]
+)

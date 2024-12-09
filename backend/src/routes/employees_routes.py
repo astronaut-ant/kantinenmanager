@@ -397,7 +397,7 @@ class EmployeeUpdateBody(Schema):
                 "in": "path",
                 "name": "employee_id",
                 "required": True,
-                "schema": {"type": "string"},
+                "schema": {"type": "string", "format": "uuid"},
             },
             {
                 "in": "body",

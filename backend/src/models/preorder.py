@@ -38,23 +38,26 @@ class PreOrder(db.Model):
 
     def __init__(
         self,
+        person_id: uuid.UUID,
+        location_id: uuid.UUID,
         date: datetime,
         main_dish: MainDish,
         salad_option: bool,
-        person_id: uuid.UUID,
     ):
         """Initialize a new pre-order
 
+        :param person: The person that made the order
+        :param location: The location where the order was made
         :param date: The date of the pre-order
         :param main_dish: The selected main dish
         :param salad_option: Whether a salad is included
-        :param person: The person that made the order
         """
+        self.person_id = person_id
+        self.location_id = location_id
         self.date = date
         self.main_dish = main_dish
         self.salad_option = salad_option
         self.last_changed = datetime.now()
-        self.person_id = person_id
 
     def __repr__(self):
         return f"<Pre-Order {self.id!r} {self.person_id!r} {self.date!r} {self.main_dish!r} {self.salad_option!r}>"
