@@ -17,7 +17,6 @@
       @close="showBestellformular = false"
     />
   </div>
-  <p>{{ groupData }}</p>
 </template>
 
 <script>
@@ -58,6 +57,7 @@ export default {
   },
   data() {
     return {
+      groupleaderId: 1,
       groupData: {},
       showDialog: false,
       showBestellformular: false,
@@ -80,6 +80,7 @@ export default {
         fixedWeekCount: false,
         locale: deLocale,
         dateClick: this.handleDateClick,
+        eventClick: this.handleEventClick,
         validRange: {
           start: edges.start,
           end: edges.end,
@@ -97,9 +98,9 @@ export default {
           },
         ],
         eventContent: function (arg) {
-          console.log(arg.event.title);
+          // console.log(arg.event.title);
           return {
-            html: `<div style='padding-left: 5px'><h5 style='white-space: wrap !important;word-break: break-word'>${arg.event.title}</h5></div>`,
+            html: `<div style='padding-left: 5px'><h5 style='white-space: wrap !important;word-break: break-word;text-align: start; width:100%'>${arg.event.title}</h5></div>`,
           };
         },
       },
@@ -110,6 +111,11 @@ export default {
       //alert("date click! " + arg.dateStr);
       this.showDialog = true;
       this.clickedDate = arg.dateStr;
+    },
+    handleEventClick: function (arg) {
+      if (arg.event.display != "background") {
+        this.showBestellformular = true;
+      }
     },
     addEvent: function (selectedGroup) {
       const isHomeGroup = selectedGroup === "Gruppe 1";
@@ -123,16 +129,71 @@ export default {
         this.showBestellformular = true;
       }, "250");
     },
+    //Helper
+    getGroupDates: function (groupOrders) {
+      const dateList = [];
+      groupOrders.forEach((order) => {
+        dateList.push(order.date);
+      });
+      return [...new Set(dateList)];
+    },
+
+    fillCalendar: function (id) {
+      axios
+        .get(`http://localhost:4000/groupOrdersByPersonId/${id}`)
+        .then((response) => {
+          this.groupData = response.data;
+          const groupedEvents = [];
+          this.groupData.groups.forEach((group) => {
+            groupedEvents.push({
+              groupName: group.groupName,
+              groupClass: group.groupClass,
+              groupOrderDatesList: this.getGroupDates(group.groupOrders),
+            });
+          });
+          console.log(groupedEvents);
+          groupedEvents.forEach((groupedEvent) => {
+            const isHomeGroup = groupedEvent.groupClass === "Homegroup";
+            groupedEvent.groupOrderDatesList.forEach((groupOrderDate) => {
+              this.calendarOptions.events.push({
+                title: groupedEvent.groupName,
+                date: groupOrderDate,
+                backgroundColor: isHomeGroup ? "#1867C0" : "#F44336",
+                borderColor: isHomeGroup ? "#1867C0" : "#F44336",
+              });
+            });
+          });
+        })
+        .catch((err) => console.log(err));
+    },
   },
   mounted: function () {
-    console.log("Test");
-    axios
-      .get("http://localhost:4000/groupOrdersByPersonId")
-      .then((response) => {
-        this.groupData = response.data;
-        console.log(this.groupData);
-      })
-      .catch((err) => console.log(err));
+    this.fillCalendar(this.groupleaderId);
   },
 };
 </script>
+
+<style>
+.fc-day-today {
+  background: #1866c037 !important;
+  border: none !important;
+}
+
+.fc-day:hover {
+  background: #fff9c4;
+  cursor: pointer;
+}
+.fc-event:hover {
+  padding: 1px;
+}
+
+.fc-col-header-cell:hover {
+  background: white;
+  cursor: auto;
+}
+
+.fc-day-disabled:hover {
+  background: rgb(241, 241, 241);
+  cursor: auto;
+}
+</style>
