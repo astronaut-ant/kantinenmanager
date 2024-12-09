@@ -1,7 +1,7 @@
 <template>
   <NavbarStandort></NavbarStandort>
   <v-container max-width="1600" class="d-flex justify-center">
-    <div class="mx-4 my-5 d-flex justify-start flex-wrap">
+    <div class="d-flex justify-center flex-wrap">
       <GroupCard
         v-for="group in groups"
         :id="group.id"
@@ -18,12 +18,12 @@
 
 
   const fetchData = () => {
-        axios
-          .get("http://localhost:4200/api/groups", { withCredentials: true })
-          .then((response) => {
-            groups.value = response.data;
-          })
-          .catch((err) => console.log(err));
+    axios
+      .get("http://localhost:4200/api/groups", { withCredentials: true })
+      .then((response) => {
+        groups.value = response.data;
+      })
+      .catch((err) => console.log(err));
   };
 
   onMounted(() => {

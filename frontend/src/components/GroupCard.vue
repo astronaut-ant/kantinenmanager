@@ -1,25 +1,24 @@
 <template>
-    <v-card class="mx-4 my-4" width="430" elevation="16" min-width="20em">
+    <v-card class="mx-4 my-4" width="400" elevation="16" min-width="20em">
+        <v-card-item>
+            <v-card-title>{{ props.name }}</v-card-title>
+            <v-card-subtitle>
+                <v-icon
+                color="primary"
+                icon="mdi-account-circle"
+                size="small"
+                ></v-icon>
+                <span class="me-1 ml-2">{{ props.group_leader }}</span>
+            </v-card-subtitle>
+        </v-card-item>
         <v-card-text>
-            <div class="d-flex flex-warp justify-space-between mb-4">
-                <div class="text-left ml-1">
-                    <p class="text-h6 font-weight-black text-primary"> {{ props.name }} </p>
-                </div>
-                <div style="max-width: 100px; overflow: hidden;">
-                    <v-chip color="primary" label> {{ props.id }} </v-chip>
-                </div>
-            </div>
             <v-divider></v-divider>
-            <div class="d-flex flex-wrap justify-space-between">
-                <div class="mt-4 ml-2 text-medium-emphasis">
-                    <p color="text-primary"> Gruppenleiter: {{ props.group_leader }}</p>
-                    <p color="text-primary"> Mitgliederanzahl: 99 </p>
-                </div>
-                <div class="mt-5 d-flex ga-1">
-                    <v-btn class="mt-2 bg-primary" @click="openDialog"><v-icon>mdi-dots-horizontal-circle-outline</v-icon></v-btn>
-                </div>
+            <div class="mt-3 d-flex justify-space-between align-center">
+                <v-chip prepend-icon="mdi-account-multiple" color="primary" label density="compact"> Mitgliederanzahl: 99 </v-chip>
+                <v-btn class="bg-primary" @click="openDialog" size="small"><v-icon>mdi-information-outline</v-icon></v-btn>
             </div>
         </v-card-text>
+
     </v-card>
 
     <v-dialog v-model="more" max-width="600" max-height="600" scrollable>
@@ -44,7 +43,6 @@
                         </div>
                         <div class="ml-5 mb-4 text-medium-emphasis">
                             <p color="text-primary"> Gruppennummer: {{ props.number }} </p>
-                            <p color="text-primary"> Mitgliederanzahl: 99 </p>
                         </div>
                         <v-divider></v-divider>
                         <div class="text-left ml-4 mb-2 mt-4">
@@ -77,7 +75,7 @@
             </v-card-text>
             <v-card-actions>
                 <div class="d-flex justify-end ga-1">
-                    <v-btn class="mt-2 bg-primary" @click="closeDialog"><v-icon>mdi-close-outline</v-icon></v-btn>
+                    <v-btn class="mt-2 bg-primary" @click="closeDialog"><v-icon>mdi-close-thick</v-icon></v-btn>
                 </div>
             </v-card-actions>
         </v-card>
