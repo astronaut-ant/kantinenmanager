@@ -12,6 +12,7 @@
         <v-card-text
           ><v-select
             v-if="!onlyOne && !noGroupsLeft"
+            class="mt-3"
             required
             :rules="[required]"
             label="Wähle Gruppe"
