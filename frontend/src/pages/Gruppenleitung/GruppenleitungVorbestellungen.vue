@@ -7,7 +7,7 @@
       v-if="showDialog"
       :showDialog="showDialog"
       :date="clickedDate"
-      :groups="allGroupsArray"
+      :groups="possibleGroupsChoice"
       @close="this.showDialog = false"
       @save="addEvent"
     />
@@ -60,7 +60,7 @@ export default {
     return {
       groupleaderId: 1,
       groupData: {},
-      allGroupsArray: [],
+      possibleGroupsChoice: [],
       showDialog: false,
       showBestellformular: false,
       clickedDate: "",
@@ -111,6 +111,24 @@ export default {
   methods: {
     handleDateClick: function (arg) {
       //alert("date click! " + arg.dateStr);
+      const allGroupsArray = [];
+      const existingEventsOnDay = [];
+      this.groupData.groups.forEach((group) => {
+        allGroupsArray.push(group.groupName);
+      });
+
+      this.calendarOptions.events.forEach((event) => {
+        if (event.display != "background" && event.date === arg.dateStr) {
+          existingEventsOnDay.push(event.title);
+        }
+      });
+      console.log(allGroupsArray);
+      console.log(existingEventsOnDay);
+      let intersect = allGroupsArray.filter((group) => {
+        return !existingEventsOnDay.includes(group);
+      });
+      this.possibleGroupsChoice = intersect;
+      console.log(intersect);
       this.showDialog = true;
       this.clickedDate = arg.dateStr;
     },
@@ -147,7 +165,6 @@ export default {
           this.groupData = response.data;
           const groupedEvents = [];
           this.groupData.groups.forEach((group) => {
-            this.allGroupsArray.push(group.groupName);
             groupedEvents.push({
               groupName: group.groupName,
               isHomegroup: group.isHomegroup,

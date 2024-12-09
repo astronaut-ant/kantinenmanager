@@ -27,7 +27,7 @@
           <v-btn text="Abbrechen" @click="close"></v-btn>
           <v-btn
             :disabled="!form"
-            class="bg-primary"
+            class="bg-primary me-3"
             text="Bestellformular anlegen"
             type="submit"
             @click="save"
