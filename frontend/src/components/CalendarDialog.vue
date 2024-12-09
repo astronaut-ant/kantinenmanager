@@ -11,23 +11,35 @@
       >
         <v-card-text
           ><v-select
-            v-if="!dropdownDisabled"
+            v-if="!onlyOne && !noGroupsLeft"
             required
             :rules="[required]"
             label="Wähle Gruppe"
             v-model="selectedGroup"
             :items="props.groups"
           ></v-select>
-          <div v-if="dropdownDisabled" class="d-flex justify-center">
-            <v-chip color="#607D8B" size="large">{{ selectedGroup }}</v-chip>
+          <div v-if="onlyOne" class="d-flex justify-center">
+            <v-chip class="mt-3" color="#607D8B" size="large">{{
+              selectedGroup
+            }}</v-chip>
           </div>
+          <CustomAlert
+            color="red"
+            icon="$error"
+            text="Für dieses Datum sind bereits alle verfügbaren Bestellformulare angelegt!"
+            v-if="noGroupsLeft"
+          />
         </v-card-text>
 
         <v-card-actions>
           <v-spacer></v-spacer>
 
-          <v-btn text="Abbrechen" @click="close"></v-btn>
           <v-btn
+            :text="noGroupsLeft ? 'Schließen' : 'Abbrechen'"
+            @click="close"
+          ></v-btn>
+          <v-btn
+            v-if="!noGroupsLeft"
             :disabled="!form"
             class="bg-primary me-3"
             text="Bestellformular anlegen"
@@ -47,7 +59,8 @@ import { onMounted } from "vue";
 const form = ref(false);
 const props = defineProps(["showDialog", "date", "groups"]);
 const selectedGroup = ref("");
-const dropdownDisabled = ref(false);
+const onlyOne = ref(false);
+const noGroupsLeft = ref(false);
 const formatDate = (dateString) => {
   const dateStringArray = dateString.split("-");
   return dateStringArray.reverse().join(".");
@@ -61,11 +74,14 @@ const save = () => {
   emit("close");
 };
 onMounted(() => {
-  if (props.groups.length < 2) {
+  if (props.groups.length === 1) {
     selectedGroup.value = props.groups[0];
-    dropdownDisabled.value = true;
+    onlyOne.value = true;
+  } else if (props.groups.length === 0) {
+    noGroupsLeft.value = true;
   } else {
-    dropdownDisabled.value = false;
+    onlyOne.value = false;
+    noGroupsLeft.value = false;
   }
 });
 const required = (v) => {
