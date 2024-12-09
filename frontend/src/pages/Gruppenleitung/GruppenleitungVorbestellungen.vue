@@ -13,7 +13,7 @@
     />
     <Bestellformular
       v-if="showBestellformular"
-      :date="clickedDate"
+      :date="clickedEventDate"
       :showBestellformular="showBestellformular"
       @close="showBestellformular = false"
     />
@@ -64,6 +64,8 @@ export default {
       showDialog: false,
       showBestellformular: false,
       clickedDate: "",
+      clickedEvent: "",
+      clickedEventDate: "",
       calendarOptions: {
         plugins: [dayGridPlugin, interactionPlugin],
         headerToolbar: {
@@ -126,6 +128,10 @@ export default {
       this.clickedDate = arg.dateStr;
     },
     handleEventClick: function (arg) {
+      const rawClickedEventDate = new Date(arg.event.start);
+      rawClickedEventDate.setDate(rawClickedEventDate.getDate() + 1);
+      this.clickedEventDate = rawClickedEventDate.toISOString().split("T")[0];
+      console.log(this.clickedEventDate);
       if (arg.event.display != "background") {
         this.showBestellformular = true;
       }
@@ -161,6 +167,7 @@ export default {
           this.fillCalendar(this.groupleaderId);
         });
 
+      this.clickedEventDate = this.clickedDate;
       setTimeout(() => {
         this.showBestellformular = true;
       }, "250");
