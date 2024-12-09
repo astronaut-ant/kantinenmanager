@@ -9,7 +9,7 @@
       :date="clickedDate"
       :groups="possibleGroupsChoice"
       @close="this.showDialog = false"
-      @save="addEvent"
+      @init="initNewBestellformular"
     />
     <Bestellformular
       v-if="showBestellformular"
@@ -91,14 +91,7 @@ export default {
           start: edges.start,
           end: edges.end,
         },
-        events: [
-          {
-            start: edges.hint,
-            end: edges.hint,
-            color: "#F44336",
-            display: "background",
-          },
-        ],
+        events: [],
         eventContent: function (arg) {
           // console.log(arg.event.title);
           return {
@@ -137,14 +130,37 @@ export default {
         this.showBestellformular = true;
       }
     },
-    addEvent: function (selectedGroup) {
-      const isHomeGroup = selectedGroup === "Gruppe 1";
-      this.calendarOptions.events.push({
-        title: selectedGroup,
-        date: this.clickedDate,
-        backgroundColor: isHomeGroup ? "#1867C0" : "#F44336",
-        borderColor: isHomeGroup ? "#1867C0" : "#F44336",
+    initNewBestellformular: function (selectedGroup, selectedDate) {
+      console.log(selectedGroup);
+      this.groupData.groups.forEach((group) => {
+        if (group.groupName === selectedGroup) {
+          group.groupEmployees.forEach((employee) => {
+            group.groupOrders.push({
+              name: employee,
+              date: selectedDate,
+              maindish: 0,
+              salad: false,
+              nothing: false,
+            });
+          });
+        }
       });
+      console.log(this.groupData.groups);
+
+      //Mockup Post for initializing new Bestellformular
+      axios
+        .put(
+          "http://localhost:4000/groupOrdersByPersonId/" + this.groupleaderId,
+          JSON.stringify({
+            id: this.groupleaderId,
+            groups: this.groupData.groups,
+          })
+        )
+        .then(() => {
+          this.calendarOptions.events = [];
+          this.fillCalendar(this.groupleaderId);
+        });
+
       setTimeout(() => {
         this.showBestellformular = true;
       }, "250");
@@ -159,34 +175,39 @@ export default {
     },
 
     fillCalendar: function (id) {
-      axios
-        .get(`http://localhost:4000/groupOrdersByPersonId/${id}`)
-        .then((response) => {
-          this.groupData = response.data;
-          const groupedEvents = [];
-          this.groupData.groups.forEach((group) => {
-            groupedEvents.push({
-              groupName: group.groupName,
-              isHomegroup: group.isHomegroup,
-              groupOrderDatesList: this.getGroupDates(group.groupOrders),
-            });
-          });
-          console.log(groupedEvents);
-          groupedEvents.forEach((groupedEvent) => {
-            groupedEvent.groupOrderDatesList.forEach((groupOrderDate) => {
-              this.calendarOptions.events.push({
-                title: groupedEvent.groupName,
-                date: groupOrderDate,
-                backgroundColor: groupedEvent.isHomegroup
-                  ? "#1867C0"
-                  : "#F44336",
-                borderColor: groupedEvent.isHomegroup ? "#1867C0" : "#F44336",
-                overlap: true,
+      this.calendarOptions.events.push({
+        start: edges.hint,
+        end: edges.hint,
+        color: "#F44336",
+        display: "background",
+      }),
+        axios
+          .get(`http://localhost:4000/groupOrdersByPersonId/${id}`)
+          .then((response) => {
+            this.groupData = response.data;
+            const groupedEvents = [];
+            this.groupData.groups.forEach((group) => {
+              groupedEvents.push({
+                groupName: group.groupName,
+                isHomegroup: group.isHomegroup,
+                groupOrderDatesList: this.getGroupDates(group.groupOrders),
               });
             });
-          });
-        })
-        .catch((err) => console.log(err));
+            console.log(groupedEvents);
+            groupedEvents.forEach((groupedEvent) => {
+              groupedEvent.groupOrderDatesList.forEach((groupOrderDate) => {
+                this.calendarOptions.events.push({
+                  title: groupedEvent.groupName,
+                  date: groupOrderDate,
+                  backgroundColor: groupedEvent.isHomegroup
+                    ? "#1867C0"
+                    : "#F44336",
+                  borderColor: groupedEvent.isHomegroup ? "#1867C0" : "#F44336",
+                });
+              });
+            });
+          })
+          .catch((err) => console.log(err));
     },
   },
   mounted: function () {

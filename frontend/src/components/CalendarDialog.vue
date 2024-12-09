@@ -5,7 +5,7 @@
     :persistent="true"
     :no-click-animation="true"
   >
-    <v-form v-model="form">
+    <v-form v-model="form" @submit.prevent="init">
       <v-card
         :title="'Bestellformular anlegen für den ' + formatDate(props.date)"
       >
@@ -45,7 +45,6 @@
             class="bg-primary me-3"
             text="Bestellformular anlegen"
             type="submit"
-            @click="save"
           ></v-btn>
         </v-card-actions>
       </v-card>
@@ -66,12 +65,12 @@ const formatDate = (dateString) => {
   const dateStringArray = dateString.split("-");
   return dateStringArray.reverse().join(".");
 };
-const emit = defineEmits(["close", "save"]);
+const emit = defineEmits(["close", "init"]);
 const close = () => {
   emit("close");
 };
-const save = () => {
-  emit("save", selectedGroup.value);
+const init = () => {
+  emit("init", selectedGroup.value, props.date);
   emit("close");
 };
 onMounted(() => {
