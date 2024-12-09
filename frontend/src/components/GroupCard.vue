@@ -14,7 +14,7 @@
         <v-card-text>
             <v-divider></v-divider>
             <div class="mt-3 d-flex justify-space-between align-center">
-                <v-chip prepend-icon="mdi-account-multiple" color="primary" label density="compact"> Mitgliederanzahl: 99 </v-chip>
+                <v-chip prepend-icon="mdi-account-multiple" color="primary" label density="compact"> Mitgliederanzahl: {{props.employees.length}} </v-chip>
                 <v-btn class="bg-primary" @click="openDialog" size="small"><v-icon>mdi-information-outline</v-icon></v-btn>
             </div>
         </v-card-text>
@@ -42,7 +42,8 @@
                             <p class="font-weight-black"> Gruppe </p>
                         </div>
                         <div class="ml-5 mb-4 text-medium-emphasis">
-                            <p color="text-primary"> Gruppennummer: {{ props.number }} </p>
+                            <p color="text-primary"> Gruppennummer: {{ props.id }} </p>
+                            <p color="text-primary"> Mitgliederanzahl: {{props.employees.length}} </p>
                         </div>
                         <v-divider></v-divider>
                         <div class="text-left ml-4 mb-2 mt-4">
@@ -68,7 +69,7 @@
                             single-line
                             rounded
                         ></v-text-field>
-                        <v-data-table-virtual :items="items" :search="search" :headers="headers" density="compact">
+                        <v-data-table-virtual :items="props.employees" :search="search" :headers="headers" :sort-by="sortBy" density="compact">
                         </v-data-table-virtual>
                     </v-tabs-window-item>
                 </v-tabs-window>
@@ -83,28 +84,10 @@
 </template>
 
 <script setup>
-    import axios from "axios";
-    const props = defineProps(["id", "name" , "group_leader"]);
+    const props = defineProps(["id", "name" , "group_leader", "group_leader_replacement", "employees"]);
     const more = ref(false);
     const tab = ref("");
     const search = ref("");
-
-    const items = ref([]);
-
-    watch(tab, (newTab) => {
-        if (newTab === 'two') {
-            fetchMitarbeiterData();
-        }
-    });
-
-    const fetchMitarbeiterData = () => {
-        axios
-          .get(`http://localhost:4200/api/employees?group_id=${props.id}`, {withCredentials: true})
-          .then((response) => {
-            items.value = response.data;
-          })
-          .catch((err) => console.log(err));
-    };
 
     const headers = [
      { title: "Nummer", key: "employee_number"},
@@ -112,7 +95,7 @@
      { title: "Vorname", key: "first_name" },
     ];
 
-
+    const sortBy = [{ key: 'employee_number', order: 'asc' }]
 
     const openDialog = () => {
         more.value = true;
