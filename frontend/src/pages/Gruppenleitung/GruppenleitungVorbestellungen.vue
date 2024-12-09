@@ -81,6 +81,7 @@ export default {
         locale: deLocale,
         dateClick: this.handleDateClick,
         eventClick: this.handleEventClick,
+        eventMouseEnter: this.handleMouseEnter,
         validRange: {
           start: edges.start,
           end: edges.end,
@@ -93,7 +94,7 @@ export default {
           {
             start: edges.hint,
             end: edges.hint,
-            color: "red",
+            color: "#F44336",
             display: "background",
           },
         ],
@@ -115,6 +116,11 @@ export default {
     handleEventClick: function (arg) {
       if (arg.event.display != "background") {
         this.showBestellformular = true;
+      }
+    },
+    handleMouseEnter: function (arg) {
+      if (arg.event.display == "background") {
+        this.calendarOptions.events[0].backgroundColor = "#fff9c4 ";
       }
     },
     addEvent: function (selectedGroup) {
@@ -178,9 +184,13 @@ export default {
   background: #1866c037 !important;
   border: none !important;
 }
+.fc-day-today:hover {
+  background: #fff9c4 !important;
+  border: none !important;
+}
 
 .fc-day:hover {
-  background: #fff9c4;
+  background: #fff9c4 !important;
   cursor: pointer;
 }
 .fc-event:hover {
@@ -193,7 +203,7 @@ export default {
 }
 
 .fc-day-disabled:hover {
-  background: rgb(241, 241, 241);
+  background: rgb(241, 241, 241) !important;
   cursor: auto;
 }
 </style>
