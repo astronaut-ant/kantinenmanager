@@ -6,7 +6,9 @@
     :no-click-animation="true"
   >
     <v-form v-model="form">
-      <v-card :title="'Bestellformular anlegen für ' + props.date">
+      <v-card
+        :title="'Bestellformular anlegen für den ' + formatDate(props.date)"
+      >
         <v-card-text
           ><v-select
             v-if="!dropdownDisabled"
@@ -46,6 +48,10 @@ const form = ref(false);
 const props = defineProps(["showDialog", "date", "groups"]);
 const selectedGroup = ref("");
 const dropdownDisabled = ref(false);
+const formatDate = (dateString) => {
+  const dateStringArray = dateString.split("-");
+  return dateStringArray.reverse().join(".");
+};
 const emit = defineEmits(["close", "save"]);
 const close = () => {
   emit("close");

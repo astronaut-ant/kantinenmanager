@@ -102,7 +102,7 @@ export default {
         eventContent: function (arg) {
           // console.log(arg.event.title);
           return {
-            html: `<div style='padding-left: 5px'><h5 style='white-space: wrap !important;word-break: break-word;text-align: start; width:100%'>${arg.event.title}</h5></div>`,
+            html: `<div style='padding-left: 5px;'><h5 style='white-space: wrap !important;word-break: break-word;text-align: start; width:100%'>${arg.event.title}</h5></div>`,
           };
         },
       },
@@ -181,6 +181,7 @@ export default {
                   ? "#1867C0"
                   : "#F44336",
                 borderColor: groupedEvent.isHomegroup ? "#1867C0" : "#F44336",
+                overlap: true,
               });
             });
           });
@@ -228,5 +229,8 @@ export default {
 
 .fc-daygrid-day-number {
   pointer-events: none;
+}
+.fc-daygrid-day {
+  height: 120px !important;
 }
 </style>
