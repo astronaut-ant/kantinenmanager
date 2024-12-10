@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import List
+from typing import List, Optional
 from uuid import UUID
 from src.models.preorder import PreOrder
 from src.models.dailyorder import DailyOrder
@@ -18,6 +18,14 @@ class OrdersService:
     """
     Service class for orders
     """
+
+    @staticmethod
+    def get_pre_order_by_id(id: int) -> Optional[PreOrder]:
+        """
+        Get pre order by id
+        """
+
+        return OrdersRepository.get_pre_order_by_id(id)
 
     @staticmethod
     def get_pre_orders(filters: OrdersFilters) -> List[PreOrder]:
@@ -50,7 +58,7 @@ class OrdersService:
                 raise ValueError(
                     f"Datum {order['date']} liegt mehr als 14 Tage in der Zukunft."
                 )
-            if order["date"].weekday() < 5:  # 0 = Montag, 6 = Sonntag
+            if order["date"].weekday() > 5:  # 0 = Montag, 6 = Sonntag
                 raise ValueError(f"Datum {order['date']} ist kein Werktag.")
             if not (order["person_id"] in employee_ids):
                 raise PersonNotPartOfGroup(

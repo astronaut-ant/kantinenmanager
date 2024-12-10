@@ -58,6 +58,16 @@ class OrdersFilters:
 class OrdersRepository:
 
     @staticmethod
+    def get_pre_order_by_id(id: int) -> Optional[PreOrder]:
+        """
+        Get pre order by id
+
+        :param id: Pre order id
+        :return: Pre order object
+        """
+        return db.session.scalars(select(PreOrder).filter(PreOrder.id == id)).first()
+
+    @staticmethod
     def get_pre_orders(filters: OrdersFilters) -> List[PreOrder]:
         """
         Get pre orders based on filters
@@ -74,8 +84,11 @@ class OrdersRepository:
             query = query.filter(PreOrder.location_id == filters.location_id)
 
         if filters.group_id:
-            # TODO
-            pass
+            query = query.filter(
+                PreOrder.person_id.in_(
+                    select(Employee.id).where(Employee.group_id == filters.group_id)
+                )
+            )
 
         if filters.date:
             query = query.filter(PreOrder.date == filters.date)

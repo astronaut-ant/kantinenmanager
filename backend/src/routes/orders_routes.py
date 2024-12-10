@@ -62,7 +62,7 @@ class OrdersGetQuery(Schema):
             {
                 "in": "query",
                 "name": "group-id",
-                "description": "filter by a group",
+                "description": "filter by a group **(Beware: this will only return employees of the group)**",
                 "type": "string",
                 "format": "uuid",
                 "required": False,
@@ -152,8 +152,7 @@ def get_pre_orders():
                 "description": "Returns a single pre-order",
                 "schema": {"$ref": "#/definitions/PreOrder"},
             },
-            401: {"description": "Unauthorized"},
-            403: {"description": "Forbidden"},
+            404: {"description": "Not found"},
         },
     }
 )
@@ -161,13 +160,18 @@ def get_pre_order(preorder_id: int):
     """
     Get a single pre-order
     """
-    abort_with_err(
-        ErrMsg(
-            status_code=501,
-            title="Not implemented",
-            description="This endpoint is not implemented yet.",
+
+    order = OrdersService.get_pre_order_by_id(preorder_id)
+    if order is None:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Bestellung nicht gefunden",
+                description=f"Bestellung mit ID {preorder_id} nicht gefunden.",
+            )
         )
-    )
+
+    return jsonify(order.to_dict()), 200
 
 
 @orders_routes.get("/api/pre-orders/by-group-leader/<uuid:person_id>")
@@ -191,8 +195,9 @@ def get_pre_order(preorder_id: int):
     }
 )
 def get_orders_by_group_leader(person_id: UUID):
-    """
-    Get orders for a group leader
+    """Get orders by group leader
+    Retrieves all groups of the group leader along with the orders of the employees in these groups.
+    ---
     """
     abort_with_err(
         ErrMsg(
