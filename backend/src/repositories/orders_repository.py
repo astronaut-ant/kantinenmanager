@@ -3,17 +3,90 @@
 from sqlalchemy import select, func, or_, and_
 from src.database import db
 from uuid import UUID
-from typing import List
+from typing import List, Optional
 from datetime import date, datetime
-from src.models.user import User
-from src.models.user import UserGroup
 from src.models.employee import Employee
 from src.models.group import Group
 from src.models.preorder import PreOrder
 from src.models.dailyorder import DailyOrder
 
 
+class OrdersFilters:
+    """
+    Filters for orders
+
+    All filters are optional.
+
+    :param person_id: Person id
+    :param location_id: Location id
+    :param group_id: Group id
+    :param date: Date
+    :param date_start: Start date
+    :param date_end: End date
+    """
+
+    def __init__(
+        self,
+        person_id: Optional[UUID] = None,
+        location_id: Optional[UUID] = None,
+        group_id: Optional[UUID] = None,
+        date: Optional[datetime] = None,
+        date_start: Optional[datetime] = None,
+        date_end: Optional[datetime] = None,
+    ):
+        """
+        Constructor
+
+        :param person_id: Person id
+        :param location_id: Location id
+        :param group_id: Group id
+        :param date: Date
+        :param date_start: Start date
+        :param date_end: End date
+        """
+        self.person_id = person_id
+        self.location_id = location_id
+        self.group_id = group_id
+        self.date = date
+        self.date_start = date_start
+        self.date_end = date_end
+
+    def __repr__(self):
+        return f"OrdersFilters(person_id={self.person_id}, location_id={self.location_id}, group_id={self.group_id}, date={self.date}, date_start={self.date_start}, date_end={self.date_end})"
+
+
 class OrdersRepository:
+
+    @staticmethod
+    def get_pre_orders(filters: OrdersFilters) -> List[PreOrder]:
+        """
+        Get pre orders based on filters
+
+        :param filters: Filters for orders
+        :return: List of pre orders
+        """
+        query = select(PreOrder)
+
+        if filters.person_id:
+            query = query.filter(PreOrder.person_id == filters.person_id)
+
+        if filters.location_id:
+            query = query.filter(PreOrder.location_id == filters.location_id)
+
+        if filters.group_id:
+            # TODO
+            pass
+
+        if filters.date:
+            query = query.filter(PreOrder.date == filters.date)
+
+        if filters.date_start:
+            query = query.filter(PreOrder.date >= filters.date_start)
+
+        if filters.date_end:
+            query = query.filter(PreOrder.date <= filters.date_end)
+
+        return db.session.execute(query).scalars().all()
 
     @staticmethod
     def create_bulk_orders(bulk_orders):

@@ -22,7 +22,7 @@ orders_routes = Blueprint("orders_routes", __name__)
 
 class OrdersGetQuery(Schema):
     """
-    Schema for the GET /api/orders endpoint
+    Schema for the GET /api/pre-orders endpoint
 
     Uses ISO 8601-formatted date strings (YYYY-MM-DD)
     """
@@ -35,8 +35,8 @@ class OrdersGetQuery(Schema):
     date_end = fields.Date(data_key="date-end", required=False)
 
 
-@orders_routes.get("/api/orders")
-@login_required()
+@orders_routes.get("/api/pre-orders")
+@login_required()  # TODO Permissions
 @swag_from(
     {
         "tags": ["orders"],
@@ -109,15 +109,15 @@ class OrdersGetQuery(Schema):
         },
     }
 )
-def get_orders():
-    """Get all orders
-    Returns a list of orders. You can (optionally) filter by person, location, specific date, date range, and group. Filters can be **combined**.
+def get_pre_orders():
+    """Get all pre-orders
+    Returns a list of pre-orders. You can (optionally) filter by person, location, specific date, date range, and group. Filters can be **combined**.
     ---
     """
 
     try:
-        quesry_params = OrdersGetQuery().load(request.args)
-        filters = OrdersFilters(**quesry_params)
+        query_params = OrdersGetQuery().load(request.args)
+        filters = OrdersFilters(**query_params)
         pprint(filters)
 
     except ValidationError as err:
@@ -130,10 +130,117 @@ def get_orders():
             )
         )
 
-    orders = OrdersService.get_orders(filters)
-    pprint(orders)
+    orders = OrdersService.get_pre_orders(filters)
+    return jsonify([order.to_dict() for order in orders]), 200
 
-    return []
+
+@orders_routes.get("/api/pre-orders/<int:preorder_id>")
+@login_required()  # TODO Permissions
+@swag_from(
+    {
+        "tags": ["orders"],
+        "parameters": [
+            {
+                "in": "path",
+                "name": "preorder_id",
+                "required": True,
+                "schema": {"type": "integer"},
+            }
+        ],
+        "responses": {
+            200: {
+                "description": "Returns a single pre-order",
+                "schema": {"$ref": "#/definitions/PreOrder"},
+            },
+            401: {"description": "Unauthorized"},
+            403: {"description": "Forbidden"},
+        },
+    }
+)
+def get_pre_order(preorder_id: int):
+    """
+    Get a single pre-order
+    """
+    abort_with_err(
+        ErrMsg(
+            status_code=501,
+            title="Not implemented",
+            description="This endpoint is not implemented yet.",
+        )
+    )
+
+
+@orders_routes.get("/api/pre-orders/by-group-leader/<uuid:person_id>")
+@login_required(groups=[UserGroup.gruppenleitung])
+@swag_from(
+    {
+        "tags": ["orders"],
+        "parameters": [
+            {
+                "in": "path",
+                "name": "person_id",
+                "required": True,
+                "schema": {"type": "string", "format": "uuid"},
+            }
+        ],
+        "responses": {
+            200: {},
+            401: {"description": "Unauthorized"},
+            403: {"description": "Forbidden"},
+        },
+    }
+)
+def get_orders_by_group_leader(person_id: UUID):
+    """
+    Get orders for a group leader
+    """
+    abort_with_err(
+        ErrMsg(
+            status_code=501,
+            title="Not implemented",
+            description="This endpoint is not implemented yet.",
+        )
+    )
+
+
+@orders_routes.get("/api/daily-orders")
+@login_required()  # TODO Permissions
+@swag_from(
+    {
+        "tags": ["orders"],
+    }
+)
+def get_daily_orders():
+    """
+    Get daily orders
+    """
+    abort_with_err(
+        ErrMsg(
+            status_code=501,
+            title="Not implemented",
+            description="This endpoint is not implemented yet.",
+        )
+    )
+
+
+@orders_routes.get("/api/daily-orders/<int:daily_order_id>")
+@login_required()  # TODO Permissions
+@swag_from(
+    {
+        "tags": ["orders"],
+    }
+)
+def get_daily_orders_for_person(daily_order_id: int):
+    """
+    Get daily orders for a person
+    """
+    abort_with_err(
+        ErrMsg(
+            status_code=501,
+            title="Not implemented",
+            description="This endpoint is not implemented yet.",
+        )
+    )
 
 
 class OrdersPostPutBody(Schema):
@@ -157,12 +264,29 @@ class OrdersPostPutBody(Schema):
             "PreOrder": {
                 "type": "object",
                 "properties": {
-                    "id": {"type": "integer"},
-                    "person_id": {"type": "string"},
-                    "location_id": {"type": "string"},
-                    "date": {"type": "string", "format": "date"},
-                    "main_dish": {"type": "string"},
-                    "salad_option": {"type": "boolean"},
+                    "id": {"type": "integer", "example": 1},
+                    "person_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                    },
+                    "location_id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                    },
+                    "date": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2024-12-08",
+                    },
+                    "main_dish": {
+                        "type": "string",
+                        "enum": ["rot", "blau"],
+                        "nullable": True,
+                    },
+                    "salad_option": {"type": "boolean", "example": True},
+                    "last_changed": {"type": "number", "example": 1733780000.000099},
                 },
             }
         },

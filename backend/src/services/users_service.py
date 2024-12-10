@@ -1,6 +1,7 @@
 """Service for handling user management."""
 
 from uuid import UUID
+from src.models.location import Location
 from src.services.auth_service import AuthService
 from src.models.user import User, UserGroup
 from src.repositories.users_repository import UsersRepository
@@ -82,6 +83,7 @@ class UsersService:
         last_name: str,
         username: str,
         user_group: UserGroup,
+        location: Location | None = None,
     ):
         """Update a user in the database.
 
@@ -90,6 +92,7 @@ class UsersService:
         :param last_name: The new last name of the user
         :param username: The new username of the user
         :param user_group: The new user group of the user
+        :param location: The new location of the user
         """
 
         if username != user.username and UsersRepository.get_user_by_username(username):
@@ -101,6 +104,7 @@ class UsersService:
         user.last_name = last_name
         user.username = username
         user.user_group = user_group
+        user.location = location
 
         UsersRepository.update_user(user)
 

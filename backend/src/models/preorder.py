@@ -61,3 +61,16 @@ class PreOrder(db.Model):
 
     def __repr__(self):
         return f"<Pre-Order {self.id!r} {self.person_id!r} {self.date!r} {self.main_dish!r} {self.salad_option!r}>"
+
+    def to_dict(self):
+        """Convert the pre-order to a dictionary"""
+
+        return {
+            "id": self.id,
+            "person_id": str(self.person_id),
+            "location_id": str(self.location_id),
+            "date": self.date.strftime("%Y-%m-%d"),
+            "main_dish": self.main_dish.value if self.main_dish else None,
+            "salad_option": self.salad_option,
+            "last_changed": self.last_changed.timestamp(),
+        }
