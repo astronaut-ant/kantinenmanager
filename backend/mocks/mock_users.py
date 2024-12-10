@@ -8,6 +8,7 @@ MOCK_USERS = [
         "username": "verwaltung",
         "password": "password",
         "user_group": UserGroup.verwaltung,
+        "location_name": "earth",
     },
     {
         "first_name": "Linus",
@@ -15,6 +16,7 @@ MOCK_USERS = [
         "username": "linus_torvalds",
         "password": "password",
         "user_group": UserGroup.verwaltung,
+        "location_name": "earth",
     },
     {
         "first_name": "Ada",
@@ -22,6 +24,7 @@ MOCK_USERS = [
         "username": "ada_lovelace",
         "password": "password",
         "user_group": UserGroup.verwaltung,
+        "location_name": "earth",
     },
     {
         "first_name": "Charles",
@@ -29,6 +32,7 @@ MOCK_USERS = [
         "username": "charles_babbage",
         "password": "password",
         "user_group": UserGroup.verwaltung,
+        "location_name": "earth",
     },
     {
         "first_name": "Standortleitung",
@@ -36,6 +40,7 @@ MOCK_USERS = [
         "username": "standortleitung",
         "password": "password",
         "user_group": UserGroup.standortleitung,
+        "location_name": "earth",
     },
     {
         "first_name": "Grace",
@@ -43,6 +48,7 @@ MOCK_USERS = [
         "username": "grace_hopper",
         "password": "password",
         "user_group": UserGroup.standortleitung,
+        "location_name": "mars",
     },
     {
         "first_name": "Alan",
@@ -50,6 +56,7 @@ MOCK_USERS = [
         "username": "alan_turing",
         "password": "password",
         "user_group": UserGroup.standortleitung,
+        "location_name": "mars",
     },
     {
         "first_name": "Donald",
@@ -57,6 +64,7 @@ MOCK_USERS = [
         "username": "donald_knuth",
         "password": "password",
         "user_group": UserGroup.standortleitung,
+        "location_name": "earth",
     },
     {
         "first_name": "Gruppenleitung",
@@ -64,6 +72,7 @@ MOCK_USERS = [
         "username": "gruppenleitung",
         "password": "password",
         "user_group": UserGroup.gruppenleitung,
+        "location_name": "earth",
     },
     {
         "first_name": "Alan",
@@ -71,6 +80,7 @@ MOCK_USERS = [
         "username": "alan_kay",
         "password": "password",
         "user_group": UserGroup.gruppenleitung,
+        "location_name": "earth",
     },
     {
         "first_name": "Denis",
@@ -78,6 +88,7 @@ MOCK_USERS = [
         "username": "denis_ritchie",
         "password": "password",
         "user_group": UserGroup.gruppenleitung,
+        "location_name": "earth",
     },
     {
         "first_name": "Ken",
@@ -85,6 +96,47 @@ MOCK_USERS = [
         "username": "ken_thompson",
         "password": "password",
         "user_group": UserGroup.gruppenleitung,
+        "location_name": "mars",
+    },
+    {
+        "first_name": "Margaret",
+        "last_name": "Hamilton",
+        "username": "margaret_hamilton",
+        "password": "password",
+        "user_group": UserGroup.gruppenleitung,
+        "location_name": "mars",
+    },
+    {
+        "first_name": "Barbara",
+        "last_name": "Liskov",
+        "username": "barbara_liskov",
+        "password": "password",
+        "user_group": UserGroup.gruppenleitung,
+        "location_name": "mars",
+    },
+    {
+        "first_name": "Brendan",
+        "last_name": "Eich",
+        "username": "brendan_eich",
+        "password": "password",
+        "user_group": UserGroup.gruppenleitung,
+        "location_name": "mars",
+    },
+    {
+        "first_name": "Haskell",
+        "last_name": "Curry",
+        "username": "haskell_curry",
+        "password": "password",
+        "user_group": UserGroup.gruppenleitung,
+        "location_name": "mars",
+    },
+    {
+        "first_name": "John",
+        "last_name": "von Neumann",
+        "username": "john_von_neumann",
+        "password": "password",
+        "user_group": UserGroup.gruppenleitung,
+        "location_name": "earth",
     },
     {
         "first_name": "Küchenpersonal",
@@ -92,6 +144,7 @@ MOCK_USERS = [
         "username": "küchenpersonal",
         "password": "password",
         "user_group": UserGroup.kuechenpersonal,
+        "location_name": "earth",
     },
     {
         "first_name": "Bjarne",
@@ -99,6 +152,7 @@ MOCK_USERS = [
         "username": "bjarne_stroustrup",
         "password": "password",
         "user_group": UserGroup.kuechenpersonal,
+        "location_name": "earth",
     },
     {
         "first_name": "Tim",
@@ -106,6 +160,7 @@ MOCK_USERS = [
         "username": "tim_berners_lee",
         "password": "password",
         "user_group": UserGroup.kuechenpersonal,
+        "location_name": "mars",
     },
     {
         "first_name": "Edsger",
@@ -113,5 +168,6 @@ MOCK_USERS = [
         "username": "edsger_dijkstra",
         "password": "password",
         "user_group": UserGroup.kuechenpersonal,
+        "location_name": "mars",
     },
 ]
