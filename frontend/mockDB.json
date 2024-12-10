@@ -16,73 +16,163 @@
           "groupOrders": [
             {
               "name": "Inga Baumgartner",
-              "date": "2024-12-10",
+              "date": "2024-12-11",
               "maindish": 0,
               "salad": false,
-              "nothing": false
+              "nothing": false,
+              "done": false
             },
             {
               "name": "Meinhard Raskob",
-              "date": "2024-12-10",
-              "maindish": 0,
+              "date": "2024-12-11",
+              "maindish": 1,
               "salad": false,
-              "nothing": false
+              "nothing": false,
+              "done": true
             },
             {
               "name": "Selina Schmitz",
-              "date": "2024-12-10",
+              "date": "2024-12-11",
               "maindish": 0,
               "salad": false,
-              "nothing": false
+              "nothing": false,
+              "done": false
             },
             {
               "name": "Else Kolbe",
-              "date": "2024-12-10",
-              "maindish": 0,
+              "date": "2024-12-11",
+              "maindish": 1,
               "salad": false,
-              "nothing": false
+              "nothing": false,
+              "done": true
             },
             {
               "name": "Jürgen Keil",
-              "date": "2024-12-10",
-              "maindish": 0,
+              "date": "2024-12-11",
+              "maindish": 2,
               "salad": false,
-              "nothing": false
+              "nothing": false,
+              "done": true
             },
             {
               "name": "Inga Baumgartner",
-              "date": "2024-12-12",
-              "maindish": 0,
+              "date": "2024-12-10",
+              "maindish": 1,
               "salad": false,
-              "nothing": false
+              "nothing": false,
+              "done": true
             },
             {
               "name": "Meinhard Raskob",
-              "date": "2024-12-12",
+              "date": "2024-12-10",
               "maindish": 0,
               "salad": false,
-              "nothing": false
+              "nothing": false,
+              "done": false
             },
             {
               "name": "Selina Schmitz",
-              "date": "2024-12-12",
-              "maindish": 0,
+              "date": "2024-12-10",
+              "maindish": 2,
               "salad": false,
-              "nothing": false
+              "nothing": false,
+              "done": true
             },
             {
               "name": "Else Kolbe",
-              "date": "2024-12-12",
-              "maindish": 0,
+              "date": "2024-12-10",
+              "maindish": 1,
               "salad": false,
-              "nothing": false
+              "nothing": false,
+              "done": true
             },
             {
               "name": "Jürgen Keil",
-              "date": "2024-12-12",
+              "date": "2024-12-10",
+              "maindish": 0,
+              "salad": true,
+              "nothing": false,
+              "done": true
+            },
+            {
+              "name": "Inga Baumgartner",
+              "date": "2024-12-20",
+              "maindish": 1,
+              "salad": true,
+              "nothing": false,
+              "done": true
+            },
+            {
+              "name": "Meinhard Raskob",
+              "date": "2024-12-20",
+              "maindish": 1,
+              "salad": false,
+              "nothing": false,
+              "done": true
+            },
+            {
+              "name": "Selina Schmitz",
+              "date": "2024-12-20",
+              "maindish": 1,
+              "salad": false,
+              "nothing": false,
+              "done": true
+            },
+            {
+              "name": "Else Kolbe",
+              "date": "2024-12-20",
+              "maindish": 1,
+              "salad": false,
+              "nothing": false,
+              "done": true
+            },
+            {
+              "name": "Jürgen Keil",
+              "date": "2024-12-20",
+              "maindish": 1,
+              "salad": false,
+              "nothing": false,
+              "done": true
+            },
+            {
+              "name": "Inga Baumgartner",
+              "date": "2024-12-18",
               "maindish": 0,
               "salad": false,
-              "nothing": false
+              "nothing": false,
+              "done": false
+            },
+            {
+              "name": "Meinhard Raskob",
+              "date": "2024-12-18",
+              "maindish": 0,
+              "salad": false,
+              "nothing": false,
+              "done": false
+            },
+            {
+              "name": "Selina Schmitz",
+              "date": "2024-12-18",
+              "maindish": 0,
+              "salad": false,
+              "nothing": false,
+              "done": false
+            },
+            {
+              "name": "Else Kolbe",
+              "date": "2024-12-18",
+              "maindish": 0,
+              "salad": false,
+              "nothing": false,
+              "done": false
+            },
+            {
+              "name": "Jürgen Keil",
+              "date": "2024-12-18",
+              "maindish": 0,
+              "salad": false,
+              "nothing": false,
+              "done": false
             }
           ]
         },
@@ -99,178 +189,163 @@
           "groupOrders": [
             {
               "name": "Raphael Holland",
-              "date": "2024-12-10",
-              "maindish": 0,
+              "date": "2024-12-12",
+              "maindish": 1,
               "salad": false,
-              "nothing": false
+              "nothing": false,
+              "done": true
             },
             {
               "name": "Justus Knochenmus",
-              "date": "2024-12-10",
-              "maindish": 0,
+              "date": "2024-12-12",
+              "maindish": 1,
               "salad": false,
-              "nothing": false
+              "nothing": false,
+              "done": true
             },
             {
               "name": "Gerold Arbeit",
-              "date": "2024-12-10",
+              "date": "2024-12-12",
               "maindish": 0,
               "salad": false,
-              "nothing": false
+              "nothing": false,
+              "done": false
             },
             {
               "name": "Ursel Stauss",
-              "date": "2024-12-10",
-              "maindish": 0,
+              "date": "2024-12-12",
+              "maindish": 2,
               "salad": false,
-              "nothing": false
+              "nothing": false,
+              "done": true
             },
             {
               "name": "Kaspar Sauber",
-              "date": "2024-12-10",
-              "maindish": 0,
+              "date": "2024-12-12",
+              "maindish": 1,
               "salad": false,
-              "nothing": false
+              "nothing": false,
+              "done": true
             },
             {
               "name": "Raphael Holland",
               "date": "2024-12-11",
-              "maindish": 0,
+              "maindish": 1,
               "salad": false,
-              "nothing": false
+              "nothing": false,
+              "done": true
             },
             {
               "name": "Justus Knochenmus",
               "date": "2024-12-11",
               "maindish": 0,
               "salad": false,
-              "nothing": false
+              "nothing": false,
+              "done": false
             },
             {
               "name": "Gerold Arbeit",
               "date": "2024-12-11",
-              "maindish": 0,
+              "maindish": 1,
               "salad": false,
-              "nothing": false
+              "nothing": false,
+              "done": true
             },
             {
               "name": "Ursel Stauss",
               "date": "2024-12-11",
-              "maindish": 0,
+              "maindish": 1,
               "salad": false,
-              "nothing": false
+              "nothing": false,
+              "done": true
             },
             {
               "name": "Kaspar Sauber",
               "date": "2024-12-11",
               "maindish": 0,
               "salad": false,
-              "nothing": false
+              "nothing": false,
+              "done": false
             },
             {
               "name": "Raphael Holland",
-              "date": "2024-12-21",
+              "date": "2024-12-14",
               "maindish": 0,
               "salad": false,
-              "nothing": false
+              "nothing": false,
+              "done": false
             },
             {
               "name": "Justus Knochenmus",
-              "date": "2024-12-21",
-              "maindish": 0,
+              "date": "2024-12-14",
+              "maindish": 1,
               "salad": false,
-              "nothing": false
+              "nothing": false,
+              "done": true
             },
             {
               "name": "Gerold Arbeit",
-              "date": "2024-12-21",
+              "date": "2024-12-14",
               "maindish": 0,
               "salad": false,
-              "nothing": false
+              "nothing": false,
+              "done": false
             },
             {
               "name": "Ursel Stauss",
-              "date": "2024-12-21",
+              "date": "2024-12-14",
               "maindish": 0,
               "salad": false,
-              "nothing": false
+              "nothing": false,
+              "done": false
             },
             {
               "name": "Kaspar Sauber",
-              "date": "2024-12-21",
-              "maindish": 0,
+              "date": "2024-12-14",
+              "maindish": 1,
               "salad": false,
-              "nothing": false
+              "nothing": false,
+              "done": true
             },
             {
               "name": "Raphael Holland",
-              "date": "2024-12-13",
-              "maindish": 0,
+              "date": "2024-12-18",
+              "maindish": 1,
               "salad": false,
-              "nothing": false
+              "nothing": false,
+              "done": true
             },
             {
               "name": "Justus Knochenmus",
-              "date": "2024-12-13",
-              "maindish": 0,
+              "date": "2024-12-18",
+              "maindish": 2,
               "salad": false,
-              "nothing": false
+              "nothing": false,
+              "done": true
             },
             {
               "name": "Gerold Arbeit",
-              "date": "2024-12-13",
-              "maindish": 0,
+              "date": "2024-12-18",
+              "maindish": 1,
               "salad": false,
-              "nothing": false
+              "nothing": false,
+              "done": true
             },
             {
               "name": "Ursel Stauss",
-              "date": "2024-12-13",
-              "maindish": 0,
+              "date": "2024-12-18",
+              "maindish": 2,
               "salad": false,
-              "nothing": false
+              "nothing": false,
+              "done": true
             },
             {
               "name": "Kaspar Sauber",
-              "date": "2024-12-13",
-              "maindish": 0,
+              "date": "2024-12-18",
+              "maindish": 1,
               "salad": false,
-              "nothing": false
-            },
-            {
-              "name": "Raphael Holland",
-              "date": "2024-12-20",
-              "maindish": 0,
-              "salad": false,
-              "nothing": false
-            },
-            {
-              "name": "Justus Knochenmus",
-              "date": "2024-12-20",
-              "maindish": 0,
-              "salad": false,
-              "nothing": false
-            },
-            {
-              "name": "Gerold Arbeit",
-              "date": "2024-12-20",
-              "maindish": 0,
-              "salad": false,
-              "nothing": false
-            },
-            {
-              "name": "Ursel Stauss",
-              "date": "2024-12-20",
-              "maindish": 0,
-              "salad": false,
-              "nothing": false
-            },
-            {
-              "name": "Kaspar Sauber",
-              "date": "2024-12-20",
-              "maindish": 0,
-              "salad": false,
-              "nothing": false
+              "nothing": false,
+              "done": true
             }
           ]
         }

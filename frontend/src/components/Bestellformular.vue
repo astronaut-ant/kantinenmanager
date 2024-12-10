@@ -7,6 +7,7 @@
   >
     <v-card>
       <h2 class="text-center mt-5 mb-2">Bestellung für {{ props.date }}</h2>
+      <h3 class="text-center mt-1 mb-2">Gruppe: {{ props.group }}</h3>
       <v-card-text>
         <v-data-table-virtual
           @change="updateProgress"
@@ -78,11 +79,11 @@
       <v-card-actions>
         <v-spacer></v-spacer>
 
-        <v-btn text="Schließen" @click="close"></v-btn>
+        <v-btn text="Abbrechen" @click="close"></v-btn>
         <v-btn
           class="bg-primary elevation-7"
           text="Speichern"
-          @click="close"
+          @click="save"
         ></v-btn>
       </v-card-actions>
     </v-card>
@@ -90,72 +91,11 @@
 </template>
 
 <script setup>
-const items = ref([
-  {
-    name: "Thomas Mann",
-    hauptgericht1: false,
-    hauptgericht2: false,
-    salat: false,
-    keinEssen: false,
-    done: false,
-  },
-  {
-    name: "Hermann Hesse",
-    hauptgericht1: false,
-    hauptgericht2: false,
-    salat: false,
-    keinEssen: false,
-    done: false,
-  },
-  {
-    name: "Fjodor Dostojewski",
-    hauptgericht1: false,
-    hauptgericht2: false,
-    salat: false,
-    keinEssen: false,
-    done: false,
-  },
-  {
-    name: "William Faulkner",
-    hauptgericht1: false,
-    hauptgericht2: false,
-    salat: false,
-    keinEssen: false,
-    done: false,
-  },
-  {
-    name: "Thomas Mann",
-    hauptgericht1: false,
-    hauptgericht2: false,
-    salat: false,
-    keinEssen: false,
-    done: false,
-  },
-  {
-    name: "Hermann Hesse",
-    hauptgericht1: false,
-    hauptgericht2: false,
-    salat: false,
-    keinEssen: false,
-    done: false,
-  },
-  {
-    name: "Fjodor Dostojewski",
-    hauptgericht1: false,
-    hauptgericht2: false,
-    salat: false,
-    keinEssen: false,
-    done: false,
-  },
-  {
-    name: "William Faulkner",
-    hauptgericht1: false,
-    hauptgericht2: false,
-    salat: false,
-    keinEssen: false,
-    done: false,
-  },
-]);
+import { onMounted } from "vue";
+
+const items = ref([]);
+
+console.log("test");
 
 const headers = ref([
   { title: "Mitarbeiter", value: "name" },
@@ -165,11 +105,18 @@ const headers = ref([
   { title: "Salat", value: "salat", nowrap: true },
   { title: "Nichts", value: "keinEssen", nowrap: true },
 ]);
-const props = defineProps(["showBestellformular", "date"]);
+const props = defineProps(["showBestellformular", "date", "orders", "group"]);
 const emit = defineEmits(["close", "save"]);
 const close = () => {
   emit("close");
 };
+
+const save = () => {
+  emit("save", items.value, props.date, props.group);
+};
+props.orders.forEach((order) => {
+  items.value.push(order);
+});
 
 //Progress Bar
 const totalItems = items.value.length;
@@ -229,4 +176,8 @@ const orderKeinEssen = (item) => {
     item.salat = false;
   }
 };
+
+onMounted(() => {
+  updateProgress();
+});
 </script>

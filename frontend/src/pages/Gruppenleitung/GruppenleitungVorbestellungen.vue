@@ -15,6 +15,9 @@
       v-if="showBestellformular"
       :date="clickedEventDate"
       :showBestellformular="showBestellformular"
+      :orders="actualOrders"
+      :group="selectedGroup"
+      @save="updateBestellformular"
       @close="showBestellformular = false"
     />
   </div>
@@ -66,6 +69,8 @@ export default {
       clickedDate: "",
       clickedEvent: "",
       clickedEventDate: "",
+      selectedGroup: "",
+      actualOrders: [],
       calendarOptions: {
         plugins: [dayGridPlugin, interactionPlugin],
         headerToolbar: {
@@ -132,6 +137,9 @@ export default {
       rawClickedEventDate.setDate(rawClickedEventDate.getDate() + 1);
       this.clickedEventDate = rawClickedEventDate.toISOString().split("T")[0];
       console.log(this.clickedEventDate);
+
+      this.getOrdersByDate(arg.event.title);
+
       if (arg.event.display != "background") {
         this.showBestellformular = true;
       }
@@ -147,6 +155,7 @@ export default {
               maindish: 0,
               salad: false,
               nothing: false,
+              done: false,
             });
           });
         }
@@ -165,6 +174,7 @@ export default {
         .then(() => {
           this.calendarOptions.events = [];
           this.fillCalendar(this.groupleaderId);
+          this.getOrdersByDate(selectedGroup);
         });
 
       this.clickedEventDate = this.clickedDate;
@@ -180,7 +190,98 @@ export default {
       });
       return [...new Set(dateList)];
     },
+    getOrdersByDate: function (clickedGroup) {
+      this.selectedGroup = clickedGroup;
+      const ordersByDate = [];
+      this.groupData.groups.forEach((group) => {
+        if (group.groupName === clickedGroup) {
+          group.groupOrders.forEach((order) => {
+            if (order.date === this.clickedEventDate) {
+              ordersByDate.push(order);
+            }
+          });
+        }
+      });
+      const items = [];
+      //item Format
+      ordersByDate.forEach((order) => {
+        let hauptgericht1Value;
+        let hauptgericht2Value;
+        if (order.maindish === 0) {
+          hauptgericht1Value = false;
+          hauptgericht2Value = false;
+        } else if (order.maindish === 1) {
+          hauptgericht1Value = true;
+          hauptgericht2Value = false;
+        } else if (order.maindish === 2) {
+          hauptgericht1Value = false;
+          hauptgericht2Value = true;
+        }
+        items.push({
+          name: order.name,
+          hauptgericht1: hauptgericht1Value,
+          hauptgericht2: hauptgericht2Value,
+          salat: order.salad,
+          keinEssen: order.nothing,
+          done: order.done,
+        });
+      });
+      this.actualOrders = items;
+    },
 
+    updateBestellformular: function (updatedOrders, date, selectedGroup) {
+      //fehlt noch gruppe
+      console.log(updatedOrders, date, selectedGroup);
+      const formattedOrders = [];
+      updatedOrders.forEach((updatedOrder) => {
+        let dateValue = date;
+        let maindishValue;
+        if (updatedOrder.hauptgericht1) {
+          maindishValue = 1;
+        } else if (updatedOrder.hauptgericht2) {
+          maindishValue = 2;
+        } else {
+          maindishValue = 0;
+        }
+        formattedOrders.push({
+          name: updatedOrder.name,
+          date: dateValue,
+          maindish: maindishValue,
+          salad: updatedOrder.salat,
+          nothing: updatedOrder.keinEssen,
+          done: updatedOrder.done,
+        });
+      });
+      console.log(formattedOrders);
+      let filteredArray;
+      this.groupData.groups.forEach((group) => {
+        if (group.groupName == selectedGroup) {
+          filteredArray = group.groupOrders.filter((order) => {
+            return order.date != date;
+          });
+          formattedOrders.forEach((fOrder) => {
+            filteredArray.push(fOrder);
+            group.groupOrders = filteredArray;
+          });
+          console.log("go on", this.groupData);
+        }
+      });
+      console.log();
+      axios
+        .put(
+          "http://localhost:4000/groupOrdersByPersonId/" + this.groupleaderId,
+          JSON.stringify({
+            id: this.groupleaderId,
+            groups: this.groupData.groups,
+          })
+        )
+        .then(() => {
+          this.calendarOptions.events = [];
+          this.fillCalendar(this.groupleaderId);
+        });
+
+      this.showBestellformular = false;
+    },
     fillCalendar: function (id) {
       this.calendarOptions.events.push({
         start: edges.hint,
