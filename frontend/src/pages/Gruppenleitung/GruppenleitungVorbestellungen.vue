@@ -10,6 +10,7 @@
       :groups="possibleGroupsChoice"
       @close="this.showDialog = false"
       @init="initNewBestellformular"
+      :stopHour="stopHour"
     />
     <Bestellformular
       v-if="showBestellformular"
@@ -19,6 +20,8 @@
       :group="selectedGroup"
       @save="updateBestellformular"
       @close="showBestellformular = false"
+      @restore="showBestellformular = true"
+      :stopHour="stopHour"
     />
   </div>
 </template>
@@ -36,19 +39,13 @@ import axios from "axios";
 
 const calcCalendarEdges = () => {
   const range = 14;
-  const hourOfOrderStop = 8;
   const startDate = new Date();
   const hintDate = new Date(startDate);
   hintDate.setDate(hintDate.getDate() + range);
   //added 1 for including the hintDate itself
   const endDate = new Date(hintDate);
   endDate.setDate(endDate.getDate() + 1);
-
   const startTime = startDate.getHours();
-  //no order possible after hour of orderstop
-  // if (startTime >= hourOfOrderStop) {
-  //   startDate.setDate(startDate.getDate() + 1);
-  // }
   const startDateIso = startDate.toISOString().split("T")[0];
   const hintDateIso = hintDate.toISOString().split("T")[0];
   const endDateIso = endDate.toISOString().split("T")[0];
@@ -67,6 +64,7 @@ export default {
   data() {
     return {
       possibleGroupsChoice: [],
+      stopHour: 8,
       showDialog: false,
       showBestellformular: false,
       clickedDate: "",
@@ -345,7 +343,7 @@ export default {
 }
 
 .fc-col-header-cell:hover {
-  background: white;
+  background: white !important;
   cursor: auto;
 }
 
