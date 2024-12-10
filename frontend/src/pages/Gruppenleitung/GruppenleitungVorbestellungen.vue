@@ -32,6 +32,8 @@ import Bestellformular from "@/components/Bestellformular.vue";
 import deLocale from "@fullcalendar/core/locales/de";
 import axios from "axios";
 
+//Non reactive
+
 const calcCalendarEdges = () => {
   const range = 14;
   const hourOfOrderStop = 8;
@@ -52,8 +54,11 @@ const calcCalendarEdges = () => {
   const endDateIso = endDate.toISOString().split("T")[0];
   return { start: startDateIso, hint: hintDateIso, end: endDateIso };
 };
-
 const edges = calcCalendarEdges();
+const groupLeaderId = 1;
+let groupData = {};
+
+//reactive
 
 export default {
   components: {
@@ -61,13 +66,10 @@ export default {
   },
   data() {
     return {
-      groupleaderId: 1,
-      groupData: {},
       possibleGroupsChoice: [],
       showDialog: false,
       showBestellformular: false,
       clickedDate: "",
-      clickedEvent: "",
       clickedEventDate: "",
       selectedGroup: "",
       actualOrders: [],
@@ -113,7 +115,7 @@ export default {
       //alert("date click! " + arg.dateStr);
       const allGroupsArray = [];
       const existingEventsOnDay = [];
-      this.groupData.groups.forEach((group) => {
+      groupData.groups.forEach((group) => {
         allGroupsArray.push(group.groupName);
       });
 
@@ -146,7 +148,7 @@ export default {
     },
     initNewBestellformular: function (selectedGroup, selectedDate) {
       console.log(selectedGroup);
-      this.groupData.groups.forEach((group) => {
+      groupData.groups.forEach((group) => {
         if (group.groupName === selectedGroup) {
           group.groupEmployees.forEach((employee) => {
             group.groupOrders.push({
@@ -160,20 +162,20 @@ export default {
           });
         }
       });
-      console.log(this.groupData.groups);
+      console.log(groupData.groups);
 
       //Mockup Post for initializing new Bestellformular
       axios
         .put(
-          "http://localhost:4000/groupOrdersByPersonId/" + this.groupleaderId,
+          "http://localhost:4000/groupOrdersByPersonId/" + groupLeaderId,
           JSON.stringify({
-            id: this.groupleaderId,
-            groups: this.groupData.groups,
+            id: groupLeaderId,
+            groups: groupData.groups,
           })
         )
         .then(() => {
           this.calendarOptions.events = [];
-          this.fillCalendar(this.groupleaderId);
+          this.fillCalendar(groupLeaderId);
           this.getOrdersByDate(selectedGroup);
         });
 
@@ -193,7 +195,7 @@ export default {
     getOrdersByDate: function (clickedGroup) {
       this.selectedGroup = clickedGroup;
       const ordersByDate = [];
-      this.groupData.groups.forEach((group) => {
+      groupData.groups.forEach((group) => {
         if (group.groupName === clickedGroup) {
           group.groupOrders.forEach((order) => {
             if (order.date === this.clickedEventDate) {
@@ -254,7 +256,7 @@ export default {
       });
       console.log(formattedOrders);
       let filteredArray;
-      this.groupData.groups.forEach((group) => {
+      groupData.groups.forEach((group) => {
         if (group.groupName == selectedGroup) {
           filteredArray = group.groupOrders.filter((order) => {
             return order.date != date;
@@ -263,21 +265,21 @@ export default {
             filteredArray.push(fOrder);
             group.groupOrders = filteredArray;
           });
-          console.log("go on", this.groupData);
+          console.log("go on", groupData);
         }
       });
       console.log();
       axios
         .put(
-          "http://localhost:4000/groupOrdersByPersonId/" + this.groupleaderId,
+          "http://localhost:4000/groupOrdersByPersonId/" + groupLeaderId,
           JSON.stringify({
-            id: this.groupleaderId,
-            groups: this.groupData.groups,
+            id: groupLeaderId,
+            groups: groupData.groups,
           })
         )
         .then(() => {
           this.calendarOptions.events = [];
-          this.fillCalendar(this.groupleaderId);
+          this.fillCalendar(groupLeaderId);
         });
 
       this.showBestellformular = false;
@@ -292,9 +294,9 @@ export default {
         axios
           .get(`http://localhost:4000/groupOrdersByPersonId/${id}`)
           .then((response) => {
-            this.groupData = response.data;
+            groupData = response.data;
             const groupedEvents = [];
-            this.groupData.groups.forEach((group) => {
+            groupData.groups.forEach((group) => {
               groupedEvents.push({
                 groupName: group.groupName,
                 isHomegroup: group.isHomegroup,
@@ -319,7 +321,7 @@ export default {
     },
   },
   mounted: function () {
-    this.fillCalendar(this.groupleaderId);
+    this.fillCalendar(groupLeaderId);
   },
 };
 </script>
