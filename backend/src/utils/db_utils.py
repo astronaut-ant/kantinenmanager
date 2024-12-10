@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from mocks.mock_orders_users import MOCK_ORDERS_USERS
 from mocks.mock_employees import MOCK_EMPLOYEES
 from mocks.mock_groups import MOCK_GROUPS
@@ -27,7 +28,7 @@ def insert_mock_data(app):
         update_user_location_mock_data()
         insert_group_mock_data()
         insert_employee_mock_data()
-        insert_order_users_mock_data()
+        # insert_order_users_mock_data()
 
 
 def insert_user_mock_data():
@@ -143,20 +144,28 @@ def insert_order_users_mock_data():
     """Insert mock orders for users."""
     users_dict = {user.username: user for user in UsersService.get_users()}
 
+    next_monday = _get_next_monday()
+
     for order in MOCK_ORDERS_USERS:
         user = users_dict[order["user"]]
 
         data = {
             "person_id": user.id,
             "location_id": user.location_id,
-            "date": order["date"],
+            "date": next_monday + order["timedelta"],
             "main_dish": order["main_dish"],
             "salad_option": order["salad_option"],
         }
 
         try:
-            OrdersService.create_order_user(data, user.user_group, user.id)
+            OrdersService.create_preorder_user(data, user.id)
             print(f"Inserted order for user {user.username}")
 
         except OrderAlreadyExistsForPersonAndDate:
             continue
+
+
+def _get_next_monday():
+    today = datetime.now().date()
+    days_ahead = 0 - today.weekday() + 7
+    return today + timedelta(days_ahead)
