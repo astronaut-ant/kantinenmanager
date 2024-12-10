@@ -1,18 +1,18 @@
 <template>
-  <v-dialog
-    v-model="dialog"
-    :persistent="true"
-    :no-click-animation="true"
-    max-width="600"
-  >
-    <v-card class="mx-auto px-6 py-4" min-width="344">
-      <v-card-text class="text-center text-h5">
-        SIGN IN
-        <v-icon>mdi-login</v-icon>
+  <v-container class="d-flex h-100 align-center">
+    <v-card class="mx-auto px-6 py-4 w-50 bg-blue-grey-lighten-5">
+      <v-card-text
+        class="text-center text-h5 underlined text-blue-grey font-weight-bold mb-2"
+      >
+        LOGIN
       </v-card-text>
+
       <v-form v-model="form" @submit.prevent="handleSubmit">
         <v-text-field
           v-model="userName"
+          base-color="blue-grey"
+          color="blue-grey"
+          variant="solo"
           :readonly="loading"
           :rules="[required]"
           class="mb-2"
@@ -21,33 +21,38 @@
         ></v-text-field>
         <v-text-field
           v-model="password"
+          base-color="blue-grey"
+          color="blue-grey"
+          variant="solo"
           type="password"
           :readonly="loading"
           :rules="[required]"
           label="Passwort"
           clearable
         ></v-text-field>
-        <v-btn
-          class="mt-5"
-          :disabled="!form"
-          :loading="loading"
-          color="primary"
-          size="large"
-          type="submit"
-          variant="elevated"
-          block
-        >
-          Sign In
-        </v-btn>
         <CustomAlert
+          class="mb-5"
           color="red"
           icon="$error"
           text="Ungültiger Benutzername oder Passwort"
           v-if="showAlert"
         />
+        <v-container class="d-flex justify-center">
+          <v-btn
+            class="mb-2 elevation-2"
+            :disabled="!form"
+            :loading="loading"
+            color="primary"
+            size="large"
+            type="submit"
+            variant="elevated"
+          >
+            Einloggen <v-icon class="ms-2">mdi-login</v-icon>
+          </v-btn>
+        </v-container>
       </v-form>
     </v-card>
-  </v-dialog>
+  </v-container>
 </template>
 
 <script setup>
