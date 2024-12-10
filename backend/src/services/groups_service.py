@@ -27,7 +27,6 @@ class GroupsService:
             raise GroupAlreadyExists(
                 f"Die Gruppe {group_name} existiert bereits an diesem Standort."
             )
-
         group_leader_exists = UsersRepository.get_user_by_id(user_id_group_leader)
         if not group_leader_exists:
             raise GroupLeaderDoesNotExist(
