@@ -10,56 +10,73 @@ from src.models.user import UserGroup
 from src.models.employee import Employee
 from src.models.group import Group
 from src.models.preorder import PreOrder
+from src.models.dailyorder import DailyOrder
 
 
 class OrdersRepository:
 
     @staticmethod
-    def create_bulk_orders(bulk_orders: List[PreOrder]):
+    def create_bulk_orders(bulk_orders):
         """
-        Create preorders
-        :param orders: List of preorders
+        Create (pre)orders
+        :param orders: List of (pre)orders
         """
         db.session.bulk_save_objects(bulk_orders)
         db.session.commit()
 
     @staticmethod
-    def create_order_user(order: PreOrder):
+    def create_single_order(order):
         """
-        Create order for user
-        :param order: preorder
+        Create (pre)order for user
+        :param order: (pre)order object to create
         """
         db.session.add(order)
         db.session.commit()
 
     @staticmethod
-    def update_bulk_orders():
-        # db.ession.bulk_save_objects(objects, return_defaults=False, update_changed_only=True
-        pass
+    def update_order():
+        """
+        Update order
+        """
+        db.session.commit()
 
     @staticmethod
-    def order_already_exists(person_id: UUID, date: date) -> bool:
+    def delete_order(order):
         """
-        Check if an order already exists for the person and date
-        :param order: Order
-        :return: True if order already exists
+        Delete order
         """
-        return (
-            db.session.scalars(
-                select(func.count(PreOrder.id)).filter(
-                    and_(
-                        (PreOrder.person_id == person_id),
-                        (PreOrder.date == date),
-                    )
+        db.session.delete(order)
+        db.session.commit()
+
+    @staticmethod
+    def get_preorder_by_id(preorder_id: UUID) -> PreOrder:
+        """Get preorder by id
+        :param preorder_id: Preorder id
+        :return: Preorder object
+        """
+        return db.session.scalars(
+            select(PreOrder).filter(PreOrder.id == preorder_id)
+        ).first()
+
+    @staticmethod
+    def preorder_already_exists(person_id: UUID, date: date) -> PreOrder:
+        """Check if an order already exists for the person and date
+        :param person_id: Person id
+        :param date: Date
+        :return: Preorder if it exists else None
+        """
+        return db.session.scalars(
+            select((PreOrder)).filter(
+                and_(
+                    (PreOrder.person_id == person_id),
+                    (PreOrder.date == date),
                 )
-            ).one_or_none()
-            > 0
-        )
+            )
+        ).first()
 
     @staticmethod
     def get_employees_to_order_for(user_id: UUID) -> List[UUID]:
-        """
-        Get all employee ids of the groups the user has to do the orders for
+        """Get all employee ids of the groups the user has to do the orders for
         :param user_id: User id
         :return: List of employee ids
         """
@@ -115,7 +132,7 @@ class OrdersRepository:
     #         )
     #     ).all()
 
-    def employee_belongs_to_location(person_id: UUID, location_id: UUID) -> bool:
+    def employee_in_location(person_id: UUID, location_id: UUID) -> bool:
         """
         Check if a person belongs to a location
         :param person_id: Person id
@@ -135,3 +152,25 @@ class OrdersRepository:
             ).one_or_none()
             > 0
         )
+
+    @staticmethod
+    def get_daily_order_by_person_id(person_id: UUID) -> DailyOrder:
+        """
+        Get daily order by person id
+        :param person_id: Person id
+        :return: DailyOrder object
+        """
+        return db.session.scalars(
+            select(DailyOrder).filter(PreOrder.person_id == person_id)
+        ).first()
+
+    @staticmethod
+    def get_daily_order_by_id(daily_order_id: UUID) -> DailyOrder:
+        """
+        Get daily order by id
+        :param daily_order_id: Daily order id
+        :return: DailyOrder object
+        """
+        return db.session.scalars(
+            select(DailyOrder).filter(DailyOrder.id == daily_order_id)
+        ).first()

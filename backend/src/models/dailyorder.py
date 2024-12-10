@@ -21,7 +21,7 @@ class DailyOrder(db.Model):
 
     # Felder der Tabelle:
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    person_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("person.id"))
+    person_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("person.id"))  # unique=True
     location_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("location.id"))
     main_dish: Mapped[MainDish] = mapped_column(
         sqlalchemy.Enum(MainDish), nullable=True
@@ -54,3 +54,13 @@ class DailyOrder(db.Model):
 
     def __repr__(self):
         return f"<DailyOrder {self.id!r} {self.person_id!r} {self.main_dish!r} {self.salad_option!r} {self.handed_out!r}>"
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "person_id": self.person_id,
+            "location_id": self.location_id,
+            "main_dish": self.main_dish,
+            "salad_option": self.salad_option,
+            "handed_out": self.handed_out,
+        }

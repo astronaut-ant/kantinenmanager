@@ -72,44 +72,6 @@ class GroupsService:
         return group
 
     @staticmethod
-    def add_group_leader(group_id: UUID, user_id: UUID) -> Group:
-        """Assign a user as the leader of a group."""
-        group = GroupsRepository.assign_group_leader(group_id, user_id)
-        if not group:
-            raise GroupDoesNotExistError(group_id)
-        return group
-
-    @staticmethod
-    def remove_group_leader(group_id: UUID) -> Group:
-        """Remove the leader from a group."""
-        group = GroupsRepository.remove_group_leader(group_id)
-        if not group:
-            raise GroupDoesNotExistError(group_id)
-        return group
-
-    @staticmethod
-    def add_group_replacement(group_id: UUID, user_id: UUID) -> Group:
-        """Assign a user as the replacement for a group leader."""
-        group = GroupsRepository.assign_group_replacement(group_id, user_id)
-        if not group:
-            raise GroupDoesNotExistError(group_id)
-        return group
-
-    @staticmethod
-    def remove_group_replacement(group_id: UUID) -> UUID | None:
-        """Remove the replacement from a group leader."""
-        group = GroupsRepository.get_group_by_id(group_id)
-        if not group:
-            raise GroupDoesNotExistError(group_id)
-        replacement = group.user_id_replacement
-        if replacement:
-            group.user_id_replacement = None
-            GroupsRepository.update_group(group)
-            return replacement
-        else:
-            return None
-
-    @staticmethod
     def get_all_groups_with_locations(user_id, user_group) -> dict[str, list[str]]:
         """Get all groups with locations."""
         locations = {}
@@ -152,14 +114,11 @@ class GroupsService:
         user_id_replacement: UUID = None,
     ) -> Group:
         """Updates a group."""
-        changes = False
         group = GroupsRepository.get_group_by_id(group_id)
         if not group:
             raise GroupDoesNotExistError(group_id)
-        if not group_name == group.group_name:
-            group.group_name = group_name
-            changes = True
-        if not user_id_group_leader == group.user_id_group_leader:
+
+        if user_id_group_leader != group.user_id_group_leader:
             group_leader_exists = UsersRepository.get_user_by_id(user_id_group_leader)
             if not group_leader_exists:
                 raise ValueError(
@@ -170,26 +129,28 @@ class GroupsService:
                     f"Der User mit der ID {user_id_group_leader} ist kein Gruppenleiter."
                 )
             group.user_id_group_leader = user_id_group_leader
-            changes = True
-        if not location_id == group.location_id:
-            group.location_id = location_id
-            changes = True
-        if not user_id_replacement == group.user_id_replacement:
-            if user_id_replacement:
-                group_replacement_exists = UsersRepository.get_user_by_id(
-                    user_id_replacement
+
+        if user_id_replacement and (user_id_replacement != group.user_id_replacement):
+            group_replacement_exists = UsersRepository.get_user_by_id(
+                user_id_replacement
+            )
+            if not group_replacement_exists:
+                raise ValueError(
+                    f"Der User mit der ID {user_id_replacement} existiert nicht."
                 )
-                if not group_replacement_exists:
-                    raise ValueError(
-                        f"Der User mit der ID {user_id_replacement} existiert nicht."
-                    )
-                if group_replacement_exists.user_group != UserGroup.gruppenleitung:
-                    raise ValueError(
-                        f"Der Ersatz-User mit der ID {user_id_replacement} ist kein Gruppenleiter."
-                    )
+            if group_replacement_exists.user_group != UserGroup.gruppenleitung:
+                raise ValueError(
+                    f"Der Ersatz-User mit der ID {user_id_replacement} ist kein Gruppenleiter."
+                )
             group.user_id_replacement = user_id_replacement
-            changes = True
-        if changes:
-            GroupsRepository.update_group(group)
-            return (group, True)
-        return (group, False)
+
+        if location_id != group.location_id:
+            location_exists = LocationsRepository.get_location_by_id(location_id)
+            if not location_exists:
+                raise ValueError(
+                    f"Die Location mit der ID {location_id} existiert nicht."
+                )
+            group.location_id = location_id
+        group.group_name = group_name
+        GroupsRepository.update_group(group)
+        return group

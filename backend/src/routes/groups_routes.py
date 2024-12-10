@@ -198,7 +198,6 @@ def update_group(group_id: UUID):
     """Update a group."""
     try:
         body = GroupCreateSchema().load(request.json)
-        changes = GroupsService.update_group(group_id, **body)
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
@@ -208,6 +207,8 @@ def update_group(group_id: UUID):
                 details=err.messages,
             )
         )
+    try:
+        GroupsService.update_group(group_id, **body)
     except ValueError as err:
         abort_with_err(
             ErrMsg(
@@ -222,15 +223,7 @@ def update_group(group_id: UUID):
             ErrMsg(
                 status_code=404,
                 title="Gruppe nicht gefunden",
-                description="Die Gruppe mit der angegebenen ID existiert nicht.",
-            )
-        )
-    if not changes:
-        abort_with_err(
-            ErrMsg(
-                status_code=400,
-                title="Keine Änderungen",
-                description="Es wurden keine Änderungen an der Gruppe vorgenommen.",
+                description=f"Die Gruppe mit der angegebenen ID {group_id} existiert nicht.",
             )
         )
     return jsonify({"message": "Gruppe erfolgreich aktualisiert."})
@@ -270,7 +263,7 @@ def delete_group(group_id: UUID):
             ErrMsg(
                 status_code=404,
                 title="Gruppe nicht gefunden",
-                description="Die Gruppe mit der angegebenen ID existiert nicht.",
+                description=f"Die Gruppe mit der angegebenen ID {group_id} existiert nicht.",
             )
         )
     return jsonify({"message": "Gruppe erfolgreich gelöscht."})
@@ -299,10 +292,8 @@ def delete_group(group_id: UUID):
 )
 def get_all_groups_with_locations():
     """Get all groups and their associated locations."""
-    user_id = g.user_id
-    user_group = g.user_group
     groups_with_locations = GroupsService.get_all_groups_with_locations(
-        user_id, user_group
+        g.user_id, g.user_group
     )
     return jsonify(groups_with_locations)
 
@@ -364,10 +355,8 @@ def get_group_by_id(group_id: UUID):
 )
 def get_groups():
     """Get all groups for respective user."""
-    user_id = g.user_id
-    user_group = g.user_group
     try:
-        groups = GroupsService.get_groups(user_id, user_group)
+        groups = GroupsService.get_groups(g.user_id, g.user_group)
     except ValueError as err:
         abort_with_err(
             ErrMsg(
@@ -379,51 +368,3 @@ def get_groups():
         )
     groups_to_dict = [group.to_dict() for group in groups]
     return jsonify(groups_to_dict)
-
-
-@groups_routes.delete("/api/groups/remove-replacement/<uuid:group_id>")
-@login_required(groups=[UserGroup.standortleitung])
-@swag_from(
-    {
-        "tags": ["groups"],
-        "parameters": [
-            {
-                "in": "path",
-                "name": "group_id",
-                "required": True,
-                "schema": {"type": "string"},
-            },
-        ],
-        "responses": {
-            200: {"description": "Group Replacement successfully removed."},
-            404: {"description": "Group not found."},
-            404: {"description": "Group Replacement not found."},
-        },
-    }
-)
-def remove_group_replacement(group_id: UUID):
-    """Remove a Group Replacement."""
-    try:
-        group_replacement = GroupsService.remove_group_replacement(group_id)
-    except GroupDoesNotExistError:
-        abort_with_err(
-            ErrMsg(
-                status_code=404,
-                title="Gruppe nicht gefunden",
-                description="Die Gruppe mit der angegebenen ID existiert nicht.",
-            )
-        )
-    if group_replacement is None:
-        abort_with_err(
-            ErrMsg(
-                status_code=404,
-                title="Gruppen Vertretung nicht gefunden",
-                description="Die Gruppenvertretung wurde nicht gefunden.",
-            )
-        )
-    user = UsersService.get_user_by_id(group_replacement)
-    return jsonify(
-        {
-            "message": f"Group Replacement: '{user.first_name}', ' {user.last_name}' successfully removed."
-        }
-    )

@@ -94,12 +94,6 @@ class PersonNotPartOfLocation(Exception):
     pass
 
 
-class OrderAlreadyExistsForPersonAndDate(Exception):
-    """Exception raised when an order already exists for a person and date."""
-
-    pass
-
-
 class GroupAlreadyExists(Exception):
     """Exception raised when a group that should be created already exists."""
 
@@ -107,6 +101,12 @@ class GroupAlreadyExists(Exception):
 
 
 class WrongUserError(Exception):
+    """Exception raised when a user is not allowed to create an order for another user."""
+
+    pass
+
+
+class WrongLocationError(Exception):
     """Exception raised when a user is not allowed to create an order for another user."""
 
     pass
