@@ -4,9 +4,15 @@
       <v-card-text
         class="text-center text-h5 underlined text-blue-grey font-weight-bold mb-2"
       >
+        <v-img
+          class="me-2"
+          :inline="true"
+          :width="25"
+          cover
+          src="../assets/logo.png"
+        ></v-img>
         LOGIN
       </v-card-text>
-
       <v-form v-model="form" @submit.prevent="handleSubmit">
         <v-text-field
           v-model="userName"
