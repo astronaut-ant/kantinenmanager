@@ -1,17 +1,38 @@
 <template>
   <NavbarStandort></NavbarStandort>
-  <v-container max-width="1600" class="d-flex justify-center">
-    <div class="d-flex justify-center flex-wrap">
-      <GroupCard
+  <v-container max-width="1400" class="d-flex justify-center">
+    <v-row class="d-flex justify-start">
+      <v-col
+        v-if="loading"
+        v-for="n in 6"
+        :key="n"
+        cols="12" md="6" lg="4"
+        class="d-flex justify-center"
+      >
+        <v-skeleton-loader
+          class="mx-auto"
+          width="400"
+          max-height="200"
+          type="heading, subtitle, divider, chip"
+        />
+      </v-col>
+
+      <v-col
+        v-else
         v-for="group in enrichedGroups"
         :key="group.id"
-        :id="group.id"
-        :name="group.group_name"
-        :group_leader="group.group_leader"
-        :group_leader_replacement="group.group_leader_replacement"
-        :employees="group.employees"
-      />
-    </div>
+        cols="12" md="6" lg="4"
+        class="d-flex justify-center"
+      >
+        <GroupCard
+          :id="group.id"
+          :name="group.group_name"
+          :group_leader="group.group_leader"
+          :group_leader_replacement="group.group_leader_replacement"
+          :employees="group.employees"
+        />
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 
@@ -21,6 +42,7 @@
   const groups = ref([]);
   const employees = ref([]);
   const enrichedGroups = ref([]);
+  const loading = ref(true);
 
   const fetchData = async () => {
     try {
@@ -41,6 +63,7 @@
           employees: employees.value.filter(emp => emp.group_id === group.id),
         };
       });
+      loading.value = false;
     } catch (err) {
       console.error("Error fetching data", err);
     }
