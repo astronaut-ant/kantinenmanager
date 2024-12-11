@@ -30,6 +30,13 @@
               <v-radio label="Küchenpersonal" value="kuechenpersonal"></v-radio>
             </div>
           </v-radio-group>
+          <v-select
+            v-if="user_group === 'kuechenpersonal'"
+            v-model="user_location"
+            :items="allLocations"
+            :rules="[required]"
+            label="Standort"
+          ></v-select>
           <v-text-field
             v-model="first_name"
             :rules="[required]"
@@ -51,13 +58,6 @@
             label="Benutzername"
             clearable
           ></v-text-field>
-          <v-select
-            v-if="user_group === 'kuechenpersonal'"
-            v-model="user_location"
-            :items="allLocations"
-            :rules="[required]"
-            label="Standort"
-          ></v-select>
           <CustomAlert
             v-if="notSuccessful"
             class="mb-7"
