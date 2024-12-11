@@ -176,5 +176,5 @@ def _get_next_monday():
 def start_cronjob(app):
     scheduler = BackgroundScheduler()
     print("Starting cronjob")
-    scheduler.add_job(push_orders_to_next_table, "cron", hour="15", minute="46")
+    scheduler.add_job(lambda: push_orders_to_next_table(app), "cron", hour="20", minute="*")
     scheduler.start()
