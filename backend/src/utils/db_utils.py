@@ -173,10 +173,15 @@ def _get_next_monday():
     return today + timedelta(days_ahead)
 
 
-def start_cronjob(app):
-    scheduler = BackgroundScheduler()
-    print("Starting cronjob")
-    scheduler.add_job(
-        lambda: push_orders_to_next_table(app), "cron", hour="20", minute="20"
-    )
-    scheduler.start()
+def start_cronjob(app, os):
+    if os.environ.get("WERKZEUG_RUN_MAIN") != "true":
+        scheduler = BackgroundScheduler()
+        print("Starting cronjob")
+        scheduler.add_job(
+            lambda: push_orders_to_next_table(app),
+            "cron",
+            hour="*",
+            minute="*",
+            timezone="Europe/Berlin",
+        )
+        scheduler.start()

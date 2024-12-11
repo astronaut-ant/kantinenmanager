@@ -97,13 +97,11 @@ def startup() -> None:
 
     if features.CRONJOBS:
         print("--- Cronjobs enabled             ---")
-        start_cronjob(app)
+        start_cronjob(app, os)
     else:
         print("--- Cronjobs disabled            ---")
-        
+
     register_routes(app)
-
-
 
 
 def configure(app: Flask) -> None:

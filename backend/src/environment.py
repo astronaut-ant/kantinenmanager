@@ -71,7 +71,7 @@ class MigrationFeatures(Features):
     SWAGGER = False
     INSERT_DEFAULT_DATA = False
     INSERT_MOCK_DATA = False
-    CRONJOBS = True
+    CRONJOBS = False
 
 
 class UnitTestingFeatures(Features):
@@ -81,7 +81,7 @@ class UnitTestingFeatures(Features):
     SWAGGER = False
     INSERT_DEFAULT_DATA = False
     INSERT_MOCK_DATA = False
-    CRONJOBS = True
+    CRONJOBS = False
 
 
 def get_features(env: Environment) -> Features:
