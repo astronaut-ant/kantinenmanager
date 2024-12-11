@@ -50,6 +50,19 @@ class GroupCreateSchema(Schema):
                     "location": {"type": "object", "$ref": "#/definitions/Location"},
                 },
             },
+            "GroupReduced": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                    },
+                    "group_name": {"type": "string"},
+                    "user_id_group_leader": {"type": "string"},
+                    "user_id_replacement": {"type": "string"},
+                    "location_id": {"type": "string"},
+                },
+            },
         },
         "parameters": [
             {

@@ -67,6 +67,6 @@ class Employee(Person):
             "first_name": self.first_name,
             "last_name": self.last_name,
             "employee_number": self.employee_number,
-            "group_id": self.group_id,
             "created": self.created.timestamp(),
+            "group": self.group.to_reduced_dict(),
         }
