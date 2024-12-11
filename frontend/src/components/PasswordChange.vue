@@ -1,17 +1,18 @@
 <template>
   <v-dialog
+    color=""
     v-model="dialog"
     max-width="600"
     :persistent="true"
     :no-click-animation="true"
   >
     <template v-slot:activator="{ props: activatorProps }">
-      <v-btn variant="text" v-bind="activatorProps" rounded
+      <v-btn variant="text" v-bind="activatorProps" class="text-blue-grey"
         ><v-icon class="me-4">mdi-key-variant</v-icon>Passwort ändern</v-btn
       >
     </template>
 
-    <v-card>
+    <v-card color="blue-grey-lighten-5">
       <v-form
         ref="validation"
         v-model="form"
@@ -19,8 +20,9 @@
         @submit.prevent="handleSubmit"
       >
         <v-card-text class="mx-auto w-75">
-          <h2 class="mt-8 mb-8">
-            <v-icon class="me-4">mdi-key-variant</v-icon>Passwort ändern
+          <h2 class="mt-8 mb-8 text-blue-grey font-weight-bold">
+            <v-icon class="me-4 text-blue-grey">mdi-key-variant</v-icon>Passwort
+            ändern
           </h2>
           <CustomAlert
             class="mb-6"
@@ -30,30 +32,48 @@
             :text="alertText"
           />
           <v-text-field
+            base-color="blue-grey"
+            color="blue-grey"
+            variant="solo"
+            :append-inner-icon="
+              showOldPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline'
+            "
             class="mt-3"
             label="Altes Passwort*"
-            type="password"
+            :type="showOldPassword ? 'text' : 'password'"
             v-model="passwordOld"
             :rules="[required]"
-            clearable
+            @click:append-inner="showOldPassword = !showOldPassword"
             required
           ></v-text-field>
           <v-text-field
+            base-color="blue-grey"
+            color="blue-grey"
+            variant="solo"
+            :append-inner-icon="
+              showNewPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline'
+            "
             class="mt-3"
             label="Neues Passwort*"
-            type="password"
+            :type="showNewPassword ? 'text' : 'password'"
             v-model="passwordNew"
             :rules="[required, minlength]"
-            clearable
+            @click:append-inner="showNewPassword = !showNewPassword"
             required
           ></v-text-field>
           <v-text-field
+            base-color="blue-grey"
+            color="blue-grey"
+            variant="solo"
+            :append-inner-icon="
+              showConfirmPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline'
+            "
             class="mt-3"
             label="Neues Passwort bestätigen*"
-            type="password"
+            :type="showConfirmPassword ? 'text' : 'password'"
             v-model="passwordConf"
             :rules="[required, minlength]"
-            clearable
+            @click:append-inner="showConfirmPassword = !showConfirmPassword"
             required
           ></v-text-field>
           <small class="text-caption text-medium-emphasis text-end"
@@ -68,9 +88,9 @@
           <v-btn
             v-if="isFilling"
             type="submit"
-            color="primary"
+            class="bg-primary"
             text="Speichern"
-            variant="tonal"
+            variant="elevated"
             :disabled="!form"
           ></v-btn>
         </v-card-actions>
@@ -95,6 +115,9 @@ const alertIcon = ref("");
 const validation = ref("");
 const goBackText = ref("abbrechen");
 const isFilling = ref(true);
+const showOldPassword = ref(false);
+const showNewPassword = ref(false);
+const showConfirmPassword = ref(false);
 
 const required = (v) => {
   return !!v || "Eingabe erforderlich";

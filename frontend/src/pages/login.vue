@@ -7,7 +7,7 @@
         </div>
         <div class="">
           <v-card-text
-            class="text-center text-h5 underlined text-blue-grey font-weight-bold"
+            class="text-center text-h5 text-blue-grey font-weight-bold"
           >
             LOGIN
           </v-card-text>
@@ -45,7 +45,6 @@
         />
         <v-container class="d-flex justify-center">
           <v-btn
-            class="mb-2 elevation-2"
             :disabled="!form"
             color="primary"
             size="large"
