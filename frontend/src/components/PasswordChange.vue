@@ -73,6 +73,7 @@
             :type="showConfirmPassword ? 'text' : 'password'"
             v-model="passwordConf"
             :rules="[required, minlength]"
+            validate-on="input"
             @click:append-inner="showConfirmPassword = !showConfirmPassword"
             required
           ></v-text-field>
@@ -102,6 +103,7 @@
 <script setup>
 import { useAppStore } from "@/stores/app";
 import CustomAlert from "./CustomAlert.vue";
+import axios from "axios";
 const appStore = useAppStore();
 const dialog = ref(false);
 const passwordOld = ref("");
@@ -135,19 +137,31 @@ const handleSubmit = () => {
     alertColor.value = "red";
     alertIcon.value = "$error";
     showAlert.value = true;
-  } else if (passwordOld.value != "12345678") {
-    //dummy...fetchen...
-    alertText.value = "Altes Passwort falsch";
-    alertColor.value = "red";
-    alertIcon.value = "$error";
-    showAlert.value = true;
   } else {
-    alertText.value = "Passwort geändert";
-    alertColor.value = "success";
-    alertIcon.value = "$success";
-    showAlert.value = true;
-    goBackText.value = "zurück";
-    isFilling.value = false;
+    axios
+      .post(
+        "http://localhost:4200/api/account/change-password",
+        {
+          new_password: passwordNew.value,
+          old_password: passwordOld.value,
+        },
+        { withCredentials: true }
+      )
+      .then((response) => {
+        console.log(response.data.id);
+        alertText.value = "Passwort geändert";
+        alertColor.value = "success";
+        alertIcon.value = "$success";
+        showAlert.value = true;
+        goBackText.value = "zurück";
+        isFilling.value = false;
+      })
+      .catch((err) => {
+        alertText.value = "Altes Passwort falsch";
+        alertColor.value = "red";
+        alertIcon.value = "$error";
+        showAlert.value = true;
+      });
   }
 };
 

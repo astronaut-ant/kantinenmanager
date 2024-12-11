@@ -1,11 +1,6 @@
 <template>
   <NavbarVerwaltung />
-  <ConfirmDialogCreateUser
-    :showConfirm="showConfirm"
-    :userName="username"
-    :initialPassword="initialPassword"
-    @close="emptyForm"
-  />
+
   <div class="d-flex justify-center mt-n4">
     <div>
       <v-card class="elevation-7 px-6 py-4 w-100">
@@ -80,6 +75,14 @@
       </v-card>
     </div>
   </div>
+  <ConfirmDialogCreateUser
+    v-if="showConfirm"
+    :showConfirm="showConfirm"
+    :userName="username"
+    :userGroup="user_group"
+    :initialPassword="initialPassword"
+    @close="emptyForm"
+  />
 </template>
 
 <script setup>
