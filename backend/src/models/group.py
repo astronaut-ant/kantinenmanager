@@ -79,7 +79,13 @@ class Group(db.Model):
             "id": str(self.id),
             "group_name": self.group_name,
             # "group_number": self.group_number,
-            "user_id_group_leader": str(self.user_id_group_leader),
-            "user_id_replacement": str(self.user_id_replacement),
-            "location_id": str(self.location_id),
+            "group_leader": (
+                self.group_leader.to_dict_reduced() if self.group_leader else None
+            ),
+            "group_leader_replacement": (
+                self.group_leader_replacement.to_dict_reduced()
+                if self.group_leader_replacement
+                else None
+            ),
+            "location": self.location.to_dict() if self.location else None,
         }

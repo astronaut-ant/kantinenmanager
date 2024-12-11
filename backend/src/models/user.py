@@ -127,3 +127,19 @@ class User(Person):
             "last_login": self.last_login.timestamp() if self.last_login else 0,
             "blocked": self.blocked,
         }
+
+    def to_dict_reduced(self) -> dict[str, str | int | bool]:
+        """Convert the user to a dictionary with reduced information
+
+        All complex objects are converted to their string representation.
+
+        :return: A dictionary containing the user's information
+        """
+
+        return {
+            "id": str(self.id),
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "username": self.username,
+            "user_group": self.user_group.value,
+        }

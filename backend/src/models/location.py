@@ -76,5 +76,5 @@ class Location(db.Model):
         return {
             "id": str(self.id),
             "location_name": self.location_name,
-            "user_id_location_leader": str(self.user_id_location_leader),
+            "location_leader": self.location_leader.to_dict_reduced(),
         }

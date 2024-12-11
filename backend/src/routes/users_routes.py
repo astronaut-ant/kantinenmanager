@@ -36,6 +36,19 @@ users_routes = Blueprint("users_routes", __name__)
     {
         "tags": ["users"],
         "definitions": {
+            "UserReduced": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                    },
+                    "first_name": {"type": "string"},
+                    "last_name": {"type": "string"},
+                    "username": {"type": "string"},
+                    "user_group": {"type": "string"},
+                },
+            },
             "User": {
                 "type": "object",
                 "properties": {
@@ -51,7 +64,7 @@ users_routes = Blueprint("users_routes", __name__)
                     "last_login": {"type": "number"},
                     "blocked": {"type": "boolean"},
                 },
-            }
+            },
         },
         "responses": {
             200: {

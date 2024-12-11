@@ -38,11 +38,18 @@ class GroupCreateSchema(Schema):
                         "example": "123e4567-e89b-12d3-a456-426614174000",
                     },
                     "group_name": {"type": "string"},
-                    "user_id_group_leader": {"type": "string"},
-                    "location_id": {"type": "string"},
-                    "user_id_replacement": {"type": "string"},
+                    "group_leader": {
+                        "type": "object",
+                        "$ref": "#/definitions/UserReduced",
+                    },
+                    "group_leader_replacement": {
+                        "type": "object",
+                        "nullable": True,
+                        "$ref": "#/definitions/UserReduced",
+                    },
+                    "location": {"type": "object", "$ref": "#/definitions/Location"},
                 },
-            }
+            },
         },
         "parameters": [
             {
