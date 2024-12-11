@@ -8,7 +8,7 @@
                 icon="mdi-account-circle"
                 size="small"
                 ></v-icon>
-                <span class="me-1 ml-2">{{ props.group_leader }}</span>
+                <span class="me-1 ml-2">{{ props.group_leader.first_name }} {{ props.group_leader.last_name }}</span>
             </v-card-subtitle>
         </v-card-item>
         <v-card-text>
@@ -50,9 +50,9 @@
                             <p class="font-weight-black"> Gruppenleitung </p>
                         </div>
                         <div class="ml-5 text-medium-emphasis">
-                            <p color="text-primary"> Vorname: Max </p>
-                            <p color="text-primary"> Nachname: Mustermann </p>
-                            <p color="text-primary"> Benutzername: testtest </p>
+                            <p color="text-primary"> Vorname: {{props.group_leader.first_name}} </p>
+                            <p color="text-primary"> Nachname: {{props.group_leader.last_name}} </p>
+                            <p color="text-primary"> Benutzername: {{props.group_leader.username}} </p>
                         </div>
                     </v-tabs-window-item>
 

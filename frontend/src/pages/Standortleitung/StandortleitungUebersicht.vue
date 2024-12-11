@@ -55,13 +55,13 @@
 
       employees.value = employeesResponse.data;
       groups.value = groupsResponse.data;
-
+      console.log(groups.value);
       enrichedGroups.value = groups.value.map((group) => {
         return {
           id: group.id,
           group_name: group.group_name,
-          group_leader: group.user_id_group_leader,
-          group_leader_replacement: group.user_id_replacement,
+          group_leader: group.group_leader,
+          group_leader_replacement: group.group_leader_replacement,
           employees: employees.value.filter(emp => emp.group_id === group.id),
         };
       });
