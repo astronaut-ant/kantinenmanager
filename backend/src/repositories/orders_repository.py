@@ -152,6 +152,26 @@ class OrdersRepository:
         return db.session.scalars(select(PreOrder).filter(PreOrder.id == id)).first()
 
     @staticmethod
+    def get_pre_orders_by_group_leader(person_id: UUID) -> List[PreOrder]:
+        """
+        Get pre orders by person id of th group leader
+
+        :param person_id: Person id
+        :return: List of pre orders
+        """
+        return (
+            db.session.execute(
+                select(PreOrder).filter(
+                    PreOrder.person_id.in_(
+                        OrdersRepository.get_employees_to_order_for(person_id)
+                    )
+                )
+            )
+            .scalars()
+            .all()
+        )
+
+    @staticmethod
     def get_pre_orders(filters: OrdersFilters) -> List[PreOrder]:
         """
         Get pre orders based on filters

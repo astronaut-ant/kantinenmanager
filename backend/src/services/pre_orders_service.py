@@ -26,6 +26,14 @@ class PreOrdersService:
         """
 
         return OrdersRepository.get_pre_order_by_id(id)
+    
+    @staticmethod
+    def get_pre_orders_by_group_leader(person_id: UUID) -> List[PreOrder]:
+        """
+        Get pre orders by person id of th group leader
+        """
+
+        return OrdersRepository.get_pre_orders_by_group_leader(person_id)
 
     @staticmethod
     def get_pre_orders(filters: OrdersFilters) -> List[PreOrder]:
@@ -75,20 +83,13 @@ class PreOrdersService:
                 order["person_id"], order["date"]
             )
             if order_exists:
-                if not (
-                    order["main_dish"] and order["salad_option"]
-                ):  # 'leere' Bestellungen löschen
-                    OrdersRepository.delete_order(order_exists)
-                else:
-                    order_exists.main_dish = order["main_dish"]
-                    order_exists.salad_option = order["salad_option"]
-                    order_exists.location_id = order["location_id"]
-                    OrdersRepository.update_order(order_exists)
-                continue
-            # Ignoriere Bestellung, wenn sie 'leer' ist
-            if not (order["main_dish"] and order["salad_option"]):
-                continue
-            bulk_orders.append(PreOrder(**order))
+                order_exists.nothing = order["nothing"]
+                order_exists.main_dish = order["main_dish"]
+                order_exists.salad_option = order["salad_option"]
+                order_exists.location_id = order["location_id"]
+                OrdersRepository.update_order(order_exists)
+            else:
+                bulk_orders.append(PreOrder(**order))
 
         OrdersRepository.create_bulk_orders(bulk_orders)
 
@@ -131,7 +132,7 @@ class PreOrdersService:
             raise ValueError(
                 f"Das Datum {new_order['date']} liegt mehr als 14 Tage in der Zukunft."
             )
-        if new_order["date"].weekday() < 5:
+        if new_order["date"].weekday() > 5:
             raise ValueError(f"Das Datum {new_order['date']} ist kein Werktag.")
         if user_id != new_order["person_id"]:
             raise WrongUserError(
@@ -139,7 +140,8 @@ class PreOrdersService:
             )
         if not (new_order["main_dish"] and new_order["salad_option"]):
             return OrdersRepository.delete_order(new_order)
-        old_order = OrdersRepository.get_preorder_by_id(preorder_id)
+        old_order = OrdersRepository.get_pre_order_by_id(preorder_id)
+        old_order.nothing = new_order["nothing"]
         old_order.date = new_order["date"]
         old_order.main_dish = new_order["main_dish"]
         old_order.salad_option = new_order["salad_option"]

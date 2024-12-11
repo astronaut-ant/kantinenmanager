@@ -194,7 +194,7 @@ def get_pre_order(preorder_id: int):
         },
     }
 )
-def get_orders_by_group_leader(person_id: UUID):
+def get_pre_orders_by_group_leader(person_id: UUID):
     """Get orders by group leader
     Retrieves all groups of the group leader along with the orders of the employees in these groups.
     ---
@@ -216,11 +216,12 @@ class PreOrdersPostPutBody(Schema):
     person_id = fields.UUID(required=True)
     location_id = fields.UUID(required=True)
     date = fields.Date(required=True)  # ISO 8601-formatted date string
+    nothing = fields.Boolean(required=True)
     main_dish = fields.Enum(MainDish, required=False, default=None)
     salad_option = fields.Boolean(required=False, default=False)
 
 
-@pre_orders_routes.post("/api/orders")
+@pre_orders_routes.post("/api/pre-orders")
 @login_required(groups=[UserGroup.gruppenleitung])
 @swag_from(
     {
@@ -245,6 +246,7 @@ class PreOrdersPostPutBody(Schema):
                         "format": "date",
                         "example": "2024-12-08",
                     },
+                    "nothing": {"type": "boolean", "example": False},
                     "main_dish": {
                         "type": "string",
                         "enum": ["rot", "blau"],
@@ -350,7 +352,7 @@ def create_update_preorders_employees():
     return jsonify({"message": "Bestellungen erfolgreich erstellt"}), 201
 
 
-@pre_orders_routes.post("/api/orders/<uuid:user_id>")
+@pre_orders_routes.post("/api/pre-orders/<uuid:user_id>")
 @login_required(
     groups=[UserGroup.verwaltung, UserGroup.standortleitung, UserGroup.gruppenleitung]
 )
@@ -444,7 +446,7 @@ def create_preorder_user(user_id: UUID):
     return jsonify({"message": "Bestellung erfolgreich aufgenommen."}), 201
 
 
-@pre_orders_routes.put("/api/orders/<int:preorder_id>")
+@pre_orders_routes.put("/api/pre-orders/<int:preorder_id>")
 @login_required(
     groups=[UserGroup.verwaltung, UserGroup.standortleitung, UserGroup.gruppenleitung]
 )
@@ -538,7 +540,7 @@ def update_preorder_user(preorder_id: UUID):
     return jsonify({"message": "Bestellung erfolgreich aktualisiert."}), 201
 
 
-@pre_orders_routes.delete("/api/orders/<uuid:preorder_id>")
+@pre_orders_routes.delete("/api/pre-orders/<uuid:preorder_id>")
 @login_required(
     groups=[UserGroup.verwaltung, UserGroup.standortleitung, UserGroup.gruppenleitung]
 )

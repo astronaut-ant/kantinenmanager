@@ -27,7 +27,7 @@ class OldOrdersGetQuery(Schema):
     date_end = fields.Date(data_key="date-end", required=False)
 
 
-@old_orders_routes.get("/api/pre-orders")
+@old_orders_routes.get("/api/old-orders")
 @login_required()  # TODO Permissions
 @swag_from(
     {
