@@ -165,3 +165,24 @@ class User(Person):
                 group.to_reduced_dict() for group in self.replacement_leader_of_groups
             ],
         }
+
+    def to_dict_location_leader(self) -> dict[str, str | int | bool | list | dict]:
+        """Convert the user to a dictionary containing additional information for location leaders
+
+        Resolves the location that the user leads.
+
+        :return: A dictionary containing the user's information
+        """
+
+        return {
+            "id": str(self.id),
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "username": self.username,
+            "user_group": self.user_group.value,
+            "leader_of_location": (
+                self.leader_of_location.to_dict_reduced()
+                if self.leader_of_location
+                else None
+            ),
+        }

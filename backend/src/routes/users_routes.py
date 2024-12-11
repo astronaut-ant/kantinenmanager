@@ -29,7 +29,6 @@ from flasgger import swag_from
 users_routes = Blueprint("users_routes", __name__)
 
 
-# Bei jedem GET Request (siehe HTTP) auf /api/users wird die get_users Funktion aufgerufen
 @users_routes.get("/api/users")
 @login_required(groups=[UserGroup.verwaltung])
 @swag_from(
@@ -87,6 +86,24 @@ users_routes = Blueprint("users_routes", __name__)
                     },
                 },
             },
+            "LocationLeader": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                    },
+                    "first_name": {"type": "string"},
+                    "last_name": {"type": "string"},
+                    "username": {"type": "string"},
+                    "user_group": {"type": "string"},
+                    "leader_of_location": {
+                        "type": "object",
+                        "$ref": "#/definitions/LocationReduced",
+                        "nullable": True,
+                    },
+                },
+            },
         },
         "responses": {
             200: {
@@ -104,18 +121,11 @@ def get_users():
     Authorization: Verwaltung
     ---
     """
-    # Der docstring --^ ist wie wir Flasgger über die Parameter und Rückgabewerte
-    # dieses Endpunkts informieren. Die Informationen werden extrahiert und
-    # graphisch auf http://localhost:4200/apidocs/ angezeigt.
-    # Achtung: Im Kommentar wird YAML verwendet, was **2** Leerzeichen als Einrückung verwendet.
 
     users = UsersService.get_users()
 
-    # Diese wird in eine Liste an Dicts umgewandelt, aber ohne das Passwort
     users_dict = [user.to_dict_without_pw_hash() for user in users]
 
-    # Die dicts brauchen wir, denn daraus können wir JSON erzeugen.
-    # Mit jsonify wird automatisch ein Response Object erstellt.
     return jsonify(users_dict)
 
 
@@ -162,7 +172,7 @@ def get_user_by_id(user_id: UUID):
     return jsonify(user.to_dict_without_pw_hash())
 
 
-@users_routes.get("/api/users/group-leader")
+@users_routes.get("/api/users/group-leaders")
 @login_required(groups=[UserGroup.verwaltung])
 @swag_from(
     {
@@ -178,19 +188,42 @@ def get_user_by_id(user_id: UUID):
         },
     }
 )
-def get_group_leader_by_user_id():
+def get_group_leaders():
     """Get all group leaders with their respective groups
     Returns a list of all group leaders with their respective groups
     ---
     """
-    group_leader = UsersService.get_group_leader()
-    res_dict = [user.to_dict_group_leader() for user in group_leader]
+    group_leaders = UsersService.get_group_leader()
+    res_dict = [leader.to_dict_group_leader() for leader in group_leaders]
     return jsonify(res_dict)
 
 
-# Das folgende kommt aus Marshmallow. https://marshmallow.readthedocs.io/en/stable/#
-# Mit Marshmallow kann man Objekte serialisieren, deserialisieren und validieren, was eine Menge if Statements ersparen sollte.
-# Das Schema gibt an, wie die Daten aussehen sollen, zusammen mit gewissen Einschränkungen.
+@users_routes.get("/api/users/location-leaders")
+@login_required(groups=[UserGroup.verwaltung])
+@swag_from(
+    {
+        "tags": ["users"],
+        "responses": {
+            200: {
+                "description": "Returns a list of all location leaders",
+                "schema": {
+                    "type": "array",
+                    "items": {"$ref": "#/definitions/LocationLeader"},
+                },
+            }
+        },
+    }
+)
+def get_location_leaders():
+    """Get all location leaders with their location
+    Returns a list of all location leaders with their location
+    ---
+    """
+    location_leaders = UsersService.get_location_leader()
+    res_dict = [leader.to_dict_location_leader() for leader in location_leaders]
+    return jsonify(res_dict)
+
+
 class UsersPostBody(Schema):
     """
     Schema for the POST /api/users endpoint
