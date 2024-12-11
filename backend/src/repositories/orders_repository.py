@@ -9,6 +9,7 @@ from src.models.employee import Employee
 from src.models.group import Group
 from src.models.preorder import PreOrder
 from src.models.dailyorder import DailyOrder
+from src.models.oldorder import OldOrder
 
 
 class OrdersFilters:
@@ -56,50 +57,7 @@ class OrdersFilters:
 
 
 class OrdersRepository:
-
-    @staticmethod
-    def get_pre_order_by_id(id: int) -> Optional[PreOrder]:
-        """
-        Get pre order by id
-
-        :param id: Pre order id
-        :return: Pre order object
-        """
-        return db.session.scalars(select(PreOrder).filter(PreOrder.id == id)).first()
-
-    @staticmethod
-    def get_pre_orders(filters: OrdersFilters) -> List[PreOrder]:
-        """
-        Get pre orders based on filters
-
-        :param filters: Filters for orders
-        :return: List of pre orders
-        """
-        query = select(PreOrder)
-
-        if filters.person_id:
-            query = query.filter(PreOrder.person_id == filters.person_id)
-
-        if filters.location_id:
-            query = query.filter(PreOrder.location_id == filters.location_id)
-
-        if filters.group_id:
-            query = query.filter(
-                PreOrder.person_id.in_(
-                    select(Employee.id).where(Employee.group_id == filters.group_id)
-                )
-            )
-
-        if filters.date:
-            query = query.filter(PreOrder.date == filters.date)
-
-        if filters.date_start:
-            query = query.filter(PreOrder.date >= filters.date_start)
-
-        if filters.date_end:
-            query = query.filter(PreOrder.date <= filters.date_end)
-
-        return db.session.execute(query).scalars().all()
+    """Repository to handle database operations for order data."""
 
     @staticmethod
     def create_bulk_orders(bulk_orders):
@@ -133,32 +91,6 @@ class OrdersRepository:
         """
         db.session.delete(order)
         db.session.commit()
-
-    @staticmethod
-    def get_preorder_by_id(preorder_id: UUID) -> Optional[PreOrder]:
-        """Get preorder by id
-        :param preorder_id: Preorder id
-        :return: Preorder object
-        """
-        return db.session.scalars(
-            select(PreOrder).filter(PreOrder.id == preorder_id)
-        ).first()
-
-    @staticmethod
-    def preorder_already_exists(person_id: UUID, date: date) -> Optional[PreOrder]:
-        """Check if an order already exists for the person and date
-        :param person_id: Person id
-        :param date: Date
-        :return: Preorder if it exists else None
-        """
-        return db.session.scalars(
-            select((PreOrder)).filter(
-                and_(
-                    (PreOrder.person_id == person_id),
-                    (PreOrder.date == date),
-                )
-            )
-        ).first()
 
     @staticmethod
     def get_employees_to_order_for(user_id: UUID) -> List[UUID]:
@@ -207,6 +139,69 @@ class OrdersRepository:
             > 0
         )
 
+    ############################ PreOrders ############################
+
+    @staticmethod
+    def get_pre_order_by_id(id: int) -> Optional[PreOrder]:
+        """
+        Get pre order by id
+
+        :param id: Pre order id
+        :return: Pre order object
+        """
+        return db.session.scalars(select(PreOrder).filter(PreOrder.id == id)).first()
+
+    @staticmethod
+    def get_pre_orders(filters: OrdersFilters) -> List[PreOrder]:
+        """
+        Get pre orders based on filters
+
+        :param filters: Filters for orders
+        :return: List of pre orders
+        """
+        query = select(PreOrder)
+
+        if filters.person_id:
+            query = query.filter(PreOrder.person_id == filters.person_id)
+
+        if filters.location_id:
+            query = query.filter(PreOrder.location_id == filters.location_id)
+
+        if filters.group_id:
+            query = query.filter(
+                PreOrder.person_id.in_(
+                    select(Employee.id).where(Employee.group_id == filters.group_id)
+                )
+            )
+
+        if filters.date:
+            query = query.filter(PreOrder.date == filters.date)
+
+        if filters.date_start:
+            query = query.filter(PreOrder.date >= filters.date_start)
+
+        if filters.date_end:
+            query = query.filter(PreOrder.date <= filters.date_end)
+
+        return db.session.execute(query).scalars().all()
+
+    @staticmethod
+    def preorder_already_exists(person_id: UUID, date: date) -> Optional[PreOrder]:
+        """Check if an order already exists for the person and date
+        :param person_id: Person id
+        :param date: Date
+        :return: Preorder if it exists else None
+        """
+        return db.session.scalars(
+            select((PreOrder)).filter(
+                and_(
+                    (PreOrder.person_id == person_id),
+                    (PreOrder.date == date),
+                )
+            )
+        ).first()
+
+    ############################ DailyOrders ############################
     @staticmethod
     def get_daily_order_by_person_id(person_id: UUID) -> DailyOrder:
         """
@@ -215,7 +210,7 @@ class OrdersRepository:
         :return: DailyOrder object
         """
         return db.session.scalars(
-            select(DailyOrder).filter(PreOrder.person_id == person_id)
+            select(DailyOrder).filter(DailyOrder.person_id == person_id)
         ).first()
 
     @staticmethod
@@ -228,3 +223,38 @@ class OrdersRepository:
         return db.session.scalars(
             select(DailyOrder).filter(DailyOrder.id == daily_order_id)
         ).first()
+
+    ############################ OldOrders ############################
+    @staticmethod
+    def get_old_orders(filters: OrdersFilters) -> List[OldOrder]:
+        """
+        Get old orders based on filters
+
+        :param filters: Filters for orders
+        :return: List of old orders
+        """
+        query = select(OldOrder)
+
+        if filters.person_id:
+            query = query.filter(OldOrder.person_id == filters.person_id)
+
+        if filters.location_id:
+            query = query.filter(OldOrder.location_id == filters.location_id)
+
+        if filters.group_id:
+            query = query.filter(
+                OldOrder.person_id.in_(
+                    select(Employee.id).where(Employee.group_id == filters.group_id)
+                )
+            )
+
+        if filters.date:
+            query = query.filter(OldOrder.date == filters.date)
+
+        if filters.date_start:
+            query = query.filter(OldOrder.date >= filters.date_start)
+
+        if filters.date_end:
+            query = query.filter(OldOrder.date <= filters.date_end)
+
+        return db.session.execute(query).scalars().all()

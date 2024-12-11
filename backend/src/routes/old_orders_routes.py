@@ -122,5 +122,5 @@ def get_old_orders():
             )
         )
 
-    orders = OldOrderService.get_pre_orders(filters)
+    orders = OldOrdersService.get_old_orders(filters)
     return jsonify([order.to_dict() for order in orders]), 200

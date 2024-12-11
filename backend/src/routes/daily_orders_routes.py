@@ -153,7 +153,7 @@ def get_daily_order(person_id: UUID):
         },
     }
 )
-def update_daily_order(daily_order_id: UUID):
+def update_daily_order(daily_order_id: int):
     """
     Update an existing daily order for a person (kitchen staff)
     """
