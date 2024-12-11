@@ -72,7 +72,6 @@
   const snackbarText = ref("");
   const items = ref([]);
   const groups = ref([]);
-  const locations = ref([]);
   const employees = ref([]);
 
   const toggleSearchField = () => {
@@ -146,19 +145,16 @@
   const fetchData = async () => {
     try {
       loading.value = true;
-      const [employeesResponse, groupsResponse, locationsResponse] = await Promise.all([
+      const [employeesResponse, groupsResponse] = await Promise.all([
         axios.get("http://localhost:4200/api/employees", { withCredentials: true }),
         axios.get("http://localhost:4200/api/groups", { withCredentials: true }),
-        axios.get("http://localhost:4200/api/locations", { withCredentials: true }),
       ]);
 
       employees.value = employeesResponse.data;
       groups.value = groupsResponse.data;
-      locations.value = locationsResponse.data;
 
       items.value = employees.value.map((employee) => {
         const group = groups.value.find((g) => g.id === employee.group_id);
-        const location = group ? locations.value.find((l) => l.id === group.location_id) : null;
 
         return {
           id: employee.id,
@@ -167,10 +163,13 @@
           employee_number: employee.employee_number,
           group_id: group?.id || null,
           group_name: group?.group_name || "Unbekannt",
-          location_id: location?.id || null,
-          location_name: location?.location_name || "Unbekannt",
+          location_id: group?.location.id || null,
+          location_name: group?.location.location_name || "Unbekannt",
         };
       });
+      console.log(employees.value);
+      console.log(groups.value);
+      console.log(items.value)
       loading.value = false;
     } catch (err) {
       console.error("Error fetching data", err);
