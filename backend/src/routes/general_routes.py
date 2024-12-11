@@ -61,5 +61,5 @@ def health():
 # Test route for testing cronjobs
 @general_routes.get("/api/push")
 def pushing():
-    push()
+    push(app)
     return "Success"
