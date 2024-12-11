@@ -1,5 +1,5 @@
 <template>
-    <v-card class="mx-2 my-2" width="400" elevation="16" min-width="20em">
+    <v-card class="mx-2 my-2" width="450" elevation="16">
         <v-card-item>
             <v-card-title>{{ props.name }}</v-card-title>
             <v-card-subtitle>
