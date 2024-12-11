@@ -15,6 +15,7 @@ class PreOrder(db.Model):
     :param id: The pre-order's ID as UUID4
     :param person_id: The person's ID (foreign key to the person table)
     :param date: The date of the pre-order
+    :param nothing: Whether the order is empty
     :param main_dish: The selected main dish
     :param salad_option: Whether a salad is included
     :param last_changed: The date and time when the order was last changed
@@ -26,6 +27,7 @@ class PreOrder(db.Model):
     person_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("person.id"))
     location_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("location.id"))
     date: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    nothing: Mapped[bool] = mapped_column(Boolean, nullable=False)
     main_dish: Mapped[MainDish] = mapped_column(
         sqlalchemy.Enum(MainDish), nullable=True
     )
@@ -41,6 +43,7 @@ class PreOrder(db.Model):
         person_id: uuid.UUID,
         location_id: uuid.UUID,
         date: datetime,
+        nothing: bool,
         main_dish: MainDish,
         salad_option: bool,
     ):
@@ -49,12 +52,14 @@ class PreOrder(db.Model):
         :param person: The person that made the order
         :param location: The location where the order was made
         :param date: The date of the pre-order
+        :param nothing: Whether the order is empty
         :param main_dish: The selected main dish
         :param salad_option: Whether a salad is included
         """
         self.person_id = person_id
         self.location_id = location_id
         self.date = date
+        self.nothing = nothing
         self.main_dish = main_dish
         self.salad_option = salad_option
         self.last_changed = datetime.now()
@@ -70,6 +75,7 @@ class PreOrder(db.Model):
             "person_id": str(self.person_id),
             "location_id": str(self.location_id),
             "date": self.date.strftime("%Y-%m-%d"),
+            "nothing": self.nothing,
             "main_dish": self.main_dish.value if self.main_dish else None,
             "salad_option": self.salad_option,
             "last_changed": self.last_changed.timestamp(),

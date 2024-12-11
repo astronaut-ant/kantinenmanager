@@ -7,15 +7,8 @@ from flask import Blueprint, jsonify, request, g
 from flasgger import swag_from
 from src.models.user import UserGroup
 from src.models.maindish import MainDish
-from src.services.orders_service import (
-    OrdersFilters,
-    OrdersService,
-    PersonNotPartOfGroup,
-    PersonNotPartOfLocation,
-    WrongUserError,
-    WrongLocationError,
-)
-from src.services.old_orders_service import OldOrdersFilters, OldOrderService
+from src.services.old_orders_service import OrdersFilters, OldOrdersService
+
 
 old_orders_routes = Blueprint("old_orders_routes", __name__)
 
@@ -23,7 +16,6 @@ old_orders_routes = Blueprint("old_orders_routes", __name__)
 class OldOrdersGetQuery(Schema):
     """
     Schema for the GET /api/old-orders endpoint
-
     Uses ISO 8601-formatted date strings (YYYY-MM-DD)
     """
 
@@ -117,7 +109,7 @@ def get_old_orders():
 
     try:
         query_params = OldOrdersGetQuery().load(request.args)
-        filters = OldOrdersFilters(**query_params)
+        filters = OrdersFilters(**query_params)
         pprint(filters)
 
     except ValidationError as err:
