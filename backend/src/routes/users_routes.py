@@ -65,6 +65,28 @@ users_routes = Blueprint("users_routes", __name__)
                     "blocked": {"type": "boolean"},
                 },
             },
+            "GroupLeader": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                    },
+                    "first_name": {"type": "string"},
+                    "last_name": {"type": "string"},
+                    "username": {"type": "string"},
+                    "user_group": {"type": "string"},
+                    "own_group": {
+                        "type": "object",
+                        "$ref": "#/definitions/GroupReduced",
+                        "nullable": True,
+                    },
+                    "replacement_groups": {
+                        "type": "array",
+                        "items": {"$ref": "#/definitions/GroupReduced"},
+                    },
+                },
+            },
         },
         "responses": {
             200: {
@@ -107,7 +129,7 @@ def get_users():
                 "in": "path",
                 "name": "user_id",
                 "required": True,
-                "schema": {"type": "string"},
+                "schema": {"type": "string", "format": "uuid"},
             }
         ],
         "responses": {
@@ -138,6 +160,32 @@ def get_user_by_id(user_id: UUID):
         )
 
     return jsonify(user.to_dict_without_pw_hash())
+
+
+@users_routes.get("/api/users/group-leader")
+@login_required(groups=[UserGroup.verwaltung])
+@swag_from(
+    {
+        "tags": ["users"],
+        "responses": {
+            200: {
+                "description": "Returns a list of all group leaders",
+                "schema": {
+                    "type": "array",
+                    "items": {"$ref": "#/definitions/GroupLeader"},
+                },
+            }
+        },
+    }
+)
+def get_group_leader_by_user_id():
+    """Get all group leaders with their respective groups
+    Returns a list of all group leaders with their respective groups
+    ---
+    """
+    group_leader = UsersService.get_group_leader()
+    res_dict = [user.to_dict_group_leader() for user in group_leader]
+    return jsonify(res_dict)
 
 
 # Das folgende kommt aus Marshmallow. https://marshmallow.readthedocs.io/en/stable/#

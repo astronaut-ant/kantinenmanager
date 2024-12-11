@@ -142,3 +142,9 @@ class UsersService:
         AuthService.invalidate_all_refresh_tokens(user.id)
 
         return new_password
+
+    @staticmethod
+    def get_group_leader() -> list[User]:
+        """Get all users with the user group 'Group Leader'"""
+
+        return UsersRepository.get_group_leader()

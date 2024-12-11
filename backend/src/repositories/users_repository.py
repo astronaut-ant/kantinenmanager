@@ -86,6 +86,7 @@ class UsersRepository:
         db.session.delete(user)
         db.session.commit()
 
+    @staticmethod
     def get_group_and_location_leaders():
         """Get all group and location leaders"""
         return db.session.scalars(
@@ -98,4 +99,11 @@ class UsersRepository:
             )
             .join(Group, Group.user_id_group_leader == User.id)
             .join(Location, Location.user_id_location_leader == User.id)
+        ).all()
+
+    @staticmethod
+    def get_group_leader():
+        """Get all group leaders"""
+        return db.session.scalars(
+            select(User).where(User.user_group == UserGroup.gruppenleitung)
         ).all()
