@@ -33,8 +33,6 @@
       </v-card>
     </v-dialog>
   </div>
-
-  >
 </template>
 <script setup>
 import AnimatedCircle from "./AnimatedCircle.vue";

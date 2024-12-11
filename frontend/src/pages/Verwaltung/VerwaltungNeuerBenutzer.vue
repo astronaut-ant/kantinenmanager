@@ -6,7 +6,7 @@
     :initialPassword="initialPassword"
     @close="emptyForm"
   />
-  <div class="mt-7 d-flex justify-center">
+  <div class="d-flex justify-center mt-n4">
     <div>
       <v-card class="elevation-7 px-6 py-4 w-100">
         <v-card-text class="mb-2 text-h5">
@@ -54,6 +54,7 @@
           <v-select
             v-if="user_group === 'kuechenpersonal'"
             v-model="user_location"
+            :items="allLocations"
             :rules="[required]"
             label="Standort"
           ></v-select>
