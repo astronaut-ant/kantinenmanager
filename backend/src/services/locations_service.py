@@ -1,6 +1,8 @@
 from uuid import UUID
+from typing import List, Optional
 from src.services.auth_service import AuthService
 from src.models.user import UserGroup
+from src.models.group import Group
 from src.models.location import Location
 from src.repositories.locations_repository import LocationsRepository
 from src.utils.exceptions import (
@@ -84,3 +86,13 @@ class LocationsService:
         """
 
         LocationsRepository.delete_location(location)
+
+    @staticmethod
+    def get_groups_of_location(location_id: UUID) -> Optional[List[Group]]:
+        """Get all groups of a location
+
+        :param location_id: The ID of the location
+        :return: The groups of the location
+        """
+
+        return LocationsRepository.get_groups_of_location(location_id)

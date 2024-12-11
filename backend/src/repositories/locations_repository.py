@@ -3,6 +3,8 @@ from src.models.user import User
 from src.database import db
 from uuid import UUID
 from src.models.location import Location
+from src.models.group import Group
+from typing import List, Optional
 
 
 class LocationsRepository:
@@ -81,3 +83,15 @@ class LocationsRepository:
         """
         db.session.delete(location)
         db.session.commit()
+
+    @staticmethod
+    def get_groups_of_location(location_id: UUID) -> List[Group]:
+        """Retrieve all groups of a location
+
+        :param location_id: The ID of the location
+
+        :return: A list of all groups of the location
+        """
+        return db.session.scalars(
+            select(Group).where(Group.location_id == location_id)
+        ).all()

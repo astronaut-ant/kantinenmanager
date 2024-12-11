@@ -18,7 +18,9 @@ from .routes.employees_routes import employees_routes
 from .routes.persons_routes import persons_routes
 from .routes.groups_routes import groups_routes
 from .routes.locations_routes import locations_routes
-from .routes.orders_routes import orders_routes
+from .routes.pre_orders_routes import pre_orders_routes
+from .routes.daily_orders_routes import daily_orders_routes
+from .routes.old_orders_routes import old_orders_routes
 
 
 app = Flask(__name__)  # Globally accessible Flask app instance
@@ -166,7 +168,9 @@ def register_routes(app: Flask) -> None:
     app.register_blueprint(persons_routes)
     app.register_blueprint(groups_routes)
     app.register_blueprint(locations_routes)
-    app.register_blueprint(orders_routes)
+    app.register_blueprint(pre_orders_routes)
+    app.register_blueprint(daily_orders_routes)
+    app.register_blueprint(old_orders_routes)
 
 
 startup()

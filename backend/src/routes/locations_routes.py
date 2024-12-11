@@ -307,6 +307,15 @@ def delete_location(location_id: UUID):
             )
         )
 
+    groups_of_location = LocationsService.get_groups_of_location(location_id)
+    if groups_of_location:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Standort konnte nicht gelöscht werden",
+                description="Der Standort konnte nicht gelöscht werden, weil er noch Gruppen enthält",
+            )
+        )
     try:
         LocationsService.delete_location(location)
     except Exception as err:

@@ -7,9 +7,9 @@ from flask import Blueprint, jsonify, request, g
 from flasgger import swag_from
 from src.models.user import UserGroup
 from src.models.maindish import MainDish
-from src.services.orders_service import (
+from backend.src.services.pre_orders_service import (
     OrdersFilters,
-    OrdersService,
+    PreOrdersService,
     PersonNotPartOfGroup,
     PersonNotPartOfLocation,
     WrongUserError,
@@ -17,12 +17,12 @@ from src.services.orders_service import (
 )
 
 
-orders_routes = Blueprint("orders_routes", __name__)
+pre_orders_routes = Blueprint("pre_orders_routes", __name__)
 
 
 class OrdersGetQuery(Schema):
     """
-    Schema for the GET /api/pre-orders endpoint
+    Schema for the GET /api/daily-orders endpoint
 
     Uses ISO 8601-formatted date strings (YYYY-MM-DD)
     """
@@ -35,7 +35,7 @@ class OrdersGetQuery(Schema):
     date_end = fields.Date(data_key="date-end", required=False)
 
 
-@orders_routes.get("/api/pre-orders")
+@pre_orders_routes.get("/api/pre-orders")
 @login_required()  # TODO Permissions
 @swag_from(
     {
@@ -130,11 +130,11 @@ def get_pre_orders():
             )
         )
 
-    orders = OrdersService.get_pre_orders(filters)
+    orders = PreOrdersService.get_pre_orders(filters)
     return jsonify([order.to_dict() for order in orders]), 200
 
 
-@orders_routes.get("/api/pre-orders/<int:preorder_id>")
+@pre_orders_routes.get("/api/pre-orders/<int:preorder_id>")
 @login_required()  # TODO Permissions
 @swag_from(
     {
@@ -161,7 +161,7 @@ def get_pre_order(preorder_id: int):
     Get a single pre-order
     """
 
-    order = OrdersService.get_pre_order_by_id(preorder_id)
+    order = PreOrdersService.get_pre_order_by_id(preorder_id)
     if order is None:
         abort_with_err(
             ErrMsg(
@@ -174,7 +174,7 @@ def get_pre_order(preorder_id: int):
     return jsonify(order.to_dict()), 200
 
 
-@orders_routes.get("/api/pre-orders/by-group-leader/<uuid:person_id>")
+@pre_orders_routes.get("/api/pre-orders/by-group-leader/<uuid:person_id>")
 @login_required(groups=[UserGroup.gruppenleitung])
 @swag_from(
     {
@@ -208,47 +208,7 @@ def get_orders_by_group_leader(person_id: UUID):
     )
 
 
-@orders_routes.get("/api/daily-orders")
-@login_required()  # TODO Permissions
-@swag_from(
-    {
-        "tags": ["orders"],
-    }
-)
-def get_daily_orders():
-    """
-    Get daily orders
-    """
-    abort_with_err(
-        ErrMsg(
-            status_code=501,
-            title="Not implemented",
-            description="This endpoint is not implemented yet.",
-        )
-    )
-
-
-@orders_routes.get("/api/daily-orders/<int:daily_order_id>")
-@login_required()  # TODO Permissions
-@swag_from(
-    {
-        "tags": ["orders"],
-    }
-)
-def get_daily_orders_for_person(daily_order_id: int):
-    """
-    Get daily orders for a person
-    """
-    abort_with_err(
-        ErrMsg(
-            status_code=501,
-            title="Not implemented",
-            description="This endpoint is not implemented yet.",
-        )
-    )
-
-
-class OrdersPostPutBody(Schema):
+class PreOrdersPostPutBody(Schema):
     """
     Schema for the POST and PUT /api/locations endpoint
     """
@@ -260,7 +220,7 @@ class OrdersPostPutBody(Schema):
     salad_option = fields.Boolean(required=False, default=False)
 
 
-@orders_routes.post("/api/orders")
+@pre_orders_routes.post("/api/orders")
 @login_required(groups=[UserGroup.gruppenleitung])
 @swag_from(
     {
@@ -346,7 +306,7 @@ def create_update_preorders_employees():
     Bulk create and update preorders for employees
     """
     try:
-        orders = OrdersPostPutBody(many=True).load(request.json)
+        orders = PreOrdersPostPutBody(many=True).load(request.json)
         if not orders:
             return jsonify({"message": "Keine Bestellungen übergeben."}), 200
     except ValidationError as err:
@@ -359,7 +319,7 @@ def create_update_preorders_employees():
             )
         )
     try:
-        OrdersService.create_update_bulk_preorders(orders, g.user_group, g.user_id)
+        PreOrdersService.create_update_bulk_preorders(orders, g.user_group, g.user_id)
     except ValueError as err:
         abort_with_err(
             ErrMsg(
@@ -390,7 +350,7 @@ def create_update_preorders_employees():
     return jsonify({"message": "Bestellungen erfolgreich erstellt"}), 201
 
 
-@orders_routes.post("/api/orders/<uuid:user_id>")
+@pre_orders_routes.post("/api/orders/<uuid:user_id>")
 @login_required(
     groups=[UserGroup.verwaltung, UserGroup.standortleitung, UserGroup.gruppenleitung]
 )
@@ -451,7 +411,7 @@ def create_preorder_user(user_id: UUID):
     Create a new preorder for an user
     """
     try:
-        preorder = OrdersPostPutBody().load(request.json)
+        preorder = PreOrdersPostPutBody().load(request.json)
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
@@ -462,7 +422,7 @@ def create_preorder_user(user_id: UUID):
             )
         )
     try:
-        OrdersService.create_preorder_user(preorder, g.user_id)
+        PreOrdersService.create_preorder_user(preorder, g.user_id)
     except ValueError as err:
         abort_with_err(
             ErrMsg(
@@ -484,7 +444,7 @@ def create_preorder_user(user_id: UUID):
     return jsonify({"message": "Bestellung erfolgreich aufgenommen."}), 201
 
 
-@orders_routes.put("/api/orders/<int:preorder_id>")
+@pre_orders_routes.put("/api/orders/<int:preorder_id>")
 @login_required(
     groups=[UserGroup.verwaltung, UserGroup.standortleitung, UserGroup.gruppenleitung]
 )
@@ -545,7 +505,7 @@ def update_preorder_user(preorder_id: UUID):
     Update an existing preorder for an user
     """
     try:
-        preorder = OrdersPostPutBody().load(request.json)
+        preorder = PreOrdersPostPutBody().load(request.json)
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
@@ -556,7 +516,7 @@ def update_preorder_user(preorder_id: UUID):
             )
         )
     try:
-        OrdersService.update_preorder_user(preorder, preorder_id, g.user_id)
+        PreOrdersService.update_preorder_user(preorder, preorder_id, g.user_id)
     except ValueError as err:
         abort_with_err(
             ErrMsg(
@@ -578,7 +538,7 @@ def update_preorder_user(preorder_id: UUID):
     return jsonify({"message": "Bestellung erfolgreich aktualisiert."}), 201
 
 
-@orders_routes.delete("/api/orders/<uuid:preorder_id>")
+@pre_orders_routes.delete("/api/orders/<uuid:preorder_id>")
 @login_required(
     groups=[UserGroup.verwaltung, UserGroup.standortleitung, UserGroup.gruppenleitung]
 )
@@ -611,7 +571,7 @@ def delete_preorder_user(preorder_id: UUID):
     Delete an existing preorder for an user
     """
     try:
-        OrdersService.delete_preorder_user(preorder_id, g.user_id)
+        PreOrdersService.delete_preorder_user(preorder_id, g.user_id)
     except WrongUserError as err:
         abort_with_err(
             ErrMsg(
@@ -622,132 +582,3 @@ def delete_preorder_user(preorder_id: UUID):
             )
         )
     return jsonify({"message": "Bestellung erfolgreich gelöscht."}), 200
-
-
-# QR-Code scannen
-@orders_routes.get("/api/orders/daily/<uuid:person_id>")
-@login_required(groups=[UserGroup.kuechenpersonal])
-@swag_from(
-    {
-        "tags": ["orders"],
-        "definitions": {
-            "DailyOrder": {
-                "type": "object",
-                "properties": {
-                    "id": {"type": "integer"},
-                    "person_id": {"type": "string"},
-                    "location_id": {"type": "string"},
-                    "main_dish": {"type": "string"},
-                    "salad_option": {"type": "boolean"},
-                    "handed_out": {"type": "boolean"},
-                },
-            }
-        },
-        "parameters": [
-            {
-                "in": "path",
-                "name": "person_id",
-                "required": True,
-                "schema": {"type": "string", "format": "uuid"},
-            },
-        ],
-        "responses": {
-            200: {
-                "description": "Returns a daily order",
-                "oneOf": [
-                    {"$ref": "#/definitions/DailyOrder"},
-                    {"type": "object", "properties": {"message": {"type": "string"}}},
-                ],
-            },
-        },
-    }
-)
-def get_daily_order(person_id: UUID):
-    """
-    Get daily order for a person (kitchen staff)
-    """
-    try:
-        daily_order = OrdersService.get_daily_order(person_id, g.user_id)
-        if daily_order is None:
-            return jsonify({"message": "Keine Bestellung gefunden."}), 200
-        return jsonify(daily_order.to_dict()), 200
-    except WrongLocationError as err:
-        abort_with_err(
-            ErrMsg(
-                status_code=401,
-                title="Falscher Standort",
-                description=f"Die Person {person_id} gehört nicht zum Standort dieses Küchenpersonals.",
-                details=str(err),
-            )
-        )
-    except ValueError as err:
-        abort_with_err(
-            ErrMsg(
-                status_code=400,
-                title="Fehler",
-                description="Ein Fehler ist aufgetreten.",
-                details=str(err),
-            )
-        )
-
-
-@orders_routes.put("/api/orders/daily/<uuid:daily_order_id>")
-@login_required(groups=[UserGroup.kuechenpersonal])
-@swag_from(
-    {
-        "tags": ["orders"],
-        "parameters": [
-            {
-                "in": "path",
-                "name": "daily_order_id",
-                "required": True,
-                "schema": {"type": "string", "format": "uuid"},
-            },
-            {
-                "in": "query",
-                "name": "handed_out",
-                "description": "Set to true if the order has been handed out",
-                "type": "boolean",
-                "required": True,
-            },
-        ],
-        "responses": {
-            200: {
-                "description": "Daily order updated",
-                "schema": {
-                    "type": "object",
-                    "properties": {"message": {"type": "string"}},
-                },
-            },
-            400: {"description": "Bad request"},
-            404: {"description": "Not found"},
-        },
-    }
-)
-def update_daily_order(daily_order_id: UUID):
-    """
-    Update an existing daily order for a person (kitchen staff)
-    """
-    try:
-        handed_out = request.args.get("handed_out")
-    except ValidationError as err:
-        abort_with_err(
-            ErrMsg(
-                status_code=400,
-                title="Validierungsfehler",
-                description="Format der Daten im Request-Body nicht valide",
-                details=err.messages,
-            )
-        )
-    try:
-        OrdersService.update_daily_order(daily_order_id, handed_out, g.user_id)
-    except WrongLocationError as err:
-        abort_with_err(
-            ErrMsg(
-                status_code=401,
-                title="Falscher Standort",
-                description=f"Nutzer:in {g.user_id} hat keinen Zugriff auf diese Bestellung.",
-                details=str(err),
-            )
-        )
-    return jsonify({"message": "Bestellung erfolgreich angepasst."}), 200

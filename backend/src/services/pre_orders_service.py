@@ -14,7 +14,7 @@ from src.utils.exceptions import (
 )
 
 
-class OrdersService:
+class PreOrdersService:
     """
     Service class for orders
     """
@@ -158,32 +158,3 @@ class OrdersService:
                 f"Person {preorder.person_id} gehört zu keiner der Gruppen von {user_id}"
             )
         OrdersRepository.delete_order(preorder)
-
-    @staticmethod
-    def get_daily_order(person_id: UUID, user_id: UUID) -> DailyOrder:
-        order = OrdersRepository.get_daily_order_by_person_id(person_id)
-        user = UsersRepository.get_user_by_id(user_id)
-        if order:
-            if not user:
-                raise ValueError(f"Nutzer {person_id} existiert nicht.")
-            if order.location_id != user.location_id:
-                raise WrongLocationError(
-                    f"Person {person_id} gehört nicht zum Standort {user.location_id}"
-                )
-            return order
-        else:
-            return None
-
-    @staticmethod
-    def update_daily_order(daily_order_id: UUID, handed_out: bool, user_id: UUID):
-        order = OrdersRepository.get_daily_order_by_id(daily_order_id)
-        user = UsersRepository.get_user_by_id(user_id)
-        if order:
-            if not user:
-                raise ValueError(f"Nutzer {order.person_id} existiert nicht.")
-            if order.location_id != user.location_id:
-                raise WrongLocationError(
-                    f"Person {order.person_id} gehört nicht zum Standort {user.location_id}"
-                )
-            order.handed_out = handed_out
-            OrdersRepository.update_order(order)
