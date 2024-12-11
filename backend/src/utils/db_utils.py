@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from apscheduler.schedulers.background import BackgroundScheduler
 from mocks.mock_orders_users import MOCK_ORDERS_USERS
 from mocks.mock_employees import MOCK_EMPLOYEES
 from mocks.mock_groups import MOCK_GROUPS
@@ -17,6 +18,7 @@ from src.utils.exceptions import (
     OrderAlreadyExistsForPersonAndDate,
     UserAlreadyExistsError,
 )
+from src.utils.cronjobs import push_orders_to_next_table
 
 
 def insert_mock_data(app):
@@ -169,3 +171,10 @@ def _get_next_monday():
     today = datetime.now().date()
     days_ahead = 0 - today.weekday() + 7
     return today + timedelta(days_ahead)
+
+
+def start_cronjob(app):
+    scheduler = BackgroundScheduler()
+    print("Starting cronjob")
+    scheduler.add_job(push_orders_to_next_table, "cron", hour="15", minute="46")
+    scheduler.start()

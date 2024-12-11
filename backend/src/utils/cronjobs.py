@@ -20,29 +20,21 @@ def push_orders_to_next_table():
 
     orders_yesterday = OrdersRepository.get_daily_orders()
     for daily_order in orders_yesterday:
-        person = PersonsRepository.get_person_by_id(daily_order.person_id)
-        location = LocationsRepository.get_location_by_id(daily_order.location_id)
+        # person = PersonsRepository.get_person_by_id(daily_order.person_id)
+        # location = LocationsRepository.get_location_by_id(daily_order.location_id)
         # sleep(2) dosnt help
         old_order = OldOrder(
-            person=person,
-            location=location,
+            person_id=daily_order.person_id,
+            location_id=daily_order.location_id,
             date=date_yesterday,
             main_dish=daily_order.main_dish,
             salad_option=daily_order.salad_option,
             handed_out=daily_order.handed_out,
         )
+        print(old_order, daily_order.person_id, daily_order.location_id)
         # TODO: person and location are NOT None but the
         # old_order.person and old_order.location are None....
         # How the fck does this happpen? I have no idea
-        if old_order.person_id is None:
-            abort_with_err(
-                ErrMsg(
-                    status_code=404,
-                    title="Error while transfering orders",
-                    description="The person_id of the order is None",
-                )
-            )
-        print(old_order, person, location)
         orders_old.append(old_order)
 
     if len(orders_yesterday) != len(orders_old):
@@ -70,17 +62,17 @@ def push_orders_to_next_table():
 
     pre_orders = OrdersRepository.get_pre_orders(OrdersFilters(date=date))
     for pre_order in pre_orders:
-        pre_person = PersonsRepository.get_person_by_id(pre_order.person_id)
-        pre_location = LocationsRepository.get_location_by_id(pre_order.location_id)
+        # pre_person = PersonsRepository.get_person_by_id(pre_order.person_id)
+        # pre_location = LocationsRepository.get_location_by_id(pre_order.location_id)
         # sleep(2) dosnt help
         daily_order = DailyOrder(
-            person=pre_person,
-            location=pre_location,
+            person_id=pre_order.person_id,
+            location_id=pre_order.location_id,
             main_dish=pre_order.main_dish,
             salad_option=pre_order.salad_option,
             handed_out=False,
         )
-        print(daily_order, pre_person, pre_location)
+        print(daily_order, pre_order.person_id, pre_order.location_id)  
         # TODO: pre_person and pre_location are NOT Null but the
         # daily_order.person and daily_order.location are Null....
         # How the fck does this happpen? I have no idea

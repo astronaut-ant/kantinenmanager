@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from apscheduler.schedulers.background import BackgroundScheduler
 import os
 
-from src.utils.db_utils import insert_mock_data
+from src.utils.db_utils import insert_mock_data, start_cronjob
 from src.environment import Environment, get_features
 from src.utils.error import register_error_handlers
 from src.utils.cronjobs import push_orders_to_next_table
@@ -95,11 +95,15 @@ def startup() -> None:
     else:
         print("--- Mock data insertion disabled ---")
 
+    if features.CRONJOBS:
+        print("--- Cronjobs enabled             ---")
+        start_cronjob(app)
+    else:
+        print("--- Cronjobs disabled            ---")
+        
     register_routes(app)
 
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(push_orders_to_next_table, "cron", hour="7", minute="0")
-    scheduler.start()
+
 
 
 def configure(app: Flask) -> None:

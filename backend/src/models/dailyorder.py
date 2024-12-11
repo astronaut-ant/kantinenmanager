@@ -33,10 +33,32 @@ class DailyOrder(db.Model):
     person: Mapped["Person"] = relationship(back_populates="daily_orders")
     location: Mapped["Location"] = relationship(back_populates="daily_orders")
 
+#    def __init__(
+#        self,
+#        person: "Person",
+#        location: "Location",
+#        main_dish: MainDish,
+#        salad_option: bool,
+#        handed_out: bool = False,
+#    ):
+#        """Initialize a new daily order
+#
+#        :param person: The person that made the order
+#        :param location: The location where the order was made
+#        :param main_dish: The selected main dish
+#        :param salad_option: Whether a salad is included
+#        :param handed_out: Whether the order has been handed out
+#        """
+#        self.person = person
+#        self.location = location
+#        self.main_dish = main_dish
+#        self.salad_option = salad_option
+#        self.handed_out = handed_out
+
     def __init__(
         self,
-        person: "Person",
-        location: "Location",
+        person_id: uuid.UUID,
+        location_id: uuid.UUID,
         main_dish: MainDish,
         salad_option: bool,
         handed_out: bool = False,
@@ -49,8 +71,8 @@ class DailyOrder(db.Model):
         :param salad_option: Whether a salad is included
         :param handed_out: Whether the order has been handed out
         """
-        self.person = person
-        self.location = location
+        self.person_id = person_id
+        self.location_id = location_id
         self.main_dish = main_dish
         self.salad_option = salad_option
         self.handed_out = handed_out
