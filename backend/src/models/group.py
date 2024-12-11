@@ -105,3 +105,25 @@ class Group(db.Model):
             "user_id_replacement": str(self.user_id_replacement),
             "location_id": str(self.location_id),
         }
+
+    def to_dict_with_employees(self) -> dict[str, str | int | bool | list]:
+        """Convert the group to a dictionary along with their employees
+
+        :return: A dictionary containing the group's information
+        """
+
+        return {
+            "id": str(self.id),
+            "group_name": self.group_name,
+            # "group_number": self.group_number,
+            "group_leader": (
+                self.group_leader.to_dict_reduced() if self.group_leader else None
+            ),
+            "group_leader_replacement": (
+                self.group_leader_replacement.to_dict_reduced()
+                if self.group_leader_replacement
+                else None
+            ),
+            "location": self.location.to_dict() if self.location else None,
+            "employees": [employee.to_dict_reduced() for employee in self.employees],
+        }

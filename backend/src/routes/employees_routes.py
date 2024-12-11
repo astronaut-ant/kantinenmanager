@@ -46,7 +46,19 @@ employees_routes = Blueprint("employees_routes", __name__)
                     },
                     "created": {"type": "string", "format": "date-time"},
                 },
-            }
+            },
+            "EmployeeReduced": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                    },
+                    "first_name": {"type": "string"},
+                    "last_name": {"type": "string"},
+                    "employee_number": {"type": "integer"},
+                },
+            },
         },
         "parameters": [
             {
