@@ -135,7 +135,7 @@ class OrdersRepository:
         db.session.commit()
 
     @staticmethod
-    def get_preorder_by_id(preorder_id: UUID) -> PreOrder:
+    def get_preorder_by_id(preorder_id: UUID) -> Optional[PreOrder]:
         """Get preorder by id
         :param preorder_id: Preorder id
         :return: Preorder object
@@ -145,7 +145,7 @@ class OrdersRepository:
         ).first()
 
     @staticmethod
-    def preorder_already_exists(person_id: UUID, date: date) -> PreOrder:
+    def preorder_already_exists(person_id: UUID, date: date) -> Optional[PreOrder]:
         """Check if an order already exists for the person and date
         :param person_id: Person id
         :param date: Date
@@ -185,38 +185,6 @@ class OrdersRepository:
         ).all()
 
         return employee_ids
-
-    # def get_groups_to_order_for(user_id: UUID) -> List[Group]:
-    #     """
-    #     Get all groups the user has to do the orders for
-    #     :param user_id: User id
-    #     :return: List of groups
-    #     """
-    #     return db.session.scalars(
-    #         select(Group.id).filter(
-    #             or_(
-    #                 # User ist der Gruppenleiter und es ist keine Vertretung eingetragen
-    #                 and_(
-    #                     (Group.user_id_group_leader == user_id)
-    #                     & (Group.user_id_replacement == None),
-    #                 ),
-    #                 # Oder User ist Vertretung für den Gruppenleiter
-    #                 (Group.user_id_replacement == user_id),
-    #             )
-    #         )
-    #     ).all()
-
-    # def get_employee_ids(ids_of_groups_to_order_for: List[UUID]) -> List[UUID]:
-    #     """
-    #     Get all employee ids of the groups the user has to do the orders for
-    #     :param ids_of_groups_to_order_for: List of group ids
-    #     :return: List of employee ids
-    #     """
-    #     return db.session.scalars(
-    #         select(Employee.id).filter(
-    #             Employee.group_id.in_(ids_of_groups_to_order_for)
-    #         )
-    #     ).all()
 
     def employee_in_location(person_id: UUID, location_id: UUID) -> bool:
         """
