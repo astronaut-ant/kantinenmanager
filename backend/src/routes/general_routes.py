@@ -6,6 +6,8 @@ from flasgger import swag_from
 
 from src.database import check_db_connection
 
+from src.utils.cronjobs import push_orders_to_next_table as push
+
 
 general_routes = Blueprint("general_routes", __name__)
 
@@ -54,3 +56,10 @@ def health():
         },
         "uptime": str(datetime.now() - start_time),
     }
+
+
+# Test route for testing cronjobs
+@general_routes.get("/api/push")
+def push():
+    push()
+    return "Success"

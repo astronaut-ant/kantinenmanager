@@ -9,6 +9,7 @@ from src.models.employee import Employee
 from src.models.group import Group
 from src.models.preorder import PreOrder
 from src.models.dailyorder import DailyOrder
+from src.models.oldorder import OldOrder
 
 
 class OrdersFilters:
@@ -260,3 +261,22 @@ class OrdersRepository:
         return db.session.scalars(
             select(DailyOrder).filter(DailyOrder.id == daily_order_id)
         ).first()
+
+    def bulk_delete_orders(orders: List[PreOrder] | List[DailyOrder] | List[OldOrder]):
+        """
+        Delete orders
+        :param orders: List of orders
+        """
+        try:
+            for order in orders:
+                db.session.delete(order)
+        except Exception as e:
+            return e
+        db.session.commit()
+
+    def get_daily_orders() -> List[DailyOrder]:
+        """
+        Get all orders in the daily orders table
+        :return: List of daily orders
+        """
+        return db.session.scalars(select(DailyOrder)).all()
