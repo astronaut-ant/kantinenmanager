@@ -26,7 +26,7 @@ class OldOrder(db.Model):
     person_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("person.id"))
     location_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("location.id"))
     date: Mapped[datetime] = mapped_column(DateTime, nullable=False)
-    nothing: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    nothing: Mapped[bool] = mapped_column(Boolean, nullable=True)
     main_dish: Mapped[MainDish] = mapped_column(
         sqlalchemy.Enum(MainDish), nullable=True
     )
