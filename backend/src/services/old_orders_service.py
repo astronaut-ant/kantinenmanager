@@ -1,9 +1,5 @@
-from datetime import datetime, timedelta
-from typing import List, Optional
-from uuid import UUID
+from typing import List
 from src.models.oldorder import OldOrder
-from src.models.user import UserGroup
-from src.repositories.users_repository import UsersRepository
 from src.repositories.orders_repository import OrdersFilters, OrdersRepository
 
 

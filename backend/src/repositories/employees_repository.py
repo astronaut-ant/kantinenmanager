@@ -1,7 +1,6 @@
 """Repository to handle database operations for employee data."""
 
 from sqlalchemy import select, func, or_
-from src.models.user import User
 from src.database import db
 from uuid import UUID
 from src.models.user import UserGroup

@@ -7,13 +7,12 @@ from flask import Blueprint, jsonify, request, g
 from flasgger import swag_from
 from src.models.user import UserGroup
 from src.models.maindish import MainDish
-from backend.src.services.pre_orders_service import (
+from src.services.pre_orders_service import (
     OrdersFilters,
     PreOrdersService,
     PersonNotPartOfGroup,
     PersonNotPartOfLocation,
     WrongUserError,
-    WrongLocationError,
 )
 
 

@@ -1,7 +1,5 @@
 from uuid import UUID
 from typing import List, Optional
-from src.services.auth_service import AuthService
-from src.models.user import UserGroup
 from src.models.group import Group
 from src.models.location import Location
 from src.repositories.locations_repository import LocationsRepository

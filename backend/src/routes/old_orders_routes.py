@@ -1,13 +1,11 @@
 from pprint import pprint
-from uuid import UUID
 from marshmallow import ValidationError, Schema, fields
 from src.utils.auth_utils import login_required
 from src.utils.error import ErrMsg, abort_with_err
-from flask import Blueprint, jsonify, request, g
+from flask import Blueprint, jsonify, request
 from flasgger import swag_from
-from src.models.user import UserGroup
-from src.models.maindish import MainDish
 from src.services.old_orders_service import OrdersFilters, OldOrdersService
+from src.models.user import UserGroup
 
 
 old_orders_routes = Blueprint("old_orders_routes", __name__)
@@ -28,7 +26,7 @@ class OldOrdersGetQuery(Schema):
 
 
 @old_orders_routes.get("/api/old-orders")
-@login_required()  # TODO Permissions
+@login_required(groups=[UserGroup.verwaltung])
 @swag_from(
     {
         "tags": ["old_orders"],

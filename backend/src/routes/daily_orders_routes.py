@@ -5,15 +5,7 @@ from src.utils.error import ErrMsg, abort_with_err
 from flask import Blueprint, jsonify, request, g
 from flasgger import swag_from
 from src.models.user import UserGroup
-from src.models.maindish import MainDish
-from backend.src.services.daily_orders_service import (
-    OrdersFilters,
-    DailyOrdersService,
-    PersonNotPartOfGroup,
-    PersonNotPartOfLocation,
-    WrongUserError,
-    WrongLocationError,
-)
+from src.services.daily_orders_service import DailyOrdersService, WrongLocationError
 
 daily_orders_routes = Blueprint("daily_orders_routes", __name__)
 

@@ -13,7 +13,6 @@ from src.utils.exceptions import (
 from src.utils.auth_utils import login_required
 from src.utils.error import ErrMsg, abort_with_err
 from src.services.groups_service import GroupsService
-from src.services.users_service import UsersService
 
 groups_routes = Blueprint("groups_routes", __name__)
 

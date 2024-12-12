@@ -1,10 +1,10 @@
-from sqlalchemy import select, func
+from sqlalchemy import select
 from src.models.user import User
 from src.database import db
 from uuid import UUID
 from src.models.location import Location
 from src.models.group import Group
-from typing import List, Optional
+from typing import List
 
 
 class LocationsRepository:

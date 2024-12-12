@@ -2,15 +2,12 @@ from datetime import datetime, timedelta
 from typing import List, Optional
 from uuid import UUID
 from src.models.preorder import PreOrder
-from src.models.dailyorder import DailyOrder
 from src.models.user import UserGroup
-from src.repositories.users_repository import UsersRepository
 from src.repositories.orders_repository import OrdersFilters, OrdersRepository
 from src.utils.exceptions import (
     PersonNotPartOfGroup,
     PersonNotPartOfLocation,
     WrongUserError,
-    WrongLocationError,
 )
 
 
@@ -26,7 +23,7 @@ class PreOrdersService:
         """
 
         return OrdersRepository.get_pre_order_by_id(id)
-    
+
     @staticmethod
     def get_pre_orders_by_group_leader(person_id: UUID) -> List[PreOrder]:
         """
@@ -68,7 +65,7 @@ class PreOrdersService:
                 )
             if order["date"].weekday() > 5:  # 0 = Montag, 6 = Sonntag
                 raise ValueError(f"Datum {order['date']} ist kein Werktag.")
-            if not (order["person_id"] in employee_ids):
+            if order["person_id"] not in employee_ids:
                 raise PersonNotPartOfGroup(
                     f"Person {order["person_id"]} gehört zu keiner der Gruppen von {user_id}"
                 )
@@ -154,7 +151,7 @@ class PreOrdersService:
         :param preorder_id: Preorder id
         :param user_id: User id
         """
-        preorder = OrdersRepository.get_preorder_by_id(preorder_id)
+        preorder = OrdersRepository.get_pre_order_by_id(preorder_id)
         if user_id != preorder.person_id:
             raise WrongUserError(
                 f"Person {preorder.person_id} gehört zu keiner der Gruppen von {user_id}"

@@ -1,3 +1,5 @@
+from uuid import UUID
+import re
 from src.models.user import UserGroup
 from src.models.group import Group
 from src.repositories.groups_repository import GroupsRepository
@@ -9,8 +11,6 @@ from src.utils.exceptions import (
     GroupLeaderDoesNotExist,
     LocationDoesNotExist,
 )
-from uuid import UUID
-import re
 
 
 class GroupsService:
@@ -77,7 +77,7 @@ class GroupsService:
         groups = GroupsRepository.get_groups_by_userscope(user_id, user_group)
         for group in groups:
             # seperate group name and location name by splitting at the first "-"
-            match = re.match(r"^(.*?)\s*-\s*(.*)$", group.group_name)
+            # match = re.match(r"^(.*?)\s*-\s*(.*)$", group.group_name)
             # for tests use .group_name instead of match.group(1)
             # group_name = match.group(1)
             group_name = group.group_name

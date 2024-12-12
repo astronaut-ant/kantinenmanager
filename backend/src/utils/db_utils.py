@@ -8,7 +8,7 @@ from src.models.user import UserGroup
 from src.services.employees_service import EmployeesService
 from src.services.groups_service import GroupsService
 from src.services.locations_service import LocationsService
-from backend.src.services.pre_orders_service import PreOrdersService
+from src.services.pre_orders_service import PreOrdersService
 from src.services.users_service import UsersService
 from src.utils.exceptions import (
     EmployeeAlreadyExistsError,
