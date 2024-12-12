@@ -38,7 +38,7 @@ class OrdersGetQuery(Schema):
 @login_required()  # TODO Permissions
 @swag_from(
     {
-        "tags": ["orders"],
+        "tags": ["pre_orders"],
         "parameters": [
             {
                 "in": "query",
@@ -79,7 +79,7 @@ class OrdersGetQuery(Schema):
             {
                 "in": "query",
                 "name": "date-start",
-                "description": "filter for orders on or after date-start (YYYY-MM-DD)",
+                "description": "filter for pre_orders on or after date-start (YYYY-MM-DD)",
                 "type": "string",
                 "format": "date",
                 "required": False,
@@ -88,7 +88,7 @@ class OrdersGetQuery(Schema):
             {
                 "in": "query",
                 "name": "date-end",
-                "description": "filter for orders on or before date-end (YYYY-MM-DD)",
+                "description": "filter for pre_orders on or before date-end (YYYY-MM-DD)",
                 "type": "string",
                 "format": "date",
                 "required": False,
@@ -97,7 +97,7 @@ class OrdersGetQuery(Schema):
         ],
         "responses": {
             200: {
-                "description": "Returns a list of orders",
+                "description": "Returns a list of pre_orders",
                 "schema": {
                     "type": "array",
                     "items": {"$ref": "#/definitions/PreOrder"},
@@ -129,15 +129,15 @@ def get_pre_orders():
             )
         )
 
-    orders = PreOrdersService.get_pre_orders(filters)
-    return jsonify([order.to_dict() for order in orders]), 200
+    pre_orders = PreOrdersService.get_pre_orders(filters)
+    return jsonify([order.to_dict() for order in pre_orders]), 200
 
 
 @pre_orders_routes.get("/api/pre-orders/<int:preorder_id>")
 @login_required()  # TODO Permissions
 @swag_from(
     {
-        "tags": ["orders"],
+        "tags": ["pre_orders"],
         "parameters": [
             {
                 "in": "path",
@@ -177,7 +177,7 @@ def get_pre_order(preorder_id: int):
 @login_required(groups=[UserGroup.gruppenleitung])
 @swag_from(
     {
-        "tags": ["orders"],
+        "tags": ["pre_orders"],
         "parameters": [
             {
                 "in": "path",
@@ -215,7 +215,7 @@ class PreOrdersPostPutBody(Schema):
     person_id = fields.UUID(required=True)
     location_id = fields.UUID(required=True)
     date = fields.Date(required=True)  # ISO 8601-formatted date string
-    nothing = fields.Boolean(required=True)
+    nothing = fields.Boolean(required=True, default=False)
     main_dish = fields.Enum(MainDish, required=False, default=None)
     salad_option = fields.Boolean(required=False, default=False)
 
@@ -224,7 +224,7 @@ class PreOrdersPostPutBody(Schema):
 @login_required(groups=[UserGroup.gruppenleitung])
 @swag_from(
     {
-        "tags": ["orders"],
+        "tags": ["pre_orders"],
         "definitions": {
             "PreOrder": {
                 "type": "object",
@@ -357,7 +357,7 @@ def create_update_preorders_employees():
 )
 @swag_from(
     {
-        "tags": ["orders"],
+        "tags": ["pre_orders"],
         "parameters": [
             {
                 "in": "path",
@@ -383,6 +383,7 @@ def create_update_preorders_employees():
                             "type": "string",
                             "format": "date",
                         },
+                        "nothing": {"type": "boolean"},
                         "main_dish": {"type": "string"},
                         "salad_option": {"type": "boolean"},
                     },
@@ -451,7 +452,7 @@ def create_preorder_user(user_id: UUID):
 )
 @swag_from(
     {
-        "tags": ["orders"],
+        "tags": ["pre_orders"],
         "parameters": [
             {
                 "in": "path",
@@ -477,6 +478,7 @@ def create_preorder_user(user_id: UUID):
                             "type": "string",
                             "format": "date",
                         },
+                        "nothing": {"type": "boolean"},
                         "main_dish": {"type": "string"},
                         "salad_option": {"type": "boolean"},
                     },
@@ -489,8 +491,8 @@ def create_preorder_user(user_id: UUID):
             },
         ],
         "responses": {
-            201: {
-                "description": "Order created",
+            200: {
+                "description": "Order updated",
                 "schema": {
                     "type": "object",
                     "properties": {"message": {"type": "string"}},
@@ -536,7 +538,7 @@ def update_preorder_user(preorder_id: UUID):
                 details=str(err),
             )
         )
-    return jsonify({"message": "Bestellung erfolgreich aktualisiert."}), 201
+    return jsonify({"message": "Bestellung erfolgreich aktualisiert."}), 200
 
 
 @pre_orders_routes.delete("/api/pre-orders/<uuid:preorder_id>")
@@ -545,7 +547,7 @@ def update_preorder_user(preorder_id: UUID):
 )
 @swag_from(
     {
-        "tags": ["orders"],
+        "tags": ["pre_orders"],
         "parameters": [
             {
                 "in": "path",

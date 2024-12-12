@@ -29,7 +29,7 @@ class OrdersGetQuery(Schema):
 @login_required()  # TODO Permissions
 @swag_from(
     {
-        "tags": ["orders"],
+        "tags": ["daily_orders"],
     }
 )
 def get_daily_orders():
@@ -50,7 +50,7 @@ def get_daily_orders():
 @login_required(groups=[UserGroup.kuechenpersonal])
 @swag_from(
     {
-        "tags": ["orders"],
+        "tags": ["daily_orders"],
         "definitions": {
             "DailyOrder": {
                 "type": "object",
@@ -116,7 +116,7 @@ def get_daily_order(person_id: UUID):
 @login_required(groups=[UserGroup.kuechenpersonal])
 @swag_from(
     {
-        "tags": ["orders"],
+        "tags": ["daily_orders"],
         "parameters": [
             {
                 "in": "path",
