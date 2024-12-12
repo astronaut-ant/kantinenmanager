@@ -56,10 +56,3 @@ def health():
         },
         "uptime": str(datetime.now() - start_time),
     }
-
-
-# Test route for testing cronjobs
-@general_routes.get("/api/push")
-def pushing():
-    push(app)
-    return "Success"

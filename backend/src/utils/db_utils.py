@@ -180,8 +180,8 @@ def start_cronjob(app, os):
         scheduler.add_job(
             lambda: push_orders_to_next_table(app),
             "cron",
-            hour="*",
-            minute="*",
+            hour="8",
+            minute="2",
             timezone="Europe/Berlin",
         )
         scheduler.start()

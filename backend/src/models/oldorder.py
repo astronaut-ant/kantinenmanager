@@ -37,31 +37,6 @@ class OldOrder(db.Model):
     person: Mapped["Person"] = relationship(back_populates="old_orders")
     location: Mapped["Location"] = relationship(back_populates="old_orders")
 
-    #    def __init__(
-    #        self,
-    #        person: "Person",
-    #        location: "Location",
-    #        date: datetime,
-    #        main_dish: MainDish,
-    #        salad_option: bool,
-    #        handed_out: bool,
-    #    ):
-    #        """Initialize a new old order
-    #
-    #        :param person: The person that made the order
-    #        :param location: The location of the order
-    #        :param date: The date of the order
-    #        :param main_dish: The selected main dish
-    #        :param salad_option: Whether a salad is included
-    #        :param handed_out: Whether the order was handed out
-    #        """
-    #        self.person = person
-    #        self.location = location
-    #        self.date = date
-    #        self.main_dish = main_dish
-    #        self.salad_option = salad_option
-    #        self.handed_out = handed_out
-
     def __init__(
         self,
         person_id: uuid.UUID,
