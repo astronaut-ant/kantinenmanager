@@ -221,7 +221,7 @@ class PreOrdersPostPutBody(Schema):
 
 
 @pre_orders_routes.post("/api/pre-orders")
-@login_required(groups=[UserGroup.gruppenleitung], disabled=True)
+@login_required(groups=[UserGroup.gruppenleitung])
 @swag_from(
     {
         "tags": ["pre_orders"],
