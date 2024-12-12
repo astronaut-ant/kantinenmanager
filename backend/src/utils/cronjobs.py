@@ -19,12 +19,15 @@ def push_orders_to_next_table(app, ignore_errors=False):
         date = datetime.today().date()
         date_yesterday = date - timedelta(days=1)
         if ignore_errors == False:
-            if OrdersRepository.get_old_orders(OrdersFilters(date_yesterday)) != []:
+            if (
+                OrdersRepository.get_old_orders(OrdersFilters(date=date_yesterday))
+                != []
+            ):
                 print("Tables unset")
-                OrderTransferError()
-            if OrdersRepository.get_pre_orders(OrdersFilters(date=date)) != []:
+                raise OrderTransferError()
+            if OrdersRepository.get_pre_orders(OrdersFilters(date=date)) == []:
                 print("Tables unset")
-                OrderTransferError()
+                raise OrderTransferError()
 
         # Pushes all orders from yesterday to the old orders table
 
@@ -41,17 +44,17 @@ def push_orders_to_next_table(app, ignore_errors=False):
             orders_old.append(old_order)
 
         if len(orders_yesterday) != len(orders_old):
-            OrderTransferError()
+            raise OrderTransferError()
         try:
             if len(orders_old) > 0:
                 OrdersRepository.create_bulk_orders(orders_old)
         except Exception as e:
-            OrderTransferError()
+            raise OrderTransferError()
 
         try:
             OrdersRepository.bulk_delete_orders(orders_yesterday)
         except Exception as e:
-            OrderTransferError()
+            raise OrderTransferError()
 
         # Pushes all pre-orders for today to the daily orders table
 
@@ -67,16 +70,16 @@ def push_orders_to_next_table(app, ignore_errors=False):
             orders_new.append(daily_order)
 
         if len(pre_orders) != len(orders_new):
-            OrderTransferError
+            raise OrderTransferError
 
         try:
             if len(orders_new) > 0:
                 OrdersRepository.create_bulk_orders(orders_new)
         except Exception as e:
-            OrderTransferError()
+            raise OrderTransferError()
 
         try:
             OrdersRepository.bulk_delete_orders(pre_orders)
         except Exception as e:
-            OrderTransferError()
+            raise OrderTransferError()
         return ()

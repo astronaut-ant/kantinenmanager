@@ -280,3 +280,38 @@ class OrdersRepository:
         :return: List of daily orders
         """
         return db.session.scalars(select(DailyOrder)).all()
+
+
+    @staticmethod
+    def get_old_orders(filters: OrdersFilters) -> List[OldOrder]:
+        """
+        Get old orders based on filters
+
+        :param filters: Filters for orders
+        :return: List of old orders
+        """
+        query = select(OldOrder)
+
+        if filters.person_id:
+            query = query.filter(OldOrder.person_id == filters.person_id)
+
+        if filters.location_id:
+            query = query.filter(OldOrder.location_id == filters.location_id)
+
+        if filters.group_id:
+            query = query.filter(
+                OldOrder.person_id.in_(
+                    select(Employee.id).where(Employee.group_id == filters.group_id)
+                )
+            )
+
+        if filters.date:
+            query = query.filter(OldOrder.date == filters.date)
+
+        if filters.date_start:
+            query = query.filter(OldOrder.date >= filters.date_start)
+
+        if filters.date_end:
+            query = query.filter(OldOrder.date <= filters.date_end)
+
+        return db.session.execute(query).scalars().all()
