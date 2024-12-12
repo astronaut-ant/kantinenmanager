@@ -49,11 +49,10 @@
     .get("http://localhost:4200/api/groups/with-employees", { withCredentials: true })
     .then((response) => {
       groups.value = response.data;
-      console.log(groups.value);
       loading.value = false;
     })
     .catch((err) => console.error("Error fetching data", err));
-  }
+  };
 
   onMounted(() => {
     fetchData();
