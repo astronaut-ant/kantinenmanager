@@ -10,15 +10,23 @@ from src.repositories.locations_repository import LocationsRepository
 from src.utils.exceptions import OrderTransferError
 
 
-def push_orders_to_next_table(app):
+def push_orders_to_next_table(app, ignore_errors=False):
     with app.app_context():
-
-        # Pushes all orders from yesterday to the old orders table
+        # Checks if the date in the old_orders and pre_orders table matches the expected.
 
         orders_old = []  # type: List[OldOrder]
         orders_new = []  # type: List[PreOrder]
         date = datetime.today().date()
         date_yesterday = date - timedelta(days=1)
+        if ignore_errors == False:
+            if OrdersRepository.get_old_orders(OrdersFilters(date_yesterday)) != []:
+                print("Tables unset")
+                OrderTransferError()
+            if OrdersRepository.get_pre_orders(OrdersFilters(date=date)) != []:
+                print("Tables unset")
+                OrderTransferError()
+
+        # Pushes all orders from yesterday to the old orders table
 
         orders_yesterday = OrdersRepository.get_daily_orders()
         for daily_order in orders_yesterday:
