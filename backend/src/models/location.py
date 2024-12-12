@@ -51,13 +51,16 @@ class Location(db.Model):
     def __init__(
         self,
         location_name: str,
+        user_id_location_leader: uuid.UUID,
     ):
         """Initialize a new location
 
         :param location_name: The loction's name
+        :param user_id_location_leader: The ID of the location leader as UUID4
         """
 
         self.location_name = location_name
+        self.user_id_location_leader = user_id_location_leader
 
     def __repr__(self):
         return f"<Location {self.id!r} {self.location_name!r}>"
@@ -66,6 +69,18 @@ class Location(db.Model):
         """Convert the location to a dictionary
 
         All complex objects are converted to their string representation.
+
+        :return: A dictionary containing the locations's information
+        """
+
+        return {
+            "id": str(self.id),
+            "location_name": self.location_name,
+            "location_leader": self.location_leader.to_dict_reduced(),
+        }
+
+    def to_dict_reduced(self) -> dict[str, str]:
+        """Convert the location to a dictionary with reduced information
 
         :return: A dictionary containing the locations's information
         """

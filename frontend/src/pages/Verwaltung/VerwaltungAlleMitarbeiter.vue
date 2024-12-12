@@ -6,7 +6,7 @@
         <p class="text-h5 font-weight-black" >Übersicht Mitarbeiter</p>
         <v-spacer></v-spacer>
         <v-btn icon="mdi-magnify" @click="toggleSearchField"></v-btn>
-        <v-btn icon="mdi-reload"></v-btn>
+        <v-btn icon="mdi-reload" @click="fetchData"></v-btn>
       </v-toolbar>
     </div>
     <div class="d-flex justify-center">
@@ -23,14 +23,13 @@
         single-line
         clearable
         rounded
-        max-width="800"
         ></v-text-field>
       </v-expand-transition>
     </div>
     <div>
-      <v-data-table :headers="headers"  :items="items" :search="search">
+      <v-data-table :headers="headers"  :items="items" :search="search" :sort-by="sortBy" :loading="loading" item-value="employee_number">
       <template v-slot:[`item.actions`]="{ item }">
-        <v-btn icon="mdi-qrcode" class="bg-green mr-2" @click="openDialog(item)" size="small"></v-btn>
+        <v-btn icon="mdi-qrcode" class="bg-green mr-2" @click="getQRCode(item)" size="small"></v-btn>
         <v-btn icon="mdi-lead-pencil" class="bg-primary mr-2" @click="openDialog(item)" size="small"></v-btn>
         <v-btn icon="mdi-trash-can-outline" class="bg-red" @click="opendeleteDialog(item)" size="small"></v-btn>
       </template>
@@ -53,14 +52,29 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+  <SuccessSnackbar
+    v-model="snackbar"
+    :text="snackbarText"
+    @close="snackbar = false"
+  ></SuccessSnackbar>
 </template>
  
  
 <script setup>
+  import axios from "axios";
   const search = ref("");
+  const loading = ref(true);
   const isSearchVisible = ref(false);
   const deleteDialog = ref(false);
   const employeeToDelete = ref("");
+  const employeeToDeleteID = ref("");
+  const snackbar = ref(false);
+  const snackbarText = ref("");
+  const items = ref([]);
+  const groups = ref([]);
+  const locations = ref([]);
+  const employees = ref([]);
+
   const toggleSearchField = () => {
     if (isSearchVisible.value) {
       search.value = "";
@@ -69,7 +83,8 @@
   };
 
   const opendeleteDialog = (item) => {
-    employeeToDelete.value = item.lastname + ", " + item.firstname;
+    employeeToDelete.value = item.last_name + ", " + item.first_name;
+    employeeToDeleteID.value = item.id;
     deleteDialog.value= true;
   };
 
@@ -77,33 +92,102 @@
     deleteDialog.value = false;
   };
 
+  const confirmDelete = () => {
+    axios
+      .delete(`http://localhost:4200/api/employees/${employeeToDeleteID.value}`, { withCredentials: true })
+      .then(() => {
+        items.value = items.value.filter((item) => item.id !== employeeToDeleteID.value);
 
-  const items = ref([
-     {
-         employee_number: 0,
-         lastname: 'Müller',
-         firstname: 'Max',
-         group: 'Berufsbildungsbereich 1 - W1',
-         location: 'W8',
-         ID: 'GWUGDWUAG'
-     },
-     {
-         employee_number: 1,
-         lastname: 'Schmidt',
-         firstname: 'Lisa',
-         group: 'Stanzanlage/Spritzgußmaschine - Zedtlitz',
-         location: 'Zedtlitz',
-         ID: 'uiawduiogawui'
-     },
-  ]);
+        snackbar.value = false;
+        snackbarText.value = `${employeeToDelete.value} wurde erfolgreich gelöscht!`;
+        snackbar.value = true;
+        deleteDialog.value = false;
+      })
+      .catch((err) => {
+        console.error(err);
+      })
+  };
+
+  const getQRCode = (item) => {
+  axios
+    .get(`http://localhost:4200/api/persons/create-qr/${item.id}`, {
+      responseType: "blob",
+      withCredentials: true,
+    })
+    .then((response) => {
+      const blob = new Blob([response.data], { type: response.headers["content-type"] });
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+
+      const contentDisposition = response.headers["content-disposition"];
+      let filename = "download";
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename\*?=(['"]?)(.+?)\1(;|$)/i);
+        if (filenameMatch) {
+          filename = decodeURIComponent(filenameMatch[2]);
+        }
+      }
+
+      link.download = filename;
+      link.click();
+      window.URL.revokeObjectURL(url);
+
+      snackbar.value = false;
+      snackbarText.value = "Der QR-Code wurde erfolgreich generiert!";
+      snackbar.value = true;
+    })
+    .catch((err) => {
+      console.error("Error getting QR Code", err);
+    });
+  };
+
+  const fetchData = async () => {
+    try {
+      loading.value = true;
+      const [employeesResponse, groupsResponse, locationsResponse] = await Promise.all([
+        axios.get("http://localhost:4200/api/employees", { withCredentials: true }),
+        axios.get("http://localhost:4200/api/groups", { withCredentials: true }),
+        axios.get("http://localhost:4200/api/locations", { withCredentials: true }),
+      ]);
+
+      employees.value = employeesResponse.data;
+      groups.value = groupsResponse.data;
+      locations.value = locationsResponse.data;
+
+      items.value = employees.value.map((employee) => {
+        const group = groups.value.find((g) => g.id === employee.group_id);
+        const location = group ? locations.value.find((l) => l.id === group.location_id) : null;
+
+        return {
+          id: employee.id,
+          first_name: employee.first_name,
+          last_name: employee.last_name,
+          employee_number: employee.employee_number,
+          group_id: group?.id || null,
+          group_name: group?.group_name || "Unbekannt",
+          location_id: location?.id || null,
+          location_name: location?.location_name || "Unbekannt",
+        };
+      });
+      loading.value = false;
+    } catch (err) {
+      console.error("Error fetching data", err);
+    }
+  };
+
+  onMounted(() => {
+    fetchData();
+  });
  
- 
-  const headers = ref([
-     { title: "Nummer", key: "employee_number" },
-     { title: "Nachname", key: "lastname" },
-     { title: "Vorname", key: "firstname" },
-     { title: "Gruppe", key: "group" },
-     { title: "Standort", key: "location"},
-     { title: "", key: "actions", sortable: false },]);
+  const headers = [
+     { title: "Nummer", key: "employee_number"},
+     { title: "Nachname", key: "last_name" },
+     { title: "Vorname", key: "first_name" },
+     { title: "Gruppe", key: "group_name" },
+     { title: "Standort", key: "location_name"},
+     { title: "", key: "actions", sortable: false },];
+  const sortBy = [{ key: 'employee_number', order: 'asc' }]
 </script>
  
