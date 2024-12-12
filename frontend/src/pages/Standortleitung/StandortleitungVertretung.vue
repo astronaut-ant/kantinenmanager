@@ -9,9 +9,13 @@
     :anwesend="groupleader.anwesend">
 
   </GroupLeaderCard>
+  <GroupLeaderCardNew></GroupLeaderCardNew>
 </template>
   
 <script setup>
+
+import GroupLeaderCardNew from '@/components/GroupLeaderCardNew.vue';
+
   const groupleaders = [
     {
         id: '95f0534f-1580-4d09-8573-8b419d7dc1df',
