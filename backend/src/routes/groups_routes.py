@@ -50,6 +50,43 @@ class GroupCreateSchema(Schema):
                     "location": {"type": "object", "$ref": "#/definitions/Location"},
                 },
             },
+            "GroupReduced": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                    },
+                    "group_name": {"type": "string"},
+                    "user_id_group_leader": {"type": "string"},
+                    "user_id_replacement": {"type": "string"},
+                    "location_id": {"type": "string"},
+                },
+            },
+            "GroupWithEmployees": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                    },
+                    "group_name": {"type": "string"},
+                    "group_leader": {
+                        "type": "object",
+                        "$ref": "#/definitions/UserReduced",
+                    },
+                    "group_leader_replacement": {
+                        "type": "object",
+                        "nullable": True,
+                        "$ref": "#/definitions/UserReduced",
+                    },
+                    "location": {"type": "object", "$ref": "#/definitions/Location"},
+                    "employees": {
+                        "type": "array",
+                        "items": {"$ref": "#/definitions/EmployeeReduced"},
+                    },
+                },
+            },
         },
         "parameters": [
             {
@@ -349,6 +386,47 @@ def get_groups():
         )
     groups_to_dict = [group.to_dict() for group in groups]
     return jsonify(groups_to_dict)
+
+
+@groups_routes.get("/api/groups/with-employees")
+@login_required(groups=[UserGroup.verwaltung, UserGroup.standortleitung])
+@swag_from(
+    {
+        "tags": ["groups"],
+        "responses": {
+            200: {
+                "description": "Returns all groups with employees",
+                "schema": {
+                    "type": "array",
+                    "items": {"$ref": "#/definitions/GroupWithEmployees"},
+                },
+            },
+            400: {"description": "Invalid request."},
+        },
+    }
+)
+def get_groups_with_employees():
+    """Get all groups with their employees
+    Retrieves all groups along with their employees.
+    ---
+    """
+
+    user_id = g.user_id
+    user_group = g.user_group
+    try:
+        groups = GroupsService.get_groups(user_id, user_group)
+    except ValueError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Ungültige Anfrage",
+                description="Ungültige Anfrage.",
+                details=str(err),
+            )
+        )
+
+    groups_as_dict = [group.to_dict_with_employees() for group in groups]
+    return jsonify(groups_as_dict)
 
 
 @groups_routes.delete("/api/groups/remove-replacement/<uuid:group_id>")

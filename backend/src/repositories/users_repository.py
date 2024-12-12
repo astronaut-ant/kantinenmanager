@@ -63,6 +63,20 @@ class UsersRepository:
         )
 
     @staticmethod
+    def get_group_leader():
+        """Get all group leaders"""
+        return db.session.scalars(
+            select(User).where(User.user_group == UserGroup.gruppenleitung)
+        ).all()
+
+    @staticmethod
+    def get_location_leader():
+        """Get all location leaders"""
+        return db.session.scalars(
+            select(User).where(User.user_group == UserGroup.standortleitung)
+        ).all()
+
+    @staticmethod
     def create_user(user: User):
         """Create a new user in the database"""
         db.session.add(user)
@@ -86,6 +100,7 @@ class UsersRepository:
         db.session.delete(user)
         db.session.commit()
 
+    @staticmethod
     def get_group_and_location_leaders():
         """Get all group and location leaders"""
         return db.session.scalars(
