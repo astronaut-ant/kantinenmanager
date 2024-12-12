@@ -49,8 +49,8 @@ class OldOrder(db.Model):
     ):
         """Initialize a new old order
 
-        :param person: The person that made the order
-        :param location: The location of the order
+        :param person_id: The id of the person that made the order
+        :param location_id: The id of the location of the order
         :param date: The date of the order
         :param nothing: Whether the order is empty
         :param main_dish: The selected main dish
