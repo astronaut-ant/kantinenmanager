@@ -9,7 +9,7 @@ from src.models.user import UserGroup
 from src.services.employees_service import EmployeesService
 from src.services.groups_service import GroupsService
 from src.services.locations_service import LocationsService
-from src.services.orders_service import OrdersService
+from src.services.pre_orders_service import PreOrdersService
 from src.services.users_service import UsersService
 from src.utils.exceptions import (
     EmployeeAlreadyExistsError,
@@ -160,7 +160,7 @@ def insert_order_users_mock_data():
         }
 
         try:
-            OrdersService.create_preorder_user(data, user.id)
+            PreOrdersService.create_preorder_user(data, user.id)
             print(f"Inserted order for user {user.username}")
 
         except OrderAlreadyExistsForPersonAndDate:
