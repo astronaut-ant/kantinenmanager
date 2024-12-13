@@ -220,12 +220,15 @@ class OrdersRepository:
 
     ############################ DailyOrders ############################
     @staticmethod
-    def get_daily_order_by_person_id(person_id: UUID) -> DailyOrder:
+    def get_daily_order_by_person_id(person_id: UUID) -> Optional[DailyOrder]:
         """
         Get daily order by person id
+
         :param person_id: Person id
+
         :return: DailyOrder object
         """
+
         return db.session.scalars(
             select(DailyOrder).filter(DailyOrder.person_id == person_id)
         ).first()
