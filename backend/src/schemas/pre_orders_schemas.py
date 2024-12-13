@@ -1,21 +1,40 @@
-from marshmallow import Schema, fields
+from flasgger import Schema, fields  # this is a wrapper for marshmallow schemas
 
 from src.schemas.employee_schemas import EmployeeBaseSchema
 from src.models.maindish import MainDish
 
 
+class OrdersFilterSchema(Schema):
+    """
+    Query parameters for filtering orders
+
+    Uses ISO 8601 date format for dates (YYYY-MM-DD).
+    """
+
+    person_id = fields.UUID(data_key="person-id", required=False)
+    location_id = fields.UUID(data_key="location-id", required=False)
+    group_id = fields.UUID(data_key="group-id", required=False)
+    date = fields.Date(data_key="date", required=False)
+    date_start = fields.Date(data_key="date-start", required=False)
+    date_end = fields.Date(data_key="date-end", required=False)
+
+
 class PreOrderBaseSchema(Schema):
-    id = fields.UUID(dump_only=True)
-    date = fields.Date()
-    nothing = fields.Boolean()
-    main_dish = fields.Enum(MainDish)
-    salad_option = fields.Boolean()
+    """Schema representing data returned for every pre-order"""
+
+    id = fields.UUID(required=True, dump_only=True)
+    date = fields.Date(required=True)
+    nothing = fields.Boolean(required=True, default=False)
+    main_dish = fields.Enum(MainDish, required=False, default=None)
+    salad_option = fields.Boolean(required=False, default=False)
 
 
 class PreOrderFullSchema(PreOrderBaseSchema):
-    person_id = fields.UUID()
-    location_id = fields.UUID()
-    last_changed = fields.DateTime(format="timestamp")
+    """Schema representing a full order with flat structure"""
+
+    person_id = fields.UUID(required=True)
+    location_id = fields.UUID(required=True)
+    last_changed = fields.DateTime(format="timestamp", dump_only=True)
 
 
 class PreOrdersByGroupLeaderGroupSchema(Schema):

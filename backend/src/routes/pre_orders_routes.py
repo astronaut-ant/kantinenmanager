@@ -1,6 +1,11 @@
 from pprint import pprint
 from uuid import UUID
 from marshmallow import ValidationError, Schema, fields
+from src.schemas.pre_orders_schemas import (
+    OrdersFilterSchema,
+    PreOrderFullSchema,
+    PreOrdersByGroupLeaderSchema,
+)
 from src.utils.auth_utils import login_required
 from src.utils.error import ErrMsg, abort_with_err
 from flask import Blueprint, jsonify, request, g
@@ -19,23 +24,8 @@ from src.services.pre_orders_service import (
 pre_orders_routes = Blueprint("pre_orders_routes", __name__)
 
 
-class OrdersGetQuery(Schema):
-    """
-    Schema for the GET /api/daily-orders endpoint
-
-    Uses ISO 8601-formatted date strings (YYYY-MM-DD)
-    """
-
-    person_id = fields.UUID(data_key="person-id", required=False)
-    location_id = fields.UUID(data_key="location-id", required=False)
-    group_id = fields.UUID(data_key="group-id", required=False)
-    date = fields.Date(data_key="date", required=False)
-    date_start = fields.Date(data_key="date-start", required=False)
-    date_end = fields.Date(data_key="date-end", required=False)
-
-
 @pre_orders_routes.get("/api/pre-orders")
-@login_required()  # TODO Permissions
+@login_required()
 @swag_from(
     {
         "tags": ["pre_orders"],
@@ -100,11 +90,10 @@ class OrdersGetQuery(Schema):
                 "description": "Returns a list of pre_orders",
                 "schema": {
                     "type": "array",
-                    "items": {"$ref": "#/definitions/PreOrder"},
+                    "items": PreOrderFullSchema,
                 },
             },
-            401: {"description": "Unauthorized"},
-            403: {"description": "Forbidden"},
+            400: {"description": "Bad request"},
         },
     }
 )
@@ -115,7 +104,7 @@ def get_pre_orders():
     """
 
     try:
-        query_params = OrdersGetQuery().load(request.args)
+        query_params = OrdersFilterSchema().load(request.args)
         filters = OrdersFilters(**query_params)
         pprint(filters)
 
@@ -134,7 +123,7 @@ def get_pre_orders():
 
 
 @pre_orders_routes.get("/api/pre-orders/<int:preorder_id>")
-@login_required()  # TODO Permissions
+@login_required()
 @swag_from(
     {
         "tags": ["pre_orders"],
@@ -149,7 +138,7 @@ def get_pre_orders():
         "responses": {
             200: {
                 "description": "Returns a single pre-order",
-                "schema": {"$ref": "#/definitions/PreOrder"},
+                "schema": PreOrderFullSchema,
             },
             404: {"description": "Not found"},
         },
@@ -174,7 +163,7 @@ def get_pre_order(preorder_id: int):
 
 
 @pre_orders_routes.get("/api/pre-orders/by-group-leader/<uuid:person_id>")
-@login_required()
+@login_required(groups=[UserGroup.gruppenleitung])
 @swag_from(
     {
         "tags": ["pre_orders"],
@@ -187,7 +176,10 @@ def get_pre_order(preorder_id: int):
             }
         ],
         "responses": {
-            200: {},
+            200: {
+                "description": "Returns a list of pre-orders",
+                "schema": PreOrdersByGroupLeaderSchema,
+            },
             401: {"description": "Unauthorized"},
             403: {"description": "Forbidden"},
         },
@@ -198,6 +190,7 @@ def get_pre_orders_by_group_leader(person_id: UUID):
     Retrieves all groups of the group leader along with the orders of the employees in these groups.
     ---
     """
+
     try:
         pre_orders = PreOrdersService.get_pre_orders_by_group_leader(
             person_id, g.user_id, g.user_group
@@ -206,7 +199,7 @@ def get_pre_orders_by_group_leader(person_id: UUID):
         abort_with_err(
             ErrMsg(
                 status_code=400,
-                title="Fehler bei der Abfrage",
+                title="Validierungsfehler",
                 description="Fehler beim Abrufen der Bestellungen des Gruppenleiters",
                 details=str(err),
             )
@@ -215,86 +208,16 @@ def get_pre_orders_by_group_leader(person_id: UUID):
     return jsonify(pre_orders), 200
 
 
-class PreOrdersPostPutBody(Schema):
-    """
-    Schema for the POST and PUT /api/locations endpoint
-    """
-
-    person_id = fields.UUID(required=True)
-    location_id = fields.UUID(required=True)
-    date = fields.Date(required=True)  # ISO 8601-formatted date string
-    nothing = fields.Boolean(required=True, default=False)
-    main_dish = fields.Enum(MainDish, required=False, default=None)
-    salad_option = fields.Boolean(required=False, default=False)
-
-
 @pre_orders_routes.post("/api/pre-orders")
 @login_required(groups=[UserGroup.gruppenleitung], disabled=True)
 @swag_from(
     {
         "tags": ["pre_orders"],
-        "definitions": {
-            "PreOrder": {
-                "type": "object",
-                "properties": {
-                    "id": {"type": "integer", "example": 1},
-                    "person_id": {
-                        "type": "string",
-                        "format": "uuid",
-                        "example": "123e4567-e89b-12d3-a456-426614174000",
-                    },
-                    "location_id": {
-                        "type": "string",
-                        "format": "uuid",
-                        "example": "123e4567-e89b-12d3-a456-426614174000",
-                    },
-                    "date": {
-                        "type": "string",
-                        "format": "date",
-                        "example": "2024-12-08",
-                    },
-                    "nothing": {"type": "boolean", "example": False},
-                    "main_dish": {
-                        "type": "string",
-                        "enum": ["rot", "blau"],
-                        "nullable": True,
-                    },
-                    "salad_option": {"type": "boolean", "example": True},
-                    "last_changed": {"type": "number", "example": 1733780000.000099},
-                },
-            }
-        },
         "parameters": [
             {
                 "in": "body",
                 "name": "body",
-                "schema": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "person_id": {
-                                "type": "string",
-                                "format": "uuid",
-                            },
-                            "location_id": {
-                                "type": "string",
-                                "format": "uuid",
-                            },
-                            "date": {
-                                "type": "string",
-                                "format": "date",
-                            },
-                            "main_dish": {"type": "string", "nullable": True},
-                            "salad_option": {"type": "boolean"},
-                        },
-                        "required": [
-                            "person_id",
-                            "location_id",
-                            "date",
-                        ],
-                    },
-                },
+                "schema": {"type": "array", "items": PreOrderFullSchema},
             },
         ],
         "responses": {
@@ -306,7 +229,6 @@ class PreOrdersPostPutBody(Schema):
                 },
             },
             400: {"description": "Bad request"},
-            404: {"description": "Not found"},
         },
     }
 )
@@ -315,7 +237,7 @@ def create_update_preorders_employees():
     Bulk create and update preorders for employees
     """
     try:
-        orders = PreOrdersPostPutBody(many=True).load(request.json)
+        orders = PreOrderFullSchema(many=True).load(request.json)
         if not orders:
             return jsonify({"message": "Keine Bestellungen übergeben."}), 200
     except ValidationError as err:
@@ -327,6 +249,7 @@ def create_update_preorders_employees():
                 details=err.messages,
             )
         )
+
     try:
         PreOrdersService.create_update_bulk_preorders(orders, g.user_group, g.user_id)
     except ValueError as err:
@@ -341,7 +264,7 @@ def create_update_preorders_employees():
     except PersonNotPartOfGroup as err:
         abort_with_err(
             ErrMsg(
-                status_code=401,
+                status_code=400,
                 title="Person gehört nicht zur Gruppe",
                 description="Eine der Personen gehört nicht zur Gruppe.",
                 details=str(err),
@@ -350,16 +273,17 @@ def create_update_preorders_employees():
     except PersonNotPartOfLocation as err:
         abort_with_err(
             ErrMsg(
-                status_code=401,
+                status_code=400,
                 title="Person gehört nicht zum Standort",
                 description="Eine der Personen gehört nicht zum Standort.",
                 details=str(err),
             )
         )
+
     return jsonify({"message": "Bestellungen erfolgreich erstellt"}), 201
 
 
-@pre_orders_routes.post("/api/pre-orders/<uuid:user_id>")
+@pre_orders_routes.post("/api/pre-orders/user")
 @login_required(
     groups=[UserGroup.verwaltung, UserGroup.standortleitung, UserGroup.gruppenleitung]
 )
@@ -368,39 +292,9 @@ def create_update_preorders_employees():
         "tags": ["pre_orders"],
         "parameters": [
             {
-                "in": "path",
-                "name": "user_id",
-                "required": True,
-                "schema": {"type": "string", "format": "uuid"},
-            },
-            {
                 "in": "body",
                 "name": "body",
-                "schema": {
-                    "type": "object",
-                    "properties": {
-                        "person_id": {
-                            "type": "string",
-                            "format": "uuid",
-                        },
-                        "location_id": {
-                            "type": "string",
-                            "format": "uuid",
-                        },
-                        "date": {
-                            "type": "string",
-                            "format": "date",
-                        },
-                        "nothing": {"type": "boolean"},
-                        "main_dish": {"type": "string"},
-                        "salad_option": {"type": "boolean"},
-                    },
-                    "required": [
-                        "person_id",
-                        "location_id",
-                        "date",
-                    ],
-                },
+                "schema": PreOrderFullSchema,
             },
         ],
         "responses": {
@@ -416,12 +310,12 @@ def create_update_preorders_employees():
         },
     }
 )
-def create_preorder_user(user_id: UUID):
+def create_preorder_user():
     """
     Create a new preorder for an user
     """
     try:
-        preorder = PreOrdersPostPutBody().load(request.json)
+        preorder = PreOrderFullSchema().load(request.json)
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
@@ -431,6 +325,7 @@ def create_preorder_user(user_id: UUID):
                 details=err.messages,
             )
         )
+
     try:
         PreOrdersService.create_preorder_user(preorder, g.user_id)
     except ValueError as err:
@@ -445,12 +340,13 @@ def create_preorder_user(user_id: UUID):
     except WrongUserError as err:
         abort_with_err(
             ErrMsg(
-                status_code=401,
+                status_code=403,
                 title="Falscher Benutzer",
-                description="Der Benutzer hat keine Berechtigung für diese Aktion.",
+                description="Sie haben keine Berechtigung für diese Aktion.",
                 details=str(err),
             )
         )
+
     return jsonify({"message": "Bestellung erfolgreich aufgenommen."}), 201
 
 
@@ -471,31 +367,7 @@ def create_preorder_user(user_id: UUID):
             {
                 "in": "body",
                 "name": "body",
-                "schema": {
-                    "type": "object",
-                    "properties": {
-                        "person_id": {
-                            "type": "string",
-                            "format": "uuid",
-                        },
-                        "location_id": {
-                            "type": "string",
-                            "format": "uuid",
-                        },
-                        "date": {
-                            "type": "string",
-                            "format": "date",
-                        },
-                        "nothing": {"type": "boolean"},
-                        "main_dish": {"type": "string"},
-                        "salad_option": {"type": "boolean"},
-                    },
-                    "required": [
-                        "person_id",
-                        "location_id",
-                        "date",
-                    ],
-                },
+                "schema": PreOrderFullSchema,
             },
         ],
         "responses": {
@@ -516,7 +388,7 @@ def update_preorder_user(preorder_id: UUID):
     Update an existing preorder for an user
     """
     try:
-        preorder = PreOrdersPostPutBody().load(request.json)
+        preorder = PreOrderFullSchema().load(request.json)
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
@@ -526,6 +398,7 @@ def update_preorder_user(preorder_id: UUID):
                 details=err.messages,
             )
         )
+
     try:
         PreOrdersService.update_preorder_user(preorder, preorder_id, g.user_id)
     except ValueError as err:
@@ -540,12 +413,13 @@ def update_preorder_user(preorder_id: UUID):
     except WrongUserError as err:
         abort_with_err(
             ErrMsg(
-                status_code=401,
+                status_code=403,
                 title="Falscher Benutzer",
-                description="Der Benutzer hat keine Berechtigung für diese Aktion.",
+                description="Sie haben keine Berechtigung für diese Aktion.",
                 details=str(err),
             )
         )
+
     return jsonify({"message": "Bestellung erfolgreich aktualisiert."}), 200
 
 
@@ -586,10 +460,11 @@ def delete_preorder_user(preorder_id: UUID):
     except WrongUserError as err:
         abort_with_err(
             ErrMsg(
-                status_code=401,
+                status_code=403,
                 title="Falscher Benutzer",
-                description="Der Benutzer hat keine Berechtigung für diese Aktion.",
+                description="Sie haben keine Berechtigung für diese Aktion.",
                 details=str(err),
             )
         )
+
     return jsonify({"message": "Bestellung erfolgreich gelöscht."}), 200

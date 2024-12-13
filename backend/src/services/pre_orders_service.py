@@ -147,7 +147,7 @@ class PreOrdersService:
             raise ValueError(f"Das Datum {order['date']} ist kein Werktag.")
         if user_id != order["person_id"]:
             raise WrongUserError(
-                f"Person {order['person_id']} gehört zu keiner der Gruppen von {user_id}"
+                f"Sie haben nicht die Befugnis für '{order['person_id']}' zu bestellen."
             )
         OrdersRepository.create_single_order(PreOrder(**order))
 
