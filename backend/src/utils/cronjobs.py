@@ -31,7 +31,7 @@ def push_orders_to_next_table(app, ignore_errors=False):
 
         # Pushes all orders from yesterday to the old orders table
 
-        orders_yesterday = OrdersRepository.get_daily_orders()
+        orders_yesterday = OrdersRepository.get_all_daily_orders()
         for daily_order in orders_yesterday:
             old_order = OldOrder(
                 person_id=daily_order.person_id,
