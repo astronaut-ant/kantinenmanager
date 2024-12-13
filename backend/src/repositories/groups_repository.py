@@ -1,9 +1,10 @@
+from src.models.employee import Employee
 from src.models.location import Location
 from src.models.user import UserGroup
 from src.models.group import Group
 from uuid import UUID
 from src.database import db
-from sqlalchemy import or_
+from sqlalchemy import func, or_, select
 
 
 class GroupsRepository:
@@ -32,6 +33,31 @@ class GroupsRepository:
     def get_group_by_id(group_id: UUID) -> Group | None:
         """Helper method to retrieve a group by ID."""
         return db.session.query(Group).filter(Group.id == group_id).first()
+
+    @staticmethod
+    def get_groups_by_group_leader(person_id: UUID):
+        """Get all groups belonging to a group leader.
+
+        Each group contains a boolean indicating if the group is the users own group.
+        """
+
+        query = (
+            select(
+                Group.id,
+                Group.group_name,
+                (Group.user_id_group_leader == person_id).label("is_home_group"),
+            )
+            .join(Group.employees)
+            .where(
+                or_(
+                    Group.user_id_group_leader == person_id,
+                    Group.user_id_replacement == person_id,
+                )
+            )
+            .group_by(Group.id)
+        )
+
+        return db.session.execute(query).mappings().all()
 
     @staticmethod
     def update_group(group: Group) -> None:

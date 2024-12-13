@@ -130,7 +130,7 @@ def get_pre_orders():
         )
 
     pre_orders = PreOrdersService.get_pre_orders(filters)
-    return jsonify([order.to_dict() for order in pre_orders]), 200
+    return jsonify(pre_orders), 200
 
 
 @pre_orders_routes.get("/api/pre-orders/<int:preorder_id>")
@@ -170,11 +170,11 @@ def get_pre_order(preorder_id: int):
             )
         )
 
-    return jsonify(order.to_dict()), 200
+    return jsonify(order), 200
 
 
 @pre_orders_routes.get("/api/pre-orders/by-group-leader/<uuid:person_id>")
-@login_required(groups=[UserGroup.gruppenleitung])
+@login_required()
 @swag_from(
     {
         "tags": ["pre_orders"],
@@ -198,13 +198,21 @@ def get_pre_orders_by_group_leader(person_id: UUID):
     Retrieves all groups of the group leader along with the orders of the employees in these groups.
     ---
     """
-    abort_with_err(
-        ErrMsg(
-            status_code=501,
-            title="Not implemented",
-            description="This endpoint is not implemented yet.",
+    try:
+        pre_orders = PreOrdersService.get_pre_orders_by_group_leader(
+            person_id, g.user_id, g.user_group
         )
-    )
+    except ValueError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Fehler bei der Abfrage",
+                description="Fehler beim Abrufen der Bestellungen des Gruppenleiters",
+                details=str(err),
+            )
+        )
+
+    return jsonify(pre_orders), 200
 
 
 class PreOrdersPostPutBody(Schema):
@@ -221,7 +229,7 @@ class PreOrdersPostPutBody(Schema):
 
 
 @pre_orders_routes.post("/api/pre-orders")
-@login_required(groups=[UserGroup.gruppenleitung])
+@login_required(groups=[UserGroup.gruppenleitung], disabled=True)
 @swag_from(
     {
         "tags": ["pre_orders"],
