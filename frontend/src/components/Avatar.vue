@@ -9,40 +9,41 @@
             </v-avatar>
           </v-btn>
         </template>
-        <v-card color="blue-grey-lighten-2">
+        <v-card color="blue-grey-lighten-5">
           <v-card-text>
             <div class="mx-auto text-center">
               <v-avatar color="red" class="pa-6">
                 <span class="text-h5">{{ initials }}</span>
               </v-avatar>
-              <h3 class="mt-2">
+              <h3 class="mt-2 text-blue-grey">
                 {{ fullName }}
               </h3>
               <div class="w-75 mx-auto mt-2">
-                <p class="text-caption mt-1 text-start text-no-wrap">
+                <p
+                  class="text-caption mt-1 text-start text-no-wrap text-blue-grey"
+                >
                   {{ "Benutzername: " }}
-                  <span class="font-weight-bold"
+                  <span class="font-weight-bold text-blue-grey"
                     >{{ appStore.userData.username }}
                   </span>
                 </p>
-                <p class="text-caption mt-1 text-start text-no-wrap">
+                <p
+                  class="text-caption mt-1 text-start text-no-wrap text-blue-grey"
+                >
                   {{ "Benutzerrechte: " }}
                   <span class="font-weight-bold"
                     >{{ formattedUserGroup }}
                   </span>
                 </p>
               </div>
-              <v-divider color="white" class="my-3"></v-divider>
+              <v-divider color="text-blue-grey" class="my-3"></v-divider>
 
-              <PasswordChange />
-              <!-- <v-btn variant="text" rounded>
-                <v-icon class="me-4">mdi-key-variant</v-icon>
-                Passwort ändern
-              </v-btn> -->
-              <v-divider color="white" class="my-3"></v-divider>
-              <v-btn @click="signOut" variant="text" rounded>
+              <PasswordChange @succeeded="signOut" />
+
+              <v-divider color="text-blue-grey" class="my-3"></v-divider>
+              <v-btn @click="signOut" variant="text" class="text-blue-grey">
                 <v-icon class="me-4">mdi-logout</v-icon>
-                Sign out
+                Abmelden
               </v-btn>
             </div>
           </v-card-text>
@@ -75,7 +76,9 @@ const signOut = () => {
   appStore.userData = {};
   axios
     .post("http://localhost:4200/api/logout", {}, { withCredentials: true })
-    .then(() => router.push("/login"))
+    .then(() => {
+      router.push("/login");
+    })
     .catch((error) => console.log(error));
 };
 </script>

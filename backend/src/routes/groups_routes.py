@@ -43,12 +43,76 @@ class GroupCreateSchema(Schema):
                         "example": "123e4567-e89b-12d3-a456-426614174000",
                     },
                     "group_name": {"type": "string"},
+                    "group_leader": {
+                        "type": "object",
+                        "$ref": "#/definitions/UserReduced",
+                    },
+                    "group_leader_replacement": {
+                        "type": "object",
+                        "nullable": True,
+                        "$ref": "#/definitions/UserReduced",
+                    },
+                    "location": {"type": "object", "$ref": "#/definitions/Location"},
+                },
+            },
+            "GroupReduced": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                    },
+                    "group_name": {"type": "string"},
+                    "group_leader": {
+                        "type": "object",
+                        "$ref": "#/definitions/UserReduced",
+                    },
+                    "group_leader_replacement": {
+                        "type": "object",
+                        "nullable": True,
+                        "$ref": "#/definitions/UserReduced",
+                    },
+                    "location": {"type": "object", "$ref": "#/definitions/Location"},
+                },
+            },
+            "GroupReduced": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                    },
+                    "group_name": {"type": "string"},
                     # "group_number": {"type": "integer"},
                     "user_id_group_leader": {"type": "string"},
-                    "location_id": {"type": "string"},
                     "user_id_replacement": {"type": "string"},
+                    "location_id": {"type": "string"},
                 },
-            }
+            },
+            "GroupWithEmployees": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                    },
+                    "group_name": {"type": "string"},
+                    "group_leader": {
+                        "type": "object",
+                        "$ref": "#/definitions/UserReduced",
+                    },
+                    "group_leader_replacement": {
+                        "type": "object",
+                        "nullable": True,
+                        "$ref": "#/definitions/UserReduced",
+                    },
+                    "location": {"type": "object", "$ref": "#/definitions/Location"},
+                    "employees": {
+                        "type": "array",
+                        "items": {"$ref": "#/definitions/EmployeeReduced"},
+                    },
+                },
+            },
         },
         "parameters": [
             {
@@ -367,3 +431,92 @@ def get_groups():
         )
     groups_to_dict = [group.to_dict() for group in groups]
     return jsonify(groups_to_dict)
+
+
+@groups_routes.get("/api/groups/with-employees")
+@login_required(groups=[UserGroup.verwaltung, UserGroup.standortleitung])
+@swag_from(
+    {
+        "tags": ["groups"],
+        "responses": {
+            200: {
+                "description": "Returns all groups with employees",
+                "schema": {
+                    "type": "array",
+                    "items": {"$ref": "#/definitions/GroupWithEmployees"},
+                },
+            },
+            400: {"description": "Invalid request."},
+        },
+    }
+)
+def get_groups_with_employees():
+    """Get all groups with their employees
+    Retrieves all groups along with their employees.
+    ---
+    """
+
+    user_id = g.user_id
+    user_group = g.user_group
+    try:
+        groups = GroupsService.get_groups(user_id, user_group)
+    except ValueError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Ungültige Anfrage",
+                description="Ungültige Anfrage.",
+                details=str(err),
+            )
+        )
+
+    groups_as_dict = [group.to_dict_with_employees() for group in groups]
+    return jsonify(groups_as_dict)
+
+
+@groups_routes.delete("/api/groups/remove-replacement/<uuid:group_id>")
+@login_required(groups=[UserGroup.standortleitung])
+@swag_from(
+    {
+        "tags": ["groups"],
+        "parameters": [
+            {
+                "in": "path",
+                "name": "group_id",
+                "required": True,
+                "schema": {"type": "string"},
+            },
+        ],
+        "responses": {
+            200: {"description": "Group Replacement successfully removed."},
+            404: {"description": "Group not found."},
+            404: {"description": "Group Replacement not found."},
+        },
+    }
+)
+def remove_group_replacement(group_id: UUID):
+    """Remove a Group Replacement."""
+    try:
+        group_replacement = GroupsService.remove_group_replacement(group_id)
+    except GroupDoesNotExistError:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Gruppe nicht gefunden",
+                description="Die Gruppe mit der angegebenen ID existiert nicht.",
+            )
+        )
+    if group_replacement is None:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Gruppen Vertretung nicht gefunden",
+                description="Die Gruppenvertretung wurde nicht gefunden.",
+            )
+        )
+    user = UsersService.get_user_by_id(group_replacement)
+    return jsonify(
+        {
+            "message": f"Group Replacement: '{user.first_name}', ' {user.last_name}' successfully removed."
+        }
+    )

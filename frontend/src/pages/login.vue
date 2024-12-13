@@ -1,53 +1,62 @@
 <template>
-  <v-dialog
-    v-model="dialog"
-    :persistent="true"
-    :no-click-animation="true"
-    max-width="600"
-  >
-    <v-card class="mx-auto px-6 py-4" min-width="344">
-      <v-card-text class="text-center text-h5">
-        SIGN IN
-        <v-icon>mdi-login</v-icon>
-      </v-card-text>
+  <v-container max-width="1000" class="d-flex h-100 align-center">
+    <v-card class="mx-auto px-6 py-4 w-50 bg-blue-grey-lighten-5">
+      <div class="d-flex w-100 h-100 align-center justify-center mb-4">
+        <div class="">
+          <v-img class="" :width="30" cover src="../assets/logo.png"></v-img>
+        </div>
+        <div class="">
+          <v-card-text
+            class="text-center text-h5 text-blue-grey font-weight-bold"
+          >
+            LOGIN
+          </v-card-text>
+        </div>
+      </div>
       <v-form v-model="form" @submit.prevent="handleSubmit">
         <v-text-field
           v-model="userName"
-          :readonly="loading"
+          base-color="blue-grey"
+          color="blue-grey"
+          variant="solo"
           :rules="[required]"
           class="mb-2"
           label="Benutzername"
-          clearable
         ></v-text-field>
         <v-text-field
+          :append-inner-icon="
+            showPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline'
+          "
           v-model="password"
-          type="password"
-          :readonly="loading"
+          base-color="blue-grey"
+          color="blue-grey"
+          variant="solo"
+          :type="showPassword ? 'text' : 'password'"
           :rules="[required]"
           label="Passwort"
-          clearable
+          @click:append-inner="showPassword = !showPassword"
         ></v-text-field>
-        <v-btn
-          class="mt-5"
-          :disabled="!form"
-          :loading="loading"
-          color="primary"
-          size="large"
-          type="submit"
-          variant="elevated"
-          block
-        >
-          Sign In
-        </v-btn>
         <CustomAlert
+          class="mb-5"
           color="red"
           icon="$error"
-          text="Ungültiger Benutzername oder Passwort"
+          text="Anmeldeversuch fehlgeschlagen"
           v-if="showAlert"
         />
+        <v-container class="d-flex justify-center">
+          <v-btn
+            :disabled="!form"
+            color="primary"
+            size="large"
+            type="submit"
+            variant="elevated"
+          >
+            Einloggen <v-icon class="ms-2">mdi-login</v-icon>
+          </v-btn>
+        </v-container>
       </v-form>
     </v-card>
-  </v-dialog>
+  </v-container>
 </template>
 
 <script setup>
@@ -59,9 +68,8 @@ import CustomAlert from "@/components/CustomAlert.vue";
 const form = ref(false);
 const userName = ref(null);
 const password = ref(null);
-const loading = ref(false);
-const dialog = ref(true);
 const showAlert = ref(false);
+const showPassword = ref(false);
 
 const required = (v) => {
   return !!v || "Eingabe erforderlich";

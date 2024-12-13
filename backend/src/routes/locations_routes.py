@@ -30,12 +30,26 @@ locations_routes = Blueprint("locations_routes", __name__)
                         "example": "123e4567-e89b-12d3-a456-426614174000",
                     },
                     "location_name": {"type": "string"},
+                    "location_leader": {
+                        "type": "object",
+                        "$ref": "#/definitions/UserReduced",
+                    },
+                },
+            },
+            "LocationReduced": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                    },
+                    "location_name": {"type": "string"},
                     "user_id_location_leader": {
                         "type": "string",
                         "example": "123e4567-e89b-12d3-a456-426614174000",
                     },
                 },
-            }
+            },
         },
         "responses": {
             200: {

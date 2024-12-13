@@ -157,3 +157,15 @@ class UsersService:
         AuthService.invalidate_all_refresh_tokens(user.id)
 
         return new_password
+
+    @staticmethod
+    def get_group_leader() -> list[User]:
+        """Get all users with the user group 'gruppenleitung'"""
+
+        return UsersRepository.get_group_leader()
+
+    @staticmethod
+    def get_location_leader() -> list[User]:
+        """Get all users with the user group 'standortleitung'"""
+
+        return UsersRepository.get_location_leader()

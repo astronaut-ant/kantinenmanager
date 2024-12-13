@@ -76,5 +76,17 @@ class Location(db.Model):
         return {
             "id": str(self.id),
             "location_name": self.location_name,
+            "location_leader": self.location_leader.to_dict_reduced(),
+        }
+
+    def to_dict_reduced(self) -> dict[str, str]:
+        """Convert the location to a dictionary with reduced information
+
+        :return: A dictionary containing the locations's information
+        """
+
+        return {
+            "id": str(self.id),
+            "location_name": self.location_name,
             "user_id_location_leader": str(self.user_id_location_leader),
         }
