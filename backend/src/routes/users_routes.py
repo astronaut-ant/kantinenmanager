@@ -3,7 +3,11 @@ from marshmallow import ValidationError
 from src.utils.auth_utils import login_required
 from src.utils.error import ErrMsg, abort_with_err
 from src.models.user import UserGroup
-from src.services.users_service import UserAlreadyExistsError, UsersService
+from src.services.users_service import (
+    UserAlreadyExistsError,
+    UsersService,
+    UserCannotBeDeletedError,
+)
 from flask import Blueprint, jsonify, request
 from marshmallow.validate import Length
 from marshmallow import Schema, fields
@@ -25,13 +29,25 @@ from flasgger import swag_from
 users_routes = Blueprint("users_routes", __name__)
 
 
-# Bei jedem GET Request (siehe HTTP) auf /api/users wird die get_users Funktion aufgerufen
 @users_routes.get("/api/users")
 @login_required(groups=[UserGroup.verwaltung])
 @swag_from(
     {
         "tags": ["users"],
         "definitions": {
+            "UserReduced": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                    },
+                    "first_name": {"type": "string"},
+                    "last_name": {"type": "string"},
+                    "username": {"type": "string"},
+                    "user_group": {"type": "string"},
+                },
+            },
             "User": {
                 "type": "object",
                 "properties": {
@@ -47,7 +63,47 @@ users_routes = Blueprint("users_routes", __name__)
                     "last_login": {"type": "number"},
                     "blocked": {"type": "boolean"},
                 },
-            }
+            },
+            "GroupLeader": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                    },
+                    "first_name": {"type": "string"},
+                    "last_name": {"type": "string"},
+                    "username": {"type": "string"},
+                    "user_group": {"type": "string"},
+                    "own_group": {
+                        "type": "object",
+                        "$ref": "#/definitions/GroupReduced",
+                        "nullable": True,
+                    },
+                    "replacement_groups": {
+                        "type": "array",
+                        "items": {"$ref": "#/definitions/GroupReduced"},
+                    },
+                },
+            },
+            "LocationLeader": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "123e4567-e89b-12d3-a456-426614174000",
+                    },
+                    "first_name": {"type": "string"},
+                    "last_name": {"type": "string"},
+                    "username": {"type": "string"},
+                    "user_group": {"type": "string"},
+                    "leader_of_location": {
+                        "type": "object",
+                        "$ref": "#/definitions/LocationReduced",
+                        "nullable": True,
+                    },
+                },
+            },
         },
         "responses": {
             200: {
@@ -65,18 +121,11 @@ def get_users():
     Authorization: Verwaltung
     ---
     """
-    # Der docstring --^ ist wie wir Flasgger über die Parameter und Rückgabewerte
-    # dieses Endpunkts informieren. Die Informationen werden extrahiert und
-    # graphisch auf http://localhost:4200/apidocs/ angezeigt.
-    # Achtung: Im Kommentar wird YAML verwendet, was **2** Leerzeichen als Einrückung verwendet.
 
     users = UsersService.get_users()
 
-    # Diese wird in eine Liste an Dicts umgewandelt, aber ohne das Passwort
     users_dict = [user.to_dict_without_pw_hash() for user in users]
 
-    # Die dicts brauchen wir, denn daraus können wir JSON erzeugen.
-    # Mit jsonify wird automatisch ein Response Object erstellt.
     return jsonify(users_dict)
 
 
@@ -90,7 +139,7 @@ def get_users():
                 "in": "path",
                 "name": "user_id",
                 "required": True,
-                "schema": {"type": "string"},
+                "schema": {"type": "string", "format": "uuid"},
             }
         ],
         "responses": {
@@ -123,9 +172,58 @@ def get_user_by_id(user_id: UUID):
     return jsonify(user.to_dict_without_pw_hash())
 
 
-# Das folgende kommt aus Marshmallow. https://marshmallow.readthedocs.io/en/stable/#
-# Mit Marshmallow kann man Objekte serialisieren, deserialisieren und validieren, was eine Menge if Statements ersparen sollte.
-# Das Schema gibt an, wie die Daten aussehen sollen, zusammen mit gewissen Einschränkungen.
+@users_routes.get("/api/users/group-leaders")
+@login_required(groups=[UserGroup.verwaltung])
+@swag_from(
+    {
+        "tags": ["users"],
+        "responses": {
+            200: {
+                "description": "Returns a list of all group leaders",
+                "schema": {
+                    "type": "array",
+                    "items": {"$ref": "#/definitions/GroupLeader"},
+                },
+            }
+        },
+    }
+)
+def get_group_leaders():
+    """Get all group leaders with their respective groups
+    Returns a list of all group leaders with their respective groups
+    ---
+    """
+    group_leaders = UsersService.get_group_leader()
+    res_dict = [leader.to_dict_group_leader() for leader in group_leaders]
+    return jsonify(res_dict)
+
+
+@users_routes.get("/api/users/location-leaders")
+@login_required(groups=[UserGroup.verwaltung])
+@swag_from(
+    {
+        "tags": ["users"],
+        "responses": {
+            200: {
+                "description": "Returns a list of all location leaders",
+                "schema": {
+                    "type": "array",
+                    "items": {"$ref": "#/definitions/LocationLeader"},
+                },
+            }
+        },
+    }
+)
+def get_location_leaders():
+    """Get all location leaders with their location
+    Returns a list of all location leaders with their location
+    ---
+    """
+    location_leaders = UsersService.get_location_leader()
+    res_dict = [leader.to_dict_location_leader() for leader in location_leaders]
+    return jsonify(res_dict)
+
+
 class UsersPostBody(Schema):
     """
     Schema for the POST /api/users endpoint
@@ -426,5 +524,14 @@ def delete_user(user_id: UUID):
             )
         )
 
-    UsersService.delete_user(user)
+    try:
+        UsersService.delete_user(user)
+    except UserCannotBeDeletedError:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Nutzer:in kann nicht gelöscht werden",
+                description="Nutzer:in kann nicht gelöscht werden, da er/sie aktive Standort- oder Gruppenleitung ist",
+            )
+        )
     return jsonify({"message": "Nutzer erfolgreich gelöscht"})

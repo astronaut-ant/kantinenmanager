@@ -1,5 +1,5 @@
 <template>
-  <v-container class="mt-7 border pa-0">
+  <v-container class="mt-5 pa-0">
     <v-alert
       :color="props.color"
       :icon="props.icon"

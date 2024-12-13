@@ -67,6 +67,21 @@ class Employee(Person):
             "first_name": self.first_name,
             "last_name": self.last_name,
             "employee_number": self.employee_number,
-            "group_id": self.group_id,
             "created": self.created.timestamp(),
+            "group": self.group.to_reduced_dict(),
+        }
+
+    def to_dict_reduced(self) -> dict[str, str | int | bool]:
+        """Convert the employee to a dictionary with reduced information
+
+        All complex objects are converted to their string representation.
+
+        :return: A dictionary containing the employee's information
+        """
+
+        return {
+            "id": str(self.id),
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "employee_number": self.employee_number,
         }

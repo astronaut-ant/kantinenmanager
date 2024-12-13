@@ -1,5 +1,20 @@
+from uuid import UUID
+
+
+class LocationAlreadyExistsError(Exception):
+    """Exception raised when a location with the same name already exists."""
+
+    pass
+
+
 class UserAlreadyExistsError(Exception):
     """Exception raised when a username is already taken."""
+
+    pass
+
+
+class UserCannotBeDeletedError(Exception):
+    """Exception raised when a user cannot be deleted."""
 
     pass
 
@@ -36,5 +51,29 @@ class FileNotProcessableError(Exception):
 
 class PersonDoesNotExistError(Exception):
     """Exception raised when a person does not exist at a given location."""
+
+    pass
+
+
+class LocationAlreadyExistsError(Exception):
+    """Exception raised when a location already exists."""
+
+    pass
+
+
+class GroupLeaderDoesNotExistError(Exception):
+    """Exception raised when a group leader does not exist."""
+
+    pass
+
+
+class GroupLeaderDoesNotExist(Exception):
+    """Exception raised when a group leader does not exist."""
+
+    pass
+
+
+class LocationDoesNotExist(Exception):
+    """Exception raised when a location does not exist."""
 
     pass
