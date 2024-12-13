@@ -1,54 +1,5 @@
 MOCK_GROUPS = [
     {
-        "group_name": "klassik",
-        "group_leader": "gruppenleitung",
-        "location_name": "earth",
-    },
-    {
-        "group_name": "film",
-        "group_leader": "alan_kay",
-        "location_name": "earth",
-    },
-    {
-        "group_name": "actors",
-        "group_leader": "denis_ritchie",
-        "location_name": "earth",
-    },
-    {
-        "group_name": "actors",
-        "group_leader": "ken_thompson",
-        "replacement": "gruppenleitung",
-        "location_name": "mars",
-    },
-    {
-        "group_name": "comedy",
-        "group_leader": "margaret_hamilton",
-        "replacement": "gruppenleitung",
-        "location_name": "mars",
-    },
-    {
-        "group_name": "science",
-        "group_leader": "barbara_liskov",
-        "location_name": "mars",
-    },
-    {
-        "group_name": "literature",
-        "group_leader": "brendan_eich",
-        "replacement": "gruppenleitung",
-        "location_name": "mars",
-    },
-    {
-        "group_name": "crime",
-        "group_leader": "haskell_curry",
-        "location_name": "mars",
-    },
-    {
-        "group_name": "leaders",
-        "group_leader": "john_von_neumann",
-        "replacement": "haskell_curry",
-        "location_name": "earth",
-    },
-    {
         "group_name": "Gryffindor",
         "group_leader": "minerva_mcgonagall",
         "location_name": "hogwarts",
@@ -61,11 +12,34 @@ MOCK_GROUPS = [
     {
         "group_name": "Hufflepuff",
         "group_leader": "pomona_sprout",
+        "replacement": "gruppenleitung",
         "location_name": "hogwarts",
     },
     {
         "group_name": "Ravenclaw",
         "group_leader": "filius_flitwick",
+        "location_name": "hogwarts",
+    },
+    {
+        "group_name": "Order of the Phoenix",
+        "group_leader": "gruppenleitung",
+        "location_name": "hogsmeade",
+    },
+    {
+        "group_name": "Death Eaters",
+        "group_leader": "voldemort",
+        "location_name": "london",
+    },
+    {
+        "group_name": "Ministry of Magic",
+        "group_leader": "cornelius_fudge",
+        "replacement": "gruppenleitung",
+        "location_name": "london",
+    },
+    {
+        "group_name": "Dumbledore's Army",
+        "group_leader": "harry_potter",
+        "replacement": "gruppenleitung",
         "location_name": "hogwarts",
     },
 ]

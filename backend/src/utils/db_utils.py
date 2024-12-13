@@ -16,7 +16,6 @@ from src.utils.exceptions import (
     EmployeeAlreadyExistsError,
     GroupAlreadyExists,
     LocationAlreadyExistsError,
-    OrderAlreadyExistsForPersonAndDate,
     UserAlreadyExistsError,
 )
 
@@ -30,7 +29,7 @@ def insert_mock_data(app):
         update_user_location_mock_data()
         insert_group_mock_data()
         insert_employee_mock_data()
-        # insert_order_users_mock_data()
+        insert_order_users_mock_data()
         insert_order_employees_mock_data()
 
 
@@ -147,25 +146,42 @@ def insert_order_users_mock_data():
     """Insert mock orders for users."""
     users_dict = {user.username: user for user in UsersService.get_users()}
 
-    next_monday = _get_next_monday()
-
-    for order in MOCK_ORDERS_USERS:
-        user = users_dict[order["user"]]
-
-        data = {
-            "person_id": user.id,
-            "location_id": user.location_id,
-            "date": next_monday + order["timedelta"],
-            "main_dish": order["main_dish"],
-            "salad_option": order["salad_option"],
-        }
-
-        try:
-            PreOrdersService.create_preorder_user(data, user.id)
-            print(f"Inserted order for user {user.username}")
-
-        except OrderAlreadyExistsForPersonAndDate:
+    for block in MOCK_ORDERS_USERS:
+        date = datetime.now().date() + block["timedelta"]
+        if date.weekday() >= 5:
+            # Not a workday
             continue
+
+        orders = block["orders"]
+        if len(orders) == 0:
+            continue
+
+        first_user = users_dict[orders[0]["user"]]
+        existing_orders = PreOrdersService.get_pre_orders(
+            OrdersFilters(date=date, person_id=first_user.id)
+        )
+        if len(existing_orders) > 0:
+            # Orders for this date already exist
+            continue
+
+        for order in orders:
+            user = users_dict[order["user"]]
+            data = {
+                "date": date,
+                "location_id": user.location_id,
+                "main_dish": order["main_dish"],
+                "salad_option": order["salad_option"],
+                "person_id": user.id,
+                "nothing": order["nothing"],
+            }
+
+            try:
+                PreOrdersService.create_preorder_user(data, user.id)
+                print(f"Inserted order for user {user.username}")
+
+            except Exception as e:
+                print(f"Failed to insert order for user {user.username}: {e}")
+                continue
 
 
 def insert_order_employees_mock_data():
@@ -218,10 +234,7 @@ def insert_order_employees_mock_data():
                     [data], group.user_id_replacement or group.user_id_group_leader
                 )
             except Exception as e:
+                print(
+                    f"Failed to insert order for employee {employee.employee_number}: {e}"
+                )
                 continue
-
-
-def _get_next_monday():
-    today = datetime.now().date()
-    days_ahead = 0 - today.weekday() + 7
-    return today + timedelta(days_ahead)
