@@ -1,6 +1,14 @@
 from datetime import datetime, timedelta
 from typing import List, Optional
 from uuid import UUID
+
+from src.repositories.employees_repository import EmployeesRepository
+from src.repositories.groups_repository import GroupsRepository
+from src.repositories.users_repository import UsersRepository
+from src.schemas.pre_orders_schemas import (
+    PreOrderFullSchema,
+    PreOrdersByGroupLeaderSchema,
+)
 from src.models.preorder import PreOrder
 from src.models.user import UserGroup
 from src.repositories.orders_repository import OrdersFilters, OrdersRepository
@@ -17,30 +25,60 @@ class PreOrdersService:
     """
 
     @staticmethod
-    def get_pre_order_by_id(id: int) -> Optional[PreOrder]:
+    def get_pre_order_by_id(id: int) -> Optional[PreOrderFullSchema]:
         """
         Get pre order by id
         """
+        preorder = OrdersRepository.get_pre_order_by_id(id)
 
-        return OrdersRepository.get_pre_order_by_id(id)
+        if not preorder:
+            return None
+
+        return PreOrderFullSchema().dump(preorder)
 
     @staticmethod
-    def get_pre_orders_by_group_leader(person_id: UUID) -> List[PreOrder]:
+    def get_pre_orders_by_group_leader(
+        person_id: UUID, request_user_id: UUID, request_user_group: UserGroup
+    ):
         """
         Get pre orders by person id of th group leader
         """
+        group_leader = UsersRepository.get_user_by_id(person_id)
+        if not group_leader:
+            raise ValueError("Gruppenleiter nicht gefunden")
+        if group_leader.user_group != UserGroup.gruppenleitung:
+            raise ValueError("Person ist kein Gruppenleiter")
 
-        return OrdersRepository.get_pre_orders_by_group_leader(person_id)
+        groups = GroupsRepository.get_groups_by_group_leader(person_id)
+
+        def add_orders_to_group(group):
+            group = dict(group)
+            group["employees"] = EmployeesRepository.get_employees_by_user_scope(
+                user_group=request_user_group,
+                user_id=request_user_id,
+                group_id=group["id"],
+            )
+            group["orders"] = OrdersRepository.get_pre_orders(
+                OrdersFilters(group_id=group["id"])
+            )
+            return group
+
+        groups = list(map(add_orders_to_group, groups))
+
+        group_leader = group_leader.to_dict_without_pw_hash()
+        group_leader["groups"] = groups
+
+        return PreOrdersByGroupLeaderSchema().dump(group_leader)
 
     @staticmethod
-    def get_pre_orders(filters: OrdersFilters) -> List[PreOrder]:
+    def get_pre_orders(filters: OrdersFilters) -> List[PreOrderFullSchema]:
         """
         Get orders
         :param filters: Filters for orders
         :return: List of orders
         """
-
-        return OrdersRepository.get_pre_orders(filters)
+        preorders = OrdersRepository.get_pre_orders(filters)
+        return PreOrderFullSchema(many=True).dump(preorders)
 
     @staticmethod
     def create_update_bulk_preorders(

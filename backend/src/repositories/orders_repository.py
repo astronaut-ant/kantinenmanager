@@ -1,6 +1,7 @@
 """Repository to handle database operations for order data."""
 
 from sqlalchemy import select, func, or_, and_
+from sqlalchemy.orm import joinedload
 from src.database import db
 from uuid import UUID
 from typing import List, Optional
@@ -165,27 +166,11 @@ class OrdersRepository:
         return db.session.scalars(select(PreOrder).filter(PreOrder.id == id)).first()
 
     @staticmethod
-    def get_pre_orders_by_group_leader(person_id: UUID) -> List[PreOrder]:
-        """
-        Get pre orders by person id of th group leader
-
-        :param person_id: Person id
-        :return: List of pre orders
-        """
-        return (
-            db.session.execute(
-                select(PreOrder).filter(
-                    PreOrder.person_id.in_(
-                        OrdersRepository.get_employees_to_order_for(person_id)
-                    )
-                )
-            )
-            .scalars()
-            .all()
-        )
-
-    @staticmethod
-    def get_pre_orders(filters: OrdersFilters) -> List[PreOrder]:
+    def get_pre_orders(
+        filters: OrdersFilters,
+        prejoin_person: bool = False,
+        prejoin_location: bool = False,
+    ) -> List[PreOrder]:
         """
         Get pre orders based on filters
 
@@ -215,6 +200,12 @@ class OrdersRepository:
 
         if filters.date_end:
             query = query.filter(PreOrder.date <= filters.date_end)
+
+        if prejoin_person:
+            query = query.options(joinedload(PreOrder.person))
+
+        if prejoin_location:
+            query = query.options(joinedload(PreOrder.location))
 
         return db.session.execute(query).scalars().all()
 
@@ -258,12 +249,15 @@ class OrdersRepository:
         ).first()
 
     @staticmethod
-    def get_daily_orders() -> List[DailyOrder]:
+    def get_all_daily_orders() -> List[DailyOrder]:
         """
         Get all orders in the daily orders table
         :return: List of daily orders
-        """
-        return db.session.scalars(select(DailyOrder)).all()
+        """:
+        return db.session.scalars(
+            select(DailyOrder)
+            # .filter(DailyOrder.date = date.today().date())  incase DailyOrder gets .date field
+        ).all()
 
     ############################ OldOrders ############################
     @staticmethod
