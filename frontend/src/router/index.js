@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import index from "../pages/index.vue";
-import Login from "../pages/login.vue";
+import Login from "../pages/Login.vue";
 import { useAppStore } from "../stores/app.js";
 import VerwaltungAlleBenutzer from "@/pages/Verwaltung/VerwaltungAlleBenutzer.vue";
 import VerwaltungNeuerBenutzer from "../pages/Verwaltung/VerwaltungNeuerBenutzer.vue";
@@ -28,7 +28,7 @@ const routes = [
     beforeEnter: (to, from, next) => {
       let user_group = "";
       axios
-        .get("http://localhost:4200/api/is-logged-in", {
+        .get(import.meta.env.VITE_API + "/api/is-logged-in", {
           withCredentials: true,
         })
         .then((response) => {
@@ -206,7 +206,9 @@ const router = createRouter({
 
 const protectRoute = (next, user_group) => {
   axios
-    .get("http://localhost:4200/api/is-logged-in", { withCredentials: true })
+    .get(import.meta.env.VITE_API + "/api/is-logged-in", {
+      withCredentials: true,
+    })
     .then((response) => {
       console.log(response.data);
       if (response.data.user_group === user_group) {

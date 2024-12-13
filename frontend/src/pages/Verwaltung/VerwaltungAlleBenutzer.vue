@@ -14,15 +14,20 @@
     <v-card>
       <v-card-text>
         <div class="d-flex justify-center text-red mb-4">
-          <p class="text-h5 font-weight-black" >Benutzer löschen</p>
+          <p class="text-h5 font-weight-black">Benutzer löschen</p>
         </div>
         <div class="text-medium-emphasis">
-          <p> Sind Sie sicher, dass Sie den Benutzer <strong>{{ userToDeleteName }}</strong> löschen möchten?</p>
+          <p>
+            Sind Sie sicher, dass Sie den Benutzer
+            <strong>{{ userToDeleteName }}</strong> löschen möchten?
+          </p>
         </div>
       </v-card-text>
       <v-card-actions>
         <v-btn text @click="closedeleteDialog">Abbrechen</v-btn>
-        <v-btn color="red" variant="elevated" @click="confirmDelete">Löschen</v-btn>
+        <v-btn color="red" variant="elevated" @click="confirmDelete"
+          >Löschen</v-btn
+        >
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -130,7 +135,13 @@ onMounted(() => {
 const opendeleteDialog = (id) => {
   const user = users.value.find((user) => user.id === id);
   userToDelete.value = id;
-  userToDeleteName.value = user?.last_name + ", " + user?.first_name  + " (Benutzername: "+ user?.username + ")";
+  userToDeleteName.value =
+    user?.last_name +
+    ", " +
+    user?.first_name +
+    " (Benutzername: " +
+    user?.username +
+    ")";
   deleteDialog.value = true;
 };
 
