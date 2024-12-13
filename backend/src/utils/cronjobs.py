@@ -25,11 +25,15 @@ def push_orders_to_next_table(app, ignore_errors=False):
             ):
                 print("Tables unset")
                 raise OrderTransferError()
-            if OrdersRepository.get_pre_orders(OrdersFilters(date=date)) == []:
+            if (
+                OrdersRepository.get_pre_orders(OrdersFilters(date=date)) == []
+            ):  # TODO @Sidney: auf Werktag prüfen: `and date.weekday() < 5`
                 print("Tables unset")
                 raise OrderTransferError()
 
         # Pushes all orders from yesterday to the old orders table
+
+        # TODO @Sidney: Hier könnte man optional die Überprüfen, ob nicht Sonntag ist: `if date.weekday() =! 6:`
 
         orders_yesterday = OrdersRepository.get_all_daily_orders()
         for daily_order in orders_yesterday:
@@ -58,6 +62,8 @@ def push_orders_to_next_table(app, ignore_errors=False):
             raise OrderTransferError()
 
         # Pushes all pre-orders for today to the daily orders table
+
+        # TODO @Sidney: Und hier auch optional überprüfen, ob kein Wochenende ist: `if date.weekday() < 5:`
 
         pre_orders = OrdersRepository.get_pre_orders(OrdersFilters(date=date))
         for pre_order in pre_orders:
