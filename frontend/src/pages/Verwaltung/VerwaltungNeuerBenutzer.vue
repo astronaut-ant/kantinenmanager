@@ -108,7 +108,6 @@ const handleSubmit = () => {
     .post(import.meta.env.VITE_API + "/api/users ", {
       first_name: first_name.value,
       last_name: last_name.value,
-      password: "12345678",
       user_group: user_group.value,
       username: username.value,
     })
