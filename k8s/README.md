@@ -16,6 +16,28 @@ sudo snap install kubectl --classic # Install kubectl client
 sudo snap install helm --classic # Install helm
 ```
 
+## Setup application
+
+1. Connect GitLab to the Kubernetes Cluster (-> via GitLab integration)
+
+2. Generate an Access Token for DockerHub and create a K8s secret for authentication:
+
+```bash
+kubectl create secret docker-registry regcred docker-server=DOCKER_REGISTRY_SERVER --docker-username=DOCKER_USER --docker-password=DOCKER_PASSWORD
+```
+
+3. Create the following generic secrets for the application. The values may be random and must not contain special characters.
+
+```bash
+kubectl create secret generic dbpassword --from-literal=DB_PASSWORD=supersecret
+
+kubectl create secret generic jwtsecret --from-literal=JWT_SECRET=supersecret
+
+kubectl create secret generic initialadmin --from-literal=INITIAL_ADMIN_PASSWORD=supersecret
+```
+
+4. Now run the pipeline. Et voilà ✌️
+
 ## Access Dashboard
 
 ```bash
