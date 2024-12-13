@@ -1,7 +1,7 @@
 <template>
   <NavbarVerwaltung />
 
-  <div class="d-flex justify-center mt-n4">
+  <div class="d-flex justify-center mt-7">
     <div>
       <v-card class="elevation-7 px-6 py-4 w-100">
         <v-card-text class="mb-2 text-h5">
@@ -80,6 +80,7 @@
     :showConfirm="showConfirm"
     :userName="username"
     :userGroup="user_group"
+    text="Das Benutzerkonto wurde erfolgreich angelegt"
     :initialPassword="initialPassword"
     @close="emptyForm"
   />

@@ -38,7 +38,7 @@
               </div>
               <v-divider color="text-blue-grey" class="my-3"></v-divider>
 
-              <PasswordChange />
+              <PasswordChange @succeeded="signOut" />
 
               <v-divider color="text-blue-grey" class="my-3"></v-divider>
               <v-btn @click="signOut" variant="text" class="text-blue-grey">
@@ -76,7 +76,9 @@ const signOut = () => {
   appStore.userData = {};
   axios
     .post("http://localhost:4200/api/logout", {}, { withCredentials: true })
-    .then(() => router.push("/login"))
+    .then(() => {
+      router.push("/login");
+    })
     .catch((error) => console.log(error));
 };
 </script>

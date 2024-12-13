@@ -11,7 +11,7 @@
           <v-card-title> Bestätigung </v-card-title>
 
           <v-card-subtitle>
-            Das Benutzerkonto wurde erfolgreich angelegt
+            {{ props.text }}
           </v-card-subtitle>
         </v-card-item>
         <v-card-text>
@@ -57,6 +57,7 @@ const props = defineProps([
   "initialPassword",
   "userName",
   "userGroup",
+  "text",
 ]);
 
 const groupCreated = ref(false);
