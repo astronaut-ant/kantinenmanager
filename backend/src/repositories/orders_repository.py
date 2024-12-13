@@ -72,6 +72,19 @@ class OrdersRepository:
         db.session.commit()
 
     @staticmethod
+    def bulk_delete_orders(orders: List[PreOrder] | List[DailyOrder] | List[OldOrder]):
+        """
+        Delete orders
+        :param orders: List of orders
+        """
+        try:
+            for order in orders:
+                db.session.delete(order)
+        except Exception as e:
+            return e
+        db.session.commit()
+
+    @staticmethod
     def create_single_order(order: PreOrder) -> PreOrder:
         """
         Create (pre)order for user
@@ -243,7 +256,11 @@ class OrdersRepository:
         ).first()
 
     @staticmethod
-    def get_all_daily_orders():
+    def get_all_daily_orders() -> List[DailyOrder]:
+        """
+        Get all orders in the daily orders table
+        :return: List of daily orders
+        """
         return db.session.scalars(
             select(DailyOrder)
             # .filter(DailyOrder.date = date.today().date())  incase DailyOrder gets .date field

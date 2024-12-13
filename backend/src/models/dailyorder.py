@@ -36,7 +36,7 @@ class DailyOrder(db.Model):
 
     def __init__(
         self,
-        person: "Person",
+        person_id: uuid.UUID,
         location_id: uuid.UUID,
         nothing: bool,
         main_dish: MainDish,
@@ -45,14 +45,14 @@ class DailyOrder(db.Model):
     ):
         """Initialize a new daily order
 
-        :param person: The person that made the order
+        :param person_id: The person that made the order
         :param location_id: The location the order is for
         :param nothing: Weather the order is empty or not
         :param main_dish: The selected main dish
         :param salad_option: Whether a salad is included
         :param handed_out: Whether the order has been handed out
         """
-        self.person = person
+        self.person_id = person_id
         self.location_id = location_id
         self.nothing = nothing
         self.main_dish = main_dish

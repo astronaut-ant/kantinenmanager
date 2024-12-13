@@ -49,8 +49,8 @@ class PreOrder(db.Model):
     ):
         """Initialize a new pre-order
 
-        :param person: The person that made the order
-        :param location: The location where the order was made
+        :param person_id: The id of the person that made the order
+        :param location_id: The id of the location where the order was made
         :param date: The date of the pre-order
         :param nothing: Whether the order is empty
         :param main_dish: The selected main dish

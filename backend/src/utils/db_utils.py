@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from mocks.mock_orders_employees import MOCK_ORDERS_EMPLOYEES
+from apscheduler.schedulers.background import BackgroundScheduler
 from mocks.mock_orders_users import MOCK_ORDERS_USERS
 from mocks.mock_employees import MOCK_EMPLOYEES
 from mocks.mock_groups import MOCK_GROUPS
@@ -18,6 +19,7 @@ from src.utils.exceptions import (
     LocationAlreadyExistsError,
     UserAlreadyExistsError,
 )
+from src.utils.cronjobs import push_orders_to_next_table
 
 
 def insert_mock_data(app):
@@ -238,3 +240,17 @@ def insert_order_employees_mock_data():
                     f"Failed to insert order for employee {employee.employee_number}: {e}"
                 )
                 continue
+
+
+def start_cronjob(app, os):
+    if os.environ.get("WERKZEUG_RUN_MAIN") != "true":
+        scheduler = BackgroundScheduler()
+        print("Starting cronjob")
+        scheduler.add_job(
+            lambda: push_orders_to_next_table(app),
+            "cron",
+            hour="8",
+            minute="2",
+            timezone="Europe/Berlin",
+        )
+        scheduler.start()

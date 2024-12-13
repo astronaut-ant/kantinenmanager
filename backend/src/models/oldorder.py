@@ -39,7 +39,8 @@ class OldOrder(db.Model):
 
     def __init__(
         self,
-        person: "Person",
+        person_id: uuid.UUID,
+        location_id: uuid.UUID,
         date: datetime,
         nothing: bool,
         main_dish: MainDish,
@@ -48,14 +49,16 @@ class OldOrder(db.Model):
     ):
         """Initialize a new old order
 
-        :param person: The person that made the order
+        :param person_id: The id of the person that made the order
+        :param location_id: The id of the location of the order
         :param date: The date of the order
         :param nothing: Whether the order is empty
         :param main_dish: The selected main dish
         :param salad_option: Whether a salad is included
         :param handed_out: Whether the order was handed out
         """
-        self.person = person
+        self.person_id = person_id
+        self.location_id = location_id
         self.date = date
         self.nothing = nothing
         self.main_dish = main_dish

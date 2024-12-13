@@ -3,11 +3,13 @@ from flask import Flask
 from flasgger import Swagger
 from flask_cors import CORS
 from dotenv import load_dotenv
+from apscheduler.schedulers.background import BackgroundScheduler
 import os
 
-from src.utils.db_utils import insert_mock_data
+from src.utils.db_utils import insert_mock_data, start_cronjob
 from src.environment import Environment, get_features
 from src.utils.error import register_error_handlers
+from src.utils.cronjobs import push_orders_to_next_table
 
 from .middlewares.auth_middleware import register_auth_middleware
 from .database import create_initial_admin, init_db, setup_test_db
@@ -94,6 +96,12 @@ def startup() -> None:
         insert_mock_data(app)
     else:
         print("--- Mock data insertion disabled ---")
+
+    if features.CRONJOBS:
+        print("--- Cronjobs enabled             ---")
+        start_cronjob(app, os)
+    else:
+        print("--- Cronjobs disabled            ---")
 
     register_routes(app)
 

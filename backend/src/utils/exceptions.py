@@ -116,3 +116,9 @@ class WrongLocationError(Exception):
     """Exception raised when a user is not allowed to create an order for another user."""
 
     pass
+
+
+class OrderTransferError(Exception):
+    """Exception raised when the transfer of orders failed."""
+
+    pass
