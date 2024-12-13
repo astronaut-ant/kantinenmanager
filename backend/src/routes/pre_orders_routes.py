@@ -34,6 +34,7 @@ class OrdersGetQuery(Schema):
     date_end = fields.Date(data_key="date-end", required=False)
 
 
+# TODO: Test all routes
 @pre_orders_routes.get("/api/pre-orders")
 @login_required()  # TODO Permissions
 @swag_from(
