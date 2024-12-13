@@ -48,4 +48,24 @@ MOCK_GROUPS = [
         "replacement": "haskell_curry",
         "location_name": "earth",
     },
+    {
+        "group_name": "Gryffindor",
+        "group_leader": "minerva_mcgonagall",
+        "location_name": "hogwarts",
+    },
+    {
+        "group_name": "Slytherin",
+        "group_leader": "severus_snape",
+        "location_name": "hogwarts",
+    },
+    {
+        "group_name": "Hufflepuff",
+        "group_leader": "pomona_sprout",
+        "location_name": "hogwarts",
+    },
+    {
+        "group_name": "Ravenclaw",
+        "group_leader": "filius_flitwick",
+        "location_name": "hogwarts",
+    },
 ]

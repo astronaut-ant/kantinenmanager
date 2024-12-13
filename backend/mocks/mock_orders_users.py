@@ -1,8 +1,7 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from src.models.maindish import MainDish
 
-_BASE = datetime.now().date()
 _TIME_DELTA_1 = timedelta(days=0)
 _TIME_DELTA_2 = timedelta(days=1)
 _TIME_DELTA_3 = timedelta(days=3)

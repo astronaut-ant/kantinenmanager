@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from mocks.mock_orders_employees import MOCK_ORDERS_EMPLOYEES
 from mocks.mock_orders_users import MOCK_ORDERS_USERS
 from mocks.mock_employees import MOCK_EMPLOYEES
 from mocks.mock_groups import MOCK_GROUPS
@@ -9,6 +10,7 @@ from src.services.employees_service import EmployeesService
 from src.services.groups_service import GroupsService
 from src.services.locations_service import LocationsService
 from src.services.pre_orders_service import PreOrdersService
+from src.repositories.orders_repository import OrdersFilters
 from src.services.users_service import UsersService
 from src.utils.exceptions import (
     EmployeeAlreadyExistsError,
@@ -29,6 +31,7 @@ def insert_mock_data(app):
         insert_group_mock_data()
         insert_employee_mock_data()
         # insert_order_users_mock_data()
+        insert_order_employees_mock_data()
 
 
 def insert_user_mock_data():
@@ -163,6 +166,59 @@ def insert_order_users_mock_data():
 
         except OrderAlreadyExistsForPersonAndDate:
             continue
+
+
+def insert_order_employees_mock_data():
+    """Insert mock orders for employees."""
+    admin = UsersService.get_user_by_username("admin")
+
+    employees_dict = {
+        employee.employee_number: employee
+        for employee in EmployeesService.get_employees(UserGroup.verwaltung, admin.id)
+    }
+    groups_dict = {
+        group.id: group
+        for group in GroupsService.get_groups(admin.id, UserGroup.verwaltung)
+    }
+
+    for block in MOCK_ORDERS_EMPLOYEES:
+        date = datetime.now().date() + block["timedelta"]
+        if date.weekday() >= 5:
+            # Not a workday
+            continue
+
+        orders = block["orders"]
+        if len(orders) == 0:
+            continue
+
+        first_employee = employees_dict[orders[0]["employee_number"]]
+
+        existing_orders = PreOrdersService.get_pre_orders(
+            OrdersFilters(date=date, person_id=first_employee.id)
+        )
+        if len(existing_orders) > 0:
+            # Orders for this date already exist
+            continue
+
+        for order in orders:
+            employee = employees_dict[order["employee_number"]]
+            group = groups_dict[employee.group_id]
+
+            data = {
+                "date": date,
+                "location_id": group.location_id,
+                "main_dish": order["main_dish"],
+                "nothing": order["nothing"],
+                "person_id": employee.id,
+                "salad_option": order["salad_option"],
+            }
+
+            try:
+                PreOrdersService.create_update_bulk_preorders(
+                    [data], group.user_id_replacement or group.user_id_group_leader
+                )
+            except Exception as e:
+                continue
 
 
 def _get_next_monday():

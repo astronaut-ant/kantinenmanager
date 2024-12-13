@@ -7,4 +7,8 @@ MOCK_LOCATIONS = [
         "location_name": "mars",
         "location_leader": "grace_hopper",
     },
+    {
+        "location_name": "hogwarts",
+        "location_leader": "albus_dumbledore",
+    },
 ]

@@ -106,16 +106,18 @@ class OrdersRepository:
         :return: List of employee ids
         """
         # Use a subquery to get group ids for the user
-        group_ids_subquery = select(Group.id).filter(
-            or_(
-                # User is the group leader and no replacement is set
-                and_(
-                    (Group.user_id_group_leader == user_id)
-                    & (Group.user_id_replacement is None),
-                ),
-                # Or the user is a replacement for the group leader
-                (Group.user_id_replacement == user_id),
+        group_ids_subquery = (
+            select(Group.id)
+            .filter(
+                or_(
+                    and_(
+                        Group.user_id_group_leader == user_id,
+                        Group.user_id_replacement.is_(None),
+                    ),
+                    Group.user_id_replacement == user_id,
+                )
             )
+            .subquery()
         )
 
         # Use the group IDs to fetch all employee IDs
