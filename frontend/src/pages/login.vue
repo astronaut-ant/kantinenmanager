@@ -1,5 +1,5 @@
 <template>
-  <v-container class="d-flex h-100 align-center">
+  <v-container max-width="1000" class="d-flex h-100 align-center">
     <v-card class="mx-auto px-6 py-4 w-50 bg-blue-grey-lighten-5">
       <div class="d-flex w-100 h-100 align-center justify-center mb-4">
         <div class="">
@@ -7,7 +7,7 @@
         </div>
         <div class="">
           <v-card-text
-            class="text-center text-h5 underlined text-blue-grey font-weight-bold"
+            class="text-center text-h5 text-blue-grey font-weight-bold"
           >
             LOGIN
           </v-card-text>
@@ -40,12 +40,11 @@
           class="mb-5"
           color="red"
           icon="$error"
-          text="Ungültiger Benutzername oder Passwort"
+          text="Anmeldeversuch fehlgeschlagen"
           v-if="showAlert"
         />
         <v-container class="d-flex justify-center">
           <v-btn
-            class="mb-2 elevation-2"
             :disabled="!form"
             color="primary"
             size="large"

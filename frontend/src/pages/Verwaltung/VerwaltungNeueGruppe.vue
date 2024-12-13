@@ -1,6 +1,6 @@
 <template>
-  <NavbarVerwaltung @click="emptyForm" />
-  <div class="mt-7 d-flex justify-center" @click="emptyForm">
+  <NavbarVerwaltung />
+  <div class="mt-7 d-flex justify-center">
     <div>
       <v-card class="elevation-7 px-6 py-4 w-100">
         <v-card-text class="mb-2 text-h5"> Neue Gruppe anlegen </v-card-text>
@@ -41,7 +41,7 @@
             label="Standort"
             v-model="standort"
             :rules="[required]"
-            :items="standortList"
+            :items="allLocations"
           ></v-select>
 
           <v-btn
@@ -83,8 +83,8 @@ const noGruppenleiter = ref(false);
 const gruppenleiterLookupTable = {};
 
 //Dummy for Location-Endpoint
-const standort = ref(null);
-const standortList = ref(["W1", "W2", "W3"]);
+const standort = ref();
+const allLocations = ref([]);
 const noStandorte = ref(false);
 const standortLookupTable = {};
 
@@ -106,24 +106,44 @@ onMounted(() => {
       }
     })
     .catch((err) => console.log(err));
+
+  axios
+    .get("http://localhost:4200/api/locations", { withCredentials: true })
+    .then((response) => {
+      response.data.forEach((location) => {
+        allLocations.value.push(location.location_name);
+      });
+      response.data.forEach((location) => {
+        standortLookupTable[location.location_name] = location.id;
+        console.log(location);
+      });
+      console.log(standortLookupTable);
+      if (Object.keys(standortLookupTable).length === 0) {
+        noStandorte.value = true;
+      }
+      console.log(allLocations.value);
+    })
+    .catch((err) => console.log(err.response.data.description));
 });
 
 //send to Backend needs Endpoint
 const handleSubmit = () => {
-  console.log({
-    location_name: gruppenName.value,
-    user_id: gruppenleiterLookupTable[gruppenleitung.value],
-    location_id: standortLookupTable[standort.value],
-  });
   axios
-    .post("http://localhost:4200/api/groups", {
-      location_name: gruppenName.value,
-      user_id: gruppenleiterLookupTable[gruppenleitung.value],
-      location_id: standortLookupTable[standort.value],
+    .post(
+      "http://localhost:4200/api/groups",
+      {
+        group_name: gruppenName.value,
+        location_id: standortLookupTable[standort.value],
+        user_id_group_leader: gruppenleiterLookupTable[gruppenleitung.value],
+      },
+      { withCredentials: true }
+    )
+    .then((response) => {
+      console.log(response.data);
+      showConfirm.value = true;
+      emptyForm();
     })
-    .then((response) => console.log(response.data))
-    .catch((err) => console.log(err));
-  showConfirm.value = true;
+    .catch((err) => console.log(err.response.data.description));
 };
 
 //validate
