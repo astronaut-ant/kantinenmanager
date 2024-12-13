@@ -108,7 +108,7 @@ onMounted(() => {
     .catch((err) => console.log(err));
 
   axios
-    .get("http://localhost:4200/api/locations", { withCredentials: true })
+    .get(import.meta.env.VITE_API + "/api/locations", { withCredentials: true })
     .then((response) => {
       response.data.forEach((location) => {
         allLocations.value.push(location.location_name);

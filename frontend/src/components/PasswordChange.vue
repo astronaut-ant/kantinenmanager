@@ -174,7 +174,7 @@ const handleSubmit = () => {
     } else {
       axios
         .post(
-          "http://localhost:4200/api/account/change-password",
+          import.meta.env.VITE_API + "/api/account/change-password",
           {
             new_password: passwordNew.value,
             old_password: passwordOld.value,

@@ -159,7 +159,7 @@ onMounted(() => {
     })
     .catch((err) => console.log(err));
   axios
-    .get("http://localhost:4200/api/locations", { withCredentials: true })
+    .get(import.meta.env.VITE_API + "/api/locations", { withCredentials: true })
     .then((response) => {
       response.data.forEach((location) => {
         allLocations.value.push(location.location_name);
@@ -190,13 +190,9 @@ const closedeleteDialog = () => {
 
 const confirmDelete = () => {
   axios
-    .delete(
-      import.meta.env.VITE_API +
-        `http://localhost:4200/api/users/${userToDelete.value}`,
-      {
-        withCredentials: true,
-      }
-    )
+    .delete(`${import.meta.env.VITE_API}/api/users/${userToDelete.value}`, {
+      withCredentials: true,
+    })
     .then(() => {
       users.value = users.value.filter(
         (user) => user.id !== userToDelete.value
@@ -228,7 +224,9 @@ const handlePasswordReset = () => {
   axios
     .put(
       //What happens if User is Logged in?
-      `http://localhost:4200/api/users/${userToEdit.value}/reset-password`,
+      `${import.meta.env.VITE_API}/api/users/${
+        userToEdit.value
+      }/reset-password`,
       {},
       { withCredentials: true }
     )

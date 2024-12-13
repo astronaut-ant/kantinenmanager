@@ -116,7 +116,7 @@ const handleSubmit = () => {
       console.log(response.data.id);
       axios
         .put(
-          `http://localhost:4200/api/users/${response.data.id}/reset-password`,
+          `${import.meta.env.VITE_API}/api/users/${response.data.id}/reset-password`,
           {},
           { withCredentials: true }
         )
@@ -147,7 +147,7 @@ const emptyForm = () => {
 };
 onMounted(() => {
   axios
-    .get("http://localhost:4200/api/locations", { withCredentials: true })
+    .get(import.meta.env.VITE_API + "/api/locations", { withCredentials: true })
     .then((response) => {
       response.data.forEach((location) => {
         allLocations.value.push(location.location_name);
