@@ -25,7 +25,7 @@ class PreOrderBaseSchema(Schema):
     id = fields.UUID(required=True, dump_only=True)
     date = fields.Date(required=True)
     nothing = fields.Boolean(required=True, default=False)
-    main_dish = fields.Enum(MainDish, required=False, default=None)
+    main_dish = fields.Enum(MainDish, required=False, default=None, allow_none=True)
     salad_option = fields.Boolean(required=False, default=False)
 
 

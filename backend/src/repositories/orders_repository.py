@@ -72,13 +72,17 @@ class OrdersRepository:
         db.session.commit()
 
     @staticmethod
-    def create_single_order(order):
+    def create_single_order(order: PreOrder) -> PreOrder:
         """
         Create (pre)order for user
+
         :param order: (pre)order object to create
+
+        :return: Created (pre)order object
         """
         db.session.add(order)
         db.session.commit()
+        return order
 
     @staticmethod
     def update_order():
@@ -107,7 +111,7 @@ class OrdersRepository:
                 # User is the group leader and no replacement is set
                 and_(
                     (Group.user_id_group_leader == user_id)
-                    & (Group.user_id_replacement == None),
+                    & (Group.user_id_replacement is None),
                 ),
                 # Or the user is a replacement for the group leader
                 (Group.user_id_replacement == user_id),

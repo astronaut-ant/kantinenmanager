@@ -12,7 +12,6 @@ Typical usage example:
 
 import time
 from flask import abort, make_response, request, Flask
-from werkzeug.exceptions import HTTPException
 from werkzeug.http import HTTP_STATUS_CODES
 
 

@@ -1,6 +1,6 @@
-from pprint import pprint
 from uuid import UUID
-from marshmallow import ValidationError, Schema, fields
+from marshmallow import ValidationError
+from src.utils.exceptions import NotFoundError
 from src.schemas.pre_orders_schemas import (
     OrdersFilterSchema,
     PreOrderFullSchema,
@@ -11,7 +11,6 @@ from src.utils.error import ErrMsg, abort_with_err
 from flask import Blueprint, jsonify, request, g
 from flasgger import swag_from
 from src.models.user import UserGroup
-from src.models.maindish import MainDish
 from src.services.pre_orders_service import (
     OrdersFilters,
     PreOrdersService,
@@ -104,10 +103,11 @@ def get_pre_orders():
     ---
     """
 
+    # TODO only return user scope
+
     try:
         query_params = OrdersFilterSchema().load(request.args)
         filters = OrdersFilters(**query_params)
-        pprint(filters)
 
     except ValidationError as err:
         abort_with_err(
@@ -164,7 +164,7 @@ def get_pre_order(preorder_id: int):
 
 
 @pre_orders_routes.get("/api/pre-orders/by-group-leader/<uuid:person_id>")
-@login_required(groups=[UserGroup.gruppenleitung])
+@login_required(groups=[UserGroup.gruppenleitung], disabled=True)
 @swag_from(
     {
         "tags": ["pre_orders"],
@@ -201,7 +201,7 @@ def get_pre_orders_by_group_leader(person_id: UUID):
             ErrMsg(
                 status_code=400,
                 title="Validierungsfehler",
-                description="Fehler beim Abrufen der Bestellungen des Gruppenleiters",
+                description="Eingabedaten nicht valide",
                 details=str(err),
             )
         )
@@ -239,8 +239,6 @@ def create_update_preorders_employees():
     """
     try:
         orders = PreOrderFullSchema(many=True).load(request.json)
-        if not orders:
-            return jsonify({"message": "Keine Bestellungen übergeben."}), 200
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
@@ -251,8 +249,17 @@ def create_update_preorders_employees():
             )
         )
 
+    if not orders:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Keine Bestellungen übergeben",
+                description="Es wurden keine Bestellungen übergeben.",
+            )
+        )
+
     try:
-        PreOrdersService.create_update_bulk_preorders(orders, g.user_group, g.user_id)
+        PreOrdersService.create_update_bulk_preorders(orders, g.user_id)
     except ValueError as err:
         abort_with_err(
             ErrMsg(
@@ -284,7 +291,7 @@ def create_update_preorders_employees():
     return jsonify({"message": "Bestellungen erfolgreich erstellt"}), 201
 
 
-@pre_orders_routes.post("/api/pre-orders/user")
+@pre_orders_routes.post("/api/pre-orders/users")
 @login_required(
     groups=[UserGroup.verwaltung, UserGroup.standortleitung, UserGroup.gruppenleitung]
 )
@@ -301,10 +308,7 @@ def create_update_preorders_employees():
         "responses": {
             201: {
                 "description": "Order created",
-                "schema": {
-                    "type": "object",
-                    "properties": {"message": {"type": "string"}},
-                },
+                "schema": PreOrderFullSchema,
             },
             400: {"description": "Bad request"},
             404: {"description": "Not found"},
@@ -328,13 +332,13 @@ def create_preorder_user():
         )
 
     try:
-        PreOrdersService.create_preorder_user(preorder, g.user_id)
+        order = PreOrdersService.create_preorder_user(preorder, g.user_id)
     except ValueError as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
-                title="Datum der Bestellung nicht valide",
-                description="Das Datum der Bestellung ist nicht valide.",
+                title="Validierungsfehler",
+                description="Die Daten der Bestellung sind nicht valide.",
                 details=str(err),
             )
         )
@@ -348,7 +352,7 @@ def create_preorder_user():
             )
         )
 
-    return jsonify({"message": "Bestellung erfolgreich aufgenommen."}), 201
+    return jsonify(order), 201
 
 
 @pre_orders_routes.put("/api/pre-orders/<int:preorder_id>")
@@ -373,11 +377,8 @@ def create_preorder_user():
         ],
         "responses": {
             200: {
-                "description": "Order updated",
-                "schema": {
-                    "type": "object",
-                    "properties": {"message": {"type": "string"}},
-                },
+                "description": "Updated order",
+                "schema": PreOrderFullSchema,
             },
             400: {"description": "Bad request"},
             404: {"description": "Not found"},
@@ -401,7 +402,16 @@ def update_preorder_user(preorder_id: UUID):
         )
 
     try:
-        PreOrdersService.update_preorder_user(preorder, preorder_id, g.user_id)
+        order = PreOrdersService.update_preorder_user(preorder, preorder_id, g.user_id)
+    except NotFoundError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Bestellung nicht gefunden",
+                description=f"Bestellung mit ID {preorder_id} nicht gefunden.",
+                details=str(err),
+            )
+        )
     except ValueError as err:
         abort_with_err(
             ErrMsg(
@@ -421,10 +431,10 @@ def update_preorder_user(preorder_id: UUID):
             )
         )
 
-    return jsonify({"message": "Bestellung erfolgreich aktualisiert."}), 200
+    return jsonify(order), 200
 
 
-@pre_orders_routes.delete("/api/pre-orders/<uuid:preorder_id>")
+@pre_orders_routes.delete("/api/pre-orders/<int:preorder_id>")
 @login_required(
     groups=[UserGroup.verwaltung, UserGroup.standortleitung, UserGroup.gruppenleitung]
 )
@@ -436,28 +446,33 @@ def update_preorder_user(preorder_id: UUID):
                 "in": "path",
                 "name": "preorder_id",
                 "required": True,
-                "schema": {"type": "string", "format": "uuid"},
+                "schema": {"type": "string", "format": "int"},
             },
         ],
         "responses": {
-            200: {
+            204: {
                 "description": "Order deleted",
-                "schema": {
-                    "type": "object",
-                    "properties": {"message": {"type": "string"}},
-                },
             },
             400: {"description": "Bad request"},
             404: {"description": "Not found"},
         },
     }
 )
-def delete_preorder_user(preorder_id: UUID):
+def delete_preorder_user(preorder_id: int):
     """
     Delete an existing preorder for an user
     """
     try:
         PreOrdersService.delete_preorder_user(preorder_id, g.user_id)
+    except NotFoundError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Bestellung nicht gefunden",
+                description=f"Bestellung mit ID {preorder_id} nicht gefunden.",
+                details=str(err),
+            )
+        )
     except WrongUserError as err:
         abort_with_err(
             ErrMsg(
@@ -468,4 +483,4 @@ def delete_preorder_user(preorder_id: UUID):
             )
         )
 
-    return jsonify({"message": "Bestellung erfolgreich gelöscht."}), 200
+    return "", 204
