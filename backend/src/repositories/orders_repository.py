@@ -11,6 +11,8 @@ from src.models.group import Group
 from src.models.preorder import PreOrder
 from src.models.dailyorder import DailyOrder
 from src.models.oldorder import OldOrder
+from src.models.user import UserGroup
+from src.repositories.users_repository import UsersRepository
 
 
 class OrdersFilters:
@@ -241,6 +243,21 @@ class OrdersRepository:
             select(DailyOrder)
             # .filter(DailyOrder.date = date.today().date())  incase DailyOrder gets .date field
         ).all()
+
+    @staticmethod
+    def get_daily_orders_filtered_by_user_scope(user_id: UUID) -> List[DailyOrder]:
+        user = UsersRepository.get_user_by_id(user_id)
+        if user.user_group == UserGroup.verwaltung:
+            return db.session.scalars(select(DailyOrder)).all()
+        elif (
+            user.user_group == UserGroup.kuechenpersonal
+            or user.user_group == UserGroup.standortleitung
+        ):
+            return db.session.scalars(
+                select(DailyOrder).filter(DailyOrder.location_id == user.location_id)
+            ).all()
+        else:
+            return []
 
     ############################ OldOrders ############################
     @staticmethod

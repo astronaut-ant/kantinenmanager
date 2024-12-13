@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from typing import List, Optional
 from uuid import UUID
+from marshmallow import Schema, fields
 from src.models.maindish import MainDish
 from src.models.dailyorder import DailyOrder
 from src.models.user import UserGroup
@@ -48,36 +49,58 @@ class DailyOrdersService:
             OrdersRepository.update_order(order)
 
     @staticmethod
-    def get_all_daily_orders():
-        all_orders = OrdersRepository.get_all_daily_orders()
-        Standorte = []
-        for order in all_orders:
-            if order.location_id not in Standorte:
-                Standorte.append(order.location_id)
-        orders = []
-        for Standort in Standorte:
-            StandortName = LocationsRepository.get_location_by_id(
-                Standort
-            ).location_name
-            rot = 0
-            blau = 0
-            salad_option = 0
-            for order in all_orders:
-                if order.location_id == Standort:
-                    if order.main_dish == MainDish.rot:
-                        rot += 1
-                    elif order.main_dish == MainDish.blau:
-                        blau += 1
-                    if order.salad_option:
-                        salad_option += 1
-            orders.append(
-                f"Standort: "
-                + str(StandortName)
-                + " || rot: "
-                + str(rot)
-                + " blau: "
-                + str(blau)
-                + " Salat: "
-                + str(salad_option)
+    def get_daily_orders_filtered_by_user_scope(user_id: UUID) -> List[DailyOrder]:
+        return OrdersRepository.get_daily_orders_filtered_by_user_scope(user_id)
+
+    class CountOrdersObject:
+        def __init__(self, location_name: str, rot: int, blau: int, salad_option: int):
+            self.location_name = location_name
+            self.rot = rot
+            self.blau = blau
+            self.salad_option = salad_option
+
+    class CountOrdersSchema(Schema):
+        location_id = fields.String(required=True)
+        rot = fields.Integer(required=True)
+        blau = fields.Integer(required=True)
+        salad_option = fields.Integer(required=True)
+
+    @staticmethod
+    def get_all_daily_orders_count():
+        all_daily_orders = OrdersRepository.get_all_daily_orders()
+
+        location_counts = {}
+        for order in all_daily_orders:
+            if order.nothing:
+                continue
+
+            location_id = order.location_id
+            if location_id not in location_counts:
+                location_counts[location_id] = {
+                    "location_name": LocationsRepository.get_location_by_id(
+                        location_id
+                    ).location_name,
+                    "rot": 0,
+                    "blau": 0,
+                    "salad_option": 0,
+                }
+
+            if order.main_dish == MainDish.rot:
+                location_counts[location_id]["rot"] += 1
+            elif order.main_dish == MainDish.blau:
+                location_counts[location_id]["blau"] += 1
+            if order.salad_option:
+                location_counts[location_id]["salad_option"] += 1
+
+        orders = [  # TODO: store the whole location and not only the location_name with a Schema (Lennox)
+            DailyOrdersService.CountOrdersObject(
+                location_name=location["location_name"],
+                rot=location["rot"],
+                blau=location["blau"],
+                salad_option=location["salad_option"],
             )
-        return orders
+            for location in location_counts.values()
+        ]
+
+        count_orders_schema = DailyOrdersService.CountOrdersSchema(many=True)
+        orders_counted_by_location = count_orders_schema.dump(orders)

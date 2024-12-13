@@ -24,6 +24,7 @@ from src.services.pre_orders_service import (
 pre_orders_routes = Blueprint("pre_orders_routes", __name__)
 
 
+# TODO: Test all routes
 @pre_orders_routes.get("/api/pre-orders")
 @login_required()
 @swag_from(
