@@ -235,6 +235,13 @@ class OrdersRepository:
             select(DailyOrder).filter(DailyOrder.id == daily_order_id)
         ).first()
 
+    @staticmethod
+    def get_all_daily_orders():
+        return db.session.scalars(
+            select(DailyOrder)
+            # .filter(DailyOrder.date = date.today().date())  incase DailyOrder gets .date field
+        ).all()
+
     ############################ OldOrders ############################
     @staticmethod
     def get_old_orders(filters: OrdersFilters) -> List[OldOrder]:

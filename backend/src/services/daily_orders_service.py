@@ -1,10 +1,12 @@
 from datetime import datetime, timedelta
 from typing import List, Optional
 from uuid import UUID
+from src.models.maindish import MainDish
 from src.models.dailyorder import DailyOrder
 from src.models.user import UserGroup
 from src.repositories.users_repository import UsersRepository
 from src.repositories.orders_repository import OrdersFilters, OrdersRepository
+from src.repositories.locations_repository import LocationsRepository
 from src.utils.exceptions import (
     PersonNotPartOfGroup,
     PersonNotPartOfLocation,
@@ -44,3 +46,38 @@ class DailyOrdersService:
                 )
             order.handed_out = handed_out
             OrdersRepository.update_order(order)
+
+    @staticmethod
+    def get_all_daily_orders():
+        all_orders = OrdersRepository.get_all_daily_orders()
+        Standorte = []
+        for order in all_orders:
+            if order.location_id not in Standorte:
+                Standorte.append(order.location_id)
+        orders = []
+        for Standort in Standorte:
+            StandortName = LocationsRepository.get_location_by_id(
+                Standort
+            ).location_name
+            rot = 0
+            blau = 0
+            salad_option = 0
+            for order in all_orders:
+                if order.location_id == Standort:
+                    if order.main_dish == MainDish.rot:
+                        rot += 1
+                    elif order.main_dish == MainDish.blau:
+                        blau += 1
+                    if order.salad_option:
+                        salad_option += 1
+            orders.append(
+                f"Standort: "
+                + str(StandortName)
+                + " || rot: "
+                + str(rot)
+                + " blau: "
+                + str(blau)
+                + " Salat: "
+                + str(salad_option)
+            )
+        return orders

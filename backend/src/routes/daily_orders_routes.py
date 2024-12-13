@@ -26,23 +26,38 @@ class OrdersGetQuery(Schema):
 
 
 @daily_orders_routes.get("/api/daily-orders")
-@login_required()  # TODO Permissions
+@login_required(groups=[UserGroup.kuechenpersonal])
 @swag_from(
     {
         "tags": ["daily_orders"],
+        "responses": {
+            200: {
+                "description": "Returns count of Orders per Location",
+                "schema": {
+                    "type": "object",
+                    "properties": {"message": {"type": "string"}},
+                },
+            },
+            404: {"description": "Bad request"},
+        },
     }
 )
 def get_daily_orders():
     """
-    Get daily orders
+    Get all Counts for Daily Orders for each Location
     """
-    abort_with_err(
-        ErrMsg(
-            status_code=501,
-            title="Not implemented",
-            description="This endpoint is not implemented yet.",
+    try:
+        orders = DailyOrdersService.get_all_daily_orders()
+    except ValueError:  # TODO Specific exceptions
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Fehler",
+                description="Ein Fehler ist aufgetreten.",
+                details="Ein Fehler ist aufgetreten.",
+            )
         )
-    )
+    return jsonify(orders), 200
 
 
 # QR-Code scannen
