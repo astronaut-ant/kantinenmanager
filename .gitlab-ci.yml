@@ -4,10 +4,10 @@ stages: # List of stages for jobs, and their order of execution
   - push
   - deploy
 
-workflow:
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event" # Only run pipeline on merge requests
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # or on default branch
+# workflow:
+#  rules:
+#    - if: $CI_PIPELINE_SOURCE == "merge_request_event" # Only run pipeline on merge requests
+#    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # or on default branch
 
 cache:
   paths:
@@ -112,8 +112,8 @@ push-backend:
   script:
     - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - crane tag $CI_REGISTRY_IMAGE latest
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+#  rules:
+#    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 deploy-job:
   stage: deploy
@@ -131,5 +131,5 @@ deploy-job:
     - kubectl rollout status deployment/frontend-deployment
     - kubectl rollout status deployment/backend-deployment
     - echo "Application successfully deployed."
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+#  rules:
+#    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
