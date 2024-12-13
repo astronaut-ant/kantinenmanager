@@ -1,3 +1,9 @@
+class NotFoundError(Exception):
+    """Exception raised when an object is not found in the database."""
+
+    pass
+
+
 class LocationAlreadyExistsError(Exception):
     """Exception raised when a location with the same name already exists."""
 

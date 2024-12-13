@@ -11,6 +11,8 @@ from src.models.group import Group
 from src.models.preorder import PreOrder
 from src.models.dailyorder import DailyOrder
 from src.models.oldorder import OldOrder
+from src.models.user import UserGroup
+from src.repositories.users_repository import UsersRepository
 
 
 class OrdersFilters:
@@ -83,13 +85,17 @@ class OrdersRepository:
         db.session.commit()
 
     @staticmethod
-    def create_single_order(order):
+    def create_single_order(order: PreOrder) -> PreOrder:
         """
         Create (pre)order for user
+
         :param order: (pre)order object to create
+
+        :return: Created (pre)order object
         """
         db.session.add(order)
         db.session.commit()
+        return order
 
     @staticmethod
     def update_order():
@@ -118,7 +124,7 @@ class OrdersRepository:
                 # User is the group leader and no replacement is set
                 and_(
                     (Group.user_id_group_leader == user_id)
-                    & (Group.user_id_replacement == None),
+                    & (Group.user_id_replacement is None),
                 ),
                 # Or the user is a replacement for the group leader
                 (Group.user_id_replacement == user_id),
@@ -227,12 +233,15 @@ class OrdersRepository:
 
     ############################ DailyOrders ############################
     @staticmethod
-    def get_daily_order_by_person_id(person_id: UUID) -> DailyOrder:
+    def get_daily_order_by_person_id(person_id: UUID) -> Optional[DailyOrder]:
         """
         Get daily order by person id
+
         :param person_id: Person id
+
         :return: DailyOrder object
         """
+
         return db.session.scalars(
             select(DailyOrder).filter(DailyOrder.person_id == person_id)
         ).first()
@@ -253,11 +262,26 @@ class OrdersRepository:
         """
         Get all orders in the daily orders table
         :return: List of daily orders
-        """:
+        """
         return db.session.scalars(
             select(DailyOrder)
             # .filter(DailyOrder.date = date.today().date())  incase DailyOrder gets .date field
         ).all()
+
+    @staticmethod
+    def get_daily_orders_filtered_by_user_scope(user_id: UUID) -> List[DailyOrder]:
+        user = UsersRepository.get_user_by_id(user_id)
+        if user.user_group == UserGroup.verwaltung:
+            return db.session.scalars(select(DailyOrder)).all()
+        elif (
+            user.user_group == UserGroup.kuechenpersonal
+            or user.user_group == UserGroup.standortleitung
+        ):
+            return db.session.scalars(
+                select(DailyOrder).filter(DailyOrder.location_id == user.location_id)
+            ).all()
+        else:
+            return []
 
     ############################ OldOrders ############################
     @staticmethod
