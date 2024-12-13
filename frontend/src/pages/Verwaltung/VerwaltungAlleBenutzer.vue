@@ -124,7 +124,7 @@ const user_group = ref("");
 
 onMounted(() => {
   axios
-    .get("http://localhost:4200/api/users", { withCredentials: true })
+    .get(import.meta.env.VITE_API + "/api/users", { withCredentials: true })
     .then((response) => {
       users.value = response.data;
       // console.log(users.value);
@@ -152,9 +152,13 @@ const closedeleteDialog = () => {
 
 const confirmDelete = () => {
   axios
-    .delete(`http://localhost:4200/api/users/${userToDelete.value}`, {
-      withCredentials: true,
-    })
+    .delete(
+      import.meta.env.VITE_API +
+        `http://localhost:4200/api/users/${userToDelete.value}`,
+      {
+        withCredentials: true,
+      }
+    )
     .then(() => {
       users.value = users.value.filter(
         (user) => user.id !== userToDelete.value
@@ -195,9 +199,13 @@ const confirmEdit = () => {
   };
 
   axios
-    .put(`http://localhost:4200/api/users/${userToEdit.value}`, updatedUser, {
-      withCredentials: true,
-    })
+    .put(
+      import.meta.env.VITE_API + `/api/users/${userToEdit.value}`,
+      updatedUser,
+      {
+        withCredentials: true,
+      }
+    )
     .then(() => {
       const index = users.value.findIndex((u) => u.id === userToEdit.value);
       if (index !== -1) {

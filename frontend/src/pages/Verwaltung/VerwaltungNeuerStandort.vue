@@ -70,7 +70,7 @@ const standortLeiterLookupTable = {};
 //fill Dropdown-Menu and id-Lookup
 onMounted(() => {
   axios
-    .get("http://localhost:4200/api/users", { withCredentials: true })
+    .get(import.meta.env.VITE_API + "/api/users", { withCredentials: true })
     .then((response) => {
       response.data.forEach((user) => {
         if (user.user_group === "standortleitung") {
@@ -94,7 +94,7 @@ const handleSubmit = () => {
     user_id: standortLeiterLookupTable[standortLeitung.value],
   });
   axios
-    .post("http://localhost:4200/api/locations", {
+    .post(import.meta.env.VITE_API + "/api/locations", {
       location_name: standortName.value,
       user_id: standortLeiterLookupTable[standortLeitung.value],
     })

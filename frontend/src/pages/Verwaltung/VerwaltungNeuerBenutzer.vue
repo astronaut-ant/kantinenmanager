@@ -109,7 +109,7 @@ const test = () => {
 };
 const handleSubmit = () => {
   axios
-    .post("http://localhost:4200/api/users ", {
+    .post(import.meta.env.VITE_API + "/api/users ", {
       first_name: first_name.value,
       last_name: last_name.value,
       username: username.value,
