@@ -37,6 +37,17 @@ class UsersService:
         return UsersRepository.get_user_by_id(user_id)
 
     @staticmethod
+    def get_user_by_username(username: str) -> User | None:
+        """Retrieve a user by their username
+
+        :param username: The username of the user to retrieve
+
+        :return: The user with the given username or None if no user was found
+        """
+
+        return UsersRepository.get_user_by_username(username)
+
+    @staticmethod
     def create_user(
         first_name: str,
         last_name: str,

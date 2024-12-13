@@ -109,7 +109,7 @@ class PreOrdersService:
                     f"Datum {order['date']} liegt mehr als 14 Tage in der Zukunft."
                 )
 
-            if order["date"].weekday() > 5:  # 0 = Montag, 6 = Sonntag
+            if order["date"].weekday() >= 5:  # 0 = Montag, 6 = Sonntag
                 raise ValueError(f"Datum {order['date']} ist kein Werktag.")
 
             if order["person_id"] not in employee_ids:
@@ -166,7 +166,7 @@ class PreOrdersService:
 
         # TODO - Nicht nach 8 Uhr bestellen
 
-        if order["date"].weekday() > 5:  # 0 = Montag, 6 = Sonntag
+        if order["date"].weekday() >= 5:  # 0 = Montag, 6 = Sonntag
             raise ValueError(f"Das Datum {order['date']} ist kein Werktag.")
 
         if user_id != order["person_id"]:
@@ -201,7 +201,7 @@ class PreOrdersService:
                 f"Das Datum {new_order['date']} liegt mehr als 14 Tage in der Zukunft."
             )
 
-        if new_order["date"].weekday() > 5:
+        if new_order["date"].weekday() >= 5:
             raise ValueError(f"Das Datum {new_order['date']} ist kein Werktag.")
 
         if user_id != new_order["person_id"]:
