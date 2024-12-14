@@ -73,7 +73,7 @@
                 <div class="d-flex justify-center text-primary mb-7">
                 <p class="text-h5 font-weight-black" >Vertretung löschen</p>
                 </div>
-                <div class="text-medium-emphasis mb-7">
+                <div class="text-medium-emphasis">
                 <p> Durch das Entfernen der Vertretung kann <strong>{{ props.group_leader.first_name }} {{ props.group_leader.last_name }}</strong> wieder Essensbestellungen für die Gruppe <strong>{{ props.group_name }}</strong> übernehmen.</p>
                 </div>
 
