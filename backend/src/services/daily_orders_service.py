@@ -7,6 +7,7 @@ from src.models.dailyorder import DailyOrder
 from src.repositories.users_repository import UsersRepository
 from src.repositories.orders_repository import OrdersRepository
 from src.repositories.locations_repository import LocationsRepository
+from src.schemas.daily_orders_schema import CountOrdersObject, CountOrdersSchema
 from src.utils.exceptions import NotFoundError, WrongLocationError
 
 
@@ -63,19 +64,6 @@ class DailyOrdersService:
     def get_daily_orders_filtered_by_user_scope(user_id: UUID) -> List[DailyOrder]:
         return OrdersRepository.get_daily_orders_filtered_by_user_scope(user_id)
 
-    class CountOrdersObject:
-        def __init__(self, location_name: str, rot: int, blau: int, salad_option: int):
-            self.location_name = location_name
-            self.rot = rot
-            self.blau = blau
-            self.salad_option = salad_option
-
-    class CountOrdersSchema(Schema):
-        location_id = fields.String(required=True)
-        rot = fields.Integer(required=True)
-        blau = fields.Integer(required=True)
-        salad_option = fields.Integer(required=True)
-
     @staticmethod
     def get_all_daily_orders_count():
         all_daily_orders = OrdersRepository.get_all_daily_orders()
@@ -88,9 +76,7 @@ class DailyOrdersService:
             location_id = order.location_id
             if location_id not in location_counts:
                 location_counts[location_id] = {
-                    "location_name": LocationsRepository.get_location_by_id(
-                        location_id
-                    ).location_name,
+                    "location_id": location_id,
                     "rot": 0,
                     "blau": 0,
                     "salad_option": 0,
@@ -103,9 +89,9 @@ class DailyOrdersService:
             if order.salad_option:
                 location_counts[location_id]["salad_option"] += 1
 
-        orders = [  # TODO: store the whole location and not only the location_name with a Schema (Lennox)
-            DailyOrdersService.CountOrdersObject(
-                location_name=location["location_name"],
+        orders = [
+            CountOrdersObject(
+                location_id=location["location_id"],
                 rot=location["rot"],
                 blau=location["blau"],
                 salad_option=location["salad_option"],
@@ -113,4 +99,4 @@ class DailyOrdersService:
             for location in location_counts.values()
         ]
 
-        return DailyOrdersService.CountOrdersSchema(many=True).dump(orders)
+        return CountOrdersSchema(many=True).dump(orders)
