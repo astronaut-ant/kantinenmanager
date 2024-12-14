@@ -1,5 +1,6 @@
 """Service for handling user management."""
 
+from typing import Optional
 from uuid import UUID
 from src.models.location import Location
 from src.services.auth_service import AuthService
@@ -53,6 +54,7 @@ class UsersService:
         last_name: str,
         username: str,
         user_group: UserGroup,
+        password: Optional[str] = None,
     ) -> tuple[UUID, str]:
         """Create a new user in the database.
 
@@ -60,6 +62,7 @@ class UsersService:
         :param last_name: The last name of the new user
         :param username: The username of the new user
         :param user_group: The user group of the new user
+        :param password: The password of the new user. If None, a random password is generated (still needed for mock data)
 
         :return: A tuple containing the ID of the new user and the initial password
 
@@ -71,7 +74,9 @@ class UsersService:
                 f"User with username {username} already exists"
             )
 
-        password = AuthService.generate_password()
+        if password is None:
+            password = AuthService.generate_password()
+
         hashed_password = AuthService.hash_password(password)
 
         user = User(
