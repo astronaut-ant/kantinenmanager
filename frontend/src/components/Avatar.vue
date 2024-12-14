@@ -75,7 +75,11 @@ const formattedUserGroup = formatUserGroup(appStore.userData.user_group);
 const signOut = () => {
   appStore.userData = {};
   axios
-    .post("http://localhost:4200/api/logout", {}, { withCredentials: true })
+    .post(
+      import.meta.env.VITE_API + "/api/logout",
+      {},
+      { withCredentials: true }
+    )
     .then(() => {
       router.push("/login");
     })

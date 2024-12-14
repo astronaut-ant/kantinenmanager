@@ -14,6 +14,13 @@ general_routes = Blueprint("general_routes", __name__)
 
 @general_routes.get("/")
 def index():
+    """Redirect to health page"""
+    return redirect("/api/health", code=302)
+
+
+@general_routes.get("/api")
+def api_redirect():
+    """Redirect to health page"""
     return redirect("/api/health", code=302)
 
 

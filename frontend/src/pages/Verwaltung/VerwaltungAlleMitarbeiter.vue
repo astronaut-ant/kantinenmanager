@@ -58,8 +58,8 @@
     @close="snackbar = false"
   ></SuccessSnackbar>
 </template>
- 
- 
+
+
 <script setup>
   import axios from "axios";
   const search = ref("");
@@ -94,7 +94,7 @@
 
   const confirmDelete = () => {
     axios
-      .delete(`http://localhost:4200/api/employees/${employeeToDeleteID.value}`, { withCredentials: true })
+      .delete(`${import.meta.env.VITE_API}/api/employees/${employeeToDeleteID.value}`, { withCredentials: true })
       .then(() => {
         items.value = items.value.filter((item) => item.id !== employeeToDeleteID.value);
 
@@ -110,7 +110,7 @@
 
   const getQRCode = (item) => {
   axios
-    .get(`http://localhost:4200/api/persons/create-qr/${item.id}`, {
+    .get(`${import.meta.env.VITE_API}/api/persons/create-qr/${item.id}`, {
       responseType: "blob",
       withCredentials: true,
     })
@@ -147,9 +147,9 @@
     try {
       loading.value = true;
       const [employeesResponse, groupsResponse, locationsResponse] = await Promise.all([
-        axios.get("http://localhost:4200/api/employees", { withCredentials: true }),
-        axios.get("http://localhost:4200/api/groups", { withCredentials: true }),
-        axios.get("http://localhost:4200/api/locations", { withCredentials: true }),
+        axios.get(import.meta.env.VITE_API + "/api/employees", { withCredentials: true }),
+        axios.get(import.meta.env.VITE_API + "/api/groups", { withCredentials: true }),
+        axios.get(import.meta.env.VITE_API + "/api/locations", { withCredentials: true }),
       ]);
 
       employees.value = employeesResponse.data;
@@ -180,7 +180,7 @@
   onMounted(() => {
     fetchData();
   });
- 
+
   const headers = [
      { title: "Nummer", key: "employee_number"},
      { title: "Nachname", key: "last_name" },
@@ -190,4 +190,3 @@
      { title: "", key: "actions", sortable: false },];
   const sortBy = [{ key: 'employee_number', order: 'asc' }]
 </script>
- 

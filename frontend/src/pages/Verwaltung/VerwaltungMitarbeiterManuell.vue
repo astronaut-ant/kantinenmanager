@@ -98,16 +98,16 @@ const last_name = ref("");
 const group_name = ref("");
 const location_name = ref("");
 const groupnames = {
-  "Zedtlitz":["Gruppe 1","Gruppe 2","Gruppe 3"],
-  "W1":["Gruppe 1","Gruppe 2","Gruppe 3"],
-  "W8":["Gruppe 1","Gruppe 2","Gruppe 3"],
-  "W13":["Gruppe 1","Gruppe 2","Gruppe 3"]
+  Zedtlitz: ["Gruppe 1", "Gruppe 2", "Gruppe 3"],
+  W1: ["Gruppe 1", "Gruppe 2", "Gruppe 3"],
+  W8: ["Gruppe 1", "Gruppe 2", "Gruppe 3"],
+  W13: ["Gruppe 1", "Gruppe 2", "Gruppe 3"],
 };
 const keys = Object.keys(groupnames);
 
 const handleSubmit = () => {
   axios
-    .post("http://localhost:4200/api/employees ", {
+    .post(import.meta.env.VITE_API + "/api/employees ", {
       employee_number: employee_number.value,
       first_name: first_name.value,
       group_name: group_name.value,
@@ -131,7 +131,7 @@ const emptyForm = () => {
 };
 
 const selectOption = (option, area) => {
-  group_name.value = option+" - "+area;
+  group_name.value = option + " - " + area;
   location_name.value = area;
-}
+};
 </script>

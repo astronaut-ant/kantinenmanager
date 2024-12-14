@@ -153,13 +153,13 @@ const allLocations = ref([]);
 
 onMounted(() => {
   axios
-    .get("http://localhost:4200/api/users", { withCredentials: true })
+    .get(import.meta.env.VITE_API + "/api/users", { withCredentials: true })
     .then((response) => {
       users.value = response.data;
     })
     .catch((err) => console.log(err));
   axios
-    .get("http://localhost:4200/api/locations", { withCredentials: true })
+    .get(import.meta.env.VITE_API + "/api/locations", { withCredentials: true })
     .then((response) => {
       response.data.forEach((location) => {
         allLocations.value.push(location.location_name);
@@ -190,7 +190,7 @@ const closedeleteDialog = () => {
 
 const confirmDelete = () => {
   axios
-    .delete(`http://localhost:4200/api/users/${userToDelete.value}`, {
+    .delete(`${import.meta.env.VITE_API}/api/users/${userToDelete.value}`, {
       withCredentials: true,
     })
     .then(() => {
@@ -224,7 +224,9 @@ const handlePasswordReset = () => {
   axios
     .put(
       //What happens if User is Logged in?
-      `http://localhost:4200/api/users/${userToEdit.value}/reset-password`,
+      `${import.meta.env.VITE_API}/api/users/${
+        userToEdit.value
+      }/reset-password`,
       {},
       { withCredentials: true }
     )
@@ -252,9 +254,13 @@ const confirmEdit = () => {
   };
 
   axios
-    .put(`http://localhost:4200/api/users/${userToEdit.value}`, updatedUser, {
-      withCredentials: true,
-    })
+    .put(
+      import.meta.env.VITE_API + `/api/users/${userToEdit.value}`,
+      updatedUser,
+      {
+        withCredentials: true,
+      }
+    )
     .then(() => {
       const index = users.value.findIndex((u) => u.id === userToEdit.value);
       if (index !== -1) {
