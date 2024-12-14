@@ -136,12 +136,12 @@ class OrdersRepository:
 
         return employee_ids
 
-    def employee_in_location(person_id: UUID, location_id: UUID) -> bool:
+    def employee_in_location(employee_id: UUID, location_id: UUID) -> bool:
         """
         Check if a person belongs to a location
         :param person_id: Person id
         :param location_id: Location id
-        :return: True if person belongs to location
+        :return: True if person belongs to location, False otherwise
         """
         return (
             db.session.scalars(
@@ -149,7 +149,7 @@ class OrdersRepository:
                 .join(Group, Employee.group_id == Group.id)
                 .filter(
                     and_(
-                        (Employee.id == person_id),
+                        (Employee.id == employee_id),
                         (Group.location_id == location_id),
                     )
                 )

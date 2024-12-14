@@ -65,7 +65,7 @@ class DailyOrdersService:
         return OrdersRepository.get_daily_orders_filtered_by_user_scope(user_id)
 
     @staticmethod
-    def get_all_daily_orders_count():
+    def get_all_daily_orders_count() -> List[CountOrdersSchema]:
         all_daily_orders = OrdersRepository.get_all_daily_orders()
 
         location_counts = {}

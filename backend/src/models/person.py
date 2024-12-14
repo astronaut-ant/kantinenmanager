@@ -38,7 +38,8 @@ class Person(db.Model):
         back_populates="person", cascade="all, delete-orphan"
     )
     old_orders: Mapped[List["OldOrder"]] = relationship(
-        back_populates="person", cascade="all, delete-orphan"
+        back_populates="person",
+        cascade="all, delete-orphan",  # TODO: change "all, delete-orphan" to on delete set null", maybe "passive_deletes=True" (in oldorders.py)
     )
 
     # __mapper_args__ ist ein spezielles Attribut, das SQLAlchemy verwendet, um

@@ -35,7 +35,7 @@ class GroupsRepository:
         return db.session.query(Group).filter(Group.id == group_id).first()
 
     @staticmethod
-    def get_groups_by_group_leader(person_id: UUID):
+    def get_groups_by_group_leader(user_id: UUID):
         """Get all groups belonging to a group leader.
 
         Each group contains a boolean indicating if the group is the users own group.
@@ -45,13 +45,13 @@ class GroupsRepository:
             select(
                 Group.id,
                 Group.group_name,
-                (Group.user_id_group_leader == person_id).label("is_home_group"),
+                (Group.user_id_group_leader == user_id).label("is_home_group"),
             )
             .join(Group.employees)
             .where(
                 or_(
-                    Group.user_id_group_leader == person_id,
-                    Group.user_id_replacement == person_id,
+                    Group.user_id_group_leader == user_id,
+                    Group.user_id_replacement == user_id,
                 )
             )
             .group_by(Group.id)

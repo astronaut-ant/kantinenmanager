@@ -1,4 +1,3 @@
-from pprint import pprint
 from marshmallow import ValidationError, Schema, fields
 from src.utils.auth_utils import login_required
 from src.utils.error import ErrMsg, abort_with_err
@@ -109,7 +108,6 @@ def get_old_orders():
     try:
         query_params = OldOrdersGetQuery().load(request.args)
         filters = OrdersFilters(**query_params)
-        pprint(filters)
 
     except ValidationError as err:
         abort_with_err(
