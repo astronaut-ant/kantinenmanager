@@ -113,5 +113,4 @@ class DailyOrdersService:
             for location in location_counts.values()
         ]
 
-        count_orders_schema = DailyOrdersService.CountOrdersSchema(many=True)
-        orders_counted_by_location = count_orders_schema.dump(orders)
+        return DailyOrdersService.CountOrdersSchema(many=True).dump(orders)
