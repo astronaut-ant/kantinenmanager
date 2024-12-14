@@ -55,7 +55,6 @@
   <SuccessSnackbar
     v-model="snackbar"
     :text="snackbarText"
-    @close="snackbar = false"
   ></SuccessSnackbar>
 </template>
 
@@ -71,8 +70,6 @@
   const snackbar = ref(false);
   const snackbarText = ref("");
   const items = ref([]);
-  const groups = ref([]);
-  const locations = ref([]);
   const employees = ref([]);
 
   const toggleSearchField = () => {
@@ -143,38 +140,27 @@
     });
   };
 
-  const fetchData = async () => {
-    try {
-      loading.value = true;
-      const [employeesResponse, groupsResponse, locationsResponse] = await Promise.all([
-        axios.get(import.meta.env.VITE_API + "/api/employees", { withCredentials: true }),
-        axios.get(import.meta.env.VITE_API + "/api/groups", { withCredentials: true }),
-        axios.get(import.meta.env.VITE_API + "/api/locations", { withCredentials: true }),
-      ]);
-
-      employees.value = employeesResponse.data;
-      groups.value = groupsResponse.data;
-      locations.value = locationsResponse.data;
-
+  const fetchData = () => {
+    loading.value = true;
+    axios
+    .get("http://localhost:4200/api/employees", { withCredentials: true })
+    .then((response) => {
+      employees.value = response.data;
       items.value = employees.value.map((employee) => {
-        const group = groups.value.find((g) => g.id === employee.group_id);
-        const location = group ? locations.value.find((l) => l.id === group.location_id) : null;
-
         return {
           id: employee.id,
           first_name: employee.first_name,
           last_name: employee.last_name,
           employee_number: employee.employee_number,
-          group_id: group?.id || null,
-          group_name: group?.group_name || "Unbekannt",
-          location_id: location?.id || null,
-          location_name: location?.location_name || "Unbekannt",
+          group_id: employee.group.id,
+          group_name: employee.group.group_name || "Unbekannt",
+          location_id: employee.group.location.id || null,
+          location_name: employee.group.location.location_name || "Unbekannt",
         };
       });
       loading.value = false;
-    } catch (err) {
-      console.error("Error fetching data", err);
-    }
+    })
+    .catch((err) => console.error("Error fetching data", err));
   };
 
   onMounted(() => {

@@ -49,7 +49,6 @@
     <SuccessSnackbar
       v-model="successSnackbar"
       :text="snackbarText"
-      @close="successSnackbar = false"
     ></SuccessSnackbar>
 
     <v-dialog v-model="errorDialog" persistent max-width="400">
