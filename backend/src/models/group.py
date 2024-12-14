@@ -90,6 +90,20 @@ class Group(db.Model):
             "location": self.location.to_dict() if self.location else None,
         }
 
+    def to_dict_loc(self) -> dict[str, str | int | bool]:
+        """Convert the group to a dictionary with location resolved
+
+        :return: A dictionary containing the group's information
+        """
+
+        return {
+            "id": str(self.id),
+            "group_name": self.group_name,
+            "location": self.location.to_dict_reduced() if self.location else None,
+            "user_id_group_leader": str(self.user_id_group_leader),
+            "user_id_replacement": str(self.user_id_replacement),
+        }
+
     def to_reduced_dict(self) -> dict[str, str | int | bool]:
         """Convert the group to a reduced dictionary
 

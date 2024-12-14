@@ -42,7 +42,7 @@ employees_routes = Blueprint("employees_routes", __name__)
                     "employee_number": {"type": "integer"},
                     "group": {
                         "type": "object",
-                        "$ref": "#/definitions/Group",
+                        "$ref": "#/definitions/GroupLoc",
                     },
                     "created": {"type": "string", "format": "date-time"},
                 },

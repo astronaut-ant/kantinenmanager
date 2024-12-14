@@ -68,7 +68,7 @@ class Employee(Person):
             "last_name": self.last_name,
             "employee_number": self.employee_number,
             "created": self.created.timestamp(),
-            "group": self.group.to_dict(),
+            "group": self.group.to_dict_loc(),
         }
 
     def to_dict_reduced(self) -> dict[str, str | int | bool]:
