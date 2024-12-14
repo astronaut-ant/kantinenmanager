@@ -1,0 +1,135 @@
+stages: # List of stages for jobs, and their order of execution
+  - build
+  - test
+  - push
+  - deploy
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" # Only run pipeline on merge requests
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # or on default branch
+
+cache:
+  paths:
+    - frontend/node_modules/
+
+build-frontend:
+  stage: build
+  image: node
+  script:
+    - cd frontend
+    - npm ci
+    - npm run build
+  artifacts:
+    paths:
+      - "frontend/dist/"
+    when: on_success
+
+package-frontend:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  needs:
+    - job: build-frontend
+      artifacts: true
+  variables:
+    CI_REGISTRY_IMAGE: $CI_REGISTRY_FRONTEND_IMAGE:$CI_COMMIT_SHORT_SHA
+  script:
+    - /kaniko/executor
+      --context "${CI_PROJECT_DIR}/frontend"
+      --dockerfile "${CI_PROJECT_DIR}/frontend/Dockerfile.prod"
+      --no-push
+      --destination "${CI_REGISTRY_IMAGE}"
+      --tar-path frontend.tar
+  artifacts:
+    paths:
+      - frontend.tar
+    when: on_success
+
+package-backend:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  variables:
+    CI_REGISTRY_IMAGE: $CI_REGISTRY_BACKEND_IMAGE:$CI_COMMIT_SHORT_SHA
+  script:
+    - echo "{\"auths\":{\"https://index.docker.io/v1/\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor
+      --context "${CI_PROJECT_DIR}/backend"
+      --dockerfile "${CI_PROJECT_DIR}/backend/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}"
+
+test-frontend:
+  stage: test
+  image: node
+  script:
+    - cd frontend
+    - npm ci
+
+test-backend:
+  stage: test
+  image: python:3-slim
+  variables:
+    PYTHONDONTWRITEBYTECODE: 1
+    PYTHONUNBUFFERED: 1
+    FLASK_ENV: unit_testing
+  script:
+    - echo "Reading environment variables..."
+    - python scripts/init.py # Generate .env
+    - set -a # auto export all further variables
+    - source .env # read env variables from .env
+    - set +a
+    - FLASK_ENV=unit_testing # Override environment
+    - export # Test
+    - echo "Installing requirements..."
+    - python -m pip install -r backend/requirements.txt
+    - pytest --cov=backend backend/
+
+push-frontend:
+  stage: push
+  image:
+    name: gcr.io/go-containerregistry/crane:debug
+    entrypoint: [""]
+  variables:
+    CI_REGISTRY_IMAGE: $CI_REGISTRY_FRONTEND_IMAGE:$CI_COMMIT_SHORT_SHA
+  script:
+    - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - crane push frontend.tar $CI_REGISTRY_IMAGE
+    - |
+      if [[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]]; then
+        crane tag $CI_REGISTRY_IMAGE latest
+      fi
+
+push-backend:
+  stage: push
+  image:
+    name: gcr.io/go-containerregistry/crane:debug
+    entrypoint: [""]
+  variables:
+    CI_REGISTRY_IMAGE: $CI_REGISTRY_BACKEND_IMAGE:$CI_COMMIT_SHORT_SHA
+  script:
+    - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - crane tag $CI_REGISTRY_IMAGE latest
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+deploy-job:
+  stage: deploy
+  image:
+    name: bitnami/kubectl:latest
+    entrypoint: [""]
+  script:
+    - kubectl config get-contexts
+    - kubectl config use-context $K8S_AGENT
+    - kubectl cluster-info
+    - echo "Deploying application..."
+    - kubectl apply -f k8s
+    - kubectl set image deployment/frontend-deployment frontend-deployment=$CI_REGISTRY_FRONTEND_IMAGE:$CI_COMMIT_SHORT_SHA
+    - kubectl set image deployment/backend-deployment backend-deployment=$CI_REGISTRY_BACKEND_IMAGE:$CI_COMMIT_SHORT_SHA
+    - kubectl rollout status deployment/frontend-deployment
+    - kubectl rollout status deployment/backend-deployment
+    - echo "Application successfully deployed."
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

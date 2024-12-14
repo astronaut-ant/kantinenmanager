@@ -1,13 +1,12 @@
 <template>
   <NavbarVerwaltung />
   <v-container class="py-5">
-
     <div class="d-flex justify-center">
       <h1 class="text-center">Import CSV Dateien</h1>
     </div>
 
     <div class="d-flex justify-center mt-5">
-      <div class="flex-grow-1" style="max-width: 600px; width: 100%;">
+      <div class="flex-grow-1" style="max-width: 600px; width: 100%">
         <v-form>
           <v-file-input
             v-model="file"
@@ -32,7 +31,7 @@
     </div>
 
     <div class="d-flex justify-center mt-5">
-      <div style="max-width: 600px; width: 100%;">
+      <div style="max-width: 600px; width: 100%">
         <v-divider></v-divider>
       </div>
     </div>
@@ -47,26 +46,29 @@
       </v-btn>
     </div>
 
-    <SuccessSnackbar v-model="successSnackbar" :text="snackbarText" @close="successSnackbar = false"></SuccessSnackbar>
+    <SuccessSnackbar
+      v-model="successSnackbar"
+      :text="snackbarText"
+      @close="successSnackbar = false"
+    ></SuccessSnackbar>
 
     <v-dialog v-model="errorDialog" persistent max-width="400">
-        <v-card>
-            <v-card-title class="text-error d-flex justify-start">
-                <v-icon left class="mr-2">
-                    mdi-alert-circle-outline
-                </v-icon>
-                <span class="text-h5">Fehler</span>
-            </v-card-title>
-            <v-card-text>Fehler beim Hochladen der Datei. Bitte versuchen Sie es erneut.</v-card-text>
-            <v-card-actions>
-                <v-btn color="error" text @click="closeErrorDialog">OK</v-btn>
-            </v-card-actions>
-        </v-card>
+      <v-card>
+        <v-card-title class="text-error d-flex justify-start">
+          <v-icon left class="mr-2"> mdi-alert-circle-outline </v-icon>
+          <span class="text-h5">Fehler</span>
+        </v-card-title>
+        <v-card-text
+          >Fehler beim Hochladen der Datei. Bitte versuchen Sie es
+          erneut.</v-card-text
+        >
+        <v-card-actions>
+          <v-btn color="error" text @click="closeErrorDialog">OK</v-btn>
+        </v-card-actions>
+      </v-card>
     </v-dialog>
   </v-container>
 </template>
-
-
 
 <script setup>
 import axios from "axios";
@@ -98,10 +100,11 @@ const uploadFile = () => {
   formData.append("file", file.value);
 
   axios
-    .post("http://localhost:4200/api/employees_csv", formData, {
+    .post(import.meta.env.VITE_API + "/api/employees_csv", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
-      }, withCredentials: true,
+      },
+      withCredentials: true,
     })
     .then((response) => {
       console.log(response.data);
@@ -118,6 +121,6 @@ const uploadFile = () => {
 };
 
 const closeErrorDialog = () => {
-errorDialog.value = false;
+  errorDialog.value = false;
 };
 </script>

@@ -91,7 +91,7 @@ const standortLookupTable = {};
 //fill Dropdown-Menus and id-Lookup
 onMounted(() => {
   axios
-    .get("http://localhost:4200/api/users", { withCredentials: true })
+    .get(import.meta.env.VITE_API + "/api/users", { withCredentials: true })
     .then((response) => {
       response.data.forEach((user) => {
         if (user.user_group === "gruppenleitung") {
@@ -108,7 +108,7 @@ onMounted(() => {
     .catch((err) => console.log(err));
 
   axios
-    .get("http://localhost:4200/api/locations", { withCredentials: true })
+    .get(import.meta.env.VITE_API + "/api/locations", { withCredentials: true })
     .then((response) => {
       response.data.forEach((location) => {
         allLocations.value.push(location.location_name);
@@ -130,7 +130,7 @@ onMounted(() => {
 const handleSubmit = () => {
   axios
     .post(
-      "http://localhost:4200/api/groups",
+      import.meta.env.VITE_API + "/api/groups",
       {
         group_name: gruppenName.value,
         location_id: standortLookupTable[standort.value],

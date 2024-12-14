@@ -40,7 +40,6 @@ class UsersService:
         first_name: str,
         last_name: str,
         username: str,
-        password: str,
         user_group: UserGroup,
     ) -> tuple[UUID, str]:
         """Create a new user in the database.
@@ -48,7 +47,6 @@ class UsersService:
         :param first_name: The first name of the new user
         :param last_name: The last name of the new user
         :param username: The username of the new user
-        :param password: The password of the new user
         :param user_group: The user group of the new user
 
         :return: A tuple containing the ID of the new user and the initial password
@@ -61,6 +59,7 @@ class UsersService:
                 f"User with username {username} already exists"
             )
 
+        password = AuthService.generate_password()
         hashed_password = AuthService.hash_password(password)
 
         user = User(
