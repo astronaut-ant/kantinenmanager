@@ -37,7 +37,7 @@
             </div>
         </v-card-text>
     </v-card>
-    <v-dialog v-model="setGroupReplacementDialog" persistent max-width="600">
+    <v-dialog v-model="setGroupReplacementDialog" persistent max-width="500">
         <v-card>
             <v-card-text>
                 <div class="d-flex justify-center text-primary mb-7">
@@ -67,7 +67,7 @@
         </v-card>
     </v-dialog>
 
-    <v-dialog v-model="removeGroupReplacementDialog" persistent max-width="600">
+    <v-dialog v-model="removeGroupReplacementDialog" persistent max-width="500">
         <v-card>
             <v-card-text>
                 <div class="d-flex justify-center text-primary mb-7">
