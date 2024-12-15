@@ -1,27 +1,24 @@
 from uuid import UUID
 from flask import Blueprint, g, request, jsonify
 from flasgger import swag_from
-from marshmallow import ValidationError, Schema, fields
-from marshmallow.validate import Length
+from marshmallow import ValidationError
 from src.models.user import UserGroup
-from src.utils.exceptions import GroupDoesNotExistError
+from src.schemas.group_schemas import (
+    GroupFullNestedSchema,
+    GroupFullSchema,
+    GroupFullWithEmployeesNestedSchema,
+)
+from src.services.groups_service import GroupsService
 from src.utils.auth_utils import login_required
 from src.utils.error import ErrMsg, abort_with_err
-from src.services.groups_service import GroupsService
-from src.services.users_service import UsersService
+from src.utils.exceptions import (
+    GroupAlreadyExists,
+    GroupDoesNotExistError,
+    GroupLeaderDoesNotExist,
+    LocationDoesNotExist,
+)
 
 groups_routes = Blueprint("groups_routes", __name__)
-
-
-class GroupCreateSchema(Schema):
-    """
-    Schema for POST and PUT api/groups endpoints.
-    """
-
-    group_name = fields.Str(required=True, validate=Length(min=1, max=256))
-    user_id_group_leader = fields.UUID(required=True)
-    location_id = fields.UUID(required=True)
-    user_id_replacement = fields.UUID(required=False)
 
 
 @groups_routes.post("/api/groups")
@@ -29,107 +26,11 @@ class GroupCreateSchema(Schema):
 @swag_from(
     {
         "tags": ["groups"],
-        "definitions": {
-            "Group": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "string",
-                        "example": "123e4567-e89b-12d3-a456-426614174000",
-                    },
-                    "group_name": {"type": "string"},
-                    "group_leader": {
-                        "type": "object",
-                        "$ref": "#/definitions/UserReduced",
-                    },
-                    "group_leader_replacement": {
-                        "type": "object",
-                        "nullable": True,
-                        "$ref": "#/definitions/UserReduced",
-                    },
-                    "location": {"type": "object", "$ref": "#/definitions/Location"},
-                },
-            },
-            "GroupLoc": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "string",
-                        "example": "123e4567-e89b-12d3-a456-426614174000",
-                    },
-                    "group_name": {"type": "string"},
-                    "user_id_group_leader": {"type": "string"},
-                    "user_id_replacement": {"type": "string"},
-                    "location": {
-                        "type": "object",
-                        "$ref": "#/definitions/LocationReduced",
-                    },
-                },
-            },
-            "GroupReduced": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "string",
-                        "example": "123e4567-e89b-12d3-a456-426614174000",
-                    },
-                    "group_name": {"type": "string"},
-                    "user_id_group_leader": {"type": "string"},
-                    "user_id_replacement": {"type": "string"},
-                    "location_id": {"type": "string"},
-                },
-            },
-            "GroupWithEmployees": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "string",
-                        "example": "123e4567-e89b-12d3-a456-426614174000",
-                    },
-                    "group_name": {"type": "string"},
-                    "group_leader": {
-                        "type": "object",
-                        "$ref": "#/definitions/UserReduced",
-                    },
-                    "group_leader_replacement": {
-                        "type": "object",
-                        "nullable": True,
-                        "$ref": "#/definitions/UserReduced",
-                    },
-                    "location": {"type": "object", "$ref": "#/definitions/Location"},
-                    "employees": {
-                        "type": "array",
-                        "items": {"$ref": "#/definitions/EmployeeReduced"},
-                    },
-                },
-            },
-        },
         "parameters": [
             {
                 "in": "body",
                 "name": "body",
-                "schema": {
-                    "type": "object",
-                    "properties": {
-                        "group_name": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 256,
-                        },
-                        "user_id_group_leader": {
-                            "type": "string",
-                            "example": "123e4567-e89b-12d3-a456-426614174000",
-                        },
-                        "location_id": {
-                            "type": "string",
-                            "example": "123e4567-e89b-12d3-a456-426614174000",
-                        },
-                        "user_id_replacement": {
-                            "type": "string",
-                            "example": "123e4567-e89b-12d3-a456-426614174000",
-                        },
-                    },
-                },
+                "schema": GroupFullSchema,
             }
         ],
         "responses": {
@@ -151,14 +52,37 @@ class GroupCreateSchema(Schema):
 )
 def create_group():
     """Create a new group."""
+
     try:
-        body = GroupCreateSchema().load(request.json)
+        body = GroupFullSchema().load(request.json)
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
-                title="Validierungsfehler",
-                description="Ungültige Daten wurden übergeben.",
+                title="Ungültige Anfrage",
+                description="Ungültige Anfrage.",
+                details=str(err),
+            )
+        )
+
+    try:
+        group_id = GroupsService.create_group(**body)
+    except GroupAlreadyExists as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Gruppe existiert bereits",
+                description="Eine Gruppe mit diesem Namen existiert bereits.",
+                details=str(err),
+            )
+        )
+    except GroupLeaderDoesNotExist as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Gruppenleiter existiert nicht",
+                description="Der Gruppenleiter existiert nicht.",
+                details=str(err),
             )
         )
     except ValueError as err:
@@ -170,8 +94,16 @@ def create_group():
                 details=str(err),
             )
         )
+    except LocationDoesNotExist as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Standort existiert nicht",
+                description="Der Standort existiert nicht.",
+                details=str(err),
+            )
+        )
 
-    group_id = GroupsService.create_group(**body)
     return jsonify({"id": group_id}), 201
 
 
@@ -190,19 +122,7 @@ def create_group():
             {
                 "in": "body",
                 "name": "body",
-                "schema": {
-                    "type": "object",
-                    "properties": {
-                        "group_name": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 256,
-                        },
-                        "user_id_group_leader": {"type": "string"},
-                        "location_id": {"type": "string"},
-                        "user_id_replacement": {"type": "string"},
-                    },
-                },
+                "schema": GroupFullSchema,
             },
         ],
         "responses": {
@@ -219,9 +139,9 @@ def create_group():
 )
 def update_group(group_id: UUID):
     """Update a group."""
+
     try:
-        body = GroupCreateSchema().load(request.json)
-        changes = GroupsService.update_group(group_id, **body)
+        body = GroupFullSchema().load(request.json)
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
@@ -231,6 +151,9 @@ def update_group(group_id: UUID):
                 details=err.messages,
             )
         )
+
+    try:
+        GroupsService.update_group(group_id, **body)
     except ValueError as err:
         abort_with_err(
             ErrMsg(
@@ -245,17 +168,10 @@ def update_group(group_id: UUID):
             ErrMsg(
                 status_code=404,
                 title="Gruppe nicht gefunden",
-                description="Die Gruppe mit der angegebenen ID existiert nicht.",
+                description=f"Die Gruppe mit der angegebenen ID {group_id} existiert nicht.",
             )
         )
-    if not changes:
-        abort_with_err(
-            ErrMsg(
-                status_code=400,
-                title="Keine Änderungen",
-                description="Es wurden keine Änderungen an der Gruppe vorgenommen.",
-            )
-        )
+
     return jsonify({"message": "Gruppe erfolgreich aktualisiert."})
 
 
@@ -286,6 +202,7 @@ def update_group(group_id: UUID):
 )
 def delete_group(group_id: UUID):
     """Delete a group."""
+
     try:
         GroupsService.delete_group(group_id)
     except GroupDoesNotExistError:
@@ -293,9 +210,10 @@ def delete_group(group_id: UUID):
             ErrMsg(
                 status_code=404,
                 title="Gruppe nicht gefunden",
-                description="Die Gruppe mit der angegebenen ID existiert nicht.",
+                description=f"Die Gruppe mit der angegebenen ID {group_id} existiert nicht.",
             )
         )
+
     return jsonify({"message": "Gruppe erfolgreich gelöscht."})
 
 
@@ -322,11 +240,11 @@ def delete_group(group_id: UUID):
 )
 def get_all_groups_with_locations():
     """Get all groups and their associated locations."""
-    user_id = g.user_id
-    user_group = g.user_group
+
     groups_with_locations = GroupsService.get_all_groups_with_locations(
-        user_id, user_group
+        g.user_id, g.user_group
     )
+
     return jsonify(groups_with_locations)
 
 
@@ -346,7 +264,7 @@ def get_all_groups_with_locations():
         "responses": {
             200: {
                 "description": "Group details retrieved successfully.",
-                "schema": {"$ref": "#/definitions/Group"},
+                "schema": GroupFullNestedSchema,
             },
             404: {"description": "Group not found."},
         },
@@ -354,6 +272,7 @@ def get_all_groups_with_locations():
 )
 def get_group_by_id(group_id: UUID):
     """Get a group by ID."""
+
     try:
         group = GroupsService.get_group_by_id(group_id)
     except GroupDoesNotExistError:
@@ -364,7 +283,8 @@ def get_group_by_id(group_id: UUID):
                 description="Die Gruppe mit der angegebenen ID existiert nicht.",
             )
         )
-    return jsonify(group.to_dict())
+
+    return GroupFullNestedSchema().dump(group)
 
 
 @groups_routes.get("/api/groups")
@@ -379,7 +299,7 @@ def get_group_by_id(group_id: UUID):
                 "description": "Returns all groups",
                 "schema": {
                     "type": "array",
-                    "items": {"$ref": "#/definitions/Group"},
+                    "items": GroupFullNestedSchema,
                 },
             }
         },
@@ -387,10 +307,9 @@ def get_group_by_id(group_id: UUID):
 )
 def get_groups():
     """Get all groups for respective user."""
-    user_id = g.user_id
-    user_group = g.user_group
+
     try:
-        groups = GroupsService.get_groups(user_id, user_group)
+        groups = GroupsService.get_groups(g.user_id, g.user_group)
     except ValueError as err:
         abort_with_err(
             ErrMsg(
@@ -400,8 +319,8 @@ def get_groups():
                 details=str(err),
             )
         )
-    groups_to_dict = [group.to_dict() for group in groups]
-    return jsonify(groups_to_dict)
+
+    return GroupFullNestedSchema(many=True).dump(groups)
 
 
 @groups_routes.get("/api/groups/with-employees")
@@ -414,7 +333,7 @@ def get_groups():
                 "description": "Returns all groups with employees",
                 "schema": {
                     "type": "array",
-                    "items": {"$ref": "#/definitions/GroupWithEmployees"},
+                    "items": GroupFullWithEmployeesNestedSchema,
                 },
             },
             400: {"description": "Invalid request."},
@@ -429,6 +348,7 @@ def get_groups_with_employees():
 
     user_id = g.user_id
     user_group = g.user_group
+
     try:
         groups = GroupsService.get_groups(user_id, user_group)
     except ValueError as err:
@@ -441,12 +361,11 @@ def get_groups_with_employees():
             )
         )
 
-    groups_as_dict = [group.to_dict_with_employees() for group in groups]
-    return jsonify(groups_as_dict)
+    return GroupFullWithEmployeesNestedSchema(many=True).dump(groups)
 
 
 @groups_routes.delete("/api/groups/remove-replacement/<uuid:group_id>")
-@login_required(groups=[UserGroup.standortleitung])
+@login_required(groups=[UserGroup.standortleitung], disabled=True)
 @swag_from(
     {
         "tags": ["groups"],
@@ -459,16 +378,17 @@ def get_groups_with_employees():
             },
         ],
         "responses": {
-            200: {"description": "Group Replacement successfully removed."},
+            200: {"description": "Updated group", "schema": GroupFullNestedSchema},
+            400: {"description": "Invalid request."},
             404: {"description": "Group not found."},
-            404: {"description": "Group Replacement not found."},
         },
     }
 )
 def remove_group_replacement(group_id: UUID):
     """Remove a Group Replacement."""
+
     try:
-        group_replacement = GroupsService.remove_group_replacement(group_id)
+        group = GroupsService.get_group_by_id(group_id)
     except GroupDoesNotExistError:
         abort_with_err(
             ErrMsg(
@@ -477,17 +397,32 @@ def remove_group_replacement(group_id: UUID):
                 description="Die Gruppe mit der angegebenen ID existiert nicht.",
             )
         )
-    if group_replacement is None:
+
+    if group.user_id_replacement is None:
         abort_with_err(
             ErrMsg(
-                status_code=404,
-                title="Gruppen Vertretung nicht gefunden",
-                description="Die Gruppenvertretung wurde nicht gefunden.",
+                status_code=400,
+                title="Gruppe hat keine Vertretung",
+                description=f"Die Gruppe {group.group_name} hat keine Vertretung.",
             )
         )
-    user = UsersService.get_user_by_id(group_replacement)
-    return jsonify(
-        {
-            "message": f"Group Replacement: '{user.first_name}', ' {user.last_name}' successfully removed."
-        }
-    )
+
+    try:
+        group = GroupsService.update_group(
+            group_id,
+            group.group_name,
+            group.user_id_group_leader,
+            group.location_id,
+            user_id_replacement=None,
+        )
+    except ValueError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Ungültige Anfrage",
+                description="Ungültige Anfrage.",
+                details=str(err),
+            )
+        )
+
+    return GroupFullNestedSchema().dump(group)

@@ -1,9 +1,10 @@
+from src.models.employee import Employee
 from src.models.location import Location
 from src.models.user import UserGroup
 from src.models.group import Group
 from uuid import UUID
 from src.database import db
-from sqlalchemy import or_
+from sqlalchemy import func, or_, select
 
 
 class GroupsRepository:
@@ -34,68 +35,34 @@ class GroupsRepository:
         return db.session.query(Group).filter(Group.id == group_id).first()
 
     @staticmethod
-    def assign_group_leader(group_id: UUID, user_id: UUID) -> Group | None:
-        """Assign a user as the leader of a group."""
-        group = GroupsRepository.get_group_by_id(group_id)
-        if group:
-            group.user_id_group_leader = user_id
+    def get_groups_by_group_leader(user_id: UUID):
+        """Get all groups belonging to a group leader.
 
-            # SQLAlchemy automatically tracks changes to objects
-            # we only need to commit the session to save the changes
+        Each group contains a boolean indicating if the group is the users own group.
+        """
 
-            db.session.commit()
-            return group
+        query = (
+            select(
+                Group.id,
+                Group.group_name,
+                (Group.user_id_group_leader == user_id).label("is_home_group"),
+            )
+            .join(Group.employees)
+            .where(
+                or_(
+                    Group.user_id_group_leader == user_id,
+                    Group.user_id_replacement == user_id,
+                )
+            )
+            .group_by(Group.id)
+        )
 
-        return None
-
-    @staticmethod
-    def remove_group_leader(group_id: UUID) -> Group | None:
-        """Remove the leader from a group."""
-        group = GroupsRepository.get_group_by_id(group_id)
-        if group:
-            group.user_id_group_leader = None
-
-            # SQLAlchemy automatically tracks changes to objects
-            # we only need to commit the session to save the changes
-
-            db.session.commit()
-            return group
-        return None
-
-    @staticmethod
-    def assign_group_replacement(group_id: UUID, user_id: UUID) -> Group | None:
-        """Assign a user as the replacement for a group leader."""
-        group = GroupsRepository.get_group_by_id(group_id)
-        if group:
-            group.user_id_replacement = user_id
-
-            # SQLAlchemy automatically tracks changes to objects
-            # we only need to commit the session to save the changes
-
-            db.session.commit()
-            return group
-        return None
-
-    @staticmethod
-    def remove_group_replacement(group_id: UUID) -> Group | None:
-        """Remove the replacement from a group leader."""
-        group = GroupsRepository.get_group_by_id(group_id)
-        if group:
-            group.user_id_replacement = None
-
-            # SQLAlchemy automatically tracks changes to objects
-            # we only need to commit the session to save the changes
-
-            db.session.commit()
-            return group
-        return None
+        return db.session.execute(query).mappings().all()
 
     @staticmethod
     def update_group(group: Group) -> None:
         """Update a group in the database."""
-
-        # SQLAlchemy automatically tracks changes to objects
-        # we only need to commit the session to save the changes
+        # SQLAlchemy automatically tracks changes to objects, we only need to commit the session to save the changes
 
         db.session.commit()
 
@@ -126,6 +93,17 @@ class GroupsRepository:
             )
 
         return []
+
+    @staticmethod
+    def get_group_by_name_and_location(
+        group_name: str, location_id: UUID
+    ) -> Group | None:
+        """Retrieve a group by its name and location."""
+        return (
+            db.session.query(Group)
+            .filter(Group.group_name == group_name, Group.location_id == location_id)
+            .first()
+        )
 
     @staticmethod
     def delete_group(group: Group) -> None:

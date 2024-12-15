@@ -1,31 +1,27 @@
 from uuid import UUID
+
+from flask import Blueprint, jsonify, request
+from flasgger import swag_from
 from marshmallow import ValidationError
-from src.utils.auth_utils import login_required
-from src.utils.error import ErrMsg, abort_with_err
+
+from src.utils.exceptions import LocationDoesNotExist
+from src.services.locations_service import LocationsService
+from src.schemas.users_schemas import (
+    GroupLeaderNestedSchema,
+    LocationLeaderNestedSchema,
+    UserFullSchema,
+)
+from src.schemas.group_schemas import GroupBaseSchema, GroupFullSchema
 from src.models.user import UserGroup
 from src.services.users_service import (
     UserAlreadyExistsError,
-    UsersService,
     UserCannotBeDeletedError,
+    UsersService,
 )
-from flask import Blueprint, jsonify, request
-from marshmallow.validate import Length
-from marshmallow import Schema, fields
-from flasgger import swag_from
+from src.utils.auth_utils import login_required
+from src.utils.error import ErrMsg, abort_with_err
 
-# Routes sind die Verbindung zur Außenwelt und verantwortlich für die Verarbeitung von HTTP-Requests.
-# Eine Route bekommt einen Request vom Nutzer (Frontend), extrahiert die enthaltenen Daten, gibt
-# sie an den Service weiter und dann das entsprechende Ergebnis in einem Response Objekt zurück.
-#
-# Hier verwenden wir hauptsächlich Flask:
-# https://flask.palletsprojects.com/en/stable/
-#
-# Flasgger dient der Dokumentation unserer API, ähnlich wie JavaDoc
-# Unsere API Dokumentation: http://localhost:4200/apidocs/.
-# Flasgger Doku: https://github.com/flasgger/flasgger
 
-# Blueprints kommen aus Flask: https://flask.palletsprojects.com/en/stable/blueprints/
-# Damit können wir unsere Anwendung "modularisieren".
 users_routes = Blueprint("users_routes", __name__)
 
 
@@ -34,81 +30,10 @@ users_routes = Blueprint("users_routes", __name__)
 @swag_from(
     {
         "tags": ["users"],
-        "definitions": {
-            "UserReduced": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "string",
-                        "example": "123e4567-e89b-12d3-a456-426614174000",
-                    },
-                    "first_name": {"type": "string"},
-                    "last_name": {"type": "string"},
-                    "username": {"type": "string"},
-                    "user_group": {"type": "string"},
-                },
-            },
-            "User": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "string",
-                        "example": "123e4567-e89b-12d3-a456-426614174000",
-                    },
-                    "first_name": {"type": "string"},
-                    "last_name": {"type": "string"},
-                    "username": {"type": "string"},
-                    "user_group": {"type": "string"},
-                    "created": {"type": "number"},
-                    "last_login": {"type": "number"},
-                    "blocked": {"type": "boolean"},
-                },
-            },
-            "GroupLeader": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "string",
-                        "example": "123e4567-e89b-12d3-a456-426614174000",
-                    },
-                    "first_name": {"type": "string"},
-                    "last_name": {"type": "string"},
-                    "username": {"type": "string"},
-                    "user_group": {"type": "string"},
-                    "own_group": {
-                        "type": "object",
-                        "$ref": "#/definitions/GroupReduced",
-                        "nullable": True,
-                    },
-                    "replacement_groups": {
-                        "type": "array",
-                        "items": {"$ref": "#/definitions/GroupReduced"},
-                    },
-                },
-            },
-            "LocationLeader": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "string",
-                        "example": "123e4567-e89b-12d3-a456-426614174000",
-                    },
-                    "first_name": {"type": "string"},
-                    "last_name": {"type": "string"},
-                    "username": {"type": "string"},
-                    "user_group": {"type": "string"},
-                    "leader_of_location": {
-                        "type": "object",
-                        "$ref": "#/definitions/LocationReduced",
-                        "nullable": True,
-                    },
-                },
-            },
-        },
         "responses": {
             200: {
                 "description": "Returns a list of all users",
-                "schema": {"type": "array", "items": {"$ref": "#/definitions/User"}},
+                "schema": {"type": "array", "items": UserFullSchema},
             }
         },
     }
@@ -124,9 +49,7 @@ def get_users():
 
     users = UsersService.get_users()
 
-    users_dict = [user.to_dict_without_pw_hash() for user in users]
-
-    return jsonify(users_dict)
+    return UserFullSchema(many=True).dump(users)
 
 
 @users_routes.get("/api/users/<uuid:user_id>")
@@ -145,7 +68,7 @@ def get_users():
         "responses": {
             200: {
                 "description": "Returns the user with the given ID",
-                "schema": {"$ref": "#/definitions/User"},
+                "schema": UserFullSchema,
             },
             404: {"description": "User not found"},
         },
@@ -159,6 +82,7 @@ def get_user_by_id(user_id: UUID):
     Authorization: Verwaltung
     ---
     """
+
     user = UsersService.get_user_by_id(user_id)
     if user is None:
         abort_with_err(
@@ -169,7 +93,7 @@ def get_user_by_id(user_id: UUID):
             )
         )
 
-    return jsonify(user.to_dict_without_pw_hash())
+    return UserFullSchema().dump(user)
 
 
 @users_routes.get("/api/users/group-leaders")
@@ -182,7 +106,7 @@ def get_user_by_id(user_id: UUID):
                 "description": "Returns a list of all group leaders",
                 "schema": {
                     "type": "array",
-                    "items": {"$ref": "#/definitions/GroupLeader"},
+                    "items": GroupLeaderNestedSchema,
                 },
             }
         },
@@ -193,9 +117,9 @@ def get_group_leaders():
     Returns a list of all group leaders with their respective groups
     ---
     """
+
     group_leaders = UsersService.get_group_leader()
-    res_dict = [leader.to_dict_group_leader() for leader in group_leaders]
-    return jsonify(res_dict)
+    return GroupLeaderNestedSchema(many=True).dump(group_leaders)
 
 
 @users_routes.get("/api/users/location-leaders")
@@ -208,7 +132,7 @@ def get_group_leaders():
                 "description": "Returns a list of all location leaders",
                 "schema": {
                     "type": "array",
-                    "items": {"$ref": "#/definitions/LocationLeader"},
+                    "items": LocationLeaderNestedSchema,
                 },
             }
         },
@@ -219,24 +143,14 @@ def get_location_leaders():
     Returns a list of all location leaders with their location
     ---
     """
+
     location_leaders = UsersService.get_location_leader()
-    res_dict = [leader.to_dict_location_leader() for leader in location_leaders]
-    return jsonify(res_dict)
 
-
-class UsersPostBody(Schema):
-    """
-    Schema for the POST /api/users endpoint
-    """
-
-    first_name = fields.Str(required=True, validate=Length(min=1, max=64))
-    last_name = fields.Str(required=True, validate=Length(min=1, max=64))
-    username = fields.Str(required=True, validate=Length(min=1, max=64))
-    user_group = fields.Enum(UserGroup, required=True)
+    return LocationLeaderNestedSchema(many=True).dump(location_leaders)
 
 
 @users_routes.post("/api/users")
-@login_required(groups=[UserGroup.verwaltung], disabled=True)
+@login_required(groups=[UserGroup.verwaltung])
 @swag_from(
     {
         "tags": ["users"],
@@ -244,31 +158,7 @@ class UsersPostBody(Schema):
             {
                 "in": "body",
                 "name": "body",
-                "schema": {
-                    "type": "object",
-                    "properties": {
-                        "first_name": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 64,
-                        },
-                        "last_name": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 64,
-                        },
-                        "username": {"type": "string", "minLength": 1, "maxLength": 64},
-                        "user_group": {
-                            "type": "string",
-                            "enum": [
-                                "verwaltung",
-                                "standortleitung",
-                                "gruppenleitung",
-                                "kuechenpersonal",
-                            ],
-                        },
-                    },
-                },
+                "schema": UserFullSchema,
             }
         ],
         "responses": {
@@ -296,7 +186,7 @@ def create_user():
     """
 
     try:
-        body = UsersPostBody().load(request.json)
+        body = UserFullSchema().load(request.json)
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
@@ -319,17 +209,6 @@ def create_user():
         )
 
     return jsonify({"id": id, "initial_password": initial_password})
-
-
-class UsersUpdateBody(Schema):
-    """
-    Schema for the PUT /api/users/id endpoint
-    """
-
-    first_name = fields.Str(required=True, validate=Length(min=1, max=64))
-    last_name = fields.Str(required=True, validate=Length(min=1, max=64))
-    username = fields.Str(required=True, validate=Length(min=1, max=64))
-    user_group = fields.Enum(UserGroup, required=True)
 
 
 @users_routes.put("/api/users/<uuid:user_id>/reset-password")
@@ -367,6 +246,7 @@ def reset_password(user_id: UUID):
     Authorization: Verwaltung
     ---
     """
+
     user = UsersService.get_user_by_id(user_id)
     if user is None:
         abort_with_err(
@@ -396,37 +276,13 @@ def reset_password(user_id: UUID):
             {
                 "in": "body",
                 "name": "body",
-                "schema": {
-                    "type": "object",
-                    "properties": {
-                        "first_name": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 64,
-                        },
-                        "last_name": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 64,
-                        },
-                        "username": {"type": "string", "minLength": 1, "maxLength": 64},
-                        "user_group": {
-                            "type": "string",
-                            "enum": [
-                                "verwaltung",
-                                "standortleitung",
-                                "gruppenleitung",
-                                "kuechenpersonal",
-                            ],
-                        },
-                    },
-                },
+                "schema": UserFullSchema,
             },
         ],
         "responses": {
             200: {
                 "description": "Returns the updated user",
-                "schema": {"$ref": "#/definitions/User"},
+                "schema": UserFullSchema,
             },
             400: {"description": "Validation error or username already exists"},
             404: {"description": "User not found"},
@@ -440,7 +296,7 @@ def update_user(user_id: UUID):
     """
 
     try:
-        body = UsersUpdateBody().load(request.json)
+        body = UserFullSchema().load(request.json)
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
@@ -461,8 +317,31 @@ def update_user(user_id: UUID):
             )
         )
 
+    location = None
+
     try:
-        UsersService.update_user(user, **body)
+        if (location_id := body.get("location_id")) is not None:
+            location = LocationsService.get_location_by_id(location_id)
+            if location is None:
+                raise LocationDoesNotExist()
+    except LocationDoesNotExist:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Standort nicht gefunden",
+                description="Es wurde kein Standort mit dieser ID gefunden",
+            )
+        )
+
+    try:
+        updated_user = UsersService.update_user(
+            user,
+            first_name=body["first_name"],
+            last_name=body["last_name"],
+            username=body["username"],
+            user_group=body["user_group"],
+            location=location,
+        )
     except UserAlreadyExistsError:
         abort_with_err(
             ErrMsg(
@@ -472,7 +351,7 @@ def update_user(user_id: UUID):
             )
         )
 
-    return jsonify(user.to_dict_without_pw_hash())
+    return UserFullSchema().dump(updated_user)
 
 
 @users_routes.delete("/api/users/<uuid:user_id>")

@@ -40,6 +40,9 @@ class Features(ABC):
     INSERT_MOCK_DATA: bool
     """Whether to insert mock data into the database"""
 
+    CRONJOBS: bool
+    """Whether to enable cronjobs"""
+
 
 class ProductionFeatures(Features):
     DATABASE = "real"
@@ -48,6 +51,7 @@ class ProductionFeatures(Features):
     SWAGGER = False
     INSERT_DEFAULT_DATA = True
     INSERT_MOCK_DATA = False
+    CRONJOBS = True
 
 
 class DevelopmentFeatures(Features):
@@ -57,6 +61,7 @@ class DevelopmentFeatures(Features):
     SWAGGER = True
     INSERT_DEFAULT_DATA = True
     INSERT_MOCK_DATA = True
+    CRONJOBS = True
 
 
 class MigrationFeatures(Features):
@@ -66,6 +71,7 @@ class MigrationFeatures(Features):
     SWAGGER = False
     INSERT_DEFAULT_DATA = False
     INSERT_MOCK_DATA = False
+    CRONJOBS = False
 
 
 class UnitTestingFeatures(Features):
@@ -75,6 +81,7 @@ class UnitTestingFeatures(Features):
     SWAGGER = False
     INSERT_DEFAULT_DATA = False
     INSERT_MOCK_DATA = False
+    CRONJOBS = False
 
 
 def get_features(env: Environment) -> Features:
