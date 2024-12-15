@@ -1,0 +1,89 @@
+# SERVICE
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+spec:
+  selector:
+    app: backend-deployment # how the service knows which pods to route traffic to
+  ports:
+    - protocol: TCP # TCP allows us to use HTTP
+      port: 4200 # port that the service will listen on
+      targetPort: 4200 # port that pods are listening on
+---
+# DEPLOYMENT
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+  labels:
+    app: backend-deployment
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: backend-deployment
+  template:
+    metadata:
+      labels:
+        app: backend-deployment
+    spec:
+      initContainers:
+        - name: db-migrations
+          image: swpgruppe16/backend:latest
+          command: ["alembic", "upgrade", "head"]
+          envFrom:
+            - configMapRef:
+                name: app-configmap
+          env:
+            - name: FLASK_ENV # Override environment
+              value: migration
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: dbpassword
+                  key: DB_PASSWORD
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: jwtsecret
+                  key: JWT_SECRET
+            - name: INITIAL_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: initialadmin
+                  key: INITIAL_ADMIN_PASSWORD
+      containers:
+        - name: backend-deployment
+          image: swpgruppe16/backend:latest
+          imagePullPolicy: Always
+          resources:
+            limits:
+              memory: 500Mi
+              cpu: 200m
+          envFrom:
+            - configMapRef:
+                name: app-configmap
+          env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: dbpassword
+                  key: DB_PASSWORD
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: jwtsecret
+                  key: JWT_SECRET
+            - name: INITIAL_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: initialadmin
+                  key: INITIAL_ADMIN_PASSWORD
+      imagePullSecrets:
+        - name: regcred

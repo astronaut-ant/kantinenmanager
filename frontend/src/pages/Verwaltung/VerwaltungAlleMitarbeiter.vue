@@ -30,7 +30,7 @@
       <v-data-table :headers="headers"  :items="items" :search="search" :sort-by="sortBy" :loading="loading" item-value="employee_number">
       <template v-slot:[`item.actions`]="{ item }">
         <v-btn icon="mdi-qrcode" class="bg-green mr-2" @click="getQRCode(item)" size="small"></v-btn>
-        <v-btn icon="mdi-lead-pencil" class="bg-primary mr-2" @click="openDialog(item)" size="small"></v-btn>
+        <v-btn icon="mdi-lead-pencil" class="bg-primary mr-2" @click="openeditDialog(item)" size="small"></v-btn>
         <v-btn icon="mdi-trash-can-outline" class="bg-red" @click="opendeleteDialog(item)" size="small"></v-btn>
       </template>
       </v-data-table>
@@ -39,7 +39,7 @@
   <v-dialog v-model="deleteDialog" persistent max-width="400">
     <v-card>
       <v-card-text>
-        <div class="d-flex justify-center text-red mb-4">
+        <div class="d-flex justify-center text-red mb-7">
           <p class="text-h5 font-weight-black" >Mitarbeiter löschen</p>
         </div>
         <div class="text-medium-emphasis">
@@ -52,28 +52,114 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+  <v-dialog v-model="editDialog" persistent max-width="500">
+      <v-card>
+      <v-card-text>
+        <div class="d-flex justify-center text-primary mb-7">
+          <p class="text-h5 font-weight-black">Mitarbeiter bearbeiten</p>
+        </div>
+        <div>
+          <v-form ref="validation" v-model="form">
+            <v-text-field
+              v-model="employee_number"
+              :rules="[required]"
+              label="Kunden-Nr."
+              clearable
+            ></v-text-field>
+            <v-text-field
+              v-model="first_name"
+              :rules="[required]"
+              label="Vorname"
+              clearable
+            ></v-text-field>
+            <v-text-field
+              v-model="last_name"
+              :rules="[required]"
+              label="Nachname"
+              clearable
+            ></v-text-field>
+            <v-menu offset-y>
+              <template #activator="{ props }">
+                <v-text-field
+                  v-bind="props"
+                  v-model="group_name"
+                  label="Gruppen Name"
+                  readonly
+                  append-inner-icon="mdi-chevron-down"
+                ></v-text-field>
+              </template>
+              <v-list>
+                <v-list-item v-for="location in locations" :key="location.name">
+                  <v-list-item-title>{{ location.name }}</v-list-item-title>
+                  <template v-slot:append>
+                    <v-icon icon="mdi-menu-right" size="x-small"></v-icon>
+                  </template>
+                  <v-menu
+                    offset-y
+                    activator="parent"
+                    open-on-click
+                    open-on-hover
+                    close-on-content-click
+                    location="end"
+                  >
+                    <v-list>
+                      <v-list-item
+                        v-for="group in location.groups"
+                        :key="group.name"
+                        @click="selectOption(group.name, location.name)"
+                      >
+                        <v-list-item-title>{{ group.name }}</v-list-item-title>
+                      </v-list-item>
+                    </v-list>
+                  </v-menu>
+                </v-list-item>
+              </v-list>
+            </v-menu>
+          </v-form>
+        </div>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn @click="closeeditDialog">Abbrechen</v-btn>
+        <v-btn 
+          color="primary"
+          type="submit" 
+          variant="elevated"
+          :disabled="!form"
+          @click="submitForm"
+          >Speichern</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
   <SuccessSnackbar
     v-model="snackbar"
     :text="snackbarText"
-    @close="snackbar = false"
   ></SuccessSnackbar>
 </template>
- 
- 
+
+
 <script setup>
   import axios from "axios";
   const search = ref("");
   const loading = ref(true);
   const isSearchVisible = ref(false);
   const deleteDialog = ref(false);
+  const editDialog = ref(false);
   const employeeToDelete = ref("");
   const employeeToDeleteID = ref("");
+  const employeeToEditID = ref("");
   const snackbar = ref(false);
   const snackbarText = ref("");
   const items = ref([]);
-  const groups = ref([]);
-  const locations = ref([]);
   const employees = ref([]);
+  const locations = ref([]);
+
+  const employee_number = ref('');
+  const first_name = ref('');
+  const last_name = ref('');
+  const group_name = ref('');
+  const location_name = ref('');
+  const validation = ref(null);
+  const form = ref(false);
 
   const toggleSearchField = () => {
     if (isSearchVisible.value) {
@@ -83,7 +169,7 @@
   };
 
   const opendeleteDialog = (item) => {
-    employeeToDelete.value = item.last_name + ", " + item.first_name;
+    employeeToDelete.value = item.first_name  + " " + item.last_name;
     employeeToDeleteID.value = item.id;
     deleteDialog.value= true;
   };
@@ -92,9 +178,25 @@
     deleteDialog.value = false;
   };
 
+  const openeditDialog = (item) => {
+    fetchGroups();
+    employeeToEditID.value = item.id;
+    const employee = items.value.find((item) => item.id === employeeToEditID.value);
+    employee_number.value = employee.employee_number;
+    first_name.value = employee.first_name;
+    last_name.value = employee.last_name;
+    group_name.value = employee.group_name;
+    location_name.value = employee.location_name;
+    editDialog.value= true;
+  };
+
+  const closeeditDialog = () => {
+    editDialog.value = false;
+  };
+
   const confirmDelete = () => {
     axios
-      .delete(`http://localhost:4200/api/employees/${employeeToDeleteID.value}`, { withCredentials: true })
+      .delete(`${import.meta.env.VITE_API}/api/employees/${employeeToDeleteID.value}`, { withCredentials: true })
       .then(() => {
         items.value = items.value.filter((item) => item.id !== employeeToDeleteID.value);
 
@@ -110,7 +212,7 @@
 
   const getQRCode = (item) => {
   axios
-    .get(`http://localhost:4200/api/persons/create-qr/${item.id}`, {
+    .get(`${import.meta.env.VITE_API}/api/persons/create-qr/${item.id}`, {
       responseType: "blob",
       withCredentials: true,
     })
@@ -143,44 +245,33 @@
     });
   };
 
-  const fetchData = async () => {
-    try {
-      loading.value = true;
-      const [employeesResponse, groupsResponse, locationsResponse] = await Promise.all([
-        axios.get("http://localhost:4200/api/employees", { withCredentials: true }),
-        axios.get("http://localhost:4200/api/groups", { withCredentials: true }),
-        axios.get("http://localhost:4200/api/locations", { withCredentials: true }),
-      ]);
-
-      employees.value = employeesResponse.data;
-      groups.value = groupsResponse.data;
-      locations.value = locationsResponse.data;
-
+  const fetchData = () => {
+    loading.value = true;
+    axios
+    .get(import.meta.env.VITE_API + "/api/employees", { withCredentials: true })
+    .then((response) => {
+      employees.value = response.data;
       items.value = employees.value.map((employee) => {
-        const group = groups.value.find((g) => g.id === employee.group_id);
-        const location = group ? locations.value.find((l) => l.id === group.location_id) : null;
-
         return {
           id: employee.id,
           first_name: employee.first_name,
           last_name: employee.last_name,
           employee_number: employee.employee_number,
-          group_id: group?.id || null,
-          group_name: group?.group_name || "Unbekannt",
-          location_id: location?.id || null,
-          location_name: location?.location_name || "Unbekannt",
+          group_id: employee.group.id,
+          group_name: employee.group.group_name || "Unbekannt",
+          location_id: employee.group.location.id || null,
+          location_name: employee.group.location.location_name || "Unbekannt",
         };
       });
       loading.value = false;
-    } catch (err) {
-      console.error("Error fetching data", err);
-    }
+    })
+    .catch((err) => console.error("Error fetching data", err));
   };
 
   onMounted(() => {
     fetchData();
   });
- 
+
   const headers = [
      { title: "Nummer", key: "employee_number"},
      { title: "Nachname", key: "last_name" },
@@ -189,5 +280,52 @@
      { title: "Standort", key: "location_name"},
      { title: "", key: "actions", sortable: false },];
   const sortBy = [{ key: 'employee_number', order: 'asc' }]
+  
+  const fetchGroups = () => {
+    axios
+      .get(import.meta.env.VITE_API + "/api/groups/with-locations", { withCredentials: true })
+      .then((response) => {
+        const groupsData = response.data;
+        locations.value = Object.entries(groupsData).map(([locationName, groupNames]) => {
+          return {
+            name: locationName,
+            groups: groupNames.map((groupName) => ({
+              name: groupName,
+            })),
+          };
+        });
+      })
+      .catch((err) => console.error("Error fetching groups", err));
+  };
+
+  const required = (v) => {
+    return !!v || "Eingabe erforderlich";
+  };
+
+  const selectOption = (selectedGroup, location) => {
+    group_name.value = selectedGroup;
+    location_name.value = location;
+  };
+
+  const submitForm = () => {
+      const payload = {
+        employee_number: employee_number.value,
+        first_name: first_name.value,
+        last_name: last_name.value,
+        group_name: group_name.value,
+        location_name: location_name.value,
+      }
+
+      axios
+        .put(`${import.meta.env.VITE_API}/api/employees/${employeeToEditID.value}`, payload, { withCredentials: true })
+        .then(() => {
+          fetchData();
+          closeeditDialog();
+          snackbar.value = false;
+          snackbarText.value = `${payload.first_name} ${payload.last_name} wurde erfolgreich aktualisiert!`;
+          snackbar.value = true;
+          deleteDialog.value = false;
+        })
+        .catch((err) => console.error("Error updating employee", err));
+  };
 </script>
- 

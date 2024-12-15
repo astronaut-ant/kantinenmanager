@@ -232,7 +232,6 @@ class UsersPostBody(Schema):
     first_name = fields.Str(required=True, validate=Length(min=1, max=64))
     last_name = fields.Str(required=True, validate=Length(min=1, max=64))
     username = fields.Str(required=True, validate=Length(min=1, max=64))
-    password = fields.Str(required=True, validate=Length(min=8, max=256))
     user_group = fields.Enum(UserGroup, required=True)
 
 
@@ -259,11 +258,6 @@ class UsersPostBody(Schema):
                             "maxLength": 64,
                         },
                         "username": {"type": "string", "minLength": 1, "maxLength": 64},
-                        "password": {
-                            "type": "string",
-                            "minLength": 8,
-                            "maxLength": 256,
-                        },
                         "user_group": {
                             "type": "string",
                             "enum": [

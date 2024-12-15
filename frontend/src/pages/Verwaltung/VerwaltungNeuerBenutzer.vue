@@ -1,6 +1,7 @@
 <template>
-  <NavbarVerwaltung @click="emptyForm" />
-  <div class="mt-7 d-flex justify-center" @click="emptyForm">
+  <NavbarVerwaltung />
+
+  <div class="d-flex justify-center mt-7">
     <div>
       <v-card class="elevation-7 px-6 py-4 w-100">
         <v-card-text class="mb-2 text-h5">
@@ -24,6 +25,13 @@
               <v-radio label="Küchenpersonal" value="kuechenpersonal"></v-radio>
             </div>
           </v-radio-group>
+          <v-select
+            v-if="user_group === 'kuechenpersonal'"
+            v-model="user_location"
+            :items="allLocations"
+            :rules="[required]"
+            label="Standort"
+          ></v-select>
           <v-text-field
             v-model="first_name"
             :rules="[required]"
@@ -41,27 +49,17 @@
           <v-text-field
             v-model="username"
             :rules="[required]"
+            class="mb-2"
             label="Benutzername"
             clearable
           ></v-text-field>
-          <div class="d-flex justify-center mt-2 mb-5">
-            <v-btn size="large" class="w-100 bg-red" @click="generatePassword"
-              >Generiere Passwort</v-btn
-            >
-          </div>
-          <v-text-field
-            :append-inner-icon="
-              showPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline'
-            "
-            v-model="password"
-            :type="showPassword ? 'text' : 'password'"
-            :rules="[required]"
-            :readonly="true"
-            label="Passwort"
-            @click:append-inner="showPassword = !showPassword"
-          >
-          </v-text-field>
-
+          <CustomAlert
+            v-if="notSuccessful"
+            class="mb-7"
+            :text="errorMessage"
+            color="red"
+            icon="$error"
+          />
           <v-btn
             class="mt-2"
             :disabled="!form"
@@ -74,20 +72,23 @@
             anlegen
           </v-btn>
         </v-form>
-        <div
-          v-if="showConfirm"
-          class="mt-5 d-flex justify-center align-center ga-5"
-        >
-          <h3>Hinzugefügt!</h3>
-          <v-icon color="success" icon="mdi-check-circle-outline" size="32">
-          </v-icon>
-        </div>
       </v-card>
     </div>
   </div>
+  <ConfirmDialogCreateUser
+    v-if="showConfirm"
+    :showConfirm="showConfirm"
+    :userName="username"
+    :userGroup="user_group"
+    text="Das Benutzerkonto wurde erfolgreich angelegt"
+    :initialPassword="initialPassword"
+    @close="emptyForm"
+  />
 </template>
 
 <script setup>
+import ConfirmDialogCreateUser from "@/components/ConfirmDialogCreateUser.vue";
+import CustomAlert from "@/components/CustomAlert.vue";
 import axios from "axios";
 const validation = ref("");
 const showConfirm = ref(false);
@@ -95,30 +96,44 @@ const form = ref(false);
 const first_name = ref("");
 const last_name = ref("");
 const username = ref("");
-const password = ref("");
 const user_group = ref("");
-const showPassword = ref(false);
+const user_location = ref();
+const allLocations = ref([]);
+const notSuccessful = ref(false);
+const errorMessage = ref();
+const initialPassword = ref("");
 
-//Dummy => fetch from Backend
-const generatePassword = () => {
-  password.value = "12345678";
-};
-
-const test = () => {
-  console.log("test");
-};
 const handleSubmit = () => {
   axios
-    .post("http://localhost:4200/api/users ", {
+    .post(import.meta.env.VITE_API + "/api/users ", {
       first_name: first_name.value,
       last_name: last_name.value,
-      username: username.value,
-      password: password.value,
       user_group: user_group.value,
+      username: username.value,
     })
-    .then((response) => console.log(response.data))
-    .catch((err) => console.log(err));
-  showConfirm.value = true;
+    .then((response) => {
+      console.log(response.data.id);
+      axios
+        .put(
+          `${import.meta.env.VITE_API}/api/users/${response.data.id}/reset-password`,
+          {},
+          { withCredentials: true }
+        )
+        .then((response) => {
+          initialPassword.value = response.data.new_password;
+          showConfirm.value = true;
+        })
+        .catch((err) => {
+          notSuccessful.value = true;
+          console.log(err);
+          errorMessage.value = err.response.data.description;
+        });
+    })
+    .catch((err) => {
+      notSuccessful.value = true;
+      console.log(err);
+      errorMessage.value = err.response.data.description;
+    });
 };
 
 const required = (v) => {
@@ -126,9 +141,18 @@ const required = (v) => {
 };
 
 const emptyForm = () => {
-  if (showConfirm.value) {
-    showConfirm.value = false;
-    validation.value.reset();
-  }
+  showConfirm.value = false;
+  validation.value.reset();
 };
+onMounted(() => {
+  axios
+    .get(import.meta.env.VITE_API + "/api/locations", { withCredentials: true })
+    .then((response) => {
+      response.data.forEach((location) => {
+        allLocations.value.push(location.location_name);
+      });
+      console.log(allLocations.value);
+    })
+    .catch((err) => console.log(err.response.data.description));
+});
 </script>

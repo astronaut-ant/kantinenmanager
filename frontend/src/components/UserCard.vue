@@ -21,7 +21,6 @@
 <script setup>
 const props = defineProps(["id", "name", "role"]);
 const emit = defineEmits(["delete", "edit"]);
-
 const formattedRole = computed(() => {
   let capitalized = props.role.charAt(0).toUpperCase() + props.role.slice(1);
   return capitalized.replace("ue", "ü");

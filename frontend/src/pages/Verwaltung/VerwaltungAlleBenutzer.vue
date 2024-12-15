@@ -10,73 +10,96 @@
       @edit="openeditDialog"
     />
   </div>
-  <v-dialog v-model="deleteDialog" persistent max-width="400">
+  <v-dialog
+    v-model="deleteDialog"
+    no-click-animation
+    persistent
+    max-width="400"
+  >
     <v-card>
       <v-card-text>
         <div class="d-flex justify-center text-red mb-4">
-          <p class="text-h5 font-weight-black" >Benutzer löschen</p>
+          <p class="text-h5 font-weight-black">Benutzer löschen</p>
         </div>
         <div class="text-medium-emphasis">
-          <p> Sind Sie sicher, dass Sie den Benutzer <strong>{{ userToDeleteName }}</strong> löschen möchten?</p>
+          <p>
+            Sind Sie sicher, dass Sie den Benutzer
+            <strong>{{ userToDeleteName }}</strong> löschen möchten?
+          </p>
         </div>
       </v-card-text>
       <v-card-actions>
         <v-btn text @click="closedeleteDialog">Abbrechen</v-btn>
-        <v-btn color="red" variant="elevated" @click="confirmDelete">Löschen</v-btn>
+        <v-btn color="red" variant="elevated" @click="confirmDelete"
+          >Löschen</v-btn
+        >
       </v-card-actions>
     </v-card>
   </v-dialog>
 
-  <v-dialog v-model="editDialog" persistent max-width="400">
+  <v-dialog v-model="editDialog" no-click-animation persistent max-width="500">
     <v-card>
-      <v-card-title class="primary d-flex justify-start">
-        <v-icon left class="mr-2"> mdi-account-edit-outline </v-icon>
-        <span class="text-h5">Benutzer bearbeiten</span>
-      </v-card-title>
       <v-card-text>
-        <v-form ref="validation" v-model="form">
-          <v-radio-group
-            v-model="user_group"
-            :rules="[required]"
-            color="primary"
-          >
-            <div class="d-flex">
-              <v-radio label="Verwaltung" value="verwaltung"></v-radio>
-              <v-radio
-                label="Standortleitung"
-                value="standortleitung"
-              ></v-radio>
+        <div class="d-flex justify-center align-center text-primary mb-7">
+          <p class="text-h5 font-weight-black">Benutzer bearbeiten</p>
+        </div>
+        <div>
+          <v-form ref="validation" v-model="form">
+            <v-radio-group
+              v-model="user_group"
+              :rules="[required]"
+              color="primary"
+            >
+              <div class="d-flex">
+                <v-radio label="Verwaltung" value="verwaltung"></v-radio>
+                <v-radio
+                  label="Standortleitung"
+                  value="standortleitung"
+                ></v-radio>
+              </div>
+              <div class="d-flex">
+                <v-radio label="Gruppenleitung" value="gruppenleitung"></v-radio>
+                <v-radio label="Küchenpersonal" value="kuechenpersonal"></v-radio>
+              </div>
+            </v-radio-group>
+            <div class="d-flex ga-5">
+              <v-text-field
+                v-model="first_name"
+                :rules="[required]"
+                class="mb-2"
+                label="Vorname"
+                clearable
+              ></v-text-field>
+              <v-text-field
+                v-model="last_name"
+                :rules="[required]"
+                class="mb-2"
+                label="Nachname"
+                clearable
+              ></v-text-field>
             </div>
-            <div class="d-flex">
-              <v-radio label="Gruppenleitung" value="gruppenleitung"></v-radio>
-              <v-radio label="Küchenpersonal" value="kuechenpersonal"></v-radio>
+            <div block>
+              <v-text-field
+                v-model="username"
+                :rules="[required]"
+                label="Benutzername"
+                clearable
+              ></v-text-field>
+              <div>
+                <v-select
+                  class="mb-2"
+                  v-if="user_group === 'kuechenpersonal'"
+                  :items="allLocations"
+                  :rules="[required]"
+                  label="Standort"
+                ></v-select>
+              </div>
             </div>
-          </v-radio-group>
-          <div class="d-flex ga-5">
-            <v-text-field
-              v-model="first_name"
-              :rules="[required]"
-              class="mb-2"
-              label="Vorname"
-              clearable
-            ></v-text-field>
-            <v-text-field
-              v-model="last_name"
-              :rules="[required]"
-              class="mb-2"
-              label="Nachname"
-              clearable
-            ></v-text-field>
-          </div>
-          <div class="d-flex ga-5">
-            <v-text-field
-              v-model="username"
-              :rules="[required]"
-              label="Benutzername"
-              clearable
-            ></v-text-field>
-          </div>
-        </v-form>
+            <v-btn @click="handlePasswordReset" class="bg-red" block
+              >Passwort zurücksetzen</v-btn
+            >
+          </v-form>
+        </div>
       </v-card-text>
       <v-card-actions>
         <v-btn text @click="closeeditDialog">Abbrechen</v-btn>
@@ -90,6 +113,14 @@
         </v-btn>
       </v-card-actions>
     </v-card>
+    <ConfirmDialogCreateUser
+      :showConfirm="showConfirm"
+      :user-name="username"
+      user-group=""
+      :initial-password="initialPassword"
+      text="Das Passwort wurder erfolgreich zurückgesetzt"
+      @close="showConfirm = false"
+    />
   </v-dialog>
   <SuccessSnackbar
     v-model="snackbar"
@@ -99,6 +130,7 @@
 </template>
 
 <script setup>
+import ConfirmDialogCreateUser from "@/components/ConfirmDialogCreateUser.vue";
 import UserCard from "@/components/UserCard.vue";
 import axios from "axios";
 const snackbarText = ref(" ");
@@ -116,21 +148,39 @@ const first_name = ref("");
 const last_name = ref("");
 const username = ref("");
 const user_group = ref("");
+const showConfirm = ref(false);
+const initialPassword = ref();
+const allLocations = ref([]);
 
 onMounted(() => {
   axios
-    .get("http://localhost:4200/api/users", { withCredentials: true })
+    .get(import.meta.env.VITE_API + "/api/users", { withCredentials: true })
     .then((response) => {
       users.value = response.data;
-      // console.log(users.value);
     })
     .catch((err) => console.log(err));
+  axios
+    .get(import.meta.env.VITE_API + "/api/locations", { withCredentials: true })
+    .then((response) => {
+      response.data.forEach((location) => {
+        allLocations.value.push(location.location_name);
+      });
+    })
+    .catch((err) => console.log(err));
+
+  //TODO Fetch actual location for initial selection in v-Select
 });
 
 const opendeleteDialog = (id) => {
   const user = users.value.find((user) => user.id === id);
   userToDelete.value = id;
-  userToDeleteName.value = user?.last_name + ", " + user?.first_name  + " (Benutzername: "+ user?.username + ")";
+  userToDeleteName.value =
+    user?.first_name +
+    " " +
+    user?.last_name +
+    " (Benutzername: " +
+    user?.username +
+    ")";
   deleteDialog.value = true;
 };
 
@@ -141,7 +191,7 @@ const closedeleteDialog = () => {
 
 const confirmDelete = () => {
   axios
-    .delete(`http://localhost:4200/api/users/${userToDelete.value}`, {
+    .delete(`${import.meta.env.VITE_API}/api/users/${userToDelete.value}`, {
       withCredentials: true,
     })
     .then(() => {
@@ -171,6 +221,27 @@ const openeditDialog = (id) => {
   editDialog.value = true;
 };
 
+const handlePasswordReset = () => {
+  axios
+    .put(
+      //What happens if User is Logged in?
+      `${import.meta.env.VITE_API}/api/users/${
+        userToEdit.value
+      }/reset-password`,
+      {},
+      { withCredentials: true }
+    )
+    .then((response) => {
+      console.log(response.data.new_password);
+      initialPassword.value = response.data.new_password;
+      showConfirm.value = true;
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+  console.log();
+};
+
 const required = (v) => {
   return !!v || "Eingabe erforderlich";
 };
@@ -184,9 +255,13 @@ const confirmEdit = () => {
   };
 
   axios
-    .put(`http://localhost:4200/api/users/${userToEdit.value}`, updatedUser, {
-      withCredentials: true,
-    })
+    .put(
+      import.meta.env.VITE_API + `/api/users/${userToEdit.value}`,
+      updatedUser,
+      {
+        withCredentials: true,
+      }
+    )
     .then(() => {
       const index = users.value.findIndex((u) => u.id === userToEdit.value);
       if (index !== -1) {
