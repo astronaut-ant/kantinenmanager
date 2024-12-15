@@ -20,11 +20,19 @@ class GroupFullSchema(GroupBaseSchema):
 class GroupFullNestedSchema(GroupBaseSchema):
     """Schema representing a group with resolved nested fields"""
 
-    group_leader = fields.Nested("UserFullSchema", required=True, dump_only=True)
+    group_leader = fields.Nested("UserBaseSchema", required=True, dump_only=True)
     group_leader_replacement = fields.Nested(
-        "UserFullSchema", required=False, dump_only=True
+        "UserBaseSchema", required=False, dump_only=True
     )
     location = fields.Nested("LocationFullSchema", required=True, dump_only=True)
+
+
+class GroupFullWithEmployeesNestedSchema(GroupFullNestedSchema):
+    """Schema representing a group with resolved nested fields and employees"""
+
+    employees = fields.List(
+        fields.Nested("EmployeeBaseSchema"), required=True, dump_only=True
+    )
 
 
 class GroupLocationNestedSchema(GroupBaseSchema):

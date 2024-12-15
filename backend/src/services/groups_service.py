@@ -143,6 +143,9 @@ class GroupsService:
                 )
             group.user_id_replacement = user_id_replacement
 
+        if user_id_replacement is None:
+            group.user_id_replacement = None
+
         if location_id != group.location_id:
             location_exists = LocationsRepository.get_location_by_id(location_id)
             if not location_exists:
