@@ -107,8 +107,7 @@
 
           return a.group_name.localeCompare(b.group_name);
         });
-
-        console.log(groupLeaders);
+        
         loading.value = false;
       })
       .catch((err) => console.error("Error fetching data", err));
