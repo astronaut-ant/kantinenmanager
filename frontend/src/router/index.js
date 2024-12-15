@@ -19,6 +19,8 @@ import VerwaltungNeuerStandort from "@/pages/Verwaltung/VerwaltungNeuerStandort.
 import VerwaltungAlleGruppen from "@/pages/Verwaltung/VerwaltungAlleGruppen.vue";
 import VerwaltungNeueGruppe from "@/pages/Verwaltung/VerwaltungNeueGruppe.vue";
 import VerwaltungMitarbeiterManuell from "@/pages/Verwaltung/VerwaltungMitarbeiterManuell.vue";
+import GruppenleitungVorbestellungen from "@/pages/Gruppenleitung/GruppenLeitungVorbestellungen.vue";
+import GruppenleitungMeineGruppen from "@/pages/Gruppenleitung/GruppenleitungMeineGruppen.vue";
 
 const routes = [
   { path: "/", component: index, redirect: "/login" },
@@ -111,13 +113,6 @@ const routes = [
   },
 
   {
-    path: "/gruppenleitung/uebersicht",
-    component: Gruppenleitung,
-    beforeEnter: (to, from, next) => {
-      protectRoute(next, "gruppenleitung");
-    },
-  },
-  {
     path: "/verwaltung/mitarbeiter/neuerMitarbeiter",
     component: VerwaltungNeuerMitarbeiter,
     beforeEnter: (to, from, next) => {
@@ -170,14 +165,6 @@ const routes = [
   },
 
   {
-    path: "/gruppenleitung/uebersicht",
-    component: Gruppenleitung,
-    beforeEnter: (to, from, next) => {
-      protectRoute(next, "gruppenleitung");
-    },
-  },
-
-  {
     path: "/kuechenpersonal/uebersicht",
     component: KuecheUebersicht,
     beforeEnter: (to, from, next) => {
@@ -206,6 +193,20 @@ const routes = [
     component: StandortVertretung,
     beforeEnter: (to, from, next) => {
       protectRoute(next, "standortleitung");
+    },
+  },
+  {
+    path: "/gruppenleitung/meineGruppen",
+    component: GruppenleitungMeineGruppen,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "gruppenleitung");
+    },
+  },
+  {
+    path: "/gruppenleitung/vorbestellungen",
+    component: GruppenleitungVorbestellungen,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "gruppenleitung");
     },
   },
 ];

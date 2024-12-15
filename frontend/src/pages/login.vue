@@ -100,7 +100,7 @@ const handleSubmit = () => {
           break;
         case "gruppenleitung":
           console.log("g");
-          router.push({ path: "/gruppenleitung/uebersicht" });
+          router.push({ path: "/gruppenleitung/meineGruppen" });
           break;
         case "kuechenpersonal":
           console.log("k");
