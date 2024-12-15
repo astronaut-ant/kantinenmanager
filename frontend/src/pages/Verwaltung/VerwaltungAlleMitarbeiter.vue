@@ -143,7 +143,7 @@
   const fetchData = () => {
     loading.value = true;
     axios
-    .get("http://localhost:4200/api/employees", { withCredentials: true })
+    .get(import.meta.env.VITE_API + "/api/employees", { withCredentials: true })
     .then((response) => {
       employees.value = response.data;
       items.value = employees.value.map((employee) => {
