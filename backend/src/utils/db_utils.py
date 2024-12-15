@@ -41,11 +41,11 @@ def insert_user_mock_data():
     for user in MOCK_USERS:
         try:
             user_id, _ = UsersService.create_user(
-                user["first_name"],
-                user["last_name"],
-                user["username"],
-                user["password"],
-                user["user_group"],
+                first_name=user["first_name"],
+                last_name=user["last_name"],
+                username=user["username"],
+                password=user["password"],
+                user_group=user["user_group"],
             )
             print(f"Inserted user with ID {user_id}")
         except UserAlreadyExistsError:
