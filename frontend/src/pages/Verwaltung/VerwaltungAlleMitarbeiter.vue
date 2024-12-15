@@ -55,11 +55,10 @@
   <SuccessSnackbar
     v-model="snackbar"
     :text="snackbarText"
-    @close="snackbar = false"
   ></SuccessSnackbar>
 </template>
- 
- 
+
+
 <script setup>
   import axios from "axios";
   const search = ref("");
@@ -92,7 +91,7 @@
 
   const confirmDelete = () => {
     axios
-      .delete(`http://localhost:4200/api/employees/${employeeToDeleteID.value}`, { withCredentials: true })
+      .delete(`${import.meta.env.VITE_API}/api/employees/${employeeToDeleteID.value}`, { withCredentials: true })
       .then(() => {
         items.value = items.value.filter((item) => item.id !== employeeToDeleteID.value);
 
@@ -108,7 +107,7 @@
 
   const getQRCode = (item) => {
   axios
-    .get(`http://localhost:4200/api/persons/create-qr/${item.id}`, {
+    .get(`${import.meta.env.VITE_API}/api/persons/create-qr/${item.id}`, {
       responseType: "blob",
       withCredentials: true,
     })
@@ -144,7 +143,7 @@
   const fetchData = () => {
     loading.value = true;
     axios
-    .get("http://localhost:4200/api/employees", { withCredentials: true })
+    .get(import.meta.env.VITE_API + "/api/employees", { withCredentials: true })
     .then((response) => {
       employees.value = response.data;
       items.value = employees.value.map((employee) => {
@@ -155,8 +154,8 @@
           employee_number: employee.employee_number,
           group_id: employee.group.id,
           group_name: employee.group.group_name || "Unbekannt",
-          location_id: employee.group.location_id || null,
-          location_name: employee.group.location_name || "Unbekannt",
+          location_id: employee.group.location.id || null,
+          location_name: employee.group.location.location_name || "Unbekannt",
         };
       });
       loading.value = false;
@@ -167,7 +166,7 @@
   onMounted(() => {
     fetchData();
   });
- 
+
   const headers = [
      { title: "Nummer", key: "employee_number"},
      { title: "Nachname", key: "last_name" },
@@ -177,4 +176,3 @@
      { title: "", key: "actions", sortable: false },];
   const sortBy = [{ key: 'employee_number', order: 'asc' }]
 </script>
- 

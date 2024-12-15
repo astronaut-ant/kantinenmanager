@@ -1,6 +1,6 @@
 <template>
-  <NavbarVerwaltung @click="emptyForm" />
-  <div class="mt-7 d-flex justify-center" @click="emptyForm">
+  <NavbarVerwaltung />
+  <div class="mt-7 d-flex justify-center">
     <div>
       <v-card class="elevation-7 px-6 py-4 w-100">
         <v-card-text class="mb-2 text-h5"> Neuen Standort anlegen </v-card-text>
@@ -70,7 +70,7 @@ const standortLeiterLookupTable = {};
 //fill Dropdown-Menu and id-Lookup
 onMounted(() => {
   axios
-    .get("http://localhost:4200/api/users", { withCredentials: true })
+    .get(import.meta.env.VITE_API + "/api/users", { withCredentials: true })
     .then((response) => {
       response.data.forEach((user) => {
         if (user.user_group === "standortleitung") {
@@ -94,13 +94,21 @@ const handleSubmit = () => {
     user_id: standortLeiterLookupTable[standortLeitung.value],
   });
   axios
-    .post("http://localhost:4200/api/locations", {
-      location_name: standortName.value,
-      user_id: standortLeiterLookupTable[standortLeitung.value],
+    .post(
+      import.meta.env.VITE_API + "/api/locations",
+      {
+        location_name: standortName.value,
+        user_id_location_leader:
+          standortLeiterLookupTable[standortLeitung.value],
+      },
+      { withCredentials: true }
+    )
+    .then((response) => {
+      console.log(response.data);
+      emptyForm();
+      showConfirm.value = true;
     })
-    .then((response) => console.log(response.data))
     .catch((err) => console.log(err));
-  showConfirm.value = true;
 };
 
 //validate
