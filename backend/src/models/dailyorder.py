@@ -23,7 +23,9 @@ class DailyOrder(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     person_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("person.id"))  # unique=True
     location_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("location.id"))
-    nothing: Mapped[bool] = mapped_column(Boolean, nullable=True)
+    nothing: Mapped[bool] = mapped_column(
+        Boolean, name="nothing", nullable=True, quote=True
+    )
     main_dish: Mapped[MainDish] = mapped_column(
         sqlalchemy.Enum(MainDish), nullable=True
     )

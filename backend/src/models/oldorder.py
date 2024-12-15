@@ -28,7 +28,9 @@ class OldOrder(db.Model):
     )  # TODO: change to ForeignKey("person.id", ondelete="SET NULL")
     location_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("location.id"))
     date: Mapped[datetime] = mapped_column(DateTime, nullable=False)
-    nothing: Mapped[bool] = mapped_column(Boolean, nullable=True)
+    nothing: Mapped[bool] = mapped_column(
+        Boolean, name="nothing", nullable=True, quote=True
+    )
     main_dish: Mapped[MainDish] = mapped_column(
         sqlalchemy.Enum(MainDish), nullable=True
     )
