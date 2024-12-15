@@ -1,46 +1,44 @@
 <template>
   <NavbarStandort></NavbarStandort>
-  <v-container fluid class="d-flex justify-center">
-    <div class="ml-10 mr-10 mt-5">
-      <v-row class="d-flex justify-start">
-        <v-col
-          v-if="loading"
-          v-for="n in 6"
-          :key="n"
-          cols="12" sm="12" md="6" lg="4" xl="3" xxl = "2"
-          class="d-flex justify-center"
-        >
-          <v-skeleton-loader
-            class="mx-auto"
-            width="400"
-            max-height="200"
-            type="heading, subtitle, divider, chip"
-          />
-        </v-col>
+  <div class="ml-10 mr-10 mt-5">
+    <v-row class="d-flex justify-start">
+      <v-col
+        v-if="loading"
+        v-for="n in 6"
+        :key="n"
+        cols="12" sm="12" md="6" lg="4" xl="3" xxl = "2"
+        class="d-flex justify-center"
+      >
+        <v-skeleton-loader
+          class="mx-auto"
+          width="450"
+          max-height="200"
+          type="heading, subtitle, divider, chip"
+        />
+      </v-col>
 
-        <v-col
-          v-else
-          v-for="groupLeader in groupLeaders"
-          :key="groupLeader.id"
-          cols="12" sm="12" md="6" lg="4" xl="3" xxl = "2"
-          class="d-flex justify-center"
-        >
-        <GroupLeaderCard
-          :group_id="groupLeader.id"
-          :group_name="groupLeader.group_name"
-          :location="groupLeader.location"
-          :group_leader="groupLeader.group_leader"
-          :group_leader_replacement="groupLeader.group_leader_replacement"
-          :replacing_group="groupLeader.replacing_group"
-          :available="groupLeader.available"
-          :available_group_leaders="groupLeader.available_group_leaders"
-          @replacement-set="fetchData"
-          @replacement-removed="fetchData"
-        ></GroupLeaderCard>
-        </v-col>
-      </v-row>
-    </div>
-  </v-container>
+      <v-col
+        v-else
+        v-for="groupLeader in groupLeaders"
+        :key="groupLeader.id"
+        cols="12" sm="12" md="6" lg="4" xl="3" xxl = "2"
+        class="d-flex justify-center"
+      >
+      <GroupLeaderCard
+        :group_id="groupLeader.id"
+        :group_name="groupLeader.group_name"
+        :location="groupLeader.location"
+        :group_leader="groupLeader.group_leader"
+        :group_leader_replacement="groupLeader.group_leader_replacement"
+        :replacing_group="groupLeader.replacing_group"
+        :available="groupLeader.available"
+        :available_group_leaders="groupLeader.available_group_leaders"
+        @replacement-set="fetchData"
+        @replacement-removed="fetchData"
+      ></GroupLeaderCard>
+      </v-col>
+    </v-row>
+  </div>
 </template>
   
 <script setup>

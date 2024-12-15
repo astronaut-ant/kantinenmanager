@@ -1,6 +1,5 @@
 <template>
   <NavbarStandort></NavbarStandort>
-  <v-container fluid class="d-flex justify-center">
     <div class="ml-10 mr-10 mt-5">
       <v-row class="d-flex justify-start">
         <v-col
@@ -35,7 +34,6 @@
         </v-col>
       </v-row>
     </div>
-  </v-container>
 </template>
 
 <script setup>

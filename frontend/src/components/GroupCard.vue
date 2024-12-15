@@ -42,7 +42,6 @@
                             <p class="font-weight-black"> Gruppe </p>
                         </div>
                         <div class="ml-5 mb-4 text-medium-emphasis">
-                            <p color="text-primary"> Gruppennummer: {{ props.id }} </p>
                             <p color="text-primary"> Mitgliederanzahl: {{props.employees.length}} </p>
                         </div>
                         <v-divider></v-divider>
