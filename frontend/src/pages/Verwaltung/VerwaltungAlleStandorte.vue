@@ -52,7 +52,7 @@
           </template>
           <v-list>
             <v-list-item v-for="leader in locationLeaders.filter(
-        (leader) => leader.id !== locationToEdit.location_leader.id)"
+              leader => leader.leader_of_location === null)"
               :key="leader.id"
               @click="selectLeader(leader)"
             >
@@ -76,18 +76,31 @@
   </v-dialog>
 
   <v-dialog v-model="deleteDialog" persistent max-width="600">
+    <v-card>
+      <v-card-text>
+        <div class="d-flex justify-center text-red mb-4">
+          <p class="text-h5 font-weight-black" >Standort löschen</p>
+        </div>
+        <div class="text-medium-emphasis">
+          <p> Sind Sie sicher, dass Sie den Standort <strong>{{ locationToDelete?.location_name }}</strong> löschen möchten?</p>
+        </div>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn text @click="closeDeleteDialog">Abbrechen</v-btn>
+        <v-btn color="red" variant="elevated" @click="confirmDelete">Löschen</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+ <v-dialog v-model="secondDeleteDialog" persistent max-width="600">
   <v-card>
+    <v-card-title class="text-red">Standort kann nicht gelöscht werden</v-card-title>
     <v-card-text>
-      <div class="d-flex justify-center text-red mb-4">
-        <p class="text-h5 font-weight-black" >Standort löschen</p>
-      </div>
-      <div class="text-medium-emphasis">
-        <p> Sind Sie sicher, dass Sie den Standort <strong>{{ locationToDelete?.location_name }}</strong> löschen möchten?</p>
-      </div>
+      <p>Der Standort <strong>{{ locationToDelete?.location_name }}</strong> enthält noch Gruppen.</p>
+      <p>Bitte löschen Sie zuerst alle Gruppen, um den Standort zu löschen.</p>
     </v-card-text>
     <v-card-actions>
-      <v-btn text @click="closeDeleteDialog">Abbrechen</v-btn>
-      <v-btn color="red" variant="elevated" @click="confirmDelete">Löschen</v-btn>
+      <v-btn text @click="closeDeleteDialog">Schließen</v-btn>
     </v-card-actions>
   </v-card>
  </v-dialog>
@@ -110,11 +123,13 @@ const form = ref(false);
 const editDialog = ref(false);
 const locationToEdit = ref(null);
 const deleteDialog = ref(false);
+const secondDeleteDialog = ref(false);
 const locationToDelete = ref(null);
 
 onMounted(() => {
   axios
-    .get("http://localhost:4200/api/locations", { withCredentials: true })
+    .get(import.meta.env.VITE_API + "/api/locations",
+    { withCredentials: true })
     .then((response) => {
       locations.value = response.data;
       // console.log(locations.value);
@@ -124,10 +139,10 @@ onMounted(() => {
 
 onMounted(() => {
   axios
-    .get("http://localhost:4200/api/users/location-leaders", { withCredentials: true })
+    .get(import.meta.env.VITE_API + "/api/users/location-leaders",
+    { withCredentials: true })
     .then((response) => {
       locationLeaders.value = response.data;
-      console.log(locationLeaders.value);
     })
     .catch((err) => console.log(err));
 });
@@ -140,9 +155,16 @@ const confirmEdit = () => {
   const updatedLocation = {
     location_name: locationToEdit.value.location_name,
     user_id_location_leader: newLocationLeaderID.value,
-  }
+  };
+  const oldLocationLeaderID = locationToEdit.value.location_leader?.id;
+  const oldLeaderIndex = locationLeaders.value.findIndex(
+    (leader) => leader.id === oldLocationLeaderID
+  )
+  if (oldLocationLeaderID) {
+    locationLeaders.value[oldLeaderIndex].leader_of_location = null;
+  };
   axios
-    .put(`http://localhost:4200/api/locations/${locationToEdit.value.id}`, updatedLocation, {
+    .put(import.meta.env.VITE_API + `/api/locations/${locationToEdit.value.id}`, updatedLocation, {
       withCredentials: true,
     })
     .then(() => {
@@ -159,6 +181,9 @@ const confirmEdit = () => {
           locations.value[locationIndex].location_leader = updatedLeader;
         }
       }
+      const newLeaderIndex = locationLeaders.value.findIndex(
+        (leader) => leader.id === newLocationLeaderID.value);
+      locationLeaders.value[newLeaderIndex].leader_of_location = locationToEdit.value;
       closeEditDialog();
       snackbarText.value = "Der Standort wurde erfolgreich aktualisiert!";
       snackbar.value = true;
@@ -187,10 +212,11 @@ const handleDelete = (location) => {
 const closeDeleteDialog = () => {
   locationToDelete.value = null;
   deleteDialog.value = false;
+  secondDeleteDialog.value = false;
 };
 const confirmDelete = () => {
   axios
-    .delete(`http://localhost:4200/api/locations/${locationToDelete.value.id}`, {
+    .delete(import.meta.env.VITE_API + `/api/locations/${locationToDelete.value.id}`, {
       withCredentials: true,
     })
     .then(() => {
@@ -201,7 +227,10 @@ const confirmDelete = () => {
       snackbarText.value = "Der Standort wurde erfolgreich gelöscht!";
       snackbar.value = true;
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.log(err);
+      secondDeleteDialog.value = true;
+    });
 };
 
 </script>

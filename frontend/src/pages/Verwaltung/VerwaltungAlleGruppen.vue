@@ -87,7 +87,7 @@ const selectedEmployees = ref([]);
 
 onMounted(() => {
   axios
-    .get("http://localhost:4200/api/groups", { withCredentials: true })
+    .get(import.meta.env.VITE_API + "/api/groups", { withCredentials: true })
     .then((response) => {
       groups.value = response.data;
 
@@ -106,7 +106,7 @@ onMounted(() => {
     .catch((err) => console.log(err));
 
   axios
-  .get("http://localhost:4200/api/employees", { withCredentials: true })
+  .get(import.meta.env.VITE_API + "/api/employees", { withCredentials: true })
     .then((response) => {
       employees.value = response.data;
     })

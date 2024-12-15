@@ -8,7 +8,7 @@
         </v-card-text>
         <v-form ref="validation" v-model="form" @submit.prevent="handleSubmit">
           <v-text-field
-            v-model.number="emplyee_number"
+            v-model.number="employee_number"
             :rules="[required]"
             label="Kunden-Nr."
             clearable
@@ -97,13 +97,18 @@ const first_name = ref("");
 const last_name = ref("");
 const group_name = ref("");
 const location_name = ref("");
-const groupnames = {
-  Zedtlitz: ["Gruppe 1", "Gruppe 2", "Gruppe 3"],
-  W1: ["Gruppe 1", "Gruppe 2", "Gruppe 3"],
-  W8: ["Gruppe 1", "Gruppe 2", "Gruppe 3"],
-  W13: ["Gruppe 1", "Gruppe 2", "Gruppe 3"],
-};
-const keys = Object.keys(groupnames);
+const groupnames = ref({});
+const keys = ref([]);
+
+onMounted(() => {
+  axios
+    .get(import.meta.env.VITE_API + "/api/groups/with-locations", { withCredentials: true })
+    .then((response) => {
+      groupnames.value = response.data;
+      keys.value = Object.keys(groupnames.value);
+    })
+    .catch((err) => console.log(err));
+});
 
 const handleSubmit = () => {
   axios
@@ -113,8 +118,11 @@ const handleSubmit = () => {
       group_name: group_name.value,
       last_name: last_name.value,
       location_name: location_name.value,
-    })
-    .then((response) => console.log(response.data))
+    }, { withCredentials: true })
+    .then(
+      (response) => console.log(response.data),
+      showConfirm.value = true,
+    )
     .catch((err) => console.log(err));
   showConfirm.value = true;
 };
@@ -131,7 +139,7 @@ const emptyForm = () => {
 };
 
 const selectOption = (option, area) => {
-  group_name.value = option + " - " + area;
+  group_name.value = option;
   location_name.value = area;
 };
 </script>
