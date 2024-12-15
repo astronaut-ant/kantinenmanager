@@ -31,9 +31,16 @@ class Person(db.Model):
     type: Mapped[str]
 
     # Das sind die Beziehungen zu anderen Tabellen (SQLAlchemy löst den import, auch wenn Fehler angezeigt wird):
-    pre_orders: Mapped[List["PreOrder"]] = relationship(back_populates="person")
-    daily_orders: Mapped[List["DailyOrder"]] = relationship(back_populates="person")
-    old_orders: Mapped[List["OldOrder"]] = relationship(back_populates="person")
+    pre_orders: Mapped[List["PreOrder"]] = relationship(
+        back_populates="person", cascade="all, delete-orphan"
+    )
+    daily_orders: Mapped[List["DailyOrder"]] = relationship(
+        back_populates="person", cascade="all, delete-orphan"
+    )
+    old_orders: Mapped[List["OldOrder"]] = relationship(
+        back_populates="person",
+        cascade="all, delete-orphan",  # TODO: change "all, delete-orphan" to on delete set null", maybe "passive_deletes=True" (in oldorders.py)
+    )
 
     # __mapper_args__ ist ein spezielles Attribut, das SQLAlchemy verwendet, um
     # Informationen über die Vererbungshierarchie zu speichern. In diesem Fall

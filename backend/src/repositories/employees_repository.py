@@ -1,7 +1,6 @@
 """Repository to handle database operations for employee data."""
 
 from sqlalchemy import select, func, or_
-from src.models.user import User
 from src.database import db
 from uuid import UUID
 from src.models.user import UserGroup
@@ -190,7 +189,7 @@ class EmployeesRepository:
             None
 
     @staticmethod
-    def create_employee(employee: Employee):
+    def create_employee(employee: Employee) -> UUID:
         """Create a new employee in the database"""
         db.session.add(employee)
         db.session.commit()

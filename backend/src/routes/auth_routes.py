@@ -1,34 +1,23 @@
 """Routes for authentication and session management."""
 
-from src.services.users_service import UsersService
-from src.utils.auth_utils import delete_token_cookies, login_required, set_token_cookies
-from src.constants import (
-    REFRESH_TOKEN_COOKIE_NAME,
-    REFRESH_TOKEN_DURATION,
-)
-from flask import Blueprint, g, jsonify, make_response, request
-from marshmallow.validate import Length
+from flask import Blueprint, g, make_response, request
 from flasgger import swag_from
-from marshmallow import Schema, fields, ValidationError
+from marshmallow import ValidationError
 
-from src.utils.error import ErrMsg, abort_with_err
+from src.schemas.users_schemas import UserFullSchema
+from src.constants import REFRESH_TOKEN_COOKIE_NAME, REFRESH_TOKEN_DURATION
+from src.schemas.auth_schemas import AuthLoginSchema, AuthPasswordChangeSchema
 from src.services.auth_service import (
     AuthService,
-    UserNotFoundException,
     InvalidCredentialsException,
+    UserNotFoundException,
 )
+from src.services.users_service import UsersService
+from src.utils.auth_utils import delete_token_cookies, login_required, set_token_cookies
+from src.utils.error import ErrMsg, abort_with_err
 
 
 auth_routes = Blueprint("auth_routes", __name__)
-
-
-class LoginBodySchema(Schema):
-    """
-    Schema to validate POST /api/login request body
-    """
-
-    username = fields.Str(required=True, validate=Length(min=1, max=64))
-    password = fields.Str(required=True, validate=Length(min=1, max=256))
 
 
 @auth_routes.post("/api/login")
@@ -39,29 +28,13 @@ class LoginBodySchema(Schema):
             {
                 "in": "body",
                 "name": "body",
-                "schema": {
-                    "type": "object",
-                    "properties": {
-                        "username": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 64,
-                            "example": "admin",
-                        },
-                        "password": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 256,
-                            "example": "password",
-                        },
-                    },
-                },
+                "schema": AuthLoginSchema,
             }
         ],
         "responses": {
             200: {
                 "description": "Returns user object on successful login",
-                "schema": {"$ref": "#/definitions/User"},  # defined in users_routes.py
+                "schema": UserFullSchema,  # defined in users_routes.py
             },
             400: {"description": "Validation error"},
             401: {"description": "Unauthorized"},
@@ -80,8 +53,9 @@ def login():
     - refresh_token: The refresh token as plain text (HTTP only)
     ---
     """
+
     try:
-        body = LoginBodySchema().load(request.json)
+        body = AuthLoginSchema().load(request.json)
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
@@ -117,10 +91,11 @@ def login():
         )
 
     resp = make_response(
-        user.to_dict_without_pw_hash(),
+        UserFullSchema().dump(user),
         200,
     )
 
+    # TODO: detete
     resp.set_cookie(
         "user_group",
         user.user_group.value,
@@ -140,7 +115,7 @@ def login():
         "responses": {
             200: {
                 "description": "Returns user object if user is logged in",
-                "schema": {"$ref": "#/definitions/User"},  # defined in users_routes.py
+                "schema": UserFullSchema,  # defined in users_routes.py
             },
             401: {"description": "Unauthorized"},
         },
@@ -154,7 +129,7 @@ def is_logged_in():
 
     user = UsersService.get_user_by_id(g.user_id)
 
-    return jsonify(user.to_dict_without_pw_hash())
+    return UserFullSchema().dump(user)
 
 
 @auth_routes.post("/api/logout")  # POST, because browsers may prefetch GET requests
@@ -182,15 +157,6 @@ def logout():
     return resp
 
 
-class ChangePasswordBodySchema(Schema):
-    """
-    Schema to validate POST /api/account/change-password request body
-    """
-
-    old_password = fields.Str(required=True, validate=Length(min=1, max=256))
-    new_password = fields.Str(required=True, validate=Length(min=8, max=256))
-
-
 @auth_routes.post("/api/account/change-password")
 @login_required()
 @swag_from(
@@ -200,21 +166,7 @@ class ChangePasswordBodySchema(Schema):
             {
                 "in": "body",
                 "name": "body",
-                "schema": {
-                    "type": "object",
-                    "properties": {
-                        "old_password": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 256,
-                        },
-                        "new_password": {
-                            "type": "string",
-                            "minLength": 8,
-                            "maxLength": 256,
-                        },
-                    },
-                },
+                "schema": AuthPasswordChangeSchema,
             }
         ],
         "responses": {
@@ -231,7 +183,7 @@ def change_password():
     """
 
     try:
-        body = ChangePasswordBodySchema().load(request.json)
+        body = AuthPasswordChangeSchema().load(request.json)
     except ValidationError as err:
         abort_with_err(
             ErrMsg(

@@ -20,7 +20,7 @@ class Location(db.Model):
 
     :param id: The location's ID as UUID4
     :param location_name: The loction's name
-    :param location_leader: The ID of the location leader as UUID4
+    :param user_id_location_leader: The ID of the location leader as UUID4
     :param location_leader: The location leader
     :param groups: The groups at the location
     """
