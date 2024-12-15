@@ -1,9 +1,8 @@
 from uuid import UUID
-from src.services.auth_service import AuthService
-from src.models.user import UserGroup
+from typing import List, Optional
+from src.models.group import Group
 from src.models.location import Location
 from src.repositories.locations_repository import LocationsRepository
-from src.utils.error import ErrMsg, abort_with_err
 from src.utils.exceptions import (
     LocationAlreadyExistsError,
     GroupLeaderDoesNotExistError,
@@ -14,10 +13,12 @@ class LocationsService:
     """Service for handling location management."""
 
     @staticmethod
-    def get_locations() -> list[Location]:
+    def get_locations(prejoin_location_leader=False) -> list[Location]:
         """Get all locations."""
 
-        return LocationsRepository.get_locations()
+        return LocationsRepository.get_locations(
+            prejoin_location_leader=prejoin_location_leader
+        )
 
     @staticmethod
     def get_location_by_id(location_id: UUID) -> Location | None:
@@ -57,13 +58,14 @@ class LocationsService:
     @staticmethod
     def update_location(
         location: Location, location_name: str, user_id_location_leader: UUID
-    ):
+    ) -> Location:
         """Update a location
 
         :param locatio: The location to update
         :param location_name: The (new) name of the location
         :param user_id_location_leader: The (new) ID of the location leader
 
+        :return: The updated location
         """
         if (
             location_name != location.location_name
@@ -77,6 +79,8 @@ class LocationsService:
 
         LocationsRepository.update_location(location)
 
+        return location
+
     @staticmethod
     def delete_location(location: Location):
         """Delete a location
@@ -85,3 +89,13 @@ class LocationsService:
         """
 
         LocationsRepository.delete_location(location)
+
+    @staticmethod
+    def get_groups_of_location(location_id: UUID) -> Optional[List[Group]]:
+        """Get all groups of a location
+
+        :param location_id: The ID of the location
+        :return: The groups of the location
+        """
+
+        return LocationsRepository.get_groups_of_location(location_id)

@@ -39,7 +39,7 @@
   <v-dialog v-model="deleteDialog" persistent max-width="400">
     <v-card>
       <v-card-text>
-        <div class="d-flex justify-center text-red mb-4">
+        <div class="d-flex justify-center text-red mb-7">
           <p class="text-h5 font-weight-black" >Mitarbeiter löschen</p>
         </div>
         <div class="text-medium-emphasis">
@@ -59,27 +59,25 @@
           <p class="text-h5 font-weight-black">Mitarbeiter bearbeiten</p>
         </div>
         <div>
-          <v-form ref="validation">
-            <div class="d-flex ga-5">
-              <v-text-field
-                v-model="employee_number"
-                :rules="[required]"
-                label="Kunden-Nr."
-                clearable
-              ></v-text-field>
-              <v-text-field
-                v-model="first_name"
-                :rules="[required]"
-                label="Vorname"
-                clearable
-              ></v-text-field>
-              <v-text-field
-                v-model="last_name"
-                :rules="[required]"
-                label="Nachname"
-                clearable
-              ></v-text-field>
-            </div>
+          <v-form ref="validation" v-model="form">
+            <v-text-field
+              v-model="employee_number"
+              :rules="[required]"
+              label="Kunden-Nr."
+              clearable
+            ></v-text-field>
+            <v-text-field
+              v-model="first_name"
+              :rules="[required]"
+              label="Vorname"
+              clearable
+            ></v-text-field>
+            <v-text-field
+              v-model="last_name"
+              :rules="[required]"
+              label="Nachname"
+              clearable
+            ></v-text-field>
             <v-menu offset-y>
               <template #activator="{ props }">
                 <v-text-field
@@ -122,7 +120,13 @@
       </v-card-text>
       <v-card-actions>
         <v-btn @click="closeeditDialog">Abbrechen</v-btn>
-        <v-btn color="primary" type="submit" variant="elevated" @click="submitForm">Speichern</v-btn>
+        <v-btn 
+          color="primary"
+          type="submit" 
+          variant="elevated"
+          :disabled="!form"
+          @click="submitForm"
+          >Speichern</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -155,6 +159,7 @@
   const group_name = ref('');
   const location_name = ref('');
   const validation = ref(null);
+  const form = ref(false);
 
   const toggleSearchField = () => {
     if (isSearchVisible.value) {
@@ -164,7 +169,7 @@
   };
 
   const opendeleteDialog = (item) => {
-    employeeToDelete.value = item.last_name + ", " + item.first_name;
+    employeeToDelete.value = item.first_name  + " " + item.last_name;
     employeeToDeleteID.value = item.id;
     deleteDialog.value= true;
   };

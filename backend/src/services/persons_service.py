@@ -5,9 +5,8 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
 from uuid import UUID
-from src.models.person import Person
+from src.models.person import Person  # noqa: F401
 from src.repositories.persons_repository import PersonsRepository
-from src.utils.error import ErrMsg, abort_with_err
 from src.utils.exceptions import PersonDoesNotExistError
 
 

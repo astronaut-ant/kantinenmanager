@@ -39,66 +39,67 @@
 
   <v-dialog v-model="editDialog" no-click-animation persistent max-width="500">
     <v-card>
-      <v-card-title class="primary d-flex justify-start">
-        <v-icon left class="mr-2"> mdi-account-edit-outline </v-icon>
-        <span class="text-h5">Benutzer bearbeiten</span>
-      </v-card-title>
       <v-card-text>
-        <v-form ref="validation" v-model="form">
-          <v-radio-group
-            v-model="user_group"
-            :rules="[required]"
-            color="primary"
-          >
-            <div class="d-flex">
-              <v-radio label="Verwaltung" value="verwaltung"></v-radio>
-              <v-radio
-                label="Standortleitung"
-                value="standortleitung"
-              ></v-radio>
-            </div>
-            <div class="d-flex">
-              <v-radio label="Gruppenleitung" value="gruppenleitung"></v-radio>
-              <v-radio label="Küchenpersonal" value="kuechenpersonal"></v-radio>
-            </div>
-          </v-radio-group>
-          <div class="d-flex ga-5">
-            <v-text-field
-              v-model="first_name"
+        <div class="d-flex justify-center align-center text-primary mb-7">
+          <p class="text-h5 font-weight-black">Benutzer bearbeiten</p>
+        </div>
+        <div>
+          <v-form ref="validation" v-model="form">
+            <v-radio-group
+              v-model="user_group"
               :rules="[required]"
-              class="mb-2"
-              label="Vorname"
-              clearable
-            ></v-text-field>
-            <v-text-field
-              v-model="last_name"
-              :rules="[required]"
-              class="mb-2"
-              label="Nachname"
-              clearable
-            ></v-text-field>
-          </div>
-          <div block>
-            <v-text-field
-              v-model="username"
-              :rules="[required]"
-              label="Benutzername"
-              clearable
-            ></v-text-field>
-            <div>
-              <v-select
-                class="mb-2"
-                v-if="user_group === 'kuechenpersonal'"
-                :items="allLocations"
+              color="primary"
+            >
+              <div class="d-flex">
+                <v-radio label="Verwaltung" value="verwaltung"></v-radio>
+                <v-radio
+                  label="Standortleitung"
+                  value="standortleitung"
+                ></v-radio>
+              </div>
+              <div class="d-flex">
+                <v-radio label="Gruppenleitung" value="gruppenleitung"></v-radio>
+                <v-radio label="Küchenpersonal" value="kuechenpersonal"></v-radio>
+              </div>
+            </v-radio-group>
+            <div class="d-flex ga-5">
+              <v-text-field
+                v-model="first_name"
                 :rules="[required]"
-                label="Standort"
-              ></v-select>
+                class="mb-2"
+                label="Vorname"
+                clearable
+              ></v-text-field>
+              <v-text-field
+                v-model="last_name"
+                :rules="[required]"
+                class="mb-2"
+                label="Nachname"
+                clearable
+              ></v-text-field>
             </div>
-          </div>
-          <v-btn @click="handlePasswordReset" class="bg-red" block
-            >Passwort zurücksetzen</v-btn
-          >
-        </v-form>
+            <div block>
+              <v-text-field
+                v-model="username"
+                :rules="[required]"
+                label="Benutzername"
+                clearable
+              ></v-text-field>
+              <div>
+                <v-select
+                  class="mb-2"
+                  v-if="user_group === 'kuechenpersonal'"
+                  :items="allLocations"
+                  :rules="[required]"
+                  label="Standort"
+                ></v-select>
+              </div>
+            </div>
+            <v-btn @click="handlePasswordReset" class="bg-red" block
+              >Passwort zurücksetzen</v-btn
+            >
+          </v-form>
+        </div>
       </v-card-text>
       <v-card-actions>
         <v-btn text @click="closeeditDialog">Abbrechen</v-btn>
@@ -174,9 +175,9 @@ const opendeleteDialog = (id) => {
   const user = users.value.find((user) => user.id === id);
   userToDelete.value = id;
   userToDeleteName.value =
-    user?.last_name +
-    ", " +
     user?.first_name +
+    " " +
+    user?.last_name +
     " (Benutzername: " +
     user?.username +
     ")";

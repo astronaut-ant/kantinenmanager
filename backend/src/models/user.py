@@ -89,6 +89,7 @@ class User(Person):
         username: str,
         hashed_password: str,
         user_group: UserGroup,
+        location_id: uuid.UUID | None = None,
     ):
         """Initialize a new user
 
@@ -105,6 +106,7 @@ class User(Person):
         self.user_group = user_group
         self.last_login = None
         self.blocked = False
+        self.location_id = location_id
 
     def __repr__(self):
         return f"<User {self.id!r} {self.username!r} {self.user_group.value!r}>"

@@ -3,10 +3,13 @@ from flask import Flask
 from flasgger import Swagger
 from flask_cors import CORS
 from dotenv import load_dotenv
+from apscheduler.schedulers.background import BackgroundScheduler
 import os
 
+from src.utils.db_utils import insert_mock_data, start_cronjob
 from src.environment import Environment, get_features
 from src.utils.error import register_error_handlers
+from src.utils.cronjobs import push_orders_to_next_table
 
 from .middlewares.auth_middleware import register_auth_middleware
 from .database import create_initial_admin, init_db, setup_test_db
@@ -17,6 +20,9 @@ from .routes.employees_routes import employees_routes
 from .routes.persons_routes import persons_routes
 from .routes.groups_routes import groups_routes
 from .routes.locations_routes import locations_routes
+from .routes.pre_orders_routes import pre_orders_routes
+from .routes.daily_orders_routes import daily_orders_routes
+from .routes.old_orders_routes import old_orders_routes
 
 
 app = Flask(__name__)  # Globally accessible Flask app instance
@@ -87,9 +93,15 @@ def startup() -> None:
 
     if features.INSERT_MOCK_DATA:
         print("--- Inserting mock data          ---")
-        # TODO
+        insert_mock_data(app)
     else:
         print("--- Mock data insertion disabled ---")
+
+    if features.CRONJOBS:
+        print("--- Cronjobs enabled             ---")
+        start_cronjob(app, os)
+    else:
+        print("--- Cronjobs disabled            ---")
 
     register_routes(app)
 
@@ -164,6 +176,9 @@ def register_routes(app: Flask) -> None:
     app.register_blueprint(persons_routes)
     app.register_blueprint(groups_routes)
     app.register_blueprint(locations_routes)
+    app.register_blueprint(pre_orders_routes)
+    app.register_blueprint(daily_orders_routes)
+    app.register_blueprint(old_orders_routes)
 
 
 startup()
