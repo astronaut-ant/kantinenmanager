@@ -1,36 +1,152 @@
 # group-16
 
+## Requirements
 
+Make sure you have the following installed:
+
+- [NodeJS](https://nodejs.org) (Recommendation: use [NVM](https://github.com/nvm-sh/nvm) for Linux/Mac or [NVM-Windows](https://github.com/coreybutler/nvm-windows) for Windows to manage multiple versions of NodeJS)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [VS Code](https://code.visualstudio.com/)
+
+If you open this project in VS Code you should get a list of recommended extensions.
 
 ## Getting started
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+### Create .env file
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+Project configuration is done via a `.env` file. To create `.env` files with default values, run `python scripts/init.py` or `python3 scripts/init.py` from the project root. Alternatively, you can run `docker compose run init` to start a Python container and execute the script automatically.
 
-## Add your files
+Once the configuration is complete, you can choose one of the following methods to start the project.
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+### Using Dev Containers (Recommended)
 
+Dev Containers allow you to connect VS Code directly to a Docker container, enabling you to develop inside the container using autocompletion as well as npm and python commands just like on your local machine.
+
+**First Start:**
+
+1. Install the VS Code `Dev Containers` extension by Microsoft, if not already installed.
+2. Open the root of this project in VS Code.
+3. Open the VS Code command palette: Mac ⇧⌘P, Windows Ctrl+Shift+P.
+4. Run `Dev Containers: Rebuild and Reopen in Container`.
+5. Choose one of the following options:
+   - `Frontend All` - Starts all containers and connects to the frontend container.
+   - `Backend All` - Starts all containers and connects to the backend container.
+6. Wait for the containers to build and start. The initial load may take some time as it builds all the images (monitor progress by clicking the loading bar in the bottom right).
+
+**Important:** Containers may continue running after closing VS Code. Stop them manually using Docker Desktop or the CLI.
+
+**Shutting Down:**
+
+1. Close VS Code or click the blue button in the bottom left, then select `Close Remote Connection`.
+2. Stop the containers using Docker Desktop or the CLI as described in a later section.
+
+**Troubleshooting:**
+
+- If issues arise, try running `Dev Containers: Rebuild Container`.
+- If the Flask or Node app isn't running in the terminal, disconnect and restart the container (the npm/flask command runs only when the container starts but continues after disconnection).
+
+In the native VS Code terminal you are able to run Python and npm commands.
+
+**Start the backend from within the backend container:**
+
+```bash
+cd backend # change directory from /app to /app/backend
+flask --app startup:app run --host=0.0.0.0 --port=4200 --debug # run the app
 ```
-cd existing_repo
-git remote add origin https://git.informatik.uni-leipzig.de/SWS/lehre/ws-2024-2025/swt-p/projects/group-16.git
-git branch -M main
-git push -uf origin main
+
+**Start debugging the backend:**
+
+1. Make sure you are connected to the backend container
+2. Stop the flask process in the default terminal (press CTRL+C)
+3. Go to the "Run and Debug" tab on the left in VS Code
+4. Select "Python: Dev Container" at the top
+5. Click the little green play button at the top left
+
+### Using Docker Compose in VS Code UI
+
+If you have opened this project in VS Code and installed all recommended extensions, you can start the project by following these steps:
+
+1. Go to the Explorer tab in VS Code.
+2. Open the Task Explorer submenu at the bottom.
+3. Navigate to `group-16 > vscode`.
+
+Here are the available tasks:
+
+- **Start Dev**: Start the application in development mode.
+- **Start Debug**: Start the application in debug mode.
+- **Open Frontend**: Open the frontend in your browser.
+- **Open Swagger**: Open the backend API documentation in your browser.
+
+Alternatively, you can use the "Tasks: Run Task" command in VS Code to run these tasks. The "Start Dev" task should also appear in the status bar at the bottom of the screen.
+
+### Manually run Docker Compose commands
+
+You can also manually run Docker commands from the root of the project:
+
+```shell
+docker compose up --build # Start the application in development mode
+docker compose up --build -d # Start the application in development mode in background
+docker compose stop # Stop all containers of this project
+docker compose down # Stop and remove containers
+
+docker compose -f docker-compose.debug.yml up --build # Start the application in debug mode
 ```
 
-## Integrate with your tools
+**Hint:** Debug mode uses a Python Debugger, allowing you to use the "Run and Debug" tab of VS Code. Select "Python: Remote Attach" and click the small green play button in the top left. This will disable hot-reloading.
 
-- [ ] [Set up project integrations](https://git.informatik.uni-leipzig.de/SWS/lehre/ws-2024-2025/swt-p/projects/group-16/-/settings/integrations)
+**Hint:** The default backend port is `4200` and the frontend uses `3000`.
 
-## Collaborate with your team
+## Running Tests
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+### Backend
+
+To run tests using Dev Containers connected to the backend container, open a new terminal in VS Code (top bar -> Terminal -> New Terminal). Then, execute one of the following commands:
+
+```bash
+pytest backend/  # Run all tests once and then exit
+
+pytest --cov=backend backend/  # Run all tests once and generate a coverage report
+
+ptw backend/  # Start a test runner that will watch for file changes and automatically rerun tests
+```
+
+Alternatively, you can start a separate Docker container to run the tests:
+
+```bash
+docker compose run test-backend  # Run tests and then exit
+
+docker compose run test-backend-watch  # Start a test runner that will watch for file changes and automatically rerun tests
+```
+
+### Frontend
+
+#todo
+
+## Database Migrations
+
+All database migrations are checked in with Git. They are applied automatically when starting the backend container.
+
+After changing SQLAlchemy models it is necessary to generate a new migration script to apply those changes.
+
+```bash
+# Generate a new migration
+# In the backend container (or locally with all Python dependencies installed) run the following commands:
+cd backend # change directory
+FLASK_ENV=migration alembic revision --autogenerate -m "<YOUR_MESSAGE>"
+
+# Apply pending revisions
+cd backend
+FLASK_ENV=migration alembic upgrade head
+# Alternatively, restart the backend container
+
+# Downgrade revisions
+FLASK_ENV=migration alembic downgrade -1
+
+# Get information
+FLASK_ENV=migration alembic current
+```
+
+[Alembic Documentation](https://alembic.sqlalchemy.org/en/latest/tutorial.html)
 
 ## Test and Deploy
 
@@ -42,7 +158,7 @@ Use the built-in continuous integration in GitLab.
 - [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
 - [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
 
-***
+---
 
 # Editing this README
 
@@ -53,30 +169,39 @@ When you're ready to make this README your own, just edit this file and use the 
 Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
 
 ## Name
+
 Choose a self-explaining name for your project.
 
 ## Description
+
 Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
 
 ## Badges
+
 On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
 
 ## Visuals
+
 Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
 
 ## Installation
+
 Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
 
 ## Usage
+
 Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
 
 ## Support
+
 Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
 
 ## Roadmap
+
 If you have ideas for releases in the future, it is a good idea to list them in the README.
 
 ## Contributing
+
 State if you are open to contributions and what your requirements are for accepting them.
 
 For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
@@ -84,10 +209,13 @@ For people who want to make changes to your project, it's helpful to have some d
 You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
 
 ## Authors and acknowledgment
+
 Show your appreciation to those who have contributed to the project.
 
 ## License
+
 For open source projects, say how it is licensed.
 
 ## Project status
+
 If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
