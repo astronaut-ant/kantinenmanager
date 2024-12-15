@@ -107,7 +107,7 @@
 
     const removeGroupReplacement = () => {
         axios
-        .delete(`http://localhost:4200/api/groups/remove-replacement/${props.group_id}`, { withCredentials: true })
+        .delete(`${import.meta.env.VITE_API}/api/groups/remove-replacement/${props.group_id}`, { withCredentials: true })
         .then(() => {
             emit("replacement-removed");
             closeremoveGroupReplacementDialog();
@@ -138,7 +138,7 @@
         }
         console.log(replacementGroupLeader.value)
         axios
-            .put(`http://localhost:4200/api/groups/${props.group_id}`, 
+            .put(`${import.meta.env.VITE_API}/api/groups/${props.group_id}`, 
                 {   
                     group_name: props.group_name,
                     location_id: props.location.id,

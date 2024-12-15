@@ -52,7 +52,7 @@
     loading.value=true;
     groupLeaders.value=[];
     axios
-      .get("http://localhost:4200/api/groups", { withCredentials: true })
+      .get(import.meta.env.VITE_API + "/api/groups", { withCredentials: true })
       .then((response) => {
         const groups = response.data;  
         let availableLeaders = []; 

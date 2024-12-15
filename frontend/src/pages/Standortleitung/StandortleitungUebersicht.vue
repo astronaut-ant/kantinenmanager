@@ -46,7 +46,7 @@
 
   const fetchData = () => {
     axios
-    .get("http://localhost:4200/api/groups/with-employees", { withCredentials: true })
+    .get(import.meta.env.VITE_API + "/api/groups/with-employees", { withCredentials: true })
     .then((response) => {
       groups.value = response.data;
       loading.value = false;
