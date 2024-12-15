@@ -36,7 +36,11 @@ class Group(db.Model):
     )
 
     # Das sind die Beziehungen zu anderen Tabellen:
-    employees: Mapped[Set["Employee"]] = relationship(back_populates="group")
+    employees: Mapped[Set["Employee"]] = relationship(
+        back_populates="group",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
     group_leader: Mapped["User"] = relationship(
         back_populates="leader_of_group", foreign_keys=[user_id_group_leader]
     )
