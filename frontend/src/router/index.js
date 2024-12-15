@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from "vue-router";
 import index from "../pages/index.vue";
-import Login from "../pages/login.vue";
+import Login from "../pages/Login.vue";
 import { useAppStore } from "../stores/app.js";
 import VerwaltungAlleBenutzer from "@/pages/Verwaltung/VerwaltungAlleBenutzer.vue";
 import VerwaltungNeuerBenutzer from "../pages/Verwaltung/VerwaltungNeuerBenutzer.vue";
@@ -9,8 +9,8 @@ import KuecheUebersicht from "@/pages/Kuechenpersonal/KuecheUebersicht.vue";
 import KuecheQR from "@/pages/Kuechenpersonal/KuecheQR.vue";
 import AccessDenied from "@/pages/AccessDenied.vue";
 import VerwaltungNeuerMitarbeiterCsvUpload from "@/pages/Verwaltung/VerwaltungNeuerMitarbeiterCsvUpload.vue";
-import StandortUebersicht from "@/pages/Standortleitung/StandortleitungUebersicht.vue"
-import StandortVertretung from "@/pages/Standortleitung/StandortleitungVertretung.vue"
+import StandortUebersicht from "@/pages/Standortleitung/StandortleitungUebersicht.vue";
+import StandortVertretung from "@/pages/Standortleitung/StandortleitungVertretung.vue";
 import axios from "axios";
 import Gruppenleitung from "@/pages/Gruppenleitung/Gruppenleitung.vue";
 import VerwaltungAlleMitarbeiter from "@/pages/Verwaltung/VerwaltungAlleMitarbeiter.vue";
@@ -208,7 +208,6 @@ const routes = [
       protectRoute(next, "standortleitung");
     },
   },
-
 ];
 
 const router = createRouter({
