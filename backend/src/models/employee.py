@@ -53,35 +53,3 @@ class Employee(Person):
 
     def __repr__(self):
         return f"<Employee {self.id!r} {self.employee_number!r} {self.group_id!r}>"
-
-    def to_dict(self) -> dict[str, str | int | bool]:
-        """Convert the employee to a dictionary
-
-        All complex objects are converted to their string representation.
-
-        :return: A dictionary containing the employee's information
-        """
-
-        return {
-            "id": str(self.id),
-            "first_name": self.first_name,
-            "last_name": self.last_name,
-            "employee_number": self.employee_number,
-            "created": self.created.timestamp(),
-            "group": self.group.to_dict_loc(),
-        }
-
-    def to_dict_reduced(self) -> dict[str, str | int | bool]:
-        """Convert the employee to a dictionary with reduced information
-
-        All complex objects are converted to their string representation.
-
-        :return: A dictionary containing the employee's information
-        """
-
-        return {
-            "id": str(self.id),
-            "first_name": self.first_name,
-            "last_name": self.last_name,
-            "employee_number": self.employee_number,
-        }

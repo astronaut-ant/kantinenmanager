@@ -1,18 +1,20 @@
 from uuid import UUID
-from marshmallow import ValidationError, Schema, fields
-from marshmallow.validate import Length
+
+from flask import Blueprint, jsonify, request, g
+from flasgger import swag_from
+from marshmallow import ValidationError
+
+from src.models.user import UserGroup
+from src.schemas.employee_schemas import EmployeeChangeSchema, EmployeeFullNestedSchema
+from src.services.employees_service import EmployeesService
+from src.utils.auth_utils import login_required
+from src.utils.error import ErrMsg, abort_with_err
 from src.utils.exceptions import (
     EmployeeAlreadyExistsError,
     FileNotProcessableError,
     GroupDoesNotExistError,
     NameNotAppropriateError,
 )
-from src.utils.auth_utils import login_required
-from src.utils.error import ErrMsg, abort_with_err
-from src.models.user import UserGroup
-from src.services.employees_service import EmployeesService
-from flask import Blueprint, jsonify, request, g
-from flasgger import swag_from
 
 employees_routes = Blueprint("employees_routes", __name__)
 
@@ -29,37 +31,6 @@ employees_routes = Blueprint("employees_routes", __name__)
 @swag_from(
     {
         "tags": ["employees"],
-        "definitions": {
-            "Employee": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "string",
-                        "example": "123e4567-e89b-12d3-a456-426614174000",
-                    },
-                    "first_name": {"type": "string"},
-                    "last_name": {"type": "string"},
-                    "employee_number": {"type": "integer"},
-                    "group": {
-                        "type": "object",
-                        "$ref": "#/definitions/GroupLoc",
-                    },
-                    "created": {"type": "string", "format": "date-time"},
-                },
-            },
-            "EmployeeReduced": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "string",
-                        "example": "123e4567-e89b-12d3-a456-426614174000",
-                    },
-                    "first_name": {"type": "string"},
-                    "last_name": {"type": "string"},
-                    "employee_number": {"type": "integer"},
-                },
-            },
-        },
         "parameters": [
             {
                 "in": "query",
@@ -97,7 +68,7 @@ employees_routes = Blueprint("employees_routes", __name__)
                 "description": "Returns a list of the employees belonging to the scope of the user",
                 "schema": {
                     "type": "array",
-                    "items": {"$ref": "#/definitions/Employee"},
+                    "items": EmployeeFullNestedSchema,
                 },
             }
         },
@@ -112,6 +83,7 @@ def get_employees():
     Authorization: Verwaltung, Standortleitung, Gruppenleitung, Küchenpersonal
     ---
     """
+
     first_name = request.args.get("first_name")
     last_name = request.args.get("last_name")
     group_name = request.args.get("group_name")
@@ -127,9 +99,7 @@ def get_employees():
         employee_number=employee_number,
     )
 
-    employees_dict = [employee.to_dict() for employee in employees]
-
-    return jsonify(employees_dict)
+    return EmployeeFullNestedSchema(many=True).dump(employees)
 
 
 @employees_routes.get("/api/employees/<uuid:employee_id>")
@@ -155,7 +125,7 @@ def get_employees():
         "responses": {
             200: {
                 "description": "Returns the employee with the given ID",
-                "schema": {"$ref": "#/definitions/Employee"},
+                "schema": EmployeeFullNestedSchema,
             },
             404: {"description": "User not found"},
         },
@@ -182,19 +152,7 @@ def get_employee_by_id(employee_id: UUID):
             )
         )
 
-    return jsonify(employee.to_dict())
-
-
-class EmployeesPostBody(Schema):
-    """
-    Schema for the POST /api/employees endpoint
-    """
-
-    first_name = fields.Str(required=True, validate=Length(min=1, max=64))
-    last_name = fields.Str(required=True, validate=Length(min=1, max=64))
-    employee_number = fields.Int(required=True)
-    group_name = fields.Str(required=True, validate=Length(min=1, max=256))
-    location_name = fields.Str(required=True, validate=Length(min=1, max=256))
+    return EmployeeFullNestedSchema().dump(employee)
 
 
 @employees_routes.post("/api/employees")
@@ -206,34 +164,7 @@ class EmployeesPostBody(Schema):
             {
                 "in": "body",
                 "name": "body",
-                "schema": {
-                    "type": "object",
-                    "properties": {
-                        "first_name": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 64,
-                        },
-                        "last_name": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 64,
-                        },
-                        "employee_number": {
-                            "type": "integer",
-                        },
-                        "group_name": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 256,
-                        },
-                        "location_name": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 256,
-                        },
-                    },
-                },
+                "schema": EmployeeChangeSchema,
             }
         ],
         "responses": {
@@ -260,7 +191,7 @@ def create_user():
     """
 
     try:
-        body = EmployeesPostBody().load(request.json)
+        body = EmployeeChangeSchema().load(request.json)
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
@@ -308,7 +239,6 @@ def create_user():
         "responses": {
             200: {
                 "description": "File read in successfully",
-                "schema": {"$ref": "#/definitions/Employee"},
             },
             400: {"description": "Bad Request: No File in Request"},
             404: {"description": "Wrong file Format: Need CSV"},
@@ -320,6 +250,8 @@ def csv_create():
     Create Employees contained in a CSV File
     ---
     """
+    # TODO: Return type
+
     if "file" not in request.files:
         abort_with_err(
             ErrMsg(
@@ -387,18 +319,6 @@ def csv_create():
     return jsonify({"message": "Datei wurde erfolgreich eingelesen"}), 200
 
 
-class EmployeeUpdateBody(Schema):
-    """
-    Schema for the PUT /api/employees endpoint
-    """
-
-    first_name = fields.Str(required=True, validate=Length(min=1, max=64))
-    last_name = fields.Str(required=True, validate=Length(min=1, max=64))
-    employee_number = fields.Int(required=True)
-    group_name = fields.Str(required=True, validate=Length(min=1, max=256))
-    location_name = fields.Str(required=True, validate=Length(min=1, max=256))
-
-
 @employees_routes.put("/api/employees/<uuid:employee_id>")
 @login_required(groups=[UserGroup.verwaltung])
 @swag_from(
@@ -411,41 +331,12 @@ class EmployeeUpdateBody(Schema):
                 "required": True,
                 "schema": {"type": "string", "format": "uuid"},
             },
-            {
-                "in": "body",
-                "name": "body",
-                "schema": {
-                    "type": "object",
-                    "properties": {
-                        "first_name": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 64,
-                        },
-                        "last_name": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 64,
-                        },
-                        "employee_number": {"type": "integer"},
-                        "group_name": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 256,
-                        },
-                        "location_name": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 256,
-                        },
-                    },
-                },
-            },
+            {"in": "body", "name": "body", "schema": EmployeeChangeSchema},
         ],
         "responses": {
             200: {
                 "description": "Returns the updated employee",
-                "schema": {"$ref": "#/definitions/Employee"},
+                "schema": EmployeeFullNestedSchema,
             },
             400: {"description": "Validation error or employee_number already exists"},
             404: {"description": "Employee not found"},
@@ -459,7 +350,7 @@ def update_employee(employee_id: UUID):
     """
 
     try:
-        body = EmployeeUpdateBody().load(request.json)
+        body = EmployeeChangeSchema().load(request.json)
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
@@ -490,7 +381,7 @@ def update_employee(employee_id: UUID):
             )
         )
 
-    return jsonify(employee.to_dict())
+    return EmployeeFullNestedSchema().dump(employee)
 
 
 @employees_routes.delete("/api/employees/<uuid:employee_id>")
