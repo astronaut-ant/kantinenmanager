@@ -2,11 +2,16 @@
 
 from typing import Optional
 from uuid import UUID
+from src.repositories.locations_repository import LocationsRepository
 from src.models.location import Location
 from src.services.auth_service import AuthService
 from src.models.user import User, UserGroup
 from src.repositories.users_repository import UsersRepository
-from src.utils.exceptions import UserAlreadyExistsError, UserCannotBeDeletedError
+from src.utils.exceptions import (
+    LocationDoesNotExist,
+    UserAlreadyExistsError,
+    UserCannotBeDeletedError,
+)
 
 # Services enthalten die Businesslogik der Anwendung.
 # Sie werden von den Routen aufgerufen und ziehen sich
@@ -54,6 +59,7 @@ class UsersService:
         last_name: str,
         username: str,
         user_group: UserGroup,
+        location_id: Optional[UUID] = None,
         password: Optional[str] = None,
     ) -> tuple[UUID, str]:
         """Create a new user in the database.
@@ -62,6 +68,7 @@ class UsersService:
         :param last_name: The last name of the new user
         :param username: The username of the new user
         :param user_group: The user group of the new user
+        :param location_id: The location of the new user
         :param password: The password of the new user. If None, a random password is generated (still needed for mock data)
 
         :return: A tuple containing the ID of the new user and the initial password
@@ -72,6 +79,11 @@ class UsersService:
         if UsersRepository.get_user_by_username(username):
             raise UserAlreadyExistsError(
                 f"User with username {username} already exists"
+            )
+
+        if location_id and LocationsRepository.get_location_by_id(location_id) is None:
+            raise LocationDoesNotExist(
+                f"Standort mit ID '{location_id}' existiert nicht"
             )
 
         if password is None:
@@ -85,6 +97,7 @@ class UsersService:
             username=username,
             hashed_password=hashed_password,
             user_group=user_group,
+            location_id=location_id,
         )
 
         id = UsersRepository.create_user(user)
@@ -99,7 +112,7 @@ class UsersService:
         username: str,
         user_group: UserGroup,
         location: Location | None = None,
-    ):
+    ) -> User:
         """Update a user in the database.
 
         :param user: The user to update
@@ -108,6 +121,10 @@ class UsersService:
         :param username: The new username of the user
         :param user_group: The new user group of the user
         :param location: The new location of the user
+
+        :return: The updated user
+
+        :raises UserAlreadyExistsError: If a user with the given username already exists
         """
 
         if username != user.username and UsersRepository.get_user_by_username(username):
@@ -122,6 +139,8 @@ class UsersService:
         user.location = location
 
         UsersRepository.update_user(user)
+
+        return user
 
     @staticmethod
     def delete_user(user: User):

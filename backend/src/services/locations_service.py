@@ -13,10 +13,12 @@ class LocationsService:
     """Service for handling location management."""
 
     @staticmethod
-    def get_locations() -> list[Location]:
+    def get_locations(prejoin_location_leader=False) -> list[Location]:
         """Get all locations."""
 
-        return LocationsRepository.get_locations()
+        return LocationsRepository.get_locations(
+            prejoin_location_leader=prejoin_location_leader
+        )
 
     @staticmethod
     def get_location_by_id(location_id: UUID) -> Location | None:
@@ -56,13 +58,14 @@ class LocationsService:
     @staticmethod
     def update_location(
         location: Location, location_name: str, user_id_location_leader: UUID
-    ):
+    ) -> Location:
         """Update a location
 
         :param locatio: The location to update
         :param location_name: The (new) name of the location
         :param user_id_location_leader: The (new) ID of the location leader
 
+        :return: The updated location
         """
         if (
             location_name != location.location_name
@@ -75,6 +78,8 @@ class LocationsService:
         location.user_id_location_leader = user_id_location_leader
 
         LocationsRepository.update_location(location)
+
+        return location
 
     @staticmethod
     def delete_location(location: Location):

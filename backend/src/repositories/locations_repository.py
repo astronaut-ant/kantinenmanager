@@ -1,4 +1,5 @@
 from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 from src.models.user import User
 from src.database import db
 from uuid import UUID
@@ -11,11 +12,17 @@ class LocationsRepository:
     """Repository to handle database operations for location data."""
 
     @staticmethod
-    def get_locations() -> list[Location]:
+    def get_locations(prejoin_location_leader=False) -> list[Location]:
         """Retrieve all locations
 
         :return: A list of all locations"""
-        return db.session.scalars(select(Location)).all()
+
+        query = select(Location)
+
+        if prejoin_location_leader:
+            query = query.options(joinedload(Location.location_leader))
+
+        return db.session.scalars(query).all()
 
     @staticmethod
     def get_location_by_id(location_id: UUID) -> Location | None:
