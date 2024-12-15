@@ -2,16 +2,17 @@
   <NavbarVerwaltung/>
   <div class="mx-4 my-5 d-flex justify-start flex-wrap">
     <v-card class="mx-4 my-4" elevation="16" min-width="20em" max-width="20em"
-      v-for="location in locations"
+      v-for="location in locations" :key="location?.id"
     >
       <v-card-item>
         <v-card-title>
           <div class="d-flex flex-column">
             <span class="text-h6 font-weight-bold text-truncate">
-              Standort: {{ location?.name }}
+              Standort: {{ location?.location_name }}
             </span>
             <span class="text-subtitle-2 text-truncate">
-              Standortleiter: {{ getLocationLeader(location?.locationLeaderID) }}
+              Standortleiter:
+              {{ location?.location_leader.first_name }} {{ location?.location_leader.last_name }}
             </span>
           </div>
         </v-card-title>
@@ -50,11 +51,12 @@
             ></v-text-field>
           </template>
           <v-list>
-            <v-list-item v-for="leader in locationLeaders"
-              :key="leader.userID"
+            <v-list-item v-for="leader in locationLeaders.filter(
+        (leader) => leader.id !== locationToEdit.location_leader.id)"
+              :key="leader.id"
               @click="selectLeader(leader)"
             >
-              <v-list-item-title>{{ leader?.firstName }} {{ leader?.lastName }}</v-list-item-title>
+              <v-list-item-title>{{ leader?.first_name }} {{ leader?.last_name }}</v-list-item-title>
             </v-list-item>
           </v-list>
         </v-menu>
@@ -66,12 +68,13 @@
           :disabled="!form"
           type="submit"
           variant="elevated"
-          @click="confirmEdit"
+          @click="confirmEdit(locationToEdit,)"
           >Speichern
         </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
+
   <v-dialog v-model="deleteDialog" persistent max-width="600">
   <v-card>
     <v-card-text>
@@ -79,7 +82,7 @@
         <p class="text-h5 font-weight-black" >Standort löschen</p>
       </div>
       <div class="text-medium-emphasis">
-        <p> Sind Sie sicher, dass Sie den Standort <strong>{{ locationToDelete?.name }}</strong> löschen möchten?</p>
+        <p> Sind Sie sicher, dass Sie den Standort <strong>{{ locationToDelete?.location_name }}</strong> löschen möchten?</p>
       </div>
     </v-card-text>
     <v-card-actions>
@@ -88,9 +91,19 @@
     </v-card-actions>
   </v-card>
  </v-dialog>
+ <SuccessSnackbar
+    v-model="snackbar"
+    :text="snackbarText"
+    @close="snackbar = false"
+  ></SuccessSnackbar>
 </template>
 
 <script setup>
+import axios from "axios";
+const snackbarText = ref(" ");
+const snackbar = ref(false);
+const locations = ref({});
+const locationLeaders = ref({});
 const newLocationLeaderID = ref(null);
 const newLocationLeaderName = ref("");
 const form = ref(false);
@@ -99,35 +112,71 @@ const locationToEdit = ref(null);
 const deleteDialog = ref(false);
 const locationToDelete = ref(null);
 
-const locations = [{name: "W1", locationID: 293, locationLeaderID: 435},
-  {name: "W8", locationID: 253, locationLeaderID: 1},
-  {name: "W13", locationID: 23, locationLeaderID: 2},
-  {name: "Zedtlitz", locationID: 29, locationLeaderID: 3}];
+onMounted(() => {
+  axios
+    .get("http://localhost:4200/api/locations", { withCredentials: true })
+    .then((response) => {
+      locations.value = response.data;
+      // console.log(locations.value);
+    })
+    .catch((err) => console.log(err));
+});
 
-const locationLeaders = [{firstName: "Hanz", lastName: "Scheibe", userID: 435},
-{firstName: "Franz", lastName: "Weise", userID: 1},
-{firstName: "Glanz", lastName: "Schneise", userID: 2},
-{firstName: "Natan", lastName: "Der Weise", userID: 3}];
-
-const getLocationLeader = (leaderID) => {
-  const leader = locationLeaders.find((l) => l.userID === leaderID);
-  return leader ? `${leader.firstName} ${leader.lastName}` : "Not Found";
-};
+onMounted(() => {
+  axios
+    .get("http://localhost:4200/api/users/location-leaders", { withCredentials: true })
+    .then((response) => {
+      locationLeaders.value = response.data;
+      console.log(locationLeaders.value);
+    })
+    .catch((err) => console.log(err));
+});
 
 const openEditDialog = (location) => {
   editDialog.value = true;
   locationToEdit.value = location;
 };
+const confirmEdit = () => {
+  const updatedLocation = {
+    location_name: locationToEdit.value.location_name,
+    user_id_location_leader: newLocationLeaderID.value,
+  }
+  axios
+    .put(`http://localhost:4200/api/locations/${locationToEdit.value.id}`, updatedLocation, {
+      withCredentials: true,
+    })
+    .then(() => {
+      const updatedLeader = locationLeaders.value.find(
+        (leader) => leader.id === newLocationLeaderID.value
+      );
+
+      if (updatedLeader) {
+        const locationIndex = locations.value.findIndex(
+          (loc) => loc.id === locationToEdit.value.id
+        );
+
+        if (locationIndex !== -1) {
+          locations.value[locationIndex].location_leader = updatedLeader;
+        }
+      }
+      closeEditDialog();
+      snackbarText.value = "Der Standort wurde erfolgreich aktualisiert!";
+      snackbar.value = true;
+    })
+    .catch((err) => {
+      console.error("Error updating location:", err);
+    });
+};
 const closeEditDialog = () => {
   editDialog.value = false;
   locationToEdit.value = null;
   newLocationLeaderID.value = null;
+  newLocationLeaderName.value = null;
   form.value = false;
-  newLocationLeaderName.value = "";
 };
 const selectLeader = (newLeader) => {
-  newLocationLeaderID.value = newLeader.userID;
-  newLocationLeaderName.value = newLeader.firstName+" "+newLeader.lastName;
+  newLocationLeaderID.value = newLeader.id;
+  newLocationLeaderName.value = newLeader.first_name+" "+newLeader.last_name;
   form.value = true;
 };
 
@@ -140,7 +189,19 @@ const closeDeleteDialog = () => {
   deleteDialog.value = false;
 };
 const confirmDelete = () => {
-
+  axios
+    .delete(`http://localhost:4200/api/locations/${locationToDelete.value.id}`, {
+      withCredentials: true,
+    })
+    .then(() => {
+      locations.value = locations.value.filter(
+        (location) => location.id !== locationToDelete.value.id
+      );
+      closeDeleteDialog();
+      snackbarText.value = "Der Standort wurde erfolgreich gelöscht!";
+      snackbar.value = true;
+    })
+    .catch((err) => console.log(err));
 };
 
 </script>

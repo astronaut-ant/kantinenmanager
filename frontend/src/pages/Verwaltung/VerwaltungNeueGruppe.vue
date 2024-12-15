@@ -84,25 +84,40 @@ const gruppenleiterLookupTable = {};
 
 //Dummy for Location-Endpoint
 const standort = ref(null);
-const standortList = ref(["W1", "W2", "W3"]);
+const standortList = ref([]);
 const noStandorte = ref(false);
 const standortLookupTable = {};
 
 //fill Dropdown-Menus and id-Lookup
 onMounted(() => {
+  // Gruppenleiter laden
   axios
-    .get("http://localhost:4200/api/users", { withCredentials: true })
+    .get("http://localhost:4200/api/users/group-leaders", { withCredentials: true })
     .then((response) => {
       response.data.forEach((user) => {
-        if (user.user_group === "gruppenleitung") {
-          gruppenleiterLookupTable[`${user.first_name} ${user.last_name}`] =
-            user.id;
-        }
+        gruppenleiterLookupTable[`${user.first_name} ${user.last_name}`] = user.id;
       });
       if (Object.keys(gruppenleiterLookupTable).length === 0) {
         noGruppenleiter.value = true;
       } else {
         gruppenleiterList.value = Object.keys(gruppenleiterLookupTable);
+      }
+    })
+    .catch((err) => console.log(err));
+
+  // Standorte laden
+  axios
+    .get("http://localhost:4200/api/locations", { withCredentials: true })
+    .then((response) => {
+      response.data.forEach((location) => {
+        const name = location.location_name;
+        const id = location.id;
+        standortLookupTable[name] = id;
+        standortList.value.push(name);
+      });
+
+      if (standortList.value.length === 0) {
+        noStandorte.value = true;
       }
     })
     .catch((err) => console.log(err));
@@ -117,10 +132,10 @@ const handleSubmit = () => {
   });
   axios
     .post("http://localhost:4200/api/groups", {
-      location_name: gruppenName.value,
-      user_id: gruppenleiterLookupTable[gruppenleitung.value],
+      group_name: gruppenName.value,
       location_id: standortLookupTable[standort.value],
-    })
+      user_id_group_leader: gruppenleiterLookupTable[gruppenleitung.value],
+    }, { withCredentials: true })
     .then((response) => console.log(response.data))
     .catch((err) => console.log(err));
   showConfirm.value = true;

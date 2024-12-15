@@ -10,8 +10,8 @@
         <div>
           <v-card-title>
             <div class="d-flex flex-column">
-              <span class="text-h6 font-weight-bold text-truncate">{{ group.name }}</span>
-              <span class="text-subtitle-2 text-truncate">Standort: {{ group.area }}</span>
+              <span class="text-h6 font-weight-bold text-truncate">{{ group.group_name }}</span>
+              <span class="text-subtitle-2 text-truncate">Standort: {{ group.location.location_name }}</span>
             </div>
           </v-card-title>
         </div>
@@ -36,14 +36,16 @@
       <div>
         <v-icon left class="mr-2">mdi-account-group</v-icon>
         <span class="text-h5" style="white-space: normal; word-wrap: break-word;">
-          {{ selectedGroup?.name }} - {{ selectedGroup?.area }}
+          {{ selectedGroup?.group_name }} - {{ selectedGroup?.location.location_name }}
         </span>
       </div>
     </v-card-title>
     <v-card-text>
-      <p><strong>Gruppenleiter:</strong> {{ selectedGroup?.leiter }}</p>
+      <p><strong>Gruppenleiter:</strong>
+        {{ selectedGroup?.group_leader.first_name }} {{ selectedGroup?.group_leader.last_name }}
+      </p>
       <p><strong>Mitglieder:</strong></p>
-      <v-data-table :headers="headers" :items="selectedGroup?.members">
+      <v-data-table :headers="headers" :items="selectedEmployees">
       </v-data-table>
     </v-card-text>
     <v-card-actions>
@@ -59,7 +61,9 @@
         <p class="text-h5 font-weight-black" >Gruppe löschen</p>
       </div>
       <div class="text-medium-emphasis">
-        <p> Sind Sie sicher, dass Sie die Gruppe <strong>{{ groupToDelete?.name }} - {{ groupToDelete?.area }}</strong> löschen möchten?</p>
+        <p> Sind Sie sicher, dass Sie die Gruppe
+          <strong>{{ groupToDelete?.group_name }} - {{ groupToDelete?.location.location_name }}</strong>
+          löschen möchten?</p>
       </div>
     </v-card-text>
     <v-card-actions>
@@ -71,145 +75,66 @@
 </template>
 
 <script setup>
+import axios from "axios";
+const groups = ref(null);
+const sortedGroups = ref([]);
+const employees = ref(null);
 const detailDialog = ref(false);
 const deleteDialog = ref(false);
 const selectedGroup = ref(null);
 const groupToDelete = ref(null);
+const selectedEmployees = ref([]);
 
+onMounted(() => {
+  axios
+    .get("http://localhost:4200/api/groups", { withCredentials: true })
+    .then((response) => {
+      groups.value = response.data;
 
-const groups = [
-  {
-    name: "Berufsbildungsbereich 1",
-    area: "W1",
-    id: 9509,
-    leiter: "Hans Friedrich",
-    members: [{firstName: "Allice", lastName: "Skywalker", number: 892484},
-              {firstName: "Bob", lastName: "Baumeister", number: 23},
-              {firstName: "Charlie", lastName: "Sjdjnedo", number: 2083},
-              {firstName: "Hallon", lastName: "Maus", number: 3847},
-              {firstName: "Charlie", lastName: "Sjdjnedo", number: 2083},
-              {firstName: "Charlie", lastName: "Sjdjnedo", number: 2083},
-              {firstName: "Charlie", lastName: "Sjdjnedo", number: 2083},
-              {firstName: "Charlie", lastName: "Sjdjnedo", number: 2083},
-              {firstName: "Charlie", lastName: "Sjdjnedo", number: 2083},
-              {firstName: "Charlie", lastName: "Sjdjnedo", number: 2083},
-              {firstName: "Charlie", lastName: "Sjdjnedo", number: 2083},
-              {firstName: "Charlie", lastName: "Sjdjnedo", number: 2083},
-              {firstName: "Charlie", lastName: "Sjdjnedo", number: 2083},
-              {firstName: "Charlie", lastName: "Sjdjnedo", number: 2083},
-              {firstName: "Charlie", lastName: "Sjdjnedo", number: 2083},
-              {firstName: "Charlie", lastName: "Sjdjnedo", number: 2083},],
-  },
-  {
-    name: "Montage/Verpackung 1",
-    area: "Zedtlitz",
-    id: 1234,
-    leiter: "Petra Müller",
-    members: ["Diana", "Elias", "Felix"],
-  },
-  {
-    name: "FBB 2 - Gruppe 1",
-    area: "W1",
-    id: 8472,
-    leiter: "Tom Schulz",
-    members: ["Gina", "Hanna", "Isabel"],
-  },
-  {
-    name: "Autoaufbereitung",
-    area: "Zedtlitz",
-    id: 209,
-    leiter: "Hans Friedrich",
-    members: ["Alice", "Bob", "Charlie"],
-  },
-  {
-    name: "Stanzanlage/Spritzgußmaschine",
-    area: "W1kshskdsjdkdsjksjjiopnosrdrddsjdskj",
-    id: 9293,
-    leiter: "Petra Müller",
-    members: ["Diana", "Elias", "Felix"],
-  },
-  {
-    name: "Gruppe 3",
-    area: "Zedtlitz",
-    id: 98765,
-    leiter: "Tom Schulz",
-    members: ["Gina", "Hanna", "Isabel"],
-  },
-  {
-    name: "Gruppe 3",
-    area: "W1",
-    id: 8472,
-    leiter: "Tom Schulz",
-    members: ["Gina", "Hanna", "Isabel"],
-  },
-  {
-    name: "Gruppe 3",
-    area: "W1",
-    id: 8472,
-    leiter: "Tom Schulz",
-    members: ["Gina", "Hanna", "Isabel"],
-  },
-  {
-    name: "Gruppe 3",
-    area: "W1",
-    id: 8472,
-    leiter: "Tom Schulz",
-    members: ["Gina", "Hanna", "Isabel"],
-  },
-  {
-    name: "Gruppe 3",
-    area: "W1",
-    id: 8472,
-    leiter: "Tom Schulz",
-    members: ["Gina", "Hanna", "Isabel"],
-  },
-  {
-    name: "Gruppe 3",
-    area: "W1",
-    id: 8472,
-    leiter: "Tom Schulz",
-    members: ["Gina", "Hanna", "Isabel"],
-  },
-  {
-    name: "Gruppe 3",
-    area: "W1",
-    id: 8472,
-    leiter: "Tom Schulz",
-    members: ["Gina", "Hanna", "Isabel"],
-  },
-  {
-    name: "Gruppe 3",
-    area: "W1",
-    id: 8472,
-    leiter: "Tom Schulz",
-    members: ["Gina", "Hanna", "Isabel"],
-  },
-];
+      sortedGroups.value = (groups.value && groups.value.length > 0)
+      ? groups.value.sort((a, b) => {
+          if (a.location.location_name < b.location.location_name) { return -1; }
+          if (a.location.location_name > b.location.location_name) { return 1; }
+
+          if (a.group_name < b.group_name) { return -1; }
+          if (a.group_name > b.group_name) { return 1; }
+
+          return 0;
+        })
+      : []
+    })
+    .catch((err) => console.log(err));
+
+  axios
+  .get("http://localhost:4200/api/employees", { withCredentials: true })
+    .then((response) => {
+      employees.value = response.data;
+    })
+    .catch((err) => console.log(err));
+});
 
 const headers = [
-  {title: 'Nummer', key: 'number'},
-  {title: 'Vorname', key: 'firstName'},
-  {title: 'Nachname', key: 'lastName'}
+  {title: 'Nummer', key: 'employee_number'},
+  {title: 'Vorname', key: 'first_name'},
+  {title: 'Nachname', key: 'last_name'}
 ];
-
-const sortedGroups = groups.sort((a, b) => {
-  if (a.area < b.area) {return -1;}
-  if (a.area > b.area) {return 1;}
-
-  if (a.name < b.name) {return -1;}
-  if (a.name > b.name) {return 1;}
-
-  return 0;
-});
 
 const showDetails = (group) => {
   selectedGroup.value = group;
+  if (employees.value && employees.value.length > 0) {
+    selectedEmployees.value = employees.value.filter(
+      (employee) => employee.group.id == group.id
+    );
+  } else {
+    selectedEmployees.value = [];
+  }
   detailDialog.value = true;
 };
 
 const closeDetailDialog = () => {
   detailDialog.value = false;
   selectedGroup.value = null;
+  selectedEmployees.value = [];
 }
 
 const handleDelete = (group) => {

@@ -96,8 +96,8 @@ const handleSubmit = () => {
   axios
     .post("http://localhost:4200/api/locations", {
       location_name: standortName.value,
-      user_id: standortLeiterLookupTable[standortLeitung.value],
-    })
+      user_id_location_leader: standortLeiterLookupTable[standortLeitung.value],
+    }, { withCredentials: true })
     .then((response) => console.log(response.data))
     .catch((err) => console.log(err));
   showConfirm.value = true;
