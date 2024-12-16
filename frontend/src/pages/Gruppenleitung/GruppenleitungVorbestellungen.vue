@@ -1,7 +1,7 @@
 <template>
   <NavbarGruppenleitung />
   <h1 class="text-center mt-5 mb-5">Vorbestellungen</h1>
-  <div class="ps-10 pe-10">
+  <div class="mx-auto w-75">
     <FullCalendar :options="calendarOptions" />
     <CalendarDialog
       v-if="showDialog"
