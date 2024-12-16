@@ -89,6 +89,7 @@ export default {
             duration: { weeks: 3 },
           },
         },
+        weekends: false,
         initialView: "timeGrid2Weeks",
         fixedWeekCount: false,
         locale: deLocale,
