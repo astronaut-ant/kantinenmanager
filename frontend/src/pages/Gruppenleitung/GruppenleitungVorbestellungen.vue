@@ -12,7 +12,7 @@
       @init="initNewBestellformular"
       :stopHour="stopHour"
     />
-    <Bestellformular
+    <BestellFormular
       v-if="showBestellformular"
       :date="clickedEventDate"
       :showBestellformular="showBestellformular"
@@ -23,7 +23,7 @@
       @restore="showBestellformular = true"
       :stopHour="stopHour"
     />
-    <Bestellformular />
+    <BestellFormular />
   </div>
 </template>
 
@@ -35,7 +35,6 @@ import CalendarDialog from "@/components/CalendarDialog.vue";
 import deLocale from "@fullcalendar/core/locales/de";
 import { useAppStore } from "@/stores/app.js";
 import axios from "axios";
-import Bestellformular from "@/components/Bestellformular.vue";
 
 //Non reactive
 
