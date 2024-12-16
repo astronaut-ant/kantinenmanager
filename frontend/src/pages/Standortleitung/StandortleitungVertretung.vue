@@ -30,7 +30,7 @@
         :location="groupLeader.location"
         :group_leader="groupLeader.group_leader"
         :group_leader_replacement="groupLeader.group_leader_replacement"
-        :replacing_group="groupLeader.replacing_group"
+        :replacing_groups="groupLeader.replacing_group"
         :available="groupLeader.available"
         :available_group_leaders="groupLeader.available_group_leaders"
         @replacement-set="fetchData"
@@ -56,13 +56,7 @@
         let availableLeaders = []; 
 
         groups.forEach((group) => {
-          const isLeaderAvailable =
-            !group.group_leader_replacement &&
-            !groups.some(
-              (g) => g.group_leader_replacement?.id === group.group_leader.id
-            );
-
-          if (isLeaderAvailable) {
+          if (!group.group_leader_replacement) {
             availableLeaders.push({
               id: group.group_leader.id,
               name: `${group.group_leader.first_name} ${group.group_leader.last_name}`,
@@ -83,20 +77,18 @@
 
 
         groups.forEach((group) => {
-          const replacingGroup = groups.find(
+          const replacingGroups = groups.filter(
             (g) => g.group_leader_replacement?.id === group.group_leader.id
           );
 
           groupLeaders.value.push({
             ...group,
             available: !group.group_leader_replacement, 
-            replacing_group: replacingGroup
-              ? {
-                  id: replacingGroup.id,
-                  name: replacingGroup.group_name,
-                  location: replacingGroup.location,
-                }
-              : null,
+            replacing_group: replacingGroups.map((replacingGroup) => ({
+              id: replacingGroup.id,
+              name: replacingGroup.group_name,
+              location: replacingGroup.location,
+            })),
             available_group_leaders: availableLeaders,
           });
         });
