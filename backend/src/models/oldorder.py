@@ -24,8 +24,8 @@ class OldOrder(db.Model):
     # Felder der Tabelle:
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     person_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("person.id")
-    )  # TODO: change to ForeignKey("person.id", ondelete="SET NULL")
+        ForeignKey("person.id", ondelete="SET NULL"), nullable=True
+    )
     location_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("location.id"))
     date: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     nothing: Mapped[bool] = mapped_column(
@@ -43,13 +43,13 @@ class OldOrder(db.Model):
 
     def __init__(
         self,
-        person_id: uuid.UUID,
         location_id: uuid.UUID,
         date: datetime,
         nothing: bool,
         main_dish: MainDish,
         salad_option: bool,
         handed_out: bool,
+        person_id: uuid.UUID = None,
     ):
         """Initialize a new old order
 
@@ -61,13 +61,13 @@ class OldOrder(db.Model):
         :param salad_option: Whether a salad is included
         :param handed_out: Whether the order was handed out
         """
-        self.person_id = person_id
         self.location_id = location_id
         self.date = date
         self.nothing = nothing
         self.main_dish = main_dish
         self.salad_option = salad_option
         self.handed_out = handed_out
+        self.person_id = person_id
 
     def __repr__(self):
         return f"<OldOrder {self.id!r} {self.person_id!r} {self.date!r} {self.main_dish!r} {self.salad_option!r} {self.handed_out!r}>"
