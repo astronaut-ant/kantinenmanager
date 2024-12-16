@@ -44,7 +44,7 @@ def get_daily_orders():
     """
 
     try:
-        all_daily_orders = DailyOrdersService.get_daily_orders_filtered_by_user_scope(
+        daily_orders = DailyOrdersService.get_daily_orders_filtered_by_user_scope(
             g.user_id
         )
     except ValueError as err:  # TODO Specific exceptions
@@ -56,9 +56,7 @@ def get_daily_orders():
                 details=str(err),
             )
         )
-
-    daily_orders_dicts = [order.to_dict() for order in all_daily_orders]
-    return jsonify(daily_orders_dicts), 200
+    return jsonify(daily_orders), 200
 
 
 @daily_orders_routes.get("/api/daily-orders/counted")

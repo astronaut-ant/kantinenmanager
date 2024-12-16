@@ -5,9 +5,7 @@ from flasgger import swag_from
 from src.utils.auth_utils import login_required
 from src.utils.error import ErrMsg, abort_with_err
 from src.models.user import UserGroup
-from src.services.daily_orders_service import DailyOrdersService
-from src.services.pre_orders_service import PreOrdersService
-from src.repositories.orders_repository import OrdersRepository, OrdersFilters
+from src.repositories.orders_repository import OrdersRepository
 from src.models.oldorder import OldOrder
 from src.models.preorder import PreOrder
 from src.models.dailyorder import DailyOrder
@@ -43,7 +41,7 @@ def write_pre_to_daily_to_old_order():
     orders_new: list[PreOrder] = []
     today = datetime.today().date()
 
-    daily_orders_to_move = DailyOrdersService.get_all_daily_orders()
+    daily_orders_to_move = OrdersRepository.get_all_daily_orders()
 
     for daily_order in daily_orders_to_move:
         old_order = OldOrder(

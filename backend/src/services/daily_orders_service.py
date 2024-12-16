@@ -63,7 +63,8 @@ class DailyOrdersService:
 
     @staticmethod
     def get_daily_orders_filtered_by_user_scope(user_id: UUID) -> List[DailyOrder]:
-        return OrdersRepository.get_daily_orders_filtered_by_user_scope(user_id)
+        daily_orders = OrdersRepository.get_daily_orders_filtered_by_user_scope(user_id)
+        return DailyOrderFullSchema(many=True).dump(daily_orders)
 
     @staticmethod
     def get_all_daily_orders_count() -> List[CountOrdersSchema]:
