@@ -23,6 +23,7 @@
       @restore="showBestellformular = true"
       :stopHour="stopHour"
     />
+    <Bestellformular />
   </div>
 </template>
 
@@ -31,9 +32,10 @@ import FullCalendar from "@fullcalendar/vue3";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import CalendarDialog from "@/components/CalendarDialog.vue";
-import Bestellformular from "@/components/Bestellformular.vue";
 import deLocale from "@fullcalendar/core/locales/de";
+import { useAppStore } from "@/stores/app.js";
 import axios from "axios";
+import Bestellformular from "@/components/Bestellformular.vue";
 
 //Non reactive
 
@@ -52,8 +54,10 @@ const calcCalendarEdges = () => {
   return { start: startDateIso, hint: hintDateIso, end: endDateIso };
 };
 const edges = calcCalendarEdges();
-const groupLeaderId = 1;
+let groupLeaderId;
+let groupLocationId;
 let groupData = {};
+let employeeMap = {};
 
 //reactive
 
@@ -114,7 +118,7 @@ export default {
       const allGroupsArray = [];
       const existingEventsOnDay = [];
       groupData.groups.forEach((group) => {
-        allGroupsArray.push(group.groupName);
+        allGroupsArray.push(group.group_name);
       });
 
       this.calendarOptions.events.forEach((event) => {
@@ -145,42 +149,53 @@ export default {
       }
     },
     initNewBestellformular: function (selectedGroup, selectedDate) {
-      console.log(selectedGroup);
+      console.log("SG", selectedGroup);
+      console.log(groupLocationId);
+      const initOrders = [];
       groupData.groups.forEach((group) => {
-        if (group.groupName === selectedGroup) {
-          group.groupEmployees.forEach((employee) => {
-            group.groupOrders.push({
-              name: employee,
+        if (group.group_name === selectedGroup) {
+          group.employees.forEach((employee) => {
+            initOrders.push({
               date: selectedDate,
-              maindish: 0,
-              salad: false,
+              location_id: groupLocationId,
+              date: selectedDate,
+              main_dish: null,
               nothing: false,
-              done: false,
+              person_id: employee.id,
+              salad_option: false,
             });
           });
         }
       });
-      console.log(groupData.groups);
+      console.log("initOrders", initOrders);
 
       //Mockup Post for initializing new Bestellformular
       axios
-        .put(
-          "http://localhost:4000/groupOrdersByPersonId/" + groupLeaderId,
-          JSON.stringify({
-            id: groupLeaderId,
-            groups: groupData.groups,
-          })
+        .post(
+          `${import.meta.env.VITE_API}/api/pre-orders`,
+          initOrders,
+          {
+            withCredentials: true,
+          }
+          // JSON.stringify({
+          //   id: groupLeaderId,
+          //   groups: groupData.groups,
+          // })
         )
         .then(() => {
           this.calendarOptions.events = [];
-          this.fillCalendar(groupLeaderId);
-          this.getOrdersByDate(selectedGroup);
-        });
+          this.fillCalendar(groupLeaderId).then(() => {});
+        })
 
-      this.clickedEventDate = this.clickedDate;
+        .catch((err) => {
+          console.log(err);
+        });
       setTimeout(() => {
+        this.clickedEventDate = this.clickedDate;
+        this.getOrdersByDate(selectedGroup);
+
         this.showBestellformular = true;
-      }, "250");
+      }, 250);
     },
     //Helper
     getGroupDates: function (groupOrders) {
@@ -191,11 +206,12 @@ export default {
       return [...new Set(dateList)];
     },
     getOrdersByDate: function (clickedGroup) {
+      console.log("GETTING ORDERS BY DATE...");
       this.selectedGroup = clickedGroup;
       const ordersByDate = [];
       groupData.groups.forEach((group) => {
-        if (group.groupName === clickedGroup) {
-          group.groupOrders.forEach((order) => {
+        if (group.group_name === clickedGroup) {
+          group.orders.forEach((order) => {
             if (order.date === this.clickedEventDate) {
               ordersByDate.push(order);
             }
@@ -203,78 +219,76 @@ export default {
         }
       });
       const items = [];
+      console.log("ordersByDate", ordersByDate);
       //item Format
       ordersByDate.forEach((order) => {
         let hauptgericht1Value;
         let hauptgericht2Value;
-        if (order.maindish === 0) {
+        if (order.main_dish === null) {
           hauptgericht1Value = false;
           hauptgericht2Value = false;
-        } else if (order.maindish === 1) {
+        } else if (order.main_dish === "blau") {
           hauptgericht1Value = true;
           hauptgericht2Value = false;
-        } else if (order.maindish === 2) {
+        } else if (order.main_dish === "rot") {
           hauptgericht1Value = false;
           hauptgericht2Value = true;
         }
         items.push({
-          name: order.name,
+          name: employeeMap[order.person_id],
+          person_id: order.person_id,
           hauptgericht1: hauptgericht1Value,
           hauptgericht2: hauptgericht2Value,
-          salat: order.salad,
+          salat: order.salad_option,
           keinEssen: order.nothing,
-          done: order.done,
         });
+        console.log("actual Orders:", items);
       });
       this.actualOrders = items;
     },
 
     updateBestellformular: function (updatedOrders, date, selectedGroup) {
-      //fehlt noch gruppe
       console.log(updatedOrders, date, selectedGroup);
       const formattedOrders = [];
       updatedOrders.forEach((updatedOrder) => {
         let dateValue = date;
         let maindishValue;
         if (updatedOrder.hauptgericht1) {
-          maindishValue = 1;
+          maindishValue = "blau";
         } else if (updatedOrder.hauptgericht2) {
-          maindishValue = 2;
+          maindishValue = "rot";
         } else {
-          maindishValue = 0;
+          maindishValue = null;
         }
         formattedOrders.push({
-          name: updatedOrder.name,
           date: dateValue,
-          maindish: maindishValue,
-          salad: updatedOrder.salat,
+          location_id: groupLocationId,
+          main_dish: maindishValue,
+          salad_option: updatedOrder.salat,
+          person_id: updatedOrder.person_id,
           nothing: updatedOrder.keinEssen,
-          done: updatedOrder.done,
         });
       });
       console.log(formattedOrders);
-      let filteredArray;
-      groupData.groups.forEach((group) => {
-        if (group.groupName == selectedGroup) {
-          filteredArray = group.groupOrders.filter((order) => {
-            return order.date != date;
-          });
-          formattedOrders.forEach((fOrder) => {
-            filteredArray.push(fOrder);
-            group.groupOrders = filteredArray;
-          });
-          console.log("go on", groupData);
-        }
-      });
-      console.log();
+      // let filteredArray;
+      // groupData.groups.forEach((group) => {
+      //   if (group.groupName == selectedGroup) {
+      //     filteredArray = group.groupOrders.filter((order) => {
+      //       return order.date != date;
+      //     });
+      //     formattedOrders.forEach((fOrder) => {
+      //       filteredArray.push(fOrder);
+      //       group.groupOrders = filteredArray;
+      //     });
+      //     console.log("go on", groupData);
+      //   }
+      // });
+      // console.log();
+
       axios
-        .put(
-          "http://localhost:4000/groupOrdersByPersonId/" + groupLeaderId,
-          JSON.stringify({
-            id: groupLeaderId,
-            groups: groupData.groups,
-          })
-        )
+        .post(`${import.meta.env.VITE_API}/api/pre-orders`, formattedOrders, {
+          withCredentials: true,
+        })
         .then(() => {
           this.calendarOptions.events = [];
           this.fillCalendar(groupLeaderId);
@@ -290,20 +304,34 @@ export default {
         display: "background",
       }),
         axios
-          .get(`http://localhost:4000/groupOrdersByPersonId/${id}`)
+          .get(
+            `${import.meta.env.VITE_API}/api/pre-orders/by-group-leader/${id}`,
+            {
+              withCredentials: true,
+            }
+          )
           .then((response) => {
             groupData = response.data;
+            console.log(groupData);
             const groupedEvents = [];
+            employeeMap = {};
             groupData.groups.forEach((group) => {
+              group.employees.forEach((employee) => {
+                employeeMap[
+                  employee.id
+                ] = `${employee.first_name} ${employee.last_name}`;
+              });
               groupedEvents.push({
-                groupName: group.groupName,
-                isHomegroup: group.isHomegroup,
-                groupOrderDatesList: this.getGroupDates(group.groupOrders),
+                groupName: group.group_name,
+                isHomegroup: group.is_home_group,
+                groupOrderDatesList: this.getGroupDates(group.orders),
               });
             });
-            console.log(groupedEvents);
+            console.log("GE!", groupedEvents);
+            console.log(employeeMap);
             groupedEvents.forEach((groupedEvent) => {
               groupedEvent.groupOrderDatesList.forEach((groupOrderDate) => {
+                console.log(groupedEvent.groupName, groupOrderDate);
                 this.calendarOptions.events.push({
                   title: groupedEvent.groupName,
                   date: groupOrderDate,
@@ -319,6 +347,11 @@ export default {
     },
   },
   mounted: function () {
+    console.log(employeeMap);
+    const appStore = useAppStore();
+    groupLeaderId = appStore.userData.id;
+    groupLocationId = appStore.userData.location_id;
+    console.log(appStore);
     this.fillCalendar(groupLeaderId);
   },
 };

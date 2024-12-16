@@ -40,6 +40,7 @@
           :items="items"
           item-key="name"
           :headers="headers"
+          v-model:sort-by="sortBy"
         >
           <template v-slot:item.done="{ item }">
             <v-icon v-model="item.done">{{
@@ -121,23 +122,29 @@
 </template>
 
 <script setup>
-import { toRaw } from "vue";
+// import { toRaw } from "vue";
 
 const items = ref([]);
 
 const orderStop = ref(false);
 const showRestoreAlert = ref(false);
 
-console.log("test");
+// console.log("test");
 
 const headers = ref([
-  { title: "Mitarbeiter", value: "name" },
-  { title: "", value: "done", minWidth: "15em" },
+  {
+    title: "Mitarbeiter",
+    value: "name",
+    key: "mitarbeiter",
+  },
+  { title: " ", value: "done", minWidth: "15em" },
   { title: "Menü 1", value: "hauptgericht1", nowrap: true },
   { title: "Menü 2", value: "hauptgericht2", nowrap: true },
   { title: "Salat", value: "salat", nowrap: true },
   { title: "Nichts", value: "keinEssen", nowrap: true },
 ]);
+
+const sortBy = ref([{ key: "mitarbeiter", order: "asc" }]);
 const props = defineProps([
   "showBestellformular",
   "date",
@@ -155,18 +162,20 @@ let clone = [];
 const loadData = () => {
   console.log("loading");
   items.value = [];
-  props.orders.forEach((order) => {
-    items.value.push(order);
-  });
-  initials = JSON.stringify(items.value);
-
-  // toRaw(items.value).forEach((item) => {
-  //   initials.push(item);
-  // });
-
-  console.log("items", items.value);
-  console.log("initials", initials);
+  console.log("props.orders", props.orders);
+  if (props.orders != undefined) {
+    props.orders.forEach((order) => {
+      items.value.push(order);
+    });
+    initials = JSON.stringify(items.value);
+    // toRaw(items.value).forEach((item) => {
+    //   initials.push(item);
+    // });
+    console.log("items", items.value);
+    console.log("initials", initials);
+  }
 };
+loadData();
 
 const save = () => {
   if (!checkOrderStop(props.stopHour)) {
@@ -186,8 +195,6 @@ const save = () => {
   }
 };
 
-loadData();
-
 //Progress Bar
 const totalItems = items.value.length;
 const updateProgress = () => {
@@ -202,8 +209,6 @@ const updateProgress = () => {
       ) {
         item.done = true;
         summation++;
-      } else {
-        item.done = false;
       }
     });
     return summation;

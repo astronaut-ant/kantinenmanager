@@ -58,8 +58,14 @@
                 ></v-radio>
               </div>
               <div class="d-flex">
-                <v-radio label="Gruppenleitung" value="gruppenleitung"></v-radio>
-                <v-radio label="Küchenpersonal" value="kuechenpersonal"></v-radio>
+                <v-radio
+                  label="Gruppenleitung"
+                  value="gruppenleitung"
+                ></v-radio>
+                <v-radio
+                  label="Küchenpersonal"
+                  value="kuechenpersonal"
+                ></v-radio>
               </div>
             </v-radio-group>
             <div class="d-flex ga-5">
@@ -151,14 +157,17 @@ const user_group = ref("");
 const showConfirm = ref(false);
 const initialPassword = ref();
 const allLocations = ref([]);
+const location_id = ref("");
 
 onMounted(() => {
   axios
     .get(import.meta.env.VITE_API + "/api/users", { withCredentials: true })
     .then((response) => {
       users.value = response.data;
+      console.log(users.value);
     })
     .catch((err) => console.log(err));
+
   axios
     .get(import.meta.env.VITE_API + "/api/locations", { withCredentials: true })
     .then((response) => {
@@ -218,6 +227,7 @@ const openeditDialog = (id) => {
   last_name.value = user.last_name;
   username.value = user.username;
   user_group.value = user.user_group;
+  location_id.value = user.location_id;
   editDialog.value = true;
 };
 
@@ -252,6 +262,7 @@ const confirmEdit = () => {
     last_name: last_name.value,
     username: username.value,
     user_group: user_group.value,
+    location_id: location_id.value,
   };
 
   axios

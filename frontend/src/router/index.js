@@ -12,14 +12,13 @@ import VerwaltungNeuerMitarbeiterCsvUpload from "@/pages/Verwaltung/VerwaltungNe
 import StandortUebersicht from "@/pages/Standortleitung/StandortleitungUebersicht.vue";
 import StandortVertretung from "@/pages/Standortleitung/StandortleitungVertretung.vue";
 import axios from "axios";
-import Gruppenleitung from "@/pages/Gruppenleitung/Gruppenleitung.vue";
 import VerwaltungAlleMitarbeiter from "@/pages/Verwaltung/VerwaltungAlleMitarbeiter.vue";
 import VerwaltungAlleStandorte from "@/pages/Verwaltung/VerwaltungAlleStandorte.vue";
 import VerwaltungNeuerStandort from "@/pages/Verwaltung/VerwaltungNeuerStandort.vue";
 import VerwaltungAlleGruppen from "@/pages/Verwaltung/VerwaltungAlleGruppen.vue";
 import VerwaltungNeueGruppe from "@/pages/Verwaltung/VerwaltungNeueGruppe.vue";
 import VerwaltungMitarbeiterManuell from "@/pages/Verwaltung/VerwaltungMitarbeiterManuell.vue";
-import GruppenleitungVorbestellungen from "@/pages/Gruppenleitung/GruppenLeitungVorbestellungen.vue";
+import GruppenleitungVorbestellungen from "@/pages/Gruppenleitung/GruppenleitungVorbestellungen.vue";
 import GruppenleitungMeineGruppen from "@/pages/Gruppenleitung/GruppenleitungMeineGruppen.vue";
 
 const routes = [
