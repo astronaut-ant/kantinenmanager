@@ -39,5 +39,5 @@ spec:
           ports:
             - containerPort: 8080
           env:
-            - name: ADMINER_DESIGN
-              value: pepa-linha-dark
+            - name: ADMINER_DEFAULT_SERVER
+              value: db-service
