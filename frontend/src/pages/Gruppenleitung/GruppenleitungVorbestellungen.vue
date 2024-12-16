@@ -184,7 +184,7 @@ export default {
         )
         .then(() => {
           this.calendarOptions.events = [];
-          this.fillCalendar(groupLeaderId).then(() => {});
+          this.fillCalendar(groupLeaderId);
         })
 
         .catch((err) => {
