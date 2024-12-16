@@ -281,6 +281,19 @@ class OrdersRepository:
         else:
             return []
 
+    @staticmethod
+    def get_daily_orders_for_group(group_id: UUID, user_id: UUID) -> List[DailyOrder]:
+        """
+        Get daily orders for a group
+        :param group_id: UUID
+        :return: Daily orders in a response schmea
+        """
+        return db.session.scalars(
+            select(DailyOrder)
+            .join(Employee, DailyOrder.person_id == Employee.id)
+            .filter(Employee.group_id == group_id)
+        ).all()
+
     ############################ OldOrders ############################
     @staticmethod
     def get_old_orders(filters: OrdersFilters) -> List[OldOrder]:

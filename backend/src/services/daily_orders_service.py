@@ -7,8 +7,9 @@ from src.models.dailyorder import DailyOrder
 from src.repositories.users_repository import UsersRepository
 from src.repositories.orders_repository import OrdersRepository
 from src.repositories.locations_repository import LocationsRepository
+from src.repositories.groups_repository import GroupsRepository
 from src.schemas.daily_orders_schema import CountOrdersObject, CountOrdersSchema
-from src.utils.exceptions import NotFoundError, WrongLocationError
+from src.utils.exceptions import NotFoundError, WrongLocationError, AccessDeniedError
 
 
 class DailyOrdersService:
@@ -100,3 +101,25 @@ class DailyOrdersService:
         ]
 
         return CountOrdersSchema(many=True).dump(orders)
+
+    @staticmethod
+    def get_daily_orders_for_group(
+        group_id: UUID, user_id: UUID
+    ) -> List[DailyOrderFullSchema]:
+        """Get daily orders for a group
+        :param group_id: UUID
+        :return: Daily orders in a response schmea
+        """
+        group = GroupsRepository.get_group_by_id(group_id)
+        if not group:
+            raise NotFoundError(f"Gruppe {group_id} nicht gefunden.")
+        if (
+            user_id != group.user_id_group_leader
+            and user_id != group.user_id_replacement
+        ):
+            raise AccessDeniedError(
+                f"Zugriff verweigert. Gruppe {group_id} gehört nicht zu Nutzer {user_id}"
+            )
+
+        daily_orders = OrdersRepository.get_daily_orders_for_group(group_id, user_id)
+        return DailyOrderFullSchema(many=True).dump(daily_orders)
