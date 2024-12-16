@@ -14,8 +14,8 @@ def push_orders_to_next_table(app, ignore_errors=False):
     with app.app_context():
         # Checks if the date in the old_orders and pre_orders table matches the expected.
 
-        orders_old = []  # type: List[OldOrder]
-        orders_new = []  # type: List[PreOrder]
+        orders_old: list[OldOrder] = []
+        orders_new: list[PreOrder] = []
         date = datetime.today().date()
         date_yesterday = date - timedelta(days=1)
         if ignore_errors == False:

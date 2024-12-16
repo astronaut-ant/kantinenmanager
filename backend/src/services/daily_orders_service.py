@@ -123,3 +123,9 @@ class DailyOrdersService:
 
         daily_orders = OrdersRepository.get_daily_orders_for_group(group_id, user_id)
         return DailyOrderFullSchema(many=True).dump(daily_orders)
+
+    ##################### test method  #####################
+
+    @staticmethod
+    def get_all_daily_orders() -> List[DailyOrder]:
+        return OrdersRepository.get_all_daily_orders()
