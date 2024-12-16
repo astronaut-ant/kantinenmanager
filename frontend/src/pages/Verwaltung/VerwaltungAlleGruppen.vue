@@ -7,12 +7,12 @@
     >
       <v-card-item>
         <v-btn
-          icon
+          icon="mdi-information-outline"
           class="position-absolute"
           style="top: 5px; right: 5px;"
           @click="showDetails(group)"
+          density="compact"
         >
-          <v-icon size="small" color="primary">mdi-information-outline</v-icon>
         </v-btn>
         <div>
           <v-card-title>
