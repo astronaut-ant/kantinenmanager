@@ -120,6 +120,9 @@ deploy-job:
   image:
     name: bitnami/kubectl:latest
     entrypoint: [""]
+  environment:
+    name: production
+    url: https://$PROD_IP
   script:
     - kubectl config get-contexts
     - kubectl config use-context $K8S_AGENT
