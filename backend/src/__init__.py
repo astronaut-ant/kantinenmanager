@@ -1,15 +1,15 @@
+import os
+
 from datetime import datetime
 from flask import Flask
 from flasgger import Swagger
 from flask_cors import CORS
 from dotenv import load_dotenv
-from apscheduler.schedulers.background import BackgroundScheduler
-import os
 
-from src.utils.db_utils import insert_mock_data, start_cronjob
+from src.utils.cronjobs import register_cronjobs
+from src.utils.db_utils import insert_mock_data
 from src.environment import Environment, get_features
 from src.utils.error import register_error_handlers
-from src.utils.cronjobs import push_orders_to_next_table
 
 from .middlewares.auth_middleware import register_auth_middleware
 from .database import create_initial_admin, init_db, setup_test_db
@@ -32,7 +32,7 @@ app = Flask(__name__)  # Globally accessible Flask app instance
 
 swagger_template = {
     "info": {
-        "title": "API Bestellverwaltung",
+        "title": "API Kantinenmanager Lebenshilfe Borna e.V.",
         "description": "API for our data",
         "version": "0.0.1",
     }
@@ -102,7 +102,7 @@ def startup() -> None:
 
     if features.CRONJOBS:
         print("--- Cronjobs enabled             ---")
-        start_cronjob(app, os)
+        register_cronjobs(app)
     else:
         print("--- Cronjobs disabled            ---")
 
