@@ -68,7 +68,7 @@
                             single-line
                             rounded
                         ></v-text-field>
-                        <v-data-table-virtual :items="props.employees" :search="search" :headers="headers" :sort-by="sortBy" density="compact">
+                        <v-data-table-virtual :items="props.employees" :search="search" :headers="headers" :sort-by="sortBy" :hover="true" density="compact">
                         </v-data-table-virtual>
                     </v-tabs-window-item>
                 </v-tabs-window>

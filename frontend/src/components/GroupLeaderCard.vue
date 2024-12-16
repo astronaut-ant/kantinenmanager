@@ -17,7 +17,7 @@
             <div>
                 <div>
                     <v-card-title>{{ props.group_leader.first_name }} {{ props.group_leader.last_name }}</v-card-title>
-                        <v-slide-group mobile="false" show-arrows>
+                        <v-slide-group :mobile="false">
                             <v-slide-group-item>
                                 <v-chip
                                     color="primary"
