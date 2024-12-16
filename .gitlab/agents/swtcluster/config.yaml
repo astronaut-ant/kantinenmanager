@@ -1,0 +1,5 @@
+user_access:
+  access_as:
+      agent: {}
+  projects:
+      - id: SWS/lehre/ws-2024-2025/swt-p/projects/group-16
