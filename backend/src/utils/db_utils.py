@@ -1,4 +1,11 @@
-from datetime import datetime, timedelta
+from datetime import datetime
+from typing import List
+from mocks.mock_daily_orders import (
+    MOCK_DAILY_ORDERS_EMPLOYEES,
+    MOCK_DAILY_ORDERS_USERS,
+)
+from src.models.dailyorder import DailyOrder
+from src.services.daily_orders_service import DailyOrdersService
 from mocks.mock_orders_employees import MOCK_ORDERS_EMPLOYEES
 from apscheduler.schedulers.background import BackgroundScheduler
 from mocks.mock_orders_users import MOCK_ORDERS_USERS
@@ -33,6 +40,7 @@ def insert_mock_data(app):
         insert_employee_mock_data()
         insert_order_users_mock_data()
         insert_order_employees_mock_data()
+        insert_daily_orders_mock_data()
 
 
 def insert_user_mock_data():
@@ -240,6 +248,64 @@ def insert_order_employees_mock_data():
                     f"Failed to insert order for employee {employee.employee_number}: {e}"
                 )
                 continue
+
+
+def insert_daily_orders_mock_data():
+    """Insert mock daily orders."""
+
+    admin = UsersService.get_user_by_username("admin")
+
+    if len(DailyOrdersService.get_all_daily_orders()) > 0:
+        return
+
+    user_dict = {user.username: user for user in UsersService.get_users()}
+
+    employees_dict = {
+        employee.employee_number: employee
+        for employee in EmployeesService.get_employees(UserGroup.verwaltung, admin.id)
+    }
+
+    groups_dict = {
+        group.id: group
+        for group in GroupsService.get_groups(admin.id, UserGroup.verwaltung)
+    }
+
+    date = datetime.now().date()
+
+    orders: List[DailyOrder] = []
+
+    for order in MOCK_DAILY_ORDERS_USERS:
+        person = user_dict[order["user"]]
+
+        orders.append(
+            DailyOrder(
+                person_id=person.id,
+                location_id=person.location_id,
+                date=date,
+                main_dish=order["main_dish"],
+                salad_option=order["salad_option"],
+                nothing=order["nothing"],
+            )
+        )
+
+    for order in MOCK_DAILY_ORDERS_EMPLOYEES:
+        person = employees_dict[order["employee_number"]]
+        location = groups_dict[person.group_id].location_id
+
+        orders.append(
+            DailyOrder(
+                person_id=person.id,
+                location_id=location,
+                date=date,
+                main_dish=order["main_dish"],
+                salad_option=order["salad_option"],
+                nothing=order["nothing"],
+            )
+        )
+
+    DailyOrdersService.create_daily_orders(orders)
+
+    print(f"Inserted {len(orders)} daily orders for persons")
 
 
 def start_cronjob(app, os):
