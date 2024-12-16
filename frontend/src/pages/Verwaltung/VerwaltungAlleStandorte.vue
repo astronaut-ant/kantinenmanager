@@ -156,18 +156,19 @@ const confirmEdit = () => {
     location_name: locationToEdit.value.location_name,
     user_id_location_leader: newLocationLeaderID.value,
   };
-  const oldLocationLeaderID = locationToEdit.value.location_leader?.id;
-  const oldLeaderIndex = locationLeaders.value.findIndex(
-    (leader) => leader.id === oldLocationLeaderID
-  )
-  if (oldLocationLeaderID) {
-    locationLeaders.value[oldLeaderIndex].leader_of_location = null;
-  };
+
   axios
     .put(import.meta.env.VITE_API + `/api/locations/${locationToEdit.value.id}`, updatedLocation, {
       withCredentials: true,
     })
     .then(() => {
+      const oldLocationLeaderID = locationToEdit.value.location_leader?.id;
+      const oldLeaderIndex = locationLeaders.value.findIndex(
+        (leader) => leader.id === oldLocationLeaderID
+      )
+      if (oldLocationLeaderID) {
+        locationLeaders.value[oldLeaderIndex].leader_of_location = null;
+      };
       const updatedLeader = locationLeaders.value.find(
         (leader) => leader.id === newLocationLeaderID.value
       );

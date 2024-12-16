@@ -9,7 +9,8 @@
         <v-form ref="validation" v-model="form" @submit.prevent="handleSubmit">
           <v-text-field
             v-model.number="employee_number"
-            :rules="[required]"
+            type="text"
+            :rules="[required, onlyIntegers]"
             label="Kunden-Nr."
             clearable
           ></v-text-field>
@@ -31,6 +32,7 @@
                 v-bind="props"
                 v-model="group_name"
                 label="Gruppen Name"
+                :rules="[required]"
                 clearable
                 readonly
                 append-inner-icon="mdi-chevron-down"
@@ -119,16 +121,22 @@ const handleSubmit = () => {
       last_name: last_name.value,
       location_name: location_name.value,
     }, { withCredentials: true })
-    .then(
-      (response) => console.log(response.data),
-      showConfirm.value = true,
-    )
+    .then((response) => {
+      console.log(response.data);
+      showConfirm.value = true;
+    })
     .catch((err) => console.log(err));
-  showConfirm.value = true;
 };
 
 const required = (v) => {
   return !!v || "Eingabe erforderlich";
+};
+
+const onlyIntegers = (value) => {
+  if (value === "" || Number.isInteger(Number(value))) {
+    return true;
+  }
+  return "Nur ganze Zahlen erlaubt";
 };
 
 const emptyForm = () => {

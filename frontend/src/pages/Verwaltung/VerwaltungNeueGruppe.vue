@@ -92,7 +92,7 @@ const standortLookupTable = {};
 onMounted(() => {
   // Gruppenleiter laden
   axios
-    .get(import.meta.env.VITE_API + "/api/users", { withCredentials: true })
+    .get(import.meta.env.VITE_API + "/api/users/group-leaders", { withCredentials: true })
     .then((response) => {
       response.data.forEach((user) => {
         gruppenleiterLookupTable[`${user.first_name} ${user.last_name}`] = user.id;
