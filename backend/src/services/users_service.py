@@ -28,6 +28,11 @@ class UsersService:
     @staticmethod
     def get_users(user_group_filter: Optional[UserGroup] = None) -> list[User]:
         """Get all users saved in the database."""
+        if user_group_filter:
+            try:
+                user_group_filter = UserGroup(user_group_filter)
+            except ValueError as err:
+                pass
 
         return UsersRepository.get_users(user_group_filter)
 

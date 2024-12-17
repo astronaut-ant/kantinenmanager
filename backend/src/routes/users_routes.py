@@ -49,17 +49,7 @@ def get_users():
     Authorization: Verwaltung
     ---
     """
-    try:
-        user_group_filter = UserGroup(request.args.get("user_group_filter"))
-    except ValueError as err:
-        abort_with_err(
-            ErrMsg(
-                status_code=400,
-                title="Ungültige Nutzergruppe",
-                description="Die Nutzergruppe ist nicht valide",
-                details=str(err),
-            )
-        )
+    user_group_filter = request.args.get("user_group_filter")
     users = UsersService.get_users(user_group_filter)
 
     return UserFullSchema(many=True).dump(users)
