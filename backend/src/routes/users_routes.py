@@ -31,7 +31,7 @@ users_routes = Blueprint("users_routes", __name__)
     {
         "tags": ["users"],
         "parameters": [
-            {"in": "query", "name": "user_group", "schema": {"type": "string"}},
+            {"in": "query", "name": "user_group_filter", "schema": {"type": "string"}},
         ],
         "responses": {
             200: {
