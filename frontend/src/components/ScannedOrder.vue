@@ -10,11 +10,16 @@
       class="d-flex justify-center mt-2 mb-10"
     >
       <DoubleCircle v-if="maindishBlue && salad" color="primary" />
-      <DoubleCircle v-else-if="maindishRed && salad" color="red" />
-      <SingleCircle v-else-if="maindishBlue && !salad" color="primary" />
-      <SingleCircle v-else-if="maindishRed && !salad" color="red" />
-      <SingleCircle v-else-if="salad" color="success" />
-      <v-icon v-else color="red" size="15vw">mdi-hand-back-left</v-icon>
+      <DoubleCircle v-if="maindishRed && salad" color="red" />
+      <SingleCircle v-if="maindishBlue && !salad" color="primary" />
+      <SingleCircle v-if="maindishRed && !salad" color="red" />
+      <SingleCircle
+        v-if="salad && !maindishRed && !maindishBlue"
+        color="success"
+      />
+      <v-icon v-if="!accepted" color="red" size="15vw"
+        >mdi-hand-back-left</v-icon
+      >
     </v-container>
     <div class="d-flex justify-center mt-15">
       <v-btn
@@ -82,31 +87,61 @@ const forbidden = () => {
   salad.value = false;
   accepted.value = false;
 };
+const handOut = (order) => {
+  console.log("putting");
+  axios
+    .put(
+      `http://localhost:4200/api/daily-orders/${order.id}`,
+      { handed_out: true },
+      { withCredentials: true }
+    )
+    .then(console.log("test"))
+    .catch((err) => {
+      console.log(err);
+    });
+};
 
 axios
   .get(`http://localhost:4200/api/daily-orders/person/${scannedId}`, {
     withCredentials: true,
   })
   .then((response) => {
-    order = response.data;
+    const order = response.data;
     console.log(order);
     if (order.handed_out) {
+      console.log("1");
       forbidden();
     } else if (order.salad_option && order.main_dish === "rot") {
+      console.log("2");
       redAndGreen();
+      handOut(order);
     } else if (order.salad_option && order.main_dish === "blau") {
+      console.log("3");
       blueAndGreen();
+      handOut(order);
     } else if (order.salad_option) {
+      console.log("4");
       green();
+      handOut(order);
     } else if (!order.salad_option && order.main_dish === "rot") {
+      console.log("5");
       red();
+      handOut(order);
     } else if (!order.salad_option && order.main_dish === "blau") {
+      console.log("6");
       blue();
+      handOut(order);
     } else {
+      console.log("7");
       forbidden();
     }
   })
+
   .catch((err) => {
     forbidden();
   });
+
+// })
+
+// })
 </script>
