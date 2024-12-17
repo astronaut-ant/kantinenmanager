@@ -24,7 +24,9 @@ class PreOrder(db.Model):
 
     # Felder der Tabelle:
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    person_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("person.id"))
+    person_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("person.id", ondelete="CASCADE")
+    )
     location_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("location.id"))
     date: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     nothing: Mapped[bool] = mapped_column(

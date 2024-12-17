@@ -90,14 +90,12 @@ const standortLookupTable = {};
 
 //fill Dropdown-Menus and id-Lookup
 onMounted(() => {
+  // Gruppenleiter laden
   axios
-    .get(import.meta.env.VITE_API + "/api/users", { withCredentials: true })
+    .get(import.meta.env.VITE_API + "/api/users/group-leaders", { withCredentials: true })
     .then((response) => {
       response.data.forEach((user) => {
-        if (user.user_group === "gruppenleitung") {
-          gruppenleiterLookupTable[`${user.first_name} ${user.last_name}`] =
-            user.id;
-        }
+        gruppenleiterLookupTable[`${user.first_name} ${user.last_name}`] = user.id;
       });
       if (Object.keys(gruppenleiterLookupTable).length === 0) {
         noGruppenleiter.value = true;

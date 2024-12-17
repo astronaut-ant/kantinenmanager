@@ -84,7 +84,6 @@ class GroupsService:
             group_location = group.location.location_name
             if group_location not in locations:
                 locations[group_location] = []
-                # are group objects or only group names needed?
             locations[group_location].append(group_name)
         return locations
 

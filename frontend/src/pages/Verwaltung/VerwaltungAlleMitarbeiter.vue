@@ -27,7 +27,7 @@
       </v-expand-transition>
     </div>
     <div>
-      <v-data-table :headers="headers"  :items="items" :search="search" :sort-by="sortBy" :loading="loading" item-value="employee_number">
+      <v-data-table :headers="headers"  :items="items" :search="search" :sort-by="sortBy" :loading="loading" :hover="true" item-value="employee_number">
       <template v-slot:[`item.actions`]="{ item }">
         <v-btn icon="mdi-qrcode" class="bg-green mr-2" @click="getQRCode(item)" size="small"></v-btn>
         <v-btn icon="mdi-lead-pencil" class="bg-primary mr-2" @click="openeditDialog(item)" size="small"></v-btn>
@@ -273,12 +273,12 @@
   });
 
   const headers = [
-     { title: "Nummer", key: "employee_number"},
-     { title: "Nachname", key: "last_name" },
-     { title: "Vorname", key: "first_name" },
-     { title: "Gruppe", key: "group_name" },
-     { title: "Standort", key: "location_name"},
-     { title: "", key: "actions", sortable: false },];
+     { title: "Nummer", key: "employee_number", nowrap: true},
+     { title: "Nachname", key: "last_name", nowrap: true },
+     { title: "Vorname", key: "first_name", nowrap: true },
+     { title: "Gruppe", key: "group_name", nowrap: true },
+     { title: "Standort", key: "location_name", nowrap: true},
+     { title: "", key: "actions", sortable: false, nowrap: true },];
   const sortBy = [{ key: 'employee_number', order: 'asc' }]
   
   const fetchGroups = () => {

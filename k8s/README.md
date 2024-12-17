@@ -79,3 +79,23 @@ kubectl scale deployment <deployment-name> --replicas=<number> # Scale a deploym
 
 kubectl rollout status deployment <deployment-name> # Get status of deployment
 ```
+
+## Create an user in Postgres
+
+```bash
+kubectl get pods
+
+kubectl exec -it <db-deployment-...> -- /bin/bash
+
+psql -U postgres
+
+CREATE USER adminer WITH ENCRYPTED PASSWORD '<password>';
+
+GRANT ALL ON SCHEMA public TO adminer;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO adminer;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO adminer;
+
+# For future additions
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO adminer;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON SEQUENCES TO adminer;
+```

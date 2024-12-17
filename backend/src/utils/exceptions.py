@@ -122,3 +122,9 @@ class OrderTransferError(Exception):
     """Exception raised when the transfer of orders failed."""
 
     pass
+
+
+class AccessDeniedError(Exception):
+    """Exception raised when the user has no access to the requested resource."""
+
+    pass

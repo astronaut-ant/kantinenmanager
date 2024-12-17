@@ -12,7 +12,7 @@ MOCK_GROUPS = [
     {
         "group_name": "Hufflepuff",
         "group_leader": "pomona_sprout",
-        "replacement": "gruppenleitung",
+        "replacement": "minerva_mcgonagall",
         "location_name": "hogwarts",
     },
     {
@@ -33,13 +33,12 @@ MOCK_GROUPS = [
     {
         "group_name": "Ministry of Magic",
         "group_leader": "cornelius_fudge",
-        "replacement": "gruppenleitung",
+        "replacement": "voldemort",
         "location_name": "london",
     },
     {
         "group_name": "Dumbledore's Army",
         "group_leader": "harry_potter",
-        "replacement": "gruppenleitung",
         "location_name": "hogwarts",
     },
 ]

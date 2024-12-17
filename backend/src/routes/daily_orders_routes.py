@@ -4,7 +4,7 @@ from flask import Blueprint, jsonify, request, g
 from flasgger import swag_from
 from marshmallow import ValidationError
 
-from src.utils.exceptions import NotFoundError
+from src.utils.exceptions import NotFoundError, AccessDeniedError
 from src.models.user import UserGroup
 from src.schemas.daily_orders_schema import DailyOrderFullSchema, CountOrdersSchema
 from src.services.daily_orders_service import DailyOrdersService, WrongLocationError
@@ -40,7 +40,7 @@ def get_daily_orders():
     """
 
     try:
-        all_daily_orders = DailyOrdersService.get_daily_orders_filtered_by_user_scope(
+        daily_orders = DailyOrdersService.get_daily_orders_filtered_by_user_scope(
             g.user_id
         )
     except ValueError as err:  # TODO Specific exceptions
@@ -53,8 +53,7 @@ def get_daily_orders():
             )
         )
 
-    daily_orders_dicts = [order.to_dict() for order in all_daily_orders]
-    return jsonify(daily_orders_dicts), 200
+    return DailyOrderFullSchema(many=True).dump(daily_orders)
 
 
 @daily_orders_routes.get("/api/daily-orders/counted")
@@ -76,7 +75,7 @@ def get_daily_orders():
         },
     }
 )
-def get_daily_orders_count():
+def get_daily_orders_counted():
     """
     Count the number of daily orders (rot, blau, salad_option) for each location
     """
@@ -92,6 +91,7 @@ def get_daily_orders_count():
                 details="Ein Fehler ist aufgetreten.",
             )
         )
+
     return jsonify(orders_counted_by_location), 200
 
 
@@ -122,6 +122,7 @@ def get_daily_order(person_id: UUID):
     """
     Get daily order for a person (kitchen staff)
     """
+
     try:
         daily_order = DailyOrdersService.get_daily_order(person_id, g.user_id)
     except NotFoundError as err:
@@ -152,7 +153,60 @@ def get_daily_order(person_id: UUID):
             )
         )
 
-    return daily_order, 200
+    return DailyOrderFullSchema().dump(daily_order)
+
+
+@daily_orders_routes.get("/api/daily-orders/<uuid:group_id>")
+@login_required(groups=[UserGroup.gruppenleitung])
+@swag_from(
+    {
+        "tags": ["daily_orders"],
+        "parameters": [
+            {
+                "in": "path",
+                "name": "group_id",
+                "required": True,
+                "schema": {"type": "string", "format": "uuid"},
+            },
+        ],
+        "responses": {
+            200: {
+                "description": "Returns daily orders for a group",
+                "schema": {"type": "array", "items": DailyOrderFullSchema},
+            },
+            404: {"description": "Not found"},
+        },
+    }
+)
+def get_daily_orders_for_group(group_id: UUID):
+    """
+    Get daily orders for a group (group leader)
+    """
+
+    try:
+        daily_orders = DailyOrdersService.get_daily_orders_for_group(
+            group_id, g.user_id
+        )
+    except NotFoundError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Gruppe nicht gefunden",
+                description=f"Gruppe mit ID {group_id} konnte nicht gefunden werden.",
+                details=str(err),
+            )
+        )
+    except AccessDeniedError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=403,
+                title="Nicht autorisiert",
+                description="Sie haben keinen Zugriff auf diese Gruppe.",
+                details=str(err),
+            )
+        )
+
+    return DailyOrderFullSchema(many=True).dump(daily_orders), 200
 
 
 @daily_orders_routes.put("/api/daily-orders/<int:daily_order_id>")
@@ -194,6 +248,7 @@ def update_daily_order(daily_order_id: int):
     """
     Update an existing daily order for a person (kitchen staff)
     """
+
     try:
         order = DailyOrderFullSchema(only=("handed_out",)).load(request.json)
     except ValidationError as err:
@@ -229,4 +284,4 @@ def update_daily_order(daily_order_id: int):
             )
         )
 
-    return order, 200
+    return DailyOrderFullSchema().dump(order), 200

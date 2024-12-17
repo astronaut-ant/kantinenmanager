@@ -110,7 +110,7 @@ const handleSubmit = () => {
       last_name: last_name.value,
       user_group: user_group.value,
       username: username.value,
-    })
+    }, { withCredentials: true })
     .then((response) => {
       console.log(response.data.id);
       axios

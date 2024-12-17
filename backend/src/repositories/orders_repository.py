@@ -248,9 +248,12 @@ class OrdersRepository:
     def get_daily_order_by_id(daily_order_id: UUID) -> DailyOrder:
         """
         Get daily order by id
+
         :param daily_order_id: Daily order id
+
         :return: DailyOrder object
         """
+
         return db.session.scalars(
             select(DailyOrder).filter(DailyOrder.id == daily_order_id)
         ).first()
@@ -258,12 +261,15 @@ class OrdersRepository:
     @staticmethod
     def get_all_daily_orders() -> List[DailyOrder]:
         """
-        Get all orders in the daily orders table
+        Get all orders in the daily orders
+
         :return: List of daily orders
         """
+
+        today = datetime.now().date()
+
         return db.session.scalars(
-            select(DailyOrder)
-            # .filter(DailyOrder.date = date.today().date())  incase DailyOrder gets .date field
+            select(DailyOrder).where(DailyOrder.date == today)
         ).all()
 
     @staticmethod
@@ -280,6 +286,32 @@ class OrdersRepository:
             ).all()
         else:
             return []
+
+    @staticmethod
+    def get_daily_orders_for_group(group_id: UUID, user_id: UUID) -> List[DailyOrder]:
+        """
+        Get daily orders for a group
+
+        :param group_id: UUID
+
+        :return: Daily orders in a response schmea
+        """
+        return db.session.scalars(
+            select(DailyOrder)
+            .join(Employee, DailyOrder.person_id == Employee.id)
+            .filter(Employee.group_id == group_id)
+        ).all()
+
+    @staticmethod
+    def create_daily_orders(daily_orders: List[DailyOrder]):
+        """
+        Create daily orders
+
+        :param daily_orders: List of daily orders
+        """
+
+        db.session.bulk_save_objects(daily_orders)
+        db.session.commit()
 
     ############################ OldOrders ############################
     @staticmethod

@@ -9,15 +9,17 @@ import KuecheUebersicht from "@/pages/Kuechenpersonal/KuecheUebersicht.vue";
 import KuecheQR from "@/pages/Kuechenpersonal/KuecheQR.vue";
 import AccessDenied from "@/pages/AccessDenied.vue";
 import VerwaltungNeuerMitarbeiterCsvUpload from "@/pages/Verwaltung/VerwaltungNeuerMitarbeiterCsvUpload.vue";
+import StandortUebersicht from "@/pages/Standortleitung/StandortleitungUebersicht.vue";
+import StandortVertretung from "@/pages/Standortleitung/StandortleitungVertretung.vue";
 import axios from "axios";
-import Gruppenleitung from "@/pages/Gruppenleitung/Gruppenleitung.vue";
-import Standortleitung from "@/pages/Standortleitung/Standortleitung.vue";
 import VerwaltungAlleMitarbeiter from "@/pages/Verwaltung/VerwaltungAlleMitarbeiter.vue";
 import VerwaltungAlleStandorte from "@/pages/Verwaltung/VerwaltungAlleStandorte.vue";
 import VerwaltungNeuerStandort from "@/pages/Verwaltung/VerwaltungNeuerStandort.vue";
 import VerwaltungAlleGruppen from "@/pages/Verwaltung/VerwaltungAlleGruppen.vue";
 import VerwaltungNeueGruppe from "@/pages/Verwaltung/VerwaltungNeueGruppe.vue";
 import VerwaltungMitarbeiterManuell from "@/pages/Verwaltung/VerwaltungMitarbeiterManuell.vue";
+import GruppenleitungVorbestellungen from "@/pages/Gruppenleitung/GruppenleitungVorbestellungen.vue";
+import GruppenleitungMeineGruppen from "@/pages/Gruppenleitung/GruppenleitungMeineGruppen.vue";
 
 const routes = [
   { path: "/", component: index, redirect: "/login" },
@@ -110,13 +112,6 @@ const routes = [
   },
 
   {
-    path: "/gruppenleitung/uebersicht",
-    component: Gruppenleitung,
-    beforeEnter: (to, from, next) => {
-      protectRoute(next, "gruppenleitung");
-    },
-  },
-  {
     path: "/verwaltung/mitarbeiter/neuerMitarbeiter",
     component: VerwaltungNeuerMitarbeiter,
     beforeEnter: (to, from, next) => {
@@ -169,20 +164,6 @@ const routes = [
   },
 
   {
-    path: "/gruppenleitung/uebersicht",
-    component: Gruppenleitung,
-    beforeEnter: (to, from, next) => {
-      protectRoute(next, "gruppenleitung");
-    },
-  },
-  {
-    path: "/standortleitung/uebersicht",
-    component: Standortleitung,
-    beforeEnter: (to, from, next) => {
-      protectRoute(next, "standortleitung");
-    },
-  },
-  {
     path: "/kuechenpersonal/uebersicht",
     component: KuecheUebersicht,
     beforeEnter: (to, from, next) => {
@@ -195,6 +176,36 @@ const routes = [
     component: KuecheQR,
     beforeEnter: (to, from, next) => {
       protectRoute(next, "kuechenpersonal");
+    },
+  },
+
+  {
+    path: "/standortleitung/uebersicht",
+    component: StandortUebersicht,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "standortleitung");
+    },
+  },
+
+  {
+    path: "/standortleitung/vertretung",
+    component: StandortVertretung,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "standortleitung");
+    },
+  },
+  {
+    path: "/gruppenleitung/meineGruppen",
+    component: GruppenleitungMeineGruppen,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "gruppenleitung");
+    },
+  },
+  {
+    path: "/gruppenleitung/vorbestellungen",
+    component: GruppenleitungVorbestellungen,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "gruppenleitung");
     },
   },
 ];
