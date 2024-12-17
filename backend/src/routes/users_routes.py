@@ -30,6 +30,9 @@ users_routes = Blueprint("users_routes", __name__)
 @swag_from(
     {
         "tags": ["users"],
+        "parameters": [
+            {"in": "query", "name": "user_group", "schema": {"type": "string"}},
+        ],
         "responses": {
             200: {
                 "description": "Returns a list of all users",
@@ -46,8 +49,18 @@ def get_users():
     Authorization: Verwaltung
     ---
     """
-
-    users = UsersService.get_users()
+    try:
+        user_group = UserGroup(request.args.get("user_group"))
+    except ValueError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Ungültige Nutzergruppe",
+                description="Die Nutzergruppe ist nicht valide",
+                details=str(err),
+            )
+        )
+    users = UsersService.get_users(user_group)
 
     return UserFullSchema(many=True).dump(users)
 

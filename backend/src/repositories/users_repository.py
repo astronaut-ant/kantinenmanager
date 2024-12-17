@@ -6,6 +6,7 @@ from src.models.group import Group
 from src.models.location import Location
 from src.database import db
 from uuid import UUID
+from typing import Optional
 
 # Repositories kapseln den Zugriff auf die Datenbank. Sie enthalten die Logik,
 # um Daten zu manipulieren und zu lesen.
@@ -18,6 +19,20 @@ from uuid import UUID
 
 class UsersRepository:
     """Repository to handle database operations for user data."""
+
+    @staticmethod
+    def get_users(user_group: Optional[UserGroup] = None) -> list[User]:
+        """Get all users saved in the database
+
+        :params user_group: optional filter for user group
+        :return: A list of all users with all properties, optionally filtered by user group
+        """
+        if user_group:
+            return db.session.scalars(
+                select(User).where(User.user_group == user_group)
+            ).all()
+
+        return db.session.scalars(select(User)).all()
 
     @staticmethod
     def get_user_by_id(user_id: UUID) -> User | None:
@@ -41,15 +56,6 @@ class UsersRepository:
         """
 
         return db.session.scalars(select(User).where(User.username == username)).first()
-
-    @staticmethod
-    def get_users() -> list[User]:
-        """Get all users saved in the database
-
-        :return: A list of all users with all properties
-        """
-
-        return list(db.session.scalars(select(User)).all())
 
     @staticmethod
     def get_users_by_user_group(group: UserGroup) -> list[User]:
