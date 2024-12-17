@@ -113,10 +113,10 @@ const handleSubmit = () => {
         last_name: last_name.value,
         user_group: user_group.value,
         username: username.value,
-        location_id:
-          user_group.value == "kuechenpersonal"
-            ? locationMap[user_location.value]
-            : null,
+        // location_id:
+        //   user_group.value == "kuechenpersonal"
+        //     ? locationMap[user_location.value]
+        //     : null,
       },
       { withCredentials: true }
     )
