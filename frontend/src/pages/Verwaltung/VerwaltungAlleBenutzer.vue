@@ -6,6 +6,8 @@
       :id="user.id"
       :name="user.username"
       :role="user.user_group"
+      :firstName="user.first_name"
+      :lastName="user.last_name"
       @delete="opendeleteDialog"
       @edit="openeditDialog"
     />

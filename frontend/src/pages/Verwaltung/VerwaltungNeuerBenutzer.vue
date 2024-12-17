@@ -105,17 +105,23 @@ const initialPassword = ref("");
 
 const handleSubmit = () => {
   axios
-    .post(import.meta.env.VITE_API + "/api/users ", {
-      first_name: first_name.value,
-      last_name: last_name.value,
-      user_group: user_group.value,
-      username: username.value,
-    }, { withCredentials: true })
+    .post(
+      import.meta.env.VITE_API + "/api/users ",
+      {
+        first_name: first_name.value,
+        last_name: last_name.value,
+        user_group: user_group.value,
+        username: username.value,
+      },
+      { withCredentials: true }
+    )
     .then((response) => {
       console.log(response.data.id);
       axios
         .put(
-          `${import.meta.env.VITE_API}/api/users/${response.data.id}/reset-password`,
+          `${import.meta.env.VITE_API}/api/users/${
+            response.data.id
+          }/reset-password`,
           {},
           { withCredentials: true }
         )
