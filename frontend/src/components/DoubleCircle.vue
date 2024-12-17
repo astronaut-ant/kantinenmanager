@@ -1,14 +1,14 @@
 <template>
   <v-sheet
-    class="rounded-circle me-n5 opacity-70"
+    class="rounded-circle me-n5 elevation-15"
     :class="formattedColor"
-    height="100"
-    width="100"
+    height="15vw"
+    width="15vw"
   ></v-sheet>
   <v-sheet
-    class="rounded-circle ms-n5 bg-green opacity-70"
-    height="100"
-    width="100"
+    class="rounded-circle ms-n5 bg-green elevation-15"
+    height="15vw"
+    width="15vw"
   ></v-sheet>
 </template>
 

@@ -1,9 +1,10 @@
 <template>
   <v-sheet
-    class="rounded-circle opacity-70"
+    class="rounded-circle"
+    elevation="15"
     :class="formattedColor"
-    height="100"
-    width="100"
+    height="15vw"
+    width="15vw"
   ></v-sheet>
 </template>
 
