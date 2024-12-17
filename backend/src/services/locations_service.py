@@ -6,6 +6,7 @@ from src.repositories.locations_repository import LocationsRepository
 from src.utils.exceptions import (
     LocationAlreadyExistsError,
     LeaderDoesNotExist,
+    NotFoundError,
 )
 
 
@@ -53,7 +54,7 @@ class LocationsService:
             )
         if LocationsRepository.get_location_by_leader(location_leader.id):
             raise LocationAlreadyExistsError(
-                f"Gruppenleiter {location_leader.username} ist bereits Standortleiter"
+                f"User {location_leader.username} ist bereits Standortleiter"
             )
 
         location_id = LocationsRepository.create_location(
@@ -63,24 +64,37 @@ class LocationsService:
 
     @staticmethod
     def update_location(
-        location: Location, location_name: str, user_id_location_leader: UUID
+        location_id: UUID, location_name: str, user_id_location_leader: UUID
     ) -> Location:
         """Update a location
 
-        :param locatio: The location to update
+        :param locatio_id: ID of the location to update
         :param location_name: The (new) name of the location
         :param user_id_location_leader: The (new) ID of the location leader
 
         :return: The updated location
         """
+        location = LocationsService.get_location_by_id(location_id)
+
+        if location == None:
+            raise NotFoundError
+
         if (
             location_name != location.location_name
             and LocationsRepository.get_location_by_name(location_name)
         ):
             raise LocationAlreadyExistsError(
-                f"Standort {location_name} existiert bereits"
+                f"Ein anderer Standort mit Name {location_name} existiert bereits."
             )
-        # LocationsRepository.get_location_by_leader(location_leader.id)
+
+        if (
+            user_id_location_leader != location.user_id_location_leader
+            and LocationsRepository.get_location_by_leader(user_id_location_leader)
+        ):
+            raise LocationAlreadyExistsError(
+                f"User mit ID {user_id_location_leader} ist bereits Standortleiter eines anderen Standorts."
+            )
+
         location.location_name = location_name
         location.user_id_location_leader = user_id_location_leader
 

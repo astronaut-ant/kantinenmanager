@@ -11,6 +11,7 @@ from src.services.locations_service import LocationsService
 from src.utils.exceptions import (
     LocationAlreadyExistsError,
     LeaderDoesNotExist,
+    NotFoundError,
 )
 
 
@@ -140,18 +141,12 @@ def create_location():
     return jsonify({"location_id": location_id}), 201
 
 
-@locations_routes.put("/api/locations/<uuid:location_id>")
+@locations_routes.put("/api/locations/")
 @login_required(groups=[UserGroup.verwaltung])
 @swag_from(
     {
         "tags": ["locations"],
         "parameters": [
-            {
-                "in": "path",
-                "name": "location_id",
-                "required": True,
-                "schema": {"type": "string"},
-            },
             {"in": "body", "name": "body", "schema": LocationFullSchema},
         ],
         "responses": {
@@ -166,7 +161,7 @@ def create_location():
         },
     }
 )
-def update_location(location_id: UUID):
+def update_location():
     """Update a location"""
 
     try:
@@ -181,24 +176,27 @@ def update_location(location_id: UUID):
             )
         )
 
-    location = LocationsService.get_location_by_id(location_id)
-    if location is None:
+    try:
+        updated_location = LocationsService.update_location(
+            location_id=body["id"],
+            user_id_location_leader=body["user_id_location_leader"],
+            location_name=body["location_name"],
+        )
+    except NotFoundError as err:
         abort_with_err(
             ErrMsg(
                 status_code=404,
-                title="Standort nicht gefunden",
-                description="Es wurde kein Standort mit dieser ID gefunden",
+                title=f"Standort nicht gefunden",
+                description=f"Der Standort mit ID {body['id']} konnte nicht gefunden werden.",
+                details=err,
             )
         )
-
-    try:
-        updated_location = LocationsService.update_location(location, **body)
     except LocationAlreadyExistsError:
         abort_with_err(
             ErrMsg(
                 status_code=400,
                 title="Standort konnte nicht aktualisiert werden",
-                description="Der Standort konnte nicht aktualisiert werden",
+                description=f"Der Standort mit ID {body['id']} konnte nicht aktualisiert werden",
             )
         )
 
