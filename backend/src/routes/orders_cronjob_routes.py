@@ -5,7 +5,7 @@ from flasgger import swag_from
 from src.utils.auth_utils import login_required
 from src.utils.error import ErrMsg, abort_with_err
 from src.models.user import UserGroup
-from src.repositories.orders_repository import OrdersRepository
+from src.repositories.orders_repository import OrdersRepository, OrdersFilters
 from src.models.oldorder import OldOrder
 from src.models.preorder import PreOrder
 from src.models.dailyorder import DailyOrder
