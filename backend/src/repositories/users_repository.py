@@ -21,15 +21,15 @@ class UsersRepository:
     """Repository to handle database operations for user data."""
 
     @staticmethod
-    def get_users(user_group: Optional[UserGroup] = None) -> list[User]:
+    def get_users(user_group_filter: Optional[UserGroup] = None) -> list[User]:
         """Get all users saved in the database
 
         :params user_group: optional filter for user group
         :return: A list of all users with all properties, optionally filtered by user group
         """
-        if user_group:
+        if user_group_filter:
             return db.session.scalars(
-                select(User).where(User.user_group == user_group)
+                select(User).where(User.user_group == user_group_filter)
             ).all()
 
         return db.session.scalars(select(User)).all()

@@ -50,7 +50,7 @@ def get_users():
     ---
     """
     try:
-        user_group = UserGroup(request.args.get("user_group"))
+        user_group_filter = UserGroup(request.args.get("user_group_filter"))
     except ValueError as err:
         abort_with_err(
             ErrMsg(
@@ -60,7 +60,7 @@ def get_users():
                 details=str(err),
             )
         )
-    users = UsersService.get_users(user_group)
+    users = UsersService.get_users(user_group_filter)
 
     return UserFullSchema(many=True).dump(users)
 
