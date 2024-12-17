@@ -97,6 +97,7 @@
                 <v-select
                   class="mb-2"
                   v-if="user_group === 'kuechenpersonal'"
+                  v-model="locationName"
                   :items="allLocations"
                   :rules="[required]"
                   label="Standort"
@@ -160,7 +161,9 @@ const showConfirm = ref(false);
 const initialPassword = ref();
 const allLocations = ref([]);
 const location_id = ref("");
-
+const locationName = ref("Test");
+const locationMap = {};
+const locationMapReversed = {};
 onMounted(() => {
   axios
     .get(import.meta.env.VITE_API + "/api/users", { withCredentials: true })
@@ -174,12 +177,15 @@ onMounted(() => {
     .get(import.meta.env.VITE_API + "/api/locations", { withCredentials: true })
     .then((response) => {
       response.data.forEach((location) => {
-        allLocations.value.push(location.location_name);
+        const name = location.location_name;
+        const id = location.id;
+        locationMap[id] = name;
+        locationMapReversed[name] = id;
       });
+      allLocations.value = Object.values(locationMap);
+      console.log(locationMap);
     })
-    .catch((err) => console.log(err));
-
-  //TODO Fetch actual location for initial selection in v-Select
+    .catch((err) => console.log(err.response.data.description));
 });
 
 const opendeleteDialog = (id) => {
@@ -223,13 +229,14 @@ const closeeditDialog = () => {
 
 const openeditDialog = (id) => {
   const user = users.value.find((user) => user.id === id);
-
+  console.log("userLocationId", user.location_id);
+  locationName.value = locationMap[user.location_id];
+  console.log("LocationName:", locationName.value);
   userToEdit.value = id;
   first_name.value = user.first_name;
   last_name.value = user.last_name;
   username.value = user.username;
   user_group.value = user.user_group;
-  location_id.value = user.location_id;
   editDialog.value = true;
 };
 
@@ -264,7 +271,7 @@ const confirmEdit = () => {
     last_name: last_name.value,
     username: username.value,
     user_group: user_group.value,
-    location_id: location_id.value,
+    location_id: locationMapReversed[locationName.value],
   };
 
   axios
@@ -275,11 +282,13 @@ const confirmEdit = () => {
         withCredentials: true,
       }
     )
-    .then(() => {
+    .then((response) => {
+      console.log(response.data);
       const index = users.value.findIndex((u) => u.id === userToEdit.value);
       if (index !== -1) {
         users.value[index] = { ...users.value[index], ...updatedUser };
       }
+      console.log("DONE");
       closeeditDialog();
       snackbarText.value = "Der Benutzer wurde erfolgreich aktualisiert!";
       snackbar.value = true;

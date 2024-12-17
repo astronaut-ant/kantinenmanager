@@ -25,13 +25,6 @@
               <v-radio label="Küchenpersonal" value="kuechenpersonal"></v-radio>
             </div>
           </v-radio-group>
-          <v-select
-            v-if="user_group === 'kuechenpersonal'"
-            v-model="user_location"
-            :items="allLocations"
-            :rules="[required]"
-            label="Standort"
-          ></v-select>
           <v-text-field
             v-model="first_name"
             :rules="[required]"
@@ -53,6 +46,13 @@
             label="Benutzername"
             clearable
           ></v-text-field>
+          <v-select
+            v-if="user_group === 'kuechenpersonal'"
+            v-model="user_location"
+            :items="allLocations"
+            :rules="[required]"
+            label="Standort"
+          ></v-select>
           <CustomAlert
             v-if="notSuccessful"
             class="mb-7"
@@ -102,6 +102,7 @@ const allLocations = ref([]);
 const notSuccessful = ref(false);
 const errorMessage = ref();
 const initialPassword = ref("");
+const locationMap = {};
 
 const handleSubmit = () => {
   axios
@@ -112,6 +113,10 @@ const handleSubmit = () => {
         last_name: last_name.value,
         user_group: user_group.value,
         username: username.value,
+        location_id:
+          user_group.value == "kuechenpersonal"
+            ? locationMap[user_location.value]
+            : null,
       },
       { withCredentials: true }
     )
@@ -155,9 +160,11 @@ onMounted(() => {
     .get(import.meta.env.VITE_API + "/api/locations", { withCredentials: true })
     .then((response) => {
       response.data.forEach((location) => {
-        allLocations.value.push(location.location_name);
+        const name = location.location_name;
+        const id = location.id;
+        locationMap[name] = id;
       });
-      console.log(allLocations.value);
+      allLocations.value = Object.keys(locationMap);
     })
     .catch((err) => console.log(err.response.data.description));
 });
