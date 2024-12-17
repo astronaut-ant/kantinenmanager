@@ -10,7 +10,8 @@ from flasgger import swag_from
 from src.services.locations_service import LocationsService
 from src.utils.exceptions import (
     LocationAlreadyExistsError,
-    GroupLeaderDoesNotExistError,
+    LeaderDoesNotExist,
+    NotFoundError,
 )
 
 
@@ -128,7 +129,7 @@ def create_location():
                 detail=str(err),
             )
         )
-    except GroupLeaderDoesNotExistError as err:
+    except LeaderDoesNotExist as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
@@ -150,7 +151,7 @@ def create_location():
                 "in": "path",
                 "name": "location_id",
                 "required": True,
-                "schema": {"type": "string"},
+                "schema": {"type": "string", "format": "uuid"},
             },
             {"in": "body", "name": "body", "schema": LocationFullSchema},
         ],
@@ -181,24 +182,27 @@ def update_location(location_id: UUID):
             )
         )
 
-    location = LocationsService.get_location_by_id(location_id)
-    if location is None:
+    try:
+        updated_location = LocationsService.update_location(
+            location_id=location_id,
+            user_id_location_leader=body["user_id_location_leader"],
+            location_name=body["location_name"],
+        )
+    except NotFoundError as err:
         abort_with_err(
             ErrMsg(
                 status_code=404,
-                title="Standort nicht gefunden",
-                description="Es wurde kein Standort mit dieser ID gefunden",
+                title=f"Standort nicht gefunden",
+                description=f"Der Standort mit ID {body['id']} konnte nicht gefunden werden.",
+                details=err,
             )
         )
-
-    try:
-        updated_location = LocationsService.update_location(location, **body)
     except LocationAlreadyExistsError:
         abort_with_err(
             ErrMsg(
                 status_code=400,
                 title="Standort konnte nicht aktualisiert werden",
-                description="Der Standort konnte nicht aktualisiert werden",
+                description=f"Der Standort mit ID {body['id']} konnte nicht aktualisiert werden",
             )
         )
 
