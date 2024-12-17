@@ -92,6 +92,7 @@ def write_pre_to_daily_to_old_order():
             person_id=pre_order.person_id,
             location_id=pre_order.location_id,
             nothing=pre_order.nothing,
+            date=today,
             main_dish=pre_order.main_dish,
             salad_option=pre_order.salad_option,
             handed_out=False,
