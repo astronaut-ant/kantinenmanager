@@ -102,3 +102,17 @@ class LocationsRepository:
         return db.session.scalars(
             select(Group).where(Group.location_id == location_id)
         ).all()
+
+    @staticmethod
+    def get_location_by_leader(location_leader_id: UUID) -> Location | None:
+        """Retrieve a location by its leader
+
+        :param location_leader_id: The ID of the location leader
+
+        :return: The location with the given leader or None if no location was found
+        """
+        return db.session.scalars(
+            select(Location).where(
+                Location.user_id_location_leader == location_leader_id
+            )
+        ).first()

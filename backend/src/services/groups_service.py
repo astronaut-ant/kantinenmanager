@@ -8,7 +8,7 @@ from src.repositories.locations_repository import LocationsRepository
 from src.utils.exceptions import (
     GroupAlreadyExists,
     GroupDoesNotExistError,
-    GroupLeaderDoesNotExist,
+    LeaderDoesNotExist,
     LocationDoesNotExist,
 )
 
@@ -29,7 +29,7 @@ class GroupsService:
             )
         group_leader_exists = UsersRepository.get_user_by_id(user_id_group_leader)
         if not group_leader_exists:
-            raise GroupLeaderDoesNotExist(
+            raise LeaderDoesNotExist(
                 f"Der User mit der ID {user_id_group_leader} existiert nicht."
             )
         if group_leader_exists.user_group != UserGroup.gruppenleitung:

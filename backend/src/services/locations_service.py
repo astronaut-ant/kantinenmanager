@@ -5,7 +5,7 @@ from src.models.location import Location
 from src.repositories.locations_repository import LocationsRepository
 from src.utils.exceptions import (
     LocationAlreadyExistsError,
-    GroupLeaderDoesNotExistError,
+    LeaderDoesNotExist,
 )
 
 
@@ -45,9 +45,15 @@ class LocationsService:
             raise LocationAlreadyExistsError(
                 f"Standort {location_name} existiert bereits"
             )
-        if not LocationsRepository.get_user_by_id(user_id_location_leader):
-            raise GroupLeaderDoesNotExistError(
+
+        location_leader = LocationsRepository.get_user_by_id(user_id_location_leader)
+        if not location_leader:
+            raise LeaderDoesNotExist(
                 f"Gruppenleiter mit ID {user_id_location_leader} existiert nicht"
+            )
+        if LocationsRepository.get_location_by_leader(location_leader.id):
+            raise LocationAlreadyExistsError(
+                f"Gruppenleiter {location_leader.username} ist bereits Standortleiter"
             )
 
         location_id = LocationsRepository.create_location(
@@ -74,6 +80,7 @@ class LocationsService:
             raise LocationAlreadyExistsError(
                 f"Standort {location_name} existiert bereits"
             )
+        # LocationsRepository.get_location_by_leader(location_leader.id)
         location.location_name = location_name
         location.user_id_location_leader = user_id_location_leader
 

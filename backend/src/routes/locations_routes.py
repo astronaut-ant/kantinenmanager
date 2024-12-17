@@ -10,7 +10,7 @@ from flasgger import swag_from
 from src.services.locations_service import LocationsService
 from src.utils.exceptions import (
     LocationAlreadyExistsError,
-    GroupLeaderDoesNotExistError,
+    LeaderDoesNotExist,
 )
 
 
@@ -128,7 +128,7 @@ def create_location():
                 detail=str(err),
             )
         )
-    except GroupLeaderDoesNotExistError as err:
+    except LeaderDoesNotExist as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
