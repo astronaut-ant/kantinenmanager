@@ -141,12 +141,18 @@ def create_location():
     return jsonify({"location_id": location_id}), 201
 
 
-@locations_routes.put("/api/locations/")
+@locations_routes.put("/api/locations/<uuid:location_id>")
 @login_required(groups=[UserGroup.verwaltung])
 @swag_from(
     {
         "tags": ["locations"],
         "parameters": [
+            {
+                "in": "path",
+                "name": "location_id",
+                "required": True,
+                "schema": {"type": "string", "format": "uuid"},
+            },
             {"in": "body", "name": "body", "schema": LocationFullSchema},
         ],
         "responses": {
@@ -161,7 +167,7 @@ def create_location():
         },
     }
 )
-def update_location():
+def update_location(location_id: UUID):
     """Update a location"""
 
     try:
@@ -178,7 +184,7 @@ def update_location():
 
     try:
         updated_location = LocationsService.update_location(
-            location_id=body["id"],
+            location_id=location_id,
             user_id_location_leader=body["user_id_location_leader"],
             location_name=body["location_name"],
         )
