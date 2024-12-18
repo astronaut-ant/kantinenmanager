@@ -63,16 +63,19 @@ class OrdersRepository:
     """Repository to handle database operations for order data."""
 
     @staticmethod
-    def create_bulk_orders(bulk_orders):
+    def create_bulk_orders(bulk_orders, commit=True):
         """
         Create (pre)orders
         :param orders: List of (pre)orders
         """
         db.session.bulk_save_objects(bulk_orders)
-        db.session.commit()
+        if commit:
+            db.session.commit()
 
     @staticmethod
-    def bulk_delete_orders(orders: List[PreOrder] | List[DailyOrder] | List[OldOrder]):
+    def bulk_delete_orders(
+        orders: List[PreOrder] | List[DailyOrder] | List[OldOrder], commit=True
+    ):
         """
         Delete orders
         :param orders: List of orders
@@ -81,8 +84,11 @@ class OrdersRepository:
             for order in orders:
                 db.session.delete(order)
         except Exception as e:
+            db.session.rollback()
             return e
-        db.session.commit()
+
+        if commit:
+            db.session.commit()
 
     @staticmethod
     def create_single_order(order: PreOrder) -> PreOrder:
@@ -258,19 +264,54 @@ class OrdersRepository:
             select(DailyOrder).filter(DailyOrder.id == daily_order_id)
         ).first()
 
+    # TODO: Refactor this method to avoid duplicate code
     @staticmethod
-    def get_all_daily_orders(date: Optional[datetime] = None) -> List[DailyOrder]:
+    def get_all_daily_orders(
+        filters: OrdersFilters | None = None,
+        prejoin_person: bool = False,
+        prejoin_location: bool = False,
+    ) -> List[DailyOrder]:
         """
-        Get all orders in the daily orders
+        Get daily orders based on filters
 
+        :param filters: Filters for orders
         :return: List of daily orders
         """
-        if date:
-            return db.session.scalars(
-                select(DailyOrder).where(DailyOrder.date == date)
-            ).all()
+        query = select(DailyOrder)
 
-        return db.session.scalars(select(DailyOrder)).all()
+        if prejoin_person:
+            query = query.options(joinedload(DailyOrder.person))
+
+        if prejoin_location:
+            query = query.options(joinedload(DailyOrder.location))
+
+        if filters is None:
+            # Return early if no filters are provided
+            return db.session.execute(query).scalars().all()
+
+        if filters.person_id:
+            query = query.filter(DailyOrder.person_id == filters.person_id)
+
+        if filters.location_id:
+            query = query.filter(DailyOrder.location_id == filters.location_id)
+
+        if filters.group_id:
+            query = query.filter(
+                DailyOrder.person_id.in_(
+                    select(Employee.id).where(Employee.group_id == filters.group_id)
+                )
+            )
+
+        if filters.date:
+            query = query.filter(DailyOrder.date == filters.date)
+
+        if filters.date_start:
+            query = query.filter(DailyOrder.date >= filters.date_start)
+
+        if filters.date_end:
+            query = query.filter(DailyOrder.date <= filters.date_end)
+
+        return db.session.execute(query).scalars().all()
 
     @staticmethod
     def get_daily_orders_filtered_by_user_scope(user_id: UUID) -> List[DailyOrder]:
