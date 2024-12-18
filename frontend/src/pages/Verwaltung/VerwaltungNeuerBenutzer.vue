@@ -25,13 +25,6 @@
               <v-radio label="Küchenpersonal" value="kuechenpersonal"></v-radio>
             </div>
           </v-radio-group>
-          <v-select
-            v-if="user_group === 'kuechenpersonal'"
-            v-model="user_location"
-            :items="allLocations"
-            :rules="[required]"
-            label="Standort"
-          ></v-select>
           <v-text-field
             v-model="first_name"
             :rules="[required]"
@@ -105,17 +98,23 @@ const initialPassword = ref("");
 
 const handleSubmit = () => {
   axios
-    .post(import.meta.env.VITE_API + "/api/users ", {
-      first_name: first_name.value,
-      last_name: last_name.value,
-      user_group: user_group.value,
-      username: username.value,
-    }, { withCredentials: true })
+    .post(
+      import.meta.env.VITE_API + "/api/users ",
+      {
+        first_name: first_name.value,
+        last_name: last_name.value,
+        user_group: user_group.value,
+        username: username.value,
+      },
+      { withCredentials: true }
+    )
     .then((response) => {
       console.log(response.data.id);
       axios
         .put(
-          `${import.meta.env.VITE_API}/api/users/${response.data.id}/reset-password`,
+          `${import.meta.env.VITE_API}/api/users/${
+            response.data.id
+          }/reset-password`,
           {},
           { withCredentials: true }
         )
@@ -144,15 +143,4 @@ const emptyForm = () => {
   showConfirm.value = false;
   validation.value.reset();
 };
-onMounted(() => {
-  axios
-    .get(import.meta.env.VITE_API + "/api/locations", { withCredentials: true })
-    .then((response) => {
-      response.data.forEach((location) => {
-        allLocations.value.push(location.location_name);
-      });
-      console.log(allLocations.value);
-    })
-    .catch((err) => console.log(err.response.data.description));
-});
 </script>

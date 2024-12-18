@@ -259,18 +259,18 @@ class OrdersRepository:
         ).first()
 
     @staticmethod
-    def get_all_daily_orders() -> List[DailyOrder]:
+    def get_all_daily_orders(date: Optional[datetime] = None) -> List[DailyOrder]:
         """
         Get all orders in the daily orders
 
         :return: List of daily orders
         """
+        if date:
+            return db.session.scalars(
+                select(DailyOrder).where(DailyOrder.date == date)
+            ).all()
 
-        today = datetime.now().date()
-
-        return db.session.scalars(
-            select(DailyOrder).where(DailyOrder.date == today)
-        ).all()
+        return db.session.scalars(select(DailyOrder)).all()
 
     @staticmethod
     def get_daily_orders_filtered_by_user_scope(user_id: UUID) -> List[DailyOrder]:

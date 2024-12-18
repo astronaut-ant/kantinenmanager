@@ -6,6 +6,8 @@
       :id="user.id"
       :name="user.username"
       :role="user.user_group"
+      :firstName="user.first_name"
+      :lastName="user.last_name"
       @delete="opendeleteDialog"
       @edit="openeditDialog"
     />
@@ -91,15 +93,7 @@
                 label="Benutzername"
                 clearable
               ></v-text-field>
-              <div>
-                <v-select
-                  class="mb-2"
-                  v-if="user_group === 'kuechenpersonal'"
-                  :items="allLocations"
-                  :rules="[required]"
-                  label="Standort"
-                ></v-select>
-              </div>
+              <div></div>
             </div>
             <v-btn @click="handlePasswordReset" class="bg-red" block
               >Passwort zurücksetzen</v-btn

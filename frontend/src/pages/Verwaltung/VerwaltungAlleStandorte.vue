@@ -1,8 +1,13 @@
 <template>
-  <NavbarVerwaltung/>
+  <NavbarVerwaltung />
   <div class="mx-4 my-5 d-flex justify-start flex-wrap">
-    <v-card class="mx-4 my-4" elevation="16" min-width="20em" max-width="20em"
-      v-for="location in locations" :key="location?.id"
+    <v-card
+      class="mx-4 my-4"
+      elevation="16"
+      min-width="20em"
+      max-width="20em"
+      v-for="location in locations"
+      :key="location?.id"
     >
       <v-card-item>
         <v-card-title>
@@ -12,19 +17,16 @@
             </span>
             <span class="text-subtitle-2 text-truncate">
               Standortleiter:
-              {{ location?.location_leader.first_name }} {{ location?.location_leader.last_name }}
+              {{ location?.location_leader.first_name }}
+              {{ location?.location_leader.last_name }}
             </span>
           </div>
         </v-card-title>
         <v-card-actions class="justify-end">
-          <v-btn class="mt-2 bg-primary"
-            @click="openEditDialog(location)"
-          >
+          <v-btn class="mt-2 bg-primary" @click="openEditDialog(location)">
             <v-icon>mdi-lead-pencil</v-icon>
           </v-btn>
-          <v-btn class="mt-2 bg-red"
-            @click="handleDelete(location)"
-          >
+          <v-btn class="mt-2 bg-red" @click="handleDelete(location)">
             <v-icon>mdi-trash-can-outline</v-icon>
           </v-btn>
         </v-card-actions>
@@ -32,79 +34,59 @@
     </v-card>
   </div>
 
-  <v-dialog v-model="editDialog" persistent max-width="400">
-    <v-card>
-      <v-card-title class="primary d-flex justify-start">
-        <v-icon left class="mr-2"> mdi-map-marker-radius </v-icon>
-        <span class="text-h5">Standort bearbeiten</span>
-      </v-card-title>
-      <v-card-text>
-        <span>Neue Standortleitung festlegen</span>
-        <v-menu>
-          <template #activator="{ props }">
-            <v-text-field
-              v-bind="props"
-              v-model="newLocationLeaderName"
-              label="Neue Standortleitung"
-              readonly
-              append-inner-icon="mdi-chevron-down"
-            ></v-text-field>
-          </template>
-          <v-list>
-            <v-list-item v-for="leader in locationLeaders.filter(
-              leader => leader.leader_of_location === null)"
-              :key="leader.id"
-              @click="selectLeader(leader)"
-            >
-              <v-list-item-title>{{ leader?.first_name }} {{ leader?.last_name }}</v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
-      </v-card-text>
-      <v-card-actions>
-        <v-btn text @click="closeEditDialog">Abbrechen</v-btn>
-        <v-btn
-          color="primary"
-          :disabled="!form"
-          type="submit"
-          variant="elevated"
-          @click="confirmEdit(locationToEdit,)"
-          >Speichern
-        </v-btn>
-      </v-card-actions>
-    </v-card>
+  <v-dialog v-model="editDialog" persistent>
+    <LocationChange
+      @close="closeEditDialog"
+      @save="initialize"
+      @success="snackbarConfirm"
+      :oldValues="locationToEdit"
+    />
   </v-dialog>
 
   <v-dialog v-model="deleteDialog" persistent max-width="600">
     <v-card>
       <v-card-text>
         <div class="d-flex justify-center text-red mb-4">
-          <p class="text-h5 font-weight-black" >Standort löschen</p>
+          <p class="text-h5 font-weight-black">Standort löschen</p>
         </div>
         <div class="text-medium-emphasis">
-          <p> Sind Sie sicher, dass Sie den Standort <strong>{{ locationToDelete?.location_name }}</strong> löschen möchten?</p>
+          <p>
+            Sind Sie sicher, dass Sie den Standort
+            <strong>{{ locationToDelete?.location_name }}</strong> löschen
+            möchten?
+          </p>
         </div>
       </v-card-text>
       <v-card-actions>
         <v-btn text @click="closeDeleteDialog">Abbrechen</v-btn>
-        <v-btn color="red" variant="elevated" @click="confirmDelete">Löschen</v-btn>
+        <v-btn color="red" variant="elevated" @click="confirmDelete"
+          >Löschen</v-btn
+        >
       </v-card-actions>
     </v-card>
   </v-dialog>
 
- <v-dialog v-model="secondDeleteDialog" persistent max-width="600">
-  <v-card>
-    <v-card-title class="text-red">Standort kann nicht gelöscht werden</v-card-title>
-    <v-card-text>
-      <p>Der Standort <strong>{{ locationToDelete?.location_name }}</strong> enthält noch Gruppen.</p>
-      <p>Bitte löschen Sie zuerst alle Gruppen, um den Standort zu löschen.</p>
-    </v-card-text>
-    <v-card-actions>
-      <v-btn text @click="closeDeleteDialog">Schließen</v-btn>
-    </v-card-actions>
-  </v-card>
- </v-dialog>
- <SuccessSnackbar
+  <v-dialog v-model="secondDeleteDialog" persistent max-width="600">
+    <v-card>
+      <v-card-title class="text-red"
+        >Standort kann nicht gelöscht werden</v-card-title
+      >
+      <v-card-text>
+        <p>
+          Der Standort
+          <strong>{{ locationToDelete?.location_name }}</strong> enthält noch
+          Gruppen.
+        </p>
+        <p>
+          Bitte löschen Sie zuerst alle Gruppen, um den Standort zu löschen.
+        </p>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn text @click="closeDeleteDialog">Schließen</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+  <SuccessSnackbar
     v-model="snackbar"
     :text="snackbarText"
     @close="snackbar = false"
@@ -112,8 +94,9 @@
 </template>
 
 <script setup>
+import LocationChange from "@/components/LocationChange.vue";
+import LocationCreation from "@/components/LocationCreation.vue";
 import axios from "axios";
-const snackbarText = ref(" ");
 const snackbar = ref(false);
 const locations = ref({});
 const locationLeaders = ref({});
@@ -125,73 +108,85 @@ const locationToEdit = ref(null);
 const deleteDialog = ref(false);
 const secondDeleteDialog = ref(false);
 const locationToDelete = ref(null);
+const snackbarText = ref("");
 
-onMounted(() => {
+const initialize = () => {
   axios
-    .get(import.meta.env.VITE_API + "/api/locations",
-    { withCredentials: true })
+    .get(import.meta.env.VITE_API + "/api/locations", { withCredentials: true })
     .then((response) => {
       locations.value = response.data;
       // console.log(locations.value);
     })
     .catch((err) => console.log(err));
-});
-
-onMounted(() => {
   axios
-    .get(import.meta.env.VITE_API + "/api/users/location-leaders",
-    { withCredentials: true })
+    .get(import.meta.env.VITE_API + "/api/users/location-leaders", {
+      withCredentials: true,
+    })
     .then((response) => {
       locationLeaders.value = response.data;
     })
     .catch((err) => console.log(err));
+};
+
+onMounted(() => {
+  initialize();
 });
 
 const openEditDialog = (location) => {
   editDialog.value = true;
   locationToEdit.value = location;
 };
-const confirmEdit = () => {
-  const updatedLocation = {
-    location_name: locationToEdit.value.location_name,
-    user_id_location_leader: newLocationLeaderID.value,
-  };
+// const confirmEdit = () => {
+//   const updatedLocation = {
+//     location_name: locationToEdit.value.location_name,
+//     user_id_location_leader: newLocationLeaderID.value,
+//   };
 
-  axios
-    .put(import.meta.env.VITE_API + `/api/locations/${locationToEdit.value.id}`, updatedLocation, {
-      withCredentials: true,
-    })
-    .then(() => {
-      const oldLocationLeaderID = locationToEdit.value.location_leader?.id;
-      const oldLeaderIndex = locationLeaders.value.findIndex(
-        (leader) => leader.id === oldLocationLeaderID
-      )
-      if (oldLocationLeaderID) {
-        locationLeaders.value[oldLeaderIndex].leader_of_location = null;
-      };
-      const updatedLeader = locationLeaders.value.find(
-        (leader) => leader.id === newLocationLeaderID.value
-      );
+//   axios
+//     .put(
+//       import.meta.env.VITE_API + `/api/locations/${locationToEdit.value.id}`,
+//       updatedLocation,
+//       {
+//         withCredentials: true,
+//       }
+//     )
+//     .then(() => {
+//       const oldLocationLeaderID = locationToEdit.value.location_leader?.id;
+//       const oldLeaderIndex = locationLeaders.value.findIndex(
+//         (leader) => leader.id === oldLocationLeaderID
+//       );
+//       if (oldLocationLeaderID) {
+//         locationLeaders.value[oldLeaderIndex].leader_of_location = null;
+//       }
+//       const updatedLeader = locationLeaders.value.find(
+//         (leader) => leader.id === newLocationLeaderID.value
+//       );
 
-      if (updatedLeader) {
-        const locationIndex = locations.value.findIndex(
-          (loc) => loc.id === locationToEdit.value.id
-        );
+//       if (updatedLeader) {
+//         const locationIndex = locations.value.findIndex(
+//           (loc) => loc.id === locationToEdit.value.id
+//         );
 
-        if (locationIndex !== -1) {
-          locations.value[locationIndex].location_leader = updatedLeader;
-        }
-      }
-      const newLeaderIndex = locationLeaders.value.findIndex(
-        (leader) => leader.id === newLocationLeaderID.value);
-      locationLeaders.value[newLeaderIndex].leader_of_location = locationToEdit.value;
-      closeEditDialog();
-      snackbarText.value = "Der Standort wurde erfolgreich aktualisiert!";
-      snackbar.value = true;
-    })
-    .catch((err) => {
-      console.error("Error updating location:", err);
-    });
+//         if (locationIndex !== -1) {
+//           locations.value[locationIndex].location_leader = updatedLeader;
+//         }
+//       }
+//       const newLeaderIndex = locationLeaders.value.findIndex(
+//         (leader) => leader.id === newLocationLeaderID.value
+//       );
+//       locationLeaders.value[newLeaderIndex].leader_of_location =
+//         locationToEdit.value;
+//       closeEditDialog();
+//       snackbarText.value = "Der Standort wurde erfolgreich aktualisiert!";
+//       snackbar.value = true;
+//     })
+//     .catch((err) => {
+//       console.error("Error updating location:", err);
+//     });
+// };
+const snackbarConfirm = () => {
+  snackbarText.value = "Der Standort wurde erfolgreich aktualisiert";
+  snackbar.value = true;
 };
 const closeEditDialog = () => {
   editDialog.value = false;
@@ -202,7 +197,8 @@ const closeEditDialog = () => {
 };
 const selectLeader = (newLeader) => {
   newLocationLeaderID.value = newLeader.id;
-  newLocationLeaderName.value = newLeader.first_name+" "+newLeader.last_name;
+  newLocationLeaderName.value =
+    newLeader.first_name + " " + newLeader.last_name;
   form.value = true;
 };
 
@@ -217,10 +213,14 @@ const closeDeleteDialog = () => {
 };
 const confirmDelete = () => {
   axios
-    .delete(import.meta.env.VITE_API + `/api/locations/${locationToDelete.value.id}`, {
-      withCredentials: true,
-    })
-    .then(() => {
+    .delete(
+      import.meta.env.VITE_API + `/api/locations/${locationToDelete.value.id}`,
+      {
+        withCredentials: true,
+      }
+    )
+    .then((response) => {
+      console.log(response.data);
       locations.value = locations.value.filter(
         (location) => location.id !== locationToDelete.value.id
       );
@@ -233,5 +233,4 @@ const confirmDelete = () => {
       secondDeleteDialog.value = true;
     });
 };
-
 </script>

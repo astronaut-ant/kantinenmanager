@@ -30,6 +30,9 @@ users_routes = Blueprint("users_routes", __name__)
 @swag_from(
     {
         "tags": ["users"],
+        "parameters": [
+            {"in": "query", "name": "user_group_filter", "schema": {"type": "string"}},
+        ],
         "responses": {
             200: {
                 "description": "Returns a list of all users",
@@ -46,8 +49,8 @@ def get_users():
     Authorization: Verwaltung
     ---
     """
-
-    users = UsersService.get_users()
+    user_group_filter = request.args.get("user_group_filter")
+    users = UsersService.get_users(user_group_filter)
 
     return UserFullSchema(many=True).dump(users)
 

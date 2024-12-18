@@ -2,9 +2,12 @@
   <v-card class="mx-4 my-4" elevation="16" min-width="20em">
     <v-card-item>
       <div class="d-flex justify-space-between">
-        <v-card-title>{{ props.name }}</v-card-title>
+        <v-card-title>{{
+          props.firstName + " " + props.lastName
+        }}</v-card-title>
         <!-- <v-chip color="primary" label> #{{ props.id }}</v-chip> -->
       </div>
+      <v-card-subtitle>{{ props.name }} </v-card-subtitle>
       <v-card-subtitle>{{ formattedRole }} </v-card-subtitle>
       <div class="mt-5 d-flex ga-1 justify-end">
         <v-btn class="mt-2 bg-primary" @click="handleEdit"
@@ -19,7 +22,7 @@
 </template>
 
 <script setup>
-const props = defineProps(["id", "name", "role"]);
+const props = defineProps(["id", "name", "role", "firstName", "lastName"]);
 const emit = defineEmits(["delete", "edit"]);
 const formattedRole = computed(() => {
   let capitalized = props.role.charAt(0).toUpperCase() + props.role.slice(1);

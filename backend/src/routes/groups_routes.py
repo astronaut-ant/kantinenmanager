@@ -14,7 +14,7 @@ from src.utils.error import ErrMsg, abort_with_err
 from src.utils.exceptions import (
     GroupAlreadyExists,
     GroupDoesNotExistError,
-    GroupLeaderDoesNotExist,
+    LeaderDoesNotExist,
     LocationDoesNotExist,
 )
 
@@ -76,7 +76,7 @@ def create_group():
                 details=str(err),
             )
         )
-    except GroupLeaderDoesNotExist as err:
+    except LeaderDoesNotExist as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
