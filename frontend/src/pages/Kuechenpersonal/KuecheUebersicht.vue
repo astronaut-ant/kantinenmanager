@@ -18,9 +18,11 @@ import axios from "axios";
 
 const orders = ref("");
 axios
-  .get(import.meta.env.VITE_API + "api/daily-orders", {
+  .get("http://localhost:4200/" + "api/daily-orders", {
     withCredentials: true,
   })
-  .then((response) => (orders.value = response.data))
+  .then((response) => {
+    orders.value = response.data;
+  })
   .catch((err) => console.log(err));
 </script>

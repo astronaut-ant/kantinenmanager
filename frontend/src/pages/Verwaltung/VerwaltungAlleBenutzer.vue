@@ -118,7 +118,7 @@
       :user-name="username"
       user-group=""
       :initial-password="initialPassword"
-      text="Das Passwort wurder erfolgreich zurückgesetzt"
+      text="Das Passwort wurde erfolgreich zurückgesetzt"
       @close="showConfirm = false"
     />
   </v-dialog>
@@ -207,6 +207,7 @@ const openeditDialog = (id) => {
   last_name.value = user.last_name;
   username.value = user.username;
   user_group.value = user.user_group;
+  location_id.value = user.location_id;
   editDialog.value = true;
 };
 
