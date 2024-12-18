@@ -313,8 +313,6 @@ class OrdersRepository:
 
         return db.session.execute(query).scalars().all()
 
-        return db.session.scalars(select(DailyOrder)).all()
-
     @staticmethod
     def get_daily_orders_filtered_by_user_scope(user_id: UUID) -> List[DailyOrder]:
         user = UsersRepository.get_user_by_id(user_id)
