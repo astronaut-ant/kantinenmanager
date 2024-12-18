@@ -4,57 +4,69 @@
   <v-data-table-virtual
     :hover="true"
     :fixed-header="true"
-    :height="300"
+    :height="tableHeight"
     :items="tableData"
     item-key="id"
     :headers="headers"
     :sort-by="sortBy"
   >
-    <template v-slot:item.done="{ item }">
-      <v-icon>{{ item.handed_out ? "mdi-check" : "" }}</v-icon>
-    </template>
 
     <template v-slot:item.main_dish="{ item }">
-      <v-checkbox-btn
-        :readonly="orderStop"
-        true-icon="mdi-circle"
-        false-icon="mdi-circle"
-        color="primary"
-        v-model="item.main_dish_selected"
-      ></v-checkbox-btn>
+      <v-icon
+        :color="item.main_dish === 'rot' ? 'red' : item.main_dish === 'blau' ? 'primary' : 'grey'"
+        size="24"
+      >
+        mdi-circle
+      </v-icon>
     </template>
 
     <template v-slot:item.salad_option="{ item }">
-      <v-checkbox-btn
-        :readonly="orderStop"
-        true-icon="mdi-circle"
-        false-icon="mdi-circle"
-        color="success"
-        v-model="item.salad_selected"
-      ></v-checkbox-btn>
+      <v-icon
+        :color="item.salad_selected ? 'green' : 'grey'"
+        size="24"
+      >
+        mdi-circle
+      </v-icon>
     </template>
 
     <template v-slot:item.handed_out="{ item }">
-      <v-checkbox-btn
-        :readonly="orderStop"
-        true-icon="mdi-circle"
-        false-icon="mdi-circle"
-        color="red"
-        v-model="item.handed_out"
-      ></v-checkbox-btn>
+      <v-btn
+        :icon="item.handed_out ? 'mdi-check' : 'mdi-close'"
+        density="compact"
+        @click="openConfirmDialog(item)"
+      ></v-btn>
     </template>
   </v-data-table-virtual>
+
+  <v-dialog v-model="dialog" max-width="400px">
+    <v-card>
+      <v-card-title class="headline">Bestätigung</v-card-title>
+      <v-card-text>
+        Möchten Sie den Status Ausgabe der Bestellung wirklich ändern?
+      </v-card-text>
+      <v-card-actions>
+        <v-btn color="green darken-1" text @click="confirmChange">Bestätigen</v-btn>
+        <v-btn color="red darken-1" text @click="closeConfirmDialog">Abbrechen</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
 import axios from "axios";
-import { ref, computed, onMounted } from "vue";
 
 const orders = ref([]);
 const employees = ref([]);
 const tableData = ref([]);
+const dialog = ref(false);
+const itemToConfirm = ref(null);
 
 const sortBy = [{ key: 'group_name', order: 'asc' }]
+
+const tableHeight = computed(() => {
+  const headerHeight = 80; // Höhe der Navbar
+  return window.innerHeight - headerHeight - 100 + 'px';
+})
 
 const headers = ref([
   { title: "Mitarbeiter", value: "full_name", key: "full_name" },
@@ -86,7 +98,7 @@ onMounted(() => {
 });
 
 // Daten zusammenführen
-function updateTableData() {
+const updateTableData = () => {
   if (orders.value.length === 0 || employees.value.length === 0) return;
 
   tableData.value = orders.value.map((order) => {
@@ -101,5 +113,27 @@ function updateTableData() {
       handed_out: order.handed_out,
     };
   });
+}
+
+const openConfirmDialog = (item) => {
+  itemToConfirm.value = item;
+  dialog.value = true;
+};
+const confirmChange = () => {
+  axios
+    .put(import.meta.env.VITE_API + `/api/daily-orders/${itemToConfirm.value.id}`,
+    {"handed_out": !itemToConfirm.value.handed_out},
+    { withCredentials: true })
+    .then(() => {
+      itemToConfirm.value.handed_out = !itemToConfirm.value.handed_out;
+      closeConfirmDialog();
+    })
+    .catch((err) => {
+      console.log(err)
+    })
+};
+const closeConfirmDialog = () => {
+  itemToConfirm.value = null;
+  dialog.value = false
 }
 </script>
