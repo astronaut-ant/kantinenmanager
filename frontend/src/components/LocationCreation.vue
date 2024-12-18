@@ -9,8 +9,8 @@
           v-if="noStandortleiter"
           class="mb-7"
           text="Es existieren keine vefügbaren Standortleiter "
-          color="red"
-          icon="$error"
+          color="blue-grey"
+          icon="mdi-information-outline"
         />
         <v-form ref="validation" v-model="form" @submit.prevent="handleSubmit">
           <v-text-field
@@ -64,10 +64,6 @@
       </v-card>
     </div>
   </div>
-  <ConfirmDialogCreateUser
-    :showConfirm="showConfirm"
-    @close="router.push('/verwaltung/standorte/uebersicht')"
-  />
 </template>
 
 <script setup>
@@ -178,7 +174,7 @@ onMounted(() => {
 
 const handleSubmit = () => {
   console.log(standortName.value);
-  console.log(standortLeitungSelection.value);
+  console.log("EP", standortLeitungSelection.value);
   axios
     .post(
       import.meta.env.VITE_API + "/api/locations",
