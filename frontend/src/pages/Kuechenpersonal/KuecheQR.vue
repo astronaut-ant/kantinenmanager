@@ -1,7 +1,7 @@
 <template>
   <NavbarKueche />
-  <div class="d-flex h-100 justify-center align-center mt-n10">
-    <div class="w-50 h-50 auto">
+  <div class="d-flex h-100 justify-center align-center mt-n10 bg-black">
+    <div class="w-50 auto">
       <qrcode-stream
         class="pa-1"
         :paused="!inScanMode"

@@ -3,28 +3,43 @@
         <v-card-item>
             <div class="mb-2 d-flex justify-center">
                 <v-chip
-                    :color="available ? ( replacing_group ? 'orange' : 'green'): 'red'"
+                    :color="available ? 'green' : 'red'"
                     class="text-uppercase d-flex justify-center flex-grow-1" 
                     size="small"
                     label
                 >
-                    <v-icon class="me-2" v-if="available && !replacing_group">mdi-calendar-check-outline</v-icon>
-                    <v-icon class="me-2" v-else-if="available && replacing_group">mdi-calendar-clock-outline</v-icon>
+                    <v-icon class="me-2" v-if="available">mdi-calendar-check-outline</v-icon>
                     <v-icon class="me-2" v-else>mdi-calendar-remove-outline</v-icon>
-                    {{ available ? ( replacing_group ? 'Vertretung für ' + props.replacing_group.name : 'verfügbar'): 'abwesend' }}
+                    {{ available ? 'verfügbar' : 'abwesend' }}
                 </v-chip>
             </div>
-            <div class="d-flex align-center">
+            <div>
                 <div>
                     <v-card-title>{{ props.group_leader.first_name }} {{ props.group_leader.last_name }}</v-card-title>
-                    <v-card-subtitle>
-                        <v-icon
-                        color="primary"
-                        icon="mdi-account-group"
-                        size="small"
-                        ></v-icon>
-                        <span class="me-1 ml-2">Hauptgruppe: {{ props.group_name }}</span>
-                    </v-card-subtitle>
+                        <v-slide-group :mobile="false">
+                            <v-slide-group-item>
+                                <v-chip
+                                    color="primary"
+                                    class="mr-2"
+                                    size="small"
+                                    label
+                                >
+                                    <v-icon icon="mdi-account-group" class="me-2"></v-icon>
+                                    <span>Hauptgruppe: {{ props.group_name }}</span>
+                                </v-chip>
+                            </v-slide-group-item>
+                            <v-slide-group-item v-for="replacing_group in replacing_groups" >
+                                <v-chip
+                                    color="orange"
+                                    class="mr-2"
+                                    size="small"
+                                    label
+                                    >   
+                                    <v-icon class="me-2">mdi-calendar-clock-outline</v-icon>
+                                    Vertretung für {{ replacing_group.name }}
+                                </v-chip>
+                            </v-slide-group-item>
+                        </v-slide-group>
                 </div>
             </div>
             
@@ -32,7 +47,7 @@
         <v-card-text>
             <v-divider></v-divider>
             <div class="mt-3 d-flex justify-end">
-                <v-btn v-if="available" :disabled="replacing_group" color="red" @click="opensetGroupReplacementDialog" size="small" flat variant="outlined">Als Abwesend markieren</v-btn>
+                <v-btn v-if="available" :disabled="props.replacing_groups && props.replacing_groups.length > 0" color="red" @click="opensetGroupReplacementDialog" size="small" flat variant="outlined">Als Abwesend markieren</v-btn>
                 <v-btn v-else color="primary" @click="openremoveGroupReplacementDialog" size="small" flat variant="outlined">Als Anwesend markieren</v-btn>
             </div>
         </v-card-text>
@@ -93,7 +108,7 @@
     const setGroupReplacementDialog = ref(false);
     const removeGroupReplacementDialog = ref(false);
     const trueavailable_group_leaders = ref([]);
-    const props = defineProps(["group_id", "group_name", "location" , "group_leader", "group_leader_replacement", "replacing_group", "available", "available_group_leaders"]);
+    const props = defineProps(["group_id", "group_name", "location" , "group_leader", "group_leader_replacement", "replacing_groups", "available", "available_group_leaders"]);
     const emit = defineEmits(["replacement-set", "replacement-removed"]);
 
     import axios from "axios";
@@ -136,7 +151,6 @@
             console.error("No group leader selected");
             return;
         }
-        console.log(replacementGroupLeader.value)
         axios
             .put(`${import.meta.env.VITE_API}/api/groups/${props.group_id}`, 
                 {   
@@ -147,10 +161,16 @@
                 }, { withCredentials: true }
             )
             .then(() => {
-                console.log("Replacement set successfully");
                 emit("replacement-set");
                 closesetGroupReplacementDialog();
             })
             .catch((err) => console.error("Error setting replacement", err));
     };
+
+
 </script>
+
+
+<style>
+.v-slide-group__prev, .v-slide-group__next { min-width: 35px;}
+</style>

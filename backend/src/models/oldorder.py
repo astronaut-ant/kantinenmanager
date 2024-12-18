@@ -78,7 +78,9 @@ class OldOrder(db.Model):
             "person_id": self.person_id,
             "location_id": self.location_id,
             "nothing": self.nothing,
-            "main_dish": self.main_dish,
+            "main_dish": (
+                self.main_dish.name if self.main_dish else None
+            ),  # TODO find a better solution
             "salad_option": self.salad_option,
             "handed_out": self.handed_out,
         }

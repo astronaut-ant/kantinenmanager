@@ -64,14 +64,8 @@ class LocationAlreadyExistsError(Exception):
     pass
 
 
-class GroupLeaderDoesNotExistError(Exception):
-    """Exception raised when a group leader does not exist."""
-
-    pass
-
-
-class GroupLeaderDoesNotExist(Exception):
-    """Exception raised when a group leader does not exist."""
+class LeaderDoesNotExist(Exception):
+    """Exception raised when a leader does not exist."""
 
     pass
 

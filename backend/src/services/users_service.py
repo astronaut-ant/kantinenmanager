@@ -26,10 +26,9 @@ class UsersService:
     """Service for handling user management."""
 
     @staticmethod
-    def get_users() -> list[User]:
+    def get_users(user_group_filter: Optional[UserGroup] = None) -> list[User]:
         """Get all users saved in the database."""
-
-        return UsersRepository.get_users()
+        return UsersRepository.get_users(user_group_filter)
 
     @staticmethod
     def get_user_by_id(user_id: UUID) -> User | None:
