@@ -1,6 +1,6 @@
 <template>
   <NavbarGruppenleitung />
-  <v-container max-width="1000">
+  <v-container max-width="800">
     <div>
       <v-toolbar color="white" flat dark >
         <div class="d-flex justify-center">
@@ -17,14 +17,6 @@
         item-value="employee_number"
         density="comfortable"
       >
-        <template v-slot:[`item.actions`]="{ item }">
-          <v-btn
-            icon="mdi-qrcode"
-            class="bg-green mr-2"
-            @click="getQRCode(item)"
-            size="small"
-          ></v-btn>
-        </template>
       </v-data-table-virtual>
     </div>
     <div v-for="(group, index) in othergroups" :key="index" class="mt-5">
@@ -66,8 +58,7 @@ const loading = ref(false);
 const headers = [
   { title: "Nummer", key: "employee_number", nowrap: true},
   { title: "Nachname", key: "last_name", nowrap: true },
-  { title: "Vorname", key: "first_name", nowrap: true },
-  { text: "Actions", value: "actions", sortable: false },
+  { title: "Vorname", key: "first_name", nowrap: true }
 ];
 
   const fetchDataWithId = () => {
@@ -104,37 +95,6 @@ const headers = [
         console.error("Error fetching data", err);
         loading.value = false;
       });
-  };
-
-  const getQRCode = (item) => {
-  axios
-    .get(`${import.meta.env.VITE_API}/api/persons/create-qr/${item.id}`, {
-      responseType: "blob",
-      withCredentials: true,
-    })
-    .then((response) => {
-      const blob = new Blob([response.data], { type: response.headers["content-type"] });
-      const url = window.URL.createObjectURL(blob);
-
-      const link = document.createElement("a");
-      link.href = url;
-
-      const contentDisposition = response.headers["content-disposition"];
-      let filename = "download";
-      if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename\*?=(['"]?)(.+?)\1(;|$)/i);
-        if (filenameMatch) {
-          filename = decodeURIComponent(filenameMatch[2]);
-        }
-      }
-
-      link.download = filename;
-      link.click();
-      window.URL.revokeObjectURL(url);
-    })
-    .catch((err) => {
-      console.error("Error getting QR Code", err);
-    });
   };
 
   onMounted(() => {
