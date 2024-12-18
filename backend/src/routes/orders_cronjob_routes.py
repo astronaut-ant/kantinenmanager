@@ -41,7 +41,7 @@ def write_pre_to_daily_to_old_order():
     orders_new: list[PreOrder] = []
     today = datetime.today().date()
 
-    daily_orders_to_move = OrdersRepository.get_all_daily_orders()
+    daily_orders_to_move = OrdersRepository.get_all_daily_orders(date=today)
 
     for daily_order in daily_orders_to_move:
         old_order = OldOrder(

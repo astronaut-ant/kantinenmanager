@@ -30,6 +30,21 @@ class OldOrdersGetQuery(Schema):
 @swag_from(
     {
         "tags": ["old_orders"],
+        "definitions": {
+            "OldOrder": {
+                "type": "object",
+                "properties": {
+                    "id": {"type": "string", "format": "uuid"},
+                    "person_id": {"type": "string", "format": "uuid"},
+                    "location_id": {"type": "string", "format": "uuid"},
+                    "date": {"type": "string", "format": "date"},
+                    "nothing": {"type": "boolean"},
+                    "main_dish": {"type": "string"},
+                    "salad_option": {"type": "boolean"},
+                    "handed_out": {"type": "boolean"},
+                },
+            }
+        },
         "parameters": [
             {
                 "in": "query",
