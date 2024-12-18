@@ -91,7 +91,7 @@ const handOut = (order) => {
   console.log("putting");
   axios
     .put(
-      `http://localhost:4200/api/daily-orders/${order.id}`,
+      import.meta.env.VITE_API + `/api/daily-orders/${order.id}`,
       { handed_out: true },
       { withCredentials: true }
     )
@@ -102,7 +102,7 @@ const handOut = (order) => {
 };
 
 axios
-  .get(`http://localhost:4200/api/daily-orders/person/${scannedId}`, {
+  .get(import.meta.env.VITE_API + `/api/daily-orders/person/${scannedId}`, {
     withCredentials: true,
   })
   .then((response) => {
@@ -138,6 +138,7 @@ axios
   })
 
   .catch((err) => {
+    console.log(err);
     forbidden();
   });
 

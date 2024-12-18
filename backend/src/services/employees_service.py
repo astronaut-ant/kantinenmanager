@@ -178,7 +178,8 @@ class EmployeesService:
                 )
 
             match = re.match(
-                r"([A-ZÄÖÜ][a-zßäöüéèáà]+)([A-ZÄÖÜ][a-zßäöüéèáà]*[1-9]*)", row["Kürzel"]
+                r"^([A-ZÄÖÜa-zäöüß-]+(?:\s[A-ZÄÖÜa-zäöüß-]+)*?)\s+([A-ZÄÖÜa-zäöüß-]+)$",
+                row["Kürzel"],
             )
             if match:
                 firstname = match.group(1)

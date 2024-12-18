@@ -8,15 +8,15 @@
           v-if="noGruppenleiter"
           class="mb-7"
           text="Es existieren keine Gruppenleiter"
-          color="red"
-          icon="$error"
+          color="blue-grey"
+          icon="mdi-information-outline"
         />
         <CustomAlert
           v-if="noStandorte"
           class="mb-7"
           text="Es existieren keine Standorte"
-          color="red"
-          icon="$error"
+          color="blue-grey"
+          icon="mdi-information-outline"
         />
         <v-form ref="validation" v-model="form" @submit.prevent="handleSubmit">
           <v-text-field
@@ -92,10 +92,13 @@ const standortLookupTable = {};
 onMounted(() => {
   // Gruppenleiter laden
   axios
-    .get(import.meta.env.VITE_API + "/api/users/group-leaders", { withCredentials: true })
+    .get(import.meta.env.VITE_API + "/api/users/group-leaders", {
+      withCredentials: true,
+    })
     .then((response) => {
       response.data.forEach((user) => {
-        gruppenleiterLookupTable[`${user.first_name} ${user.last_name}`] = user.id;
+        gruppenleiterLookupTable[`${user.first_name} ${user.last_name}`] =
+          user.id;
       });
       if (Object.keys(gruppenleiterLookupTable).length === 0) {
         noGruppenleiter.value = true;

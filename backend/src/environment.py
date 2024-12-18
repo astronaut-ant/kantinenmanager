@@ -50,7 +50,7 @@ class ProductionFeatures(Features):
     CORS = False
     SWAGGER = False
     INSERT_DEFAULT_DATA = True
-    INSERT_MOCK_DATA = False
+    INSERT_MOCK_DATA = True
     CRONJOBS = True
 
 

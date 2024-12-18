@@ -6,12 +6,9 @@
     color="success"
     variant="elevated"
   >
-    <v-icon left class="mr-2"> mdi-check-circle-outline </v-icon> {{ text }}
-    <template v-slot:actions>
-      <!-- <v-btn color="success" variant="text" @click="closesnackbar">
-        Schliessen
-      </v-btn> -->
-    </template>
+    <h4 class="text-center align-center">
+      <v-icon class="me-2"> mdi-check-circle-outline </v-icon> {{ text }}
+    </h4>
   </v-snackbar>
 </template>
 
