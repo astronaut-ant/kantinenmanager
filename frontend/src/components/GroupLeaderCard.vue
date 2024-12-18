@@ -3,15 +3,14 @@
         <v-card-item>
             <div class="mb-2 d-flex justify-center">
                 <v-chip
-                    :color="available ? ( replacing_group ? 'orange' : 'green'): 'red'"
+                    :color="available ? 'green' : 'red'"
                     class="text-uppercase d-flex justify-center flex-grow-1" 
                     size="small"
                     label
                 >
-                    <v-icon class="me-2" v-if="available && !replacing_group">mdi-calendar-check-outline</v-icon>
-                    <v-icon class="me-2" v-else-if="available && replacing_group">mdi-calendar-clock-outline</v-icon>
+                    <v-icon class="me-2" v-if="available">mdi-calendar-check-outline</v-icon>
                     <v-icon class="me-2" v-else>mdi-calendar-remove-outline</v-icon>
-                    {{ available ? ( replacing_group ? 'Vertretung für ' + props.replacing_group.name : 'verfügbar'): 'abwesend' }}
+                    {{ available ? 'verfügbar' : 'abwesend' }}
                 </v-chip>
             </div>
             <div>
@@ -152,7 +151,6 @@
             console.error("No group leader selected");
             return;
         }
-        console.log(replacementGroupLeader.value)
         axios
             .put(`${import.meta.env.VITE_API}/api/groups/${props.group_id}`, 
                 {   
@@ -163,7 +161,6 @@
                 }, { withCredentials: true }
             )
             .then(() => {
-                console.log("Replacement set successfully");
                 emit("replacement-set");
                 closesetGroupReplacementDialog();
             })
