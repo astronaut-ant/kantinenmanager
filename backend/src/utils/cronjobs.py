@@ -23,8 +23,8 @@ def register_cronjobs(app):
         scheduler.add_job(
             lambda: push_orders_to_next_table(app),
             "cron",
-            hour="*",
-            minute="*",
+            hour="8",
+            minute="0",
             timezone="Europe/Berlin",
         )
 
