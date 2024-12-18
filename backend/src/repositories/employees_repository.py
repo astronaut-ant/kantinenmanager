@@ -3,9 +3,10 @@
 from sqlalchemy import select, func, or_
 from src.database import db
 from uuid import UUID
-from src.models.user import UserGroup
+from src.models.user import UserGroup, User
 from src.models.employee import Employee
 from src.models.group import Group
+from src.repositories.users_repository import UsersRepository
 from src.models.location import Location
 from typing import List, Optional
 
@@ -36,6 +37,7 @@ class EmployeesRepository:
             UserGroup.verwaltung,
             UserGroup.standortleitung,
             UserGroup.gruppenleitung,
+            UserGroup.kuechenpersonal,
         ]:
             query = select(Employee)
 
@@ -46,6 +48,15 @@ class EmployeesRepository:
                     query.join(Group)
                     .join(Location)
                     .filter(Location.user_id_location_leader == user_id)
+                )
+            elif user_group == UserGroup.kuechenpersonal:
+                user = UsersRepository.get_user_by_id(user_id)
+                if not user:
+                    return []
+                query = (
+                    query.join(Group)
+                    .join(Location)
+                    .filter(Location.id == user.location_id)
                 )
             elif user_group == UserGroup.gruppenleitung:
                 query = query.join(Group).filter(

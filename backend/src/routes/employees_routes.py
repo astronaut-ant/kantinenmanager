@@ -26,6 +26,7 @@ employees_routes = Blueprint("employees_routes", __name__)
         UserGroup.verwaltung,
         UserGroup.standortleitung,
         UserGroup.gruppenleitung,
+        UserGroup.kuechenpersonal,
     ]
 )
 @swag_from(
