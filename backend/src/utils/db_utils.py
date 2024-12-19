@@ -1,5 +1,6 @@
-from datetime import datetime
+from datetime import datetime, time
 from typing import List
+from zoneinfo import ZoneInfo
 from mocks.mock_daily_orders import (
     MOCK_DAILY_ORDERS_EMPLOYEES,
     MOCK_DAILY_ORDERS_USERS,
@@ -251,11 +252,8 @@ def insert_order_employees_mock_data():
 def insert_daily_orders_mock_data():
     """Insert mock daily orders."""
 
-    now = datetime.now()
-    eight_am = now.replace(hour=8, minute=0, second=0, microsecond=0)
-
-    if now < eight_am:
-        print("Skipping daily orders insertion before 8:00 to avoid conflicts")
+    if datetime.now(tz=ZoneInfo("Europe/Berlin")).time() < time(8, 2):
+        print("Skipping daily orders insertion before 8:02 to avoid conflicts")
         return
 
     admin = UsersService.get_user_by_username("admin")
