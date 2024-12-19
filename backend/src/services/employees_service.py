@@ -178,12 +178,20 @@ class EmployeesService:
                 )
 
             match = re.match(
-                r"^([A-ZÄÖÜa-zäöüß-]+(?:\s[A-ZÄÖÜa-zäöüß-]+)*?)\s+([A-ZÄÖÜa-zäöüß-]+)$",
+                r"([A-ZÄÖÜ][a-zäöüß0-9]+(?:[-][A-ZÄÖÜ][a-zäöüß0-9]+)*)([A-ZÄÖÜ][a-zäöüß0-9]+(?:[-][A-ZÄÖÜ][a-zäöüß0-9]+)*)?([A-ZÄÖÜ][a-zäöüß0-9]+(?:[-][A-ZÄÖÜ][a-zäöüß0-9]+)*)?([A-ZÄÖÜ][a-zäöüß0-9]+(?:[-][A-ZÄÖÜ][a-zäöüß0-9]+)*)?([A-ZÄÖÜ][a-zäöüß0-9]+(?:[-][A-ZÄÖÜ][a-zäöüß0-9]+)*)?((?:[A-Z][a-zäöüß0-9]+)(?:[-][A-Za-z0-9äöüß]+)*)",
                 row["Kürzel"],
             )
             if match:
                 firstname = match.group(1)
-                lastname = match.group(2)
+                if match.group(2):
+                    firstname += " " + match.group(2)
+                    if match.group(3):
+                        firstname += " " + match.group(3)
+                        if match.group(4):
+                            firstname += " " + match.group(4)
+                            if match.group(5):
+                                firstname += " " + match.group(5)
+                lastname = match.group(6)
             else:
                 print("Zeile: ", row)
                 abort_with_err(
@@ -195,9 +203,14 @@ class EmployeesService:
                 )
 
             if len(firstname) < 64 and len(lastname) < 64:
-
+                group_name = (
+                    re.match(
+                        r"^([A-Za-zäöüÄÖÜß']+(?:[\s][A-Za-zäöüÄÖÜß']+)*)(\s-\s)*+",
+                        row["Gruppen-Name 1"],
+                    )
+                ).group(1)
                 group = EmployeesRepository.get_group_by_name_and_location(
-                    row["Gruppen-Name 1"], row["Bereich"]
+                    group_name, row["Bereich"]
                 )
                 if group is None:
                     raise GroupDoesNotExistError(

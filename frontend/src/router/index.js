@@ -37,8 +37,15 @@ const routes = [
           user_group = response.data.user_group;
           if (user_group === "verwaltung") {
             next("/verwaltung/benutzer/uebersicht");
-          } else {
-            next(`/${user_group}/uebersicht`);
+          }
+          if (user_group === "gruppenleitung") {
+            next("/gruppenleitung/meineGruppen");
+          }
+          if (user_group === "standortleitung") {
+            next("/standorleitung/uebersicht");
+          }
+          if (user_group === "kuechenpersonal") {
+            next("/kuechenpersonal/uebersicht");
           }
         })
         .catch((err) => next());

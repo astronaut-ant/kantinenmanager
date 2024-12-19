@@ -13,7 +13,8 @@ def register_cronjobs(app):
     """Register all cronjobs."""
 
     if (
-        True or os.environ.get("WERKZEUG_RUN_MAIN") == "true"
+        os.environ.get("WERKZEUG_RUN_MAIN")
+        == "true"  # Never change a running system. :3
     ):  # register cronjobs only once
         scheduler = BackgroundScheduler()
 
