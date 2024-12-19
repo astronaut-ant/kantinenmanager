@@ -5,6 +5,7 @@ from src.schemas.pre_orders_schemas import (
     OrdersFilterSchema,
     PreOrderFullSchema,
     PreOrdersByGroupLeaderSchema,
+    AggregatedOrdersFilterSchema,
 )
 from src.utils.auth_utils import login_required
 from src.utils.error import ErrMsg, abort_with_err
@@ -17,6 +18,8 @@ from src.services.pre_orders_service import (
     PersonNotPartOfGroup,
     PersonNotPartOfLocation,
     WrongUserError,
+    LocationDoesNotExist,
+    AccessDeniedError,
 )
 
 
@@ -484,3 +487,73 @@ def delete_preorder_user(preorder_id: int):
         )
 
     return "", 204
+
+
+@pre_orders_routes.get("/api/pre-orders/reports")
+@login_required(groups=[UserGroup.verwaltung, UserGroup.standortleitung])
+@swag_from(
+    {
+        "tags": ["orders-reports"],
+        "parameters": [
+            {
+                "in": "body",
+                "name": "body",
+                "required": True,
+                "schema": AggregatedOrdersFilterSchema,
+            }
+        ],
+        "responses": {
+            200: {
+                "description": "Report generated successfully",
+                "content": {
+                    "application/pdf": {
+                        "schema": {"type": "string", "format": "binary"}
+                    }
+                },
+            },
+            400: {"description": "Validation error"},
+        },
+    }
+)
+def get_report():
+    """Get reports for orders filtered by date and location"""
+
+    try:
+        query_params = AggregatedOrdersFilterSchema().load(request.args)
+        filters = OrdersFilters(
+            date=query_params["date"],
+            date_start=query_params["date_start"],
+            date_end=query_params["date_end"],
+            location_id=query_params["location_id"],
+        )
+        location_ids = query_params["location_ids"]
+
+    except ValidationError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Validierungsfehler",
+                description="Format der Daten in der Query nicht valide",
+                details=err.messages,
+            )
+        )
+
+    try:
+        return PreOrdersService.get_pre_orders_report(filters, location_ids, g.user_id)
+
+    except LocationDoesNotExist as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Einer der Standorte existiert nicht",
+                description="Einer der Standorte existiert nicht in der Datenbank mit gegebener ID",
+            )
+        )
+    except AccessDeniedError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=403,
+                title="Zugriff verweigert",
+                description=f"Nutzer:in {g.user_id} hat keine Berechtigung, einen der Standort zu sehen",
+            )
+        )

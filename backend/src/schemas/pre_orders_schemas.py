@@ -19,6 +19,19 @@ class OrdersFilterSchema(Schema):
     date_end = fields.Date(data_key="date-end", required=False)
 
 
+class AggregatedOrdersFilterSchema(Schema):
+    """
+    Query parameters for filtering orders
+    Uses ISO 8601 date format for dates (YYYY-MM-DD).
+    """
+
+    date = fields.Date(data_key="date", required=False)
+    date_start = fields.Date(data_key="date-start", required=False)
+    date_end = fields.Date(data_key="date-end", required=False)
+    location_id = fields.UUID(data_key="location-id", required=False)
+    location_ids = fields.List(fields.UUID(), data_key="location-ids", required=False)
+
+
 class PreOrderBaseSchema(Schema):
     """Schema representing data returned for every pre-order"""
 

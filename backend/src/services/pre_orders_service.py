@@ -1,14 +1,12 @@
 from datetime import datetime, timedelta
-from typing import List, Optional
+from typing import List, Optional, Union
 from uuid import UUID
+from flask import Response
 
 from src.repositories.employees_repository import EmployeesRepository
 from src.repositories.groups_repository import GroupsRepository
 from src.repositories.users_repository import UsersRepository
-from src.schemas.pre_orders_schemas import (
-    PreOrderFullSchema,
-    PreOrdersByGroupLeaderSchema,
-)
+from src.schemas.pre_orders_schemas import PreOrderFullSchema, PreOrdersByGroupLeaderSchema
 from src.models.preorder import PreOrder
 from src.models.user import UserGroup
 from src.repositories.orders_repository import OrdersFilters, OrdersRepository
@@ -17,6 +15,8 @@ from src.utils.exceptions import (
     PersonNotPartOfGroup,
     PersonNotPartOfLocation,
     WrongUserError,
+    LocationDoesNotExist,
+    AccessDeniedError
 )
 
 
@@ -244,3 +244,38 @@ class PreOrdersService:
                 f"Sie haben nicht die Befugnis für '{preorder.person_id}' zu bestellen."
             )
         OrdersRepository.delete_order(preorder)
+    
+    @staticmethod
+    def get_pre_orders_report(filters: OrdersFilters, location_ids: Optional[List[UUID]], user_id: UUID) -> Union[Response, None]:
+        """
+        Get a preorders report filterd by date and location(s)
+        :param filters: Filters for old orders
+        :return: a pdf file with the report or None if no orders were found
+        """
+        
+        # TODO: check if user is allowed to see the report for each group
+
+        if not location_ids and filters.location_id:
+            orders = OrdersRepository.get_pre_orders(filters)
+        elif location_ids:
+            orders = []
+            for location_id in location_ids:
+                filters.location_id = location_id
+                orders.append(OrdersRepository.get_pre_orders(filters))
+        else:
+            raise ValueError("Keine Standort ID übergeben")
+
+        orders = OrdersRepository.get_pre_orders(filters)
+        today = datetime.now().date()
+        now = datetime.now()
+        eight_am_today = now.replace(hour=8, minute=0, second=0, microsecond=0)
+        
+        if filters.date:
+            if filters.date == today and now < eight_am_today:
+                orders = OrdersRepository.get_pre_orders(filters)
+        
+        elif filters.date_start and filters.date_end:
+            orders = OrdersRepository.get_orders_between_dates(filters)
+        else:
+
+        return OrdersRepository.get_report(filters)
