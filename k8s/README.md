@@ -36,7 +36,26 @@ kubectl create secret generic jwtsecret --from-literal=JWT_SECRET=supersecret
 kubectl create secret generic initialadmin --from-literal=INITIAL_ADMIN_PASSWORD=supersecret
 ```
 
-4. Now run the pipeline. Et voilà ✌️
+4. Generate a new self-signed ssl certificate
+
+```bash
+mkdir /home/swtp/certs
+cd /home/swtp/certs
+
+# create a new cert without a password
+openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -sha256 -days 365 -nodes 
+# Country Name: DE
+# State: Saxony
+# Locality: Leipzig
+# Organization Name: SEP Gruppe 16
+# Organizational Unit Name: 
+# Common Name: <ip of server>
+
+# create K8s secret
+kubectl create secret tls self-signed-tls --cert=./cert.pem --key=./key.pem
+```
+
+5. Now run the pipeline. Et voilà ✌️
 
 ## Access Dashboard
 
