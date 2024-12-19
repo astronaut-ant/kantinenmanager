@@ -42,7 +42,7 @@ const routes = [
             next("/gruppenleitung/meineGruppen");
           }
           if (user_group === "standortleitung") {
-            next("/standorleitung/uebersicht");
+            next("/standortleitung/uebersicht");
           }
           if (user_group === "kuechenpersonal") {
             next("/kuechenpersonal/uebersicht");
