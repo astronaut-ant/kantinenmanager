@@ -8,7 +8,7 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts:
-      - sep.local
+      - sep.internal
       - 172.26.92.165
       secretName: self-signed-tls
   rules:
