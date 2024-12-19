@@ -251,6 +251,13 @@ def insert_order_employees_mock_data():
 def insert_daily_orders_mock_data():
     """Insert mock daily orders."""
 
+    now = datetime.now()
+    eight_am = now.replace(hour=8, minute=0, second=0, microsecond=0)
+
+    if now < eight_am:
+        print("Skipping daily orders insertion before 8:00 to avoid conflicts")
+        return
+
     admin = UsersService.get_user_by_username("admin")
 
     if len(DailyOrdersService.get_all_daily_orders()) > 0:
