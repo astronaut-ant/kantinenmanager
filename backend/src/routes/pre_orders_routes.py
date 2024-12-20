@@ -539,8 +539,19 @@ def get_report():
         )
 
     try:
-        return PreOrdersService.get_pre_orders_report(filters, location_ids, g.user_id)
+        return PreOrdersService.get_pre_orders_report(
+            filters, location_ids, g.user_id, g.user_group
+        )
 
+    except ValueError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Validierungsfehler",
+                description="Es wurde kein Standort übergeben",
+                details=str(err),
+            )
+        )
     except LocationDoesNotExist as err:
         abort_with_err(
             ErrMsg(
