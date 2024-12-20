@@ -81,7 +81,9 @@ def get_daily_orders_counted():
     """
 
     try:
-        orders_counted_by_location = DailyOrdersService.get_all_daily_orders_count()
+        orders_counted_by_location = DailyOrdersService.get_all_daily_orders_count(
+            g.user_group, g.user_id
+        )
     except ValueError:  # TODO Specific exceptions
         abort_with_err(
             ErrMsg(
@@ -89,6 +91,15 @@ def get_daily_orders_counted():
                 title="Fehler",
                 description="Ein Fehler ist aufgetreten.",
                 details="Ein Fehler ist aufgetreten.",
+            )
+        )
+    except AccessDeniedError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=403,
+                title="Nicht autorisiert",
+                description=f"Nutzer:in mit ID {g.user_id} haben keinen Zugriff auf diese Bestellungen.",
+                details=str(err),
             )
         )
 

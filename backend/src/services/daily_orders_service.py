@@ -3,8 +3,9 @@ from uuid import UUID
 
 from src.models.dailyorder import DailyOrder
 from src.models.maindish import MainDish
+from src.models.user import UserGroup
 from src.repositories.groups_repository import GroupsRepository
-from src.repositories.orders_repository import OrdersRepository
+from src.repositories.orders_repository import OrdersRepository, OrdersFilters
 from src.repositories.users_repository import UsersRepository
 from src.schemas.daily_orders_schema import (
     CountOrdersObject,
@@ -70,8 +71,20 @@ class DailyOrdersService:
         return OrdersRepository.get_daily_orders_filtered_by_user_scope(user_id)
 
     @staticmethod
-    def get_all_daily_orders_count() -> List[CountOrdersSchema]:
-        all_daily_orders = OrdersRepository.get_all_daily_orders()
+    def get_all_daily_orders_count(
+        user_group: UserGroup, user_id: UUID
+    ) -> List[CountOrdersSchema]:
+        if user_group == UserGroup.kuechenpersonal:
+            user = UsersRepository.get_user_by_id(user_id)
+            all_daily_orders = OrdersRepository.get_all_daily_orders(
+                OrdersFilters(location_id=user.location_id)
+            )
+        elif user_group == UserGroup.verwaltung:
+            all_daily_orders = OrdersRepository.get_all_daily_orders()
+        else:
+            raise AccessDeniedError(
+                f"Zugriff verweigert. Nutzer:in {user_id} hat keine Berechtigung."
+            )
 
         location_counts = {}
         for order in all_daily_orders:
