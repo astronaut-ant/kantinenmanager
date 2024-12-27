@@ -23,9 +23,10 @@ from .routes.locations_routes import locations_routes
 from .routes.pre_orders_routes import pre_orders_routes
 from .routes.daily_orders_routes import daily_orders_routes
 from .routes.old_orders_routes import old_orders_routes
+from .routes.reports_routes import reports_routes
 
 # for production and testing
-from .routes.orders_cronjob_routes import orders_cronjob_routes
+from .routes.manual_cronjobs_routes import manual_cronjobs_routes
 
 
 app = Flask(__name__)  # Globally accessible Flask app instance
@@ -186,7 +187,8 @@ def register_routes(app: Flask) -> None:
     app.register_blueprint(pre_orders_routes)
     app.register_blueprint(daily_orders_routes)
     app.register_blueprint(old_orders_routes)
-    app.register_blueprint(orders_cronjob_routes)
+    app.register_blueprint(reports_routes)
+    app.register_blueprint(manual_cronjobs_routes)
 
 
 startup()
