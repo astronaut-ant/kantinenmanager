@@ -53,9 +53,9 @@ class ReportsService:
     def get_printed_report(
         filters: OrdersFilters,
         location_ids: Optional[List[UUID]],
-        pdf_bool: bool,
         user_id: UUID,
         user_group: UserGroup,
+        pdf_bool: bool = True,
     ) -> Union[Response, None]:
         """
         Get a preorders report filterd by date and location(s)

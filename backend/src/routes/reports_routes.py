@@ -130,9 +130,9 @@ def get_report():
         return ReportsService.get_printed_report(
             filters=filters,
             location_ids=location_ids,
-            pdf_bool=pdf_bool,
             user_id=g.user_id,
             user_group=g.user_group,
+            pdf_bool=pdf_bool,
         )
 
     except ValueError as err:
