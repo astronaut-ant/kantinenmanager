@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
-from typing import List, Optional, Union
+from typing import List, Optional
 from uuid import UUID
-from flask import Response
 
 from src.repositories.employees_repository import EmployeesRepository
 from src.repositories.groups_repository import GroupsRepository
@@ -9,15 +8,14 @@ from src.repositories.users_repository import UsersRepository
 from src.repositories.locations_repository import LocationsRepository
 from src.schemas.pre_orders_schemas import PreOrderFullSchema, PreOrdersByGroupLeaderSchema
 from src.models.preorder import PreOrder
+from src.models.maindish import MainDish
 from src.models.user import UserGroup
 from src.repositories.orders_repository import OrdersFilters, OrdersRepository
 from src.utils.exceptions import (
     NotFoundError,
     PersonNotPartOfGroup,
     PersonNotPartOfLocation,
-    WrongUserError,
-    LocationDoesNotExist,
-    AccessDeniedError
+    WrongUserError
 )
 
 
@@ -246,31 +244,3 @@ class PreOrdersService:
                 f"Sie haben nicht die Befugnis für '{preorder.person_id}' zu bestellen."
             )
         OrdersRepository.delete_order(preorder)
-    
-    @staticmethod
-    def get_pre_orders_report(filters: OrdersFilters, location_ids: Optional[List[UUID]], user_id: UUID, user_group: UserGroup) -> Union[Response, None]:
-        """
-        Get a preorders report filterd by date and location(s)
-        :param filters: Filters for old orders
-        :return: a pdf file with the report or None if no orders were found
-        """
-
-        if not location_ids and filters.location_id:
-            if user_group == UserGroup.verwaltung or user_id == LocationsRepository.get_location_by_id(filters.location_id).user_id_location_leader:
-                orders = OrdersRepository.get_pre_orders(filters)
-            else:
-                raise AccessDeniedError(f"Nutzer:in hat keine Berechtigung für Standort {filters.location_id}.")
-        
-        elif location_ids:
-            orders = []
-            for location_id in location_ids:
-                if user_group == UserGroup.verwaltung or user_id == LocationsRepository.get_location_by_id(filters.location_id).user_id_location_leader:
-                    filters.location_id = location_id
-                    orders.append(OrdersRepository.get_pre_orders(filters))
-                else:
-                    raise AccessDeniedError(f"Nutzer:in hat keine Berechtigung für Standort {location_id}.")
-        
-        else:
-            raise ValueError("Keine Standort ID übergeben")
-        
-        
