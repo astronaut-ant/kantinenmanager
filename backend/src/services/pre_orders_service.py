@@ -1,6 +1,7 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from typing import List, Optional
 from uuid import UUID
+import pytz
 
 from src.repositories.employees_repository import EmployeesRepository
 from src.repositories.groups_repository import GroupsRepository
@@ -19,6 +20,7 @@ from src.utils.exceptions import (
     WrongUserError,
 )
 
+timezone = pytz.timezone("Europe/Berlin")
 
 class PreOrdersService:
     """
@@ -100,6 +102,9 @@ class PreOrdersService:
         bulk_orders = []
         employee_ids = OrdersRepository.get_employees_to_order_for(user_id)
 
+        today = datetime.now(timezone).date()
+        current_time = datetime.now(timezone).time()
+
         for order in orders:
             if order["date"] < datetime.now().date():
                 raise ValueError(f"Datum {order['date']} liegt in der Vergangenheit.")
@@ -108,6 +113,9 @@ class PreOrdersService:
                 raise ValueError(
                     f"Datum {order['date']} liegt mehr als 14 Tage in der Zukunft."
                 )
+            
+            if order["date"] == today and current_time >= time(8, 0):
+                raise ValueError(f"Es ist nach 8 Uhr. Bestellungen sind nicht mehr möglich.")
 
             if order["date"].weekday() >= 5:  # 0 = Montag, 6 = Sonntag
                 raise ValueError(f"Datum {order['date']} ist kein Werktag.")
@@ -151,6 +159,9 @@ class PreOrdersService:
         :return: New order
         """
 
+        today = datetime.now(timezone).date()
+        current_time = datetime.now(timezone).time()
+
         if OrdersRepository.preorder_already_exists(order["person_id"], order["date"]):
             raise ValueError(
                 f"Bestellung für {order['person_id']} am {order['date']} existiert bereits."
@@ -164,7 +175,8 @@ class PreOrdersService:
                 f"Das Datum {order['date']} liegt mehr als 14 Tage in der Zukunft."
             )
 
-        # TODO - Nicht nach 8 Uhr bestellen
+        if order["date"] == today and current_time >= time(8, 0):
+                raise ValueError(f"Es ist nach 8 Uhr. Bestellungen sind nicht mehr möglich.")
 
         if order["date"].weekday() >= 5:  # 0 = Montag, 6 = Sonntag
             raise ValueError(f"Das Datum {order['date']} ist kein Werktag.")
@@ -191,6 +203,10 @@ class PreOrdersService:
 
         :return: Order id
         """
+
+        today = datetime.now(timezone).date()
+        current_time = datetime.now(timezone).time()
+
         if new_order["date"] < datetime.now().date():
             raise ValueError(
                 f"Das Datum {new_order['date']} liegt in der Vergangenheit."
@@ -203,6 +219,9 @@ class PreOrdersService:
 
         if new_order["date"].weekday() >= 5:
             raise ValueError(f"Das Datum {new_order['date']} ist kein Werktag.")
+        
+        if new_order["date"] == today and current_time >= time(8, 0):
+                raise ValueError(f"Es ist nach 8 Uhr. Bestellungen sind nicht mehr möglich.")
 
         if user_id != new_order["person_id"]:
             raise WrongUserError(
