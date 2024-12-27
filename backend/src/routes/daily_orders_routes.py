@@ -6,7 +6,8 @@ from marshmallow import ValidationError
 
 from src.utils.exceptions import NotFoundError, AccessDeniedError
 from src.models.user import UserGroup
-from src.schemas.daily_orders_schema import DailyOrderFullSchema, CountOrdersSchema
+from src.schemas.daily_orders_schema import DailyOrderFullSchema
+from src.schemas.reports_schemas import CountOrdersSchema
 from src.services.daily_orders_service import DailyOrdersService, WrongLocationError
 from src.services.reports_service import ReportsService
 from src.utils.auth_utils import login_required
