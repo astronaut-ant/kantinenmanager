@@ -319,7 +319,7 @@ class ReportsService:
         csv_writer = csv.writer(buffer)
 
         date_str = ReportsService._get_date_string(filters)
-        csv_writer.writerow([f"Datum: {filters.date_start} bis {filters.date_end}"])
+        csv_writer.writerow([date_str])
 
         for location, counts in location_counts.items():
             ReportsService._write_location_csv(
