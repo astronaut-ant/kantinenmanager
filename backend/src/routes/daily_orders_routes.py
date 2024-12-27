@@ -8,6 +8,7 @@ from src.utils.exceptions import NotFoundError, AccessDeniedError
 from src.models.user import UserGroup
 from src.schemas.daily_orders_schema import DailyOrderFullSchema, CountOrdersSchema
 from src.services.daily_orders_service import DailyOrdersService, WrongLocationError
+from src.services.reports_service import ReportsService
 from src.utils.auth_utils import login_required
 from src.utils.error import ErrMsg, abort_with_err
 
@@ -81,7 +82,7 @@ def get_daily_orders_counted():
     """
 
     try:
-        orders_counted_by_location = DailyOrdersService.get_all_daily_orders_count(
+        orders_counted_by_location = ReportsService.get_daily_orders_count(
             g.user_group, g.user_id
         )
     except ValueError:  # TODO Specific exceptions
