@@ -28,14 +28,14 @@ reports_routes = Blueprint("reports_routes", __name__)
                 "in": "query",
                 "name": "pdf_bool",
                 "description": "Choose the format of the report. If true, the report will be generated as a PDF, otherwise as a CSV",
-                "required": True,
+                "required": False,
                 "schema": {"type": "boolean"},
             },
             {
                 "in": "query",
                 "name": "location_ids",
                 "description": "Filter by multiple location IDs (UUIDs)",
-                "required": False,
+                "required": True,
                 "schema": {
                     "type": "array",
                     "items": {"type": "string", "format": "uuid"},
