@@ -8,14 +8,14 @@ from src.utils.error import ErrMsg, abort_with_err
 from src.models.user import UserGroup
 
 
-orders_cronjob_routes = Blueprint("orders_cronjob_routes", __name__)
+manual_cronjobs_routes = Blueprint("manual_cronjobs_routes", __name__)
 
 
-@orders_cronjob_routes.get("/api/batch/pre-to-daily-to-old-order")
+@manual_cronjobs_routes.get("/api/batch/pre-to-daily-to-old-order")
 @login_required(groups=[UserGroup.kuechenpersonal], disabled=True)
 @swag_from(
     {
-        "tags": ["orders_cronjob"],
+        "tags": ["manual_cronjobs"],
         "responses": {
             200: {
                 "description": "Converts pre orders to daily orders and daily orders to old orders",

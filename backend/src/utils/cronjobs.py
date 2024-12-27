@@ -1,5 +1,6 @@
 import os
 from datetime import datetime, timedelta
+import pytz
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -37,7 +38,8 @@ def push_orders_to_next_table(app):
     """Push orders from the pre-orders table to the daily orders table and from the daily orders table to the old orders table."""
 
     with app.app_context():
-        today = datetime.today().date()
+        timezone = pytz.timezone("Europe/Berlin")
+        today = datetime.now(timezone).date()
         yesterday = today - timedelta(days=1)
 
         print("Running cronjob to push orders to the next table.")
