@@ -106,10 +106,10 @@ class PreOrdersService:
         current_time = datetime.now(timezone).time()
 
         for order in orders:
-            if order["date"] < datetime.now().date():
+            if order["date"] < today:
                 raise ValueError(f"Datum {order['date']} liegt in der Vergangenheit.")
 
-            if order["date"] > datetime.now().date() + timedelta(days=14):
+            if order["date"] > today + timedelta(days=14):
                 raise ValueError(
                     f"Datum {order['date']} liegt mehr als 14 Tage in der Zukunft."
                 )
@@ -167,10 +167,10 @@ class PreOrdersService:
                 f"Bestellung für {order['person_id']} am {order['date']} existiert bereits."
             )
 
-        if order["date"] < datetime.now().date():
+        if order["date"] < today:
             raise ValueError(f"Das Datum {order['date']} liegt in der Vergangenheit.")
 
-        if order["date"] > datetime.now().date() + timedelta(days=14):
+        if order["date"] > today + timedelta(days=14):
             raise ValueError(
                 f"Das Datum {order['date']} liegt mehr als 14 Tage in der Zukunft."
             )
@@ -207,12 +207,12 @@ class PreOrdersService:
         today = datetime.now(timezone).date()
         current_time = datetime.now(timezone).time()
 
-        if new_order["date"] < datetime.now().date():
+        if new_order["date"] < today:
             raise ValueError(
                 f"Das Datum {new_order['date']} liegt in der Vergangenheit."
             )
 
-        if new_order["date"] > datetime.now().date() + timedelta(days=14):
+        if new_order["date"] > today + timedelta(days=14):
             raise ValueError(
                 f"Das Datum {new_order['date']} liegt mehr als 14 Tage in der Zukunft."
             )
