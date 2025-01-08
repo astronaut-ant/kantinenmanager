@@ -1,6 +1,6 @@
 <template>
   <div class="text-start">
-    <v-menu open-on-hover location="end">
+    <v-menu location="end">
       <template v-slot:activator="{ props }">
         <v-btn elevation="0" class="bg-transparent" v-bind="props">
           <v-icon class="me-1">{{ menuIcon }}</v-icon>
