@@ -38,6 +38,8 @@
               </div>
               <v-divider color="text-blue-grey" class="my-3"></v-divider>
 
+              <UserFoodOrder />
+              <v-divider color="text-blue-grey" class="my-3"></v-divider>
               <PasswordChange @succeeded="signOut" />
 
               <v-divider color="text-blue-grey" class="my-3"></v-divider>
@@ -58,6 +60,7 @@ import axios from "axios";
 import router from "@/router";
 import { useAppStore } from "@/stores/app";
 import PasswordChange from "./PasswordChange.vue";
+import UserFoodOrder from "./UserFoodOrder.vue";
 const appStore = useAppStore();
 const fullName =
   appStore.userData.first_name + " " + appStore.userData.last_name;
