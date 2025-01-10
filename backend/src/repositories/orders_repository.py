@@ -1,6 +1,6 @@
 """Repository to handle database operations for order data."""
 
-from sqlalchemy import select, func, or_, and_
+from sqlalchemy import delete, insert, select, func, or_, and_, text
 from sqlalchemy.orm import joinedload
 from src.database import db
 from uuid import UUID
@@ -388,3 +388,114 @@ class OrdersRepository:
             query = query.filter(OldOrder.date <= filters.date_end)
 
         return db.session.execute(query).scalars().all()
+
+    ############################ Migrations ############################
+
+    @staticmethod
+    def push_preorders_to_dailyorders(today: date):
+        """
+        Push preorders from todoy to dailyorders
+        """
+
+        db.session.execute(text("BEGIN TRANSACTION"))
+
+        db.session.execute(
+            insert(DailyOrder).from_select(
+                [
+                    DailyOrder.person_id,
+                    DailyOrder.location_id,
+                    DailyOrder.date,
+                    DailyOrder.nothing,
+                    DailyOrder.main_dish,
+                    DailyOrder.salad_option,
+                    DailyOrder.handed_out,
+                ],
+                select(
+                    PreOrder.person_id,
+                    PreOrder.location_id,
+                    PreOrder.date,
+                    PreOrder.nothing,
+                    PreOrder.main_dish,
+                    PreOrder.salad_option,
+                    False,
+                ).filter(PreOrder.date == today),
+            )
+        )
+
+        result = db.session.execute(delete(PreOrder).filter(PreOrder.date == today))
+        print(f"Pushed {result.rowcount} orders to daily orders table.")
+
+        db.session.commit()
+
+    @staticmethod
+    def push_dailyorders_to_oldorders(today: date):
+        """
+        Push old dailyorders to oldorders
+        """
+
+        db.session.execute(text("BEGIN TRANSACTION"))
+
+        db.session.execute(
+            insert(OldOrder).from_select(
+                [
+                    OldOrder.person_id,
+                    OldOrder.location_id,
+                    OldOrder.date,
+                    OldOrder.nothing,
+                    OldOrder.main_dish,
+                    OldOrder.salad_option,
+                    OldOrder.handed_out,
+                ],
+                select(
+                    DailyOrder.person_id,
+                    DailyOrder.location_id,
+                    DailyOrder.date,
+                    DailyOrder.nothing,
+                    DailyOrder.main_dish,
+                    DailyOrder.salad_option,
+                    DailyOrder.handed_out,
+                ).filter(DailyOrder.date < today),
+            )
+        )
+
+        result = db.session.execute(delete(DailyOrder).filter(DailyOrder.date < today))
+        print(f"Pushed {result.rowcount} daily orders to old orders table.")
+
+        db.session.commit()
+
+    @staticmethod
+    def clean_preorders(today: date):
+        """
+        Push old preorders directly to oldorders
+        This is just a fallback in case there are preorders left for some reason (e.g. development environment)
+        """
+
+        db.session.execute(text("BEGIN TRANSACTION"))
+
+        db.session.execute(
+            insert(OldOrder).from_select(
+                [
+                    OldOrder.person_id,
+                    OldOrder.location_id,
+                    OldOrder.date,
+                    OldOrder.nothing,
+                    OldOrder.main_dish,
+                    OldOrder.salad_option,
+                    OldOrder.handed_out,
+                ],
+                select(
+                    PreOrder.person_id,
+                    PreOrder.location_id,
+                    PreOrder.date,
+                    PreOrder.nothing,
+                    PreOrder.main_dish,
+                    PreOrder.salad_option,
+                    False,
+                ).filter(PreOrder.date < today),
+            )
+        )
+
+        result = db.session.execute(delete(PreOrder).filter(PreOrder.date < today))
+        print(f"Pushed {result.rowcount} preorders to old orders table.")
+
+        db.session.commit()

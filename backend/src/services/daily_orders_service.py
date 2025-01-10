@@ -3,14 +3,11 @@ from uuid import UUID
 
 from src.models.dailyorder import DailyOrder
 from src.models.maindish import MainDish
+from src.models.user import UserGroup
 from src.repositories.groups_repository import GroupsRepository
-from src.repositories.orders_repository import OrdersRepository
+from src.repositories.orders_repository import OrdersRepository, OrdersFilters
 from src.repositories.users_repository import UsersRepository
-from src.schemas.daily_orders_schema import (
-    CountOrdersObject,
-    CountOrdersSchema,
-    DailyOrderFullSchema,
-)
+from src.schemas.daily_orders_schema import DailyOrderFullSchema
 from src.utils.exceptions import AccessDeniedError, NotFoundError, WrongLocationError
 
 
@@ -68,43 +65,6 @@ class DailyOrdersService:
         """Get daily orders filtered by user scope"""
 
         return OrdersRepository.get_daily_orders_filtered_by_user_scope(user_id)
-
-    @staticmethod
-    def get_all_daily_orders_count() -> List[CountOrdersSchema]:
-        all_daily_orders = OrdersRepository.get_all_daily_orders()
-
-        location_counts = {}
-        for order in all_daily_orders:
-            if order.nothing:
-                continue
-
-            location_id = order.location_id
-            if location_id not in location_counts:
-                location_counts[location_id] = {
-                    "location_id": location_id,
-                    "rot": 0,
-                    "blau": 0,
-                    "salad_option": 0,
-                }
-
-            if order.main_dish == MainDish.rot:
-                location_counts[location_id]["rot"] += 1
-            elif order.main_dish == MainDish.blau:
-                location_counts[location_id]["blau"] += 1
-            if order.salad_option:
-                location_counts[location_id]["salad_option"] += 1
-
-        orders = [
-            CountOrdersObject(
-                location_id=location["location_id"],
-                rot=location["rot"],
-                blau=location["blau"],
-                salad_option=location["salad_option"],
-            )
-            for location in location_counts.values()
-        ]
-
-        return CountOrdersSchema(many=True).dump(orders)
 
     @staticmethod
     def get_daily_orders_for_group(group_id: UUID, user_id: UUID) -> List[DailyOrder]:

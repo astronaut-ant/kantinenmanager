@@ -1,6 +1,37 @@
 <template>
   <NavbarKueche />
   <h1 class="text-center mt-5">Heutige Bestellungen</h1>
+  <v-container class="pa-4">
+    <v-row>
+      <v-col cols="4">
+        <v-card class="text-center">
+          <v-card-title>Rotes Hauptgericht</v-card-title>
+          <v-card-text>
+            <v-icon color="red" size="36">mdi-circle</v-icon>
+            {{ orderCount.blau }}
+          </v-card-text>
+        </v-card>
+      </v-col>
+      <v-col cols="4">
+        <v-card class="text-center">
+          <v-card-title>Blaues Hauptgericht</v-card-title>
+          <v-card-text>
+            <v-icon color="primary" size="36">mdi-circle</v-icon>
+            {{ orderCount.rot }}
+          </v-card-text>
+        </v-card>
+      </v-col>
+      <v-col cols="4">
+        <v-card class="text-center">
+          <v-card-title>Salat</v-card-title>
+          <v-card-text>
+            <v-icon color="green" size="36">mdi-leaf</v-icon>
+            {{ orderCount.salad_option }}
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+  </v-container>
   <v-data-table-virtual
     :hover="true"
     :fixed-header="true"
@@ -38,15 +69,15 @@
     </template>
   </v-data-table-virtual>
 
-  <v-dialog v-model="dialog" max-width="400px">
+  <v-dialog v-model="dialog" max-width="400px" persistent>
     <v-card>
       <v-card-title class="headline">Bestätigung</v-card-title>
       <v-card-text>
         Möchten Sie den Status Ausgabe der Bestellung wirklich ändern?
       </v-card-text>
       <v-card-actions>
-        <v-btn color="green darken-1" text @click="confirmChange">Bestätigen</v-btn>
         <v-btn color="red darken-1" text @click="closeConfirmDialog">Abbrechen</v-btn>
+        <v-btn color="green darken-1" text @click="confirmChange">Bestätigen</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -60,6 +91,11 @@ const employees = ref([]);
 const tableData = ref([]);
 const dialog = ref(false);
 const itemToConfirm = ref(null);
+const orderCount = ref({
+  blau: 0,
+  rot: 0,
+  salad_option: 0,
+});
 
 const sortBy = [{ key: 'group_name', order: 'asc' }]
 
@@ -93,6 +129,14 @@ onMounted(() => {
       employees.value = response.data;
       console.log(employees.value);
       updateTableData();
+    })
+    .catch((err) => console.error(err));
+
+  axios
+    .get(import.meta.env.VITE_API + "/api/daily-orders/counted", { withCredentials: true })
+    .then((response) => {
+      orderCount.value = response.data[0] || { blau: 0, rot: 0, salad_option: 0 };
+      console.error(orderCount.value);
     })
     .catch((err) => console.error(err));
 });
