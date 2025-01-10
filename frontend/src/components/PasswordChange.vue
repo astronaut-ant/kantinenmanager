@@ -19,7 +19,7 @@
     </template>
 
     <v-card
-      :width="form ? '600' : '550'"
+      :width="form ? '400' : '500'"
       class="mx-auto px-6"
       color="blue-grey-lighten-5"
     >
@@ -29,7 +29,7 @@
         validate-on="invalid-input"
       >
         <v-card-text>
-          <h2 class="mt-5 mb-6 text-blue-grey font-weight-bold">
+          <h2 class="mt-3 mb-6 text-blue-grey font-weight-bold">
             <v-icon class="me-4 text-blue-grey">
               {{ form ? "mdi-key-variant" : "mdi-swap-horizontal" }}</v-icon
             >
@@ -37,8 +37,8 @@
           </h2>
           <div class="d-flex justify-space-between w-100">
             <AnimatedCircle class="" v-if="!form" />
-            <div>
-              <h3 class="mt-7 text-blue-grey" v-if="!form">
+            <div class="me-n2">
+              <h3 class="mt-7 text-end text-blue-grey" v-if="!form">
                 (Automatische Abmeldung in 60 Sekunden)
               </h3>
             </div>
@@ -108,7 +108,7 @@
         <v-card-actions class="mb-3 mt-2">
           <v-spacer></v-spacer>
           <v-btn
-            text="Abbrechen"
+            :text="form ? 'Abbrechen' : 'zurück'"
             color="blue-grey"
             variant="plain"
             @click="close"
