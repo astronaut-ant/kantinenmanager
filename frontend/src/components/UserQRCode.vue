@@ -3,8 +3,7 @@
     <template v-slot:activator="{ props: activatorProps }">
       <div class="text-start">
         <v-btn variant="text" v-bind="activatorProps" class="text-blue-grey"
-          ><v-icon class="me-4">mdi-calendar-edit-outline</v-icon>Meine
-          Bestellungen</v-btn
+          ><v-icon class="me-4">mdi-qrcode</v-icon>Mein QR-Code</v-btn
         >
       </div>
     </template>

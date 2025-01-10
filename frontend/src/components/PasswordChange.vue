@@ -7,13 +7,15 @@
     :no-click-animation="true"
   >
     <template v-slot:activator="{ props: activatorProps }">
-      <v-btn
-        @click="resetForm"
-        variant="text"
-        v-bind="activatorProps"
-        class="text-blue-grey"
-        ><v-icon class="me-4">mdi-key-variant</v-icon>Passwort ändern</v-btn
-      >
+      <div class="text-start">
+        <v-btn
+          @click="resetForm"
+          variant="text"
+          v-bind="activatorProps"
+          class="text-blue-grey"
+          ><v-icon class="me-4">mdi-key-variant</v-icon>Passwort ändern</v-btn
+        >
+      </div>
     </template>
 
     <v-card
