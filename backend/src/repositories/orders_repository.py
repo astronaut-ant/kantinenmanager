@@ -397,67 +397,35 @@ class OrdersRepository:
         Push preorders from todoy to dailyorders
         """
 
-        with db.session.begin():
+        db.session.execute(text("BEGIN TRANSACTION"))
 
-            db.session.execute(
-                insert(DailyOrder).from_select(
-                    [
-                        DailyOrder.person_id,
-                        DailyOrder.location_id,
-                        DailyOrder.date,
-                        DailyOrder.nothing,
-                        DailyOrder.main_dish,
-                        DailyOrder.salad_option,
-                        DailyOrder.handed_out,
-                    ],
-                    select(
-                        PreOrder.person_id,
-                        PreOrder.location_id,
-                        PreOrder.date,
-                        PreOrder.nothing,
-                        PreOrder.main_dish,
-                        PreOrder.salad_option,
-                        False,
-                    ).filter(PreOrder.date == today),
-                )
+        db.session.execute(
+            insert(DailyOrder).from_select(
+                [
+                    DailyOrder.person_id,
+                    DailyOrder.location_id,
+                    DailyOrder.date,
+                    DailyOrder.nothing,
+                    DailyOrder.main_dish,
+                    DailyOrder.salad_option,
+                    DailyOrder.handed_out,
+                ],
+                select(
+                    PreOrder.person_id,
+                    PreOrder.location_id,
+                    PreOrder.date,
+                    PreOrder.nothing,
+                    PreOrder.main_dish,
+                    PreOrder.salad_option,
+                    False,
+                ).filter(PreOrder.date == today),
             )
+        )
 
-            result = db.session.execute(delete(PreOrder).filter(PreOrder.date == today))
-            print(f"Pushed {result.rowcount} orders to daily orders table.")
+        result = db.session.execute(delete(PreOrder).filter(PreOrder.date == today))
+        print(f"Pushed {result.rowcount} orders to daily orders table.")
 
-            db.session.commit()
-
-        return
-
-        # with db.session.begin():
-        #     db.session.execute(text("LOCK TABLE pre_order IN ACCESS EXCLUSIVE MODE"))
-
-        #     # keep this as one transaction to avoid concurrency issues
-        #     preorders = db.session.scalars(
-        #         select(PreOrder).filter(PreOrder.date == today)
-        #     ).all()
-
-        #     if len(preorders) == 0:
-        #         print("No preorders found for today.")
-        #         db.session.rollback()
-        #         return
-
-        #     dailyorders = [pre_order_to_daily_order(preorder) for preorder in preorders]
-
-        #     # Insert daily orders
-        #     db.session.bulk_save_objects(dailyorders)
-
-        #     # Delete preorders
-        #     try:
-        #         for order in preorders:
-        #             db.session.delete(order)
-        #     except Exception as e:
-        #         db.session.rollback()
-        #         return e
-
-        #     print(f"Pushed {len(preorders)} orders to daily orders table.")
-
-        #     db.session.commit()
+        db.session.commit()
 
     @staticmethod
     def push_dailyorders_to_oldorders(today: date):
@@ -465,71 +433,35 @@ class OrdersRepository:
         Push old dailyorders to oldorders
         """
 
-        with db.session.begin():
+        db.session.execute(text("BEGIN TRANSACTION"))
 
-            db.session.execute(
-                insert(OldOrder).from_select(
-                    [
-                        OldOrder.person_id,
-                        OldOrder.location_id,
-                        OldOrder.date,
-                        OldOrder.nothing,
-                        OldOrder.main_dish,
-                        OldOrder.salad_option,
-                        OldOrder.handed_out,
-                    ],
-                    select(
-                        DailyOrder.person_id,
-                        DailyOrder.location_id,
-                        DailyOrder.date,
-                        DailyOrder.nothing,
-                        DailyOrder.main_dish,
-                        DailyOrder.salad_option,
-                        DailyOrder.handed_out,
-                    ).filter(DailyOrder.date < today),
-                )
+        db.session.execute(
+            insert(OldOrder).from_select(
+                [
+                    OldOrder.person_id,
+                    OldOrder.location_id,
+                    OldOrder.date,
+                    OldOrder.nothing,
+                    OldOrder.main_dish,
+                    OldOrder.salad_option,
+                    OldOrder.handed_out,
+                ],
+                select(
+                    DailyOrder.person_id,
+                    DailyOrder.location_id,
+                    DailyOrder.date,
+                    DailyOrder.nothing,
+                    DailyOrder.main_dish,
+                    DailyOrder.salad_option,
+                    DailyOrder.handed_out,
+                ).filter(DailyOrder.date < today),
             )
+        )
 
-            result = db.session.execute(
-                delete(DailyOrder).filter(DailyOrder.date < today)
-            )
-            print(f"Pushed {result.rowcount} daily orders to old orders table.")
+        result = db.session.execute(delete(DailyOrder).filter(DailyOrder.date < today))
+        print(f"Pushed {result.rowcount} daily orders to old orders table.")
 
-            db.session.commit()
-
-        return
-
-        # with db.session.begin():
-        #     db.session.execute(text("LOCK TABLE daily_order IN ACCESS EXCLUSIVE MODE"))
-
-        #     # keep this as one transaction to avoid concurrency issues
-        #     dailyorders = db.session.scalars(
-        #         select(DailyOrder).filter(DailyOrder.date < today)
-        #     ).all()
-
-        #     if len(dailyorders) == 0:
-        #         print("No old dailyorders found.")
-        #         db.session.rollback()
-        #         return
-
-        #     oldorders = [
-        #         daily_order_to_old_order(dailyorder) for dailyorder in dailyorders
-        #     ]
-
-        #     # Insert old orders
-        #     db.session.bulk_save_objects(oldorders)
-
-        #     # Delete dailyorders
-        #     try:
-        #         for order in dailyorders:
-        #             db.session.delete(order)
-        #     except Exception as e:
-        #         db.session.rollback()
-        #         return e
-
-        #     print(f"Pushed {len(dailyorders)} orders to old orders table.")
-
-        #     db.session.commit()
+        db.session.commit()
 
     @staticmethod
     def clean_preorders(today: date):
@@ -538,70 +470,35 @@ class OrdersRepository:
         This is just a fallback in case there are preorders left for some reason (e.g. development environment)
         """
 
-        with db.session.begin():
+        db.session.execute(text("BEGIN TRANSACTION"))
 
-            db.session.execute(
-                insert(OldOrder).from_select(
-                    [
-                        OldOrder.person_id,
-                        OldOrder.location_id,
-                        OldOrder.date,
-                        OldOrder.nothing,
-                        OldOrder.main_dish,
-                        OldOrder.salad_option,
-                        OldOrder.handed_out,
-                    ],
-                    select(
-                        PreOrder.person_id,
-                        PreOrder.location_id,
-                        PreOrder.date,
-                        PreOrder.nothing,
-                        PreOrder.main_dish,
-                        PreOrder.salad_option,
-                        False,
-                    ).filter(PreOrder.date < today),
-                )
+        db.session.execute(
+            insert(OldOrder).from_select(
+                [
+                    OldOrder.person_id,
+                    OldOrder.location_id,
+                    OldOrder.date,
+                    OldOrder.nothing,
+                    OldOrder.main_dish,
+                    OldOrder.salad_option,
+                    OldOrder.handed_out,
+                ],
+                select(
+                    PreOrder.person_id,
+                    PreOrder.location_id,
+                    PreOrder.date,
+                    PreOrder.nothing,
+                    PreOrder.main_dish,
+                    PreOrder.salad_option,
+                    False,
+                ).filter(PreOrder.date < today),
             )
+        )
 
-            result = db.session.execute(delete(PreOrder).filter(PreOrder.date < today))
-            print(f"Pushed {result.rowcount} preorders to old orders table.")
+        result = db.session.execute(delete(PreOrder).filter(PreOrder.date < today))
+        print(f"Pushed {result.rowcount} preorders to old orders table.")
 
-            db.session.commit()
-
-        return
-
-        # with db.session.begin():
-        #     db.session.execute(text("LOCK TABLE pre_order IN ACCESS EXCLUSIVE MODE"))
-
-        #     # keep this as one transaction to avoid concurrency issues
-        #     preorders = db.session.scalars(
-        #         select(PreOrder).filter(PreOrder.date < today)
-        #     ).all()
-
-        #     if len(preorders) == 0:
-        #         print("No old preorders found.")
-        #         db.session.rollback()
-        #         return
-
-        #     oldorders = [
-        #         daily_order_to_old_order(pre_order_to_daily_order(preorder))
-        #         for preorder in preorders
-        #     ]
-
-        #     # Insert old orders
-        #     db.session.bulk_save_objects(oldorders)
-
-        #     # Delete preorders
-        #     try:
-        #         for order in preorders:
-        #             db.session.delete(order)
-        #     except Exception as e:
-        #         db.session.rollback()
-        #         return e
-
-        #     print(f"Pushed {len(preorders)} preorders to old orders table.")
-
-        #     db.session.commit()
+        db.session.commit()
 
 
 def pre_order_to_daily_order(pre_order: PreOrder) -> DailyOrder:
