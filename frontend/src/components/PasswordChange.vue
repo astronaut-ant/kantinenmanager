@@ -20,7 +20,7 @@
 
     <v-card
       :width="form ? '600' : '550'"
-      class="mx-auto px-10"
+      class="mx-auto px-6"
       color="blue-grey-lighten-5"
     >
       <v-form
@@ -105,9 +105,14 @@
         </v-card-text>
         <v-divider></v-divider>
 
-        <v-card-actions class="mb-2 mt-2">
+        <v-card-actions class="mb-3 mt-2">
           <v-spacer></v-spacer>
-          <v-btn text="Abbrechen" variant="plain" @click="close"></v-btn>
+          <v-btn
+            text="Abbrechen"
+            color="blue-grey"
+            variant="plain"
+            @click="close"
+          ></v-btn>
           <v-btn
             v-if="form"
             type="submit"

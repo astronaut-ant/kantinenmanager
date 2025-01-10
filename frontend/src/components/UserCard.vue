@@ -1,5 +1,5 @@
 <template>
-  <v-card class="mx-4 my-4" elevation="16" min-width="20em">
+  <v-card class="mx-4 my-4 overflow-auto" elevation="16" width="20em">
     <v-card-item>
       <div class="d-flex justify-space-between">
         <v-card-title>{{

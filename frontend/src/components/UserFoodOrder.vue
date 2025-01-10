@@ -9,9 +9,9 @@
       </div>
     </template>
 
-    <v-card max-height="800" class="mx-auto px-10" color="blue-grey-lighten-5">
+    <v-card max-height="800" class="mx-auto px-4" color="blue-grey-lighten-5">
       <v-card-text>
-        <h2 class="mt-5 mb-6 text-blue-grey font-weight-bold">
+        <h2 class="mt-4 mb-6 text-blue-grey font-weight-bold">
           <v-icon class="me-4 text-blue-grey">
             mdi-calendar-edit-outline</v-icon
           >
@@ -70,9 +70,13 @@
         </div>
       </v-card-text>
       <v-card-actions class="pe-5">
-        <v-btn @click="close" class="bg-primary mb-2 mt-2" variant="elevated"
-          >Schließen</v-btn
-        >
+        <v-btn
+          class="mb-3 mt-n1"
+          color="blue-grey"
+          text="Zurück"
+          variant="tonal"
+          @click="close"
+        ></v-btn>
       </v-card-actions>
 
       <!-- <div class="mt-5">
