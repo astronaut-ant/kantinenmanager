@@ -499,31 +499,3 @@ class OrdersRepository:
         print(f"Pushed {result.rowcount} preorders to old orders table.")
 
         db.session.commit()
-
-
-def pre_order_to_daily_order(pre_order: PreOrder) -> DailyOrder:
-    """Helper function to convert a PreOrder to a DailyOrder."""
-
-    return DailyOrder(
-        person_id=pre_order.person_id,
-        location_id=pre_order.location_id,
-        date=pre_order.date,
-        nothing=pre_order.nothing,
-        main_dish=pre_order.main_dish,
-        salad_option=pre_order.salad_option,
-        handed_out=False,
-    )
-
-
-def daily_order_to_old_order(daily_order: DailyOrder) -> OldOrder:
-    """Helper function to convert a DailyOrder to an OldOrder."""
-
-    return OldOrder(
-        person_id=daily_order.person_id,
-        location_id=daily_order.location_id,
-        date=daily_order.date,
-        nothing=daily_order.nothing,
-        main_dish=daily_order.main_dish,
-        salad_option=daily_order.salad_option,
-        handed_out=daily_order.handed_out,
-    )
