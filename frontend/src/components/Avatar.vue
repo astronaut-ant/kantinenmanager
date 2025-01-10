@@ -39,7 +39,7 @@
               <v-divider color="text-blue-grey" class="my-3"></v-divider>
               <UserFoodOrder />
               <div>
-                <UserQRCode />
+                <UserQRCode :qr-value="appStore.userData.id" />
               </div>
               <v-divider color="text-blue-grey" class="my-3"></v-divider>
               <PasswordChange @succeeded="signOut" />

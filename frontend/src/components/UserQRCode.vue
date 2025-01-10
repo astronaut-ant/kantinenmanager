@@ -15,7 +15,7 @@
           Mein QR-Code
         </h2>
         <qrcode-canvas
-          value="test"
+          :value="props.qrValue"
           :size="250"
           level="H"
           foreground="#1867C0"
@@ -38,9 +38,12 @@
 <script setup>
 import QrcodeCanvas from "qrcode.vue";
 const dialog = ref(false);
+const props = defineProps(["qrValue"]);
+
 const close = () => {
   dialog.value = false;
 };
+console.log(props.qrValue);
 </script>
 
 <!-- Dummy -->
