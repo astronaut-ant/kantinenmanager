@@ -3,8 +3,8 @@
 from sqlalchemy import select, or_, and_
 from src.models.user import User, UserGroup
 from src.models.group import Group
+from src.models.preorder import PreOrder
 from src.models.location import Location
-from src.repositories.orders_repository import OrdersRepository, OrdersFilters
 from src.database import db
 from uuid import UUID
 from typing import Optional
@@ -137,9 +137,9 @@ class UsersRepository:
     def delete_user(user: User):
         """Set the hidden flag for a user to True and delete all pre_orders belonging to that person"""
 
-        persons_pre_orders = OrdersRepository.get_pre_orders(
-            filter=OrdersFilters(person_id=user.id)
-        )
+        persons_pre_orders = db.session.scalars(
+            select(PreOrder).where(PreOrder.person_id == user.id)
+        ).all()
         db.delete(persons_pre_orders)
         user.hidden = True
         db.session.commit()

@@ -6,8 +6,8 @@ from uuid import UUID
 from src.models.user import UserGroup, User
 from src.models.employee import Employee
 from src.models.group import Group
+from src.models.preorder import PreOrder
 from src.repositories.users_repository import UsersRepository
-from src.repositories.orders_repository import OrdersRepository, OrdersFilters
 from src.models.location import Location
 from typing import List, Optional
 
@@ -267,9 +267,9 @@ class EmployeesRepository:
     def delete_employee(employee: Employee):
         """Set the hidden flag for a user to True and delete all pre_orders belonging to that person"""
 
-        persons_pre_orders = OrdersRepository.get_pre_orders(
-            filter=OrdersFilters(person_id=employee.id)
-        )
+        persons_pre_orders = db.session.scalars(
+            select(PreOrder).where(PreOrder.person_id == employee.id)
+        ).all()
         db.delete(persons_pre_orders)
         employee.hidden = True
         db.session.commit()
