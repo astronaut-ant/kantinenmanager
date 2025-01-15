@@ -11,7 +11,6 @@ from src.schemas.users_schemas import (
     LocationLeaderNestedSchema,
     UserFullSchema,
 )
-from src.schemas.group_schemas import GroupBaseSchema, GroupFullSchema
 from src.models.user import UserGroup
 from src.services.users_service import (
     UserAlreadyExistsError,

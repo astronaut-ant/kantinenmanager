@@ -19,14 +19,17 @@ class GroupsService:
     @staticmethod
     def create_group(
         group_name: str,
+        group_number: int,
         user_id_group_leader: UUID,
         location_id: UUID,
         user_id_replacement: UUID = None,
     ) -> UUID:
+
         if GroupsRepository.get_group_by_name_and_location(group_name, location_id):
             raise GroupAlreadyExists(
                 f"Die Gruppe {group_name} existiert bereits an diesem Standort."
             )
+
         group_leader_exists = UsersRepository.get_user_by_id(user_id_group_leader)
         if not group_leader_exists:
             raise LeaderDoesNotExist(
@@ -36,6 +39,7 @@ class GroupsService:
             raise ValueError(
                 f"Der User mit der ID {user_id_group_leader} ist kein Gruppenleiter."
             )
+
         if user_id_replacement:
             group_replacement_exists = UsersRepository.get_user_by_id(
                 user_id_replacement
@@ -54,27 +58,36 @@ class GroupsService:
             raise LocationDoesNotExist(
                 f"Die Location mit der ID {location_id} existiert nicht."
             )
-        group_id = GroupsRepository.create_group(
+
+        group_number_exists = GroupsRepository.get_group_by_number(group_number)
+        if group_number_exists:
+            raise GroupAlreadyExists(
+                f"Die Gruppe mit der Nummer {group_number} existiert bereits."
+            )
+
+        return GroupsRepository.create_group(
             group_name,
+            group_number,
             user_id_group_leader,
             location_id,
             user_id_replacement,
         )
-        return group_id
 
     @staticmethod
     def get_group_by_id(group_id: UUID) -> Group:
         """Retrieve a group by its ID or raise an error."""
         group = GroupsRepository.get_group_by_id(group_id)
         if not group:
-            raise GroupDoesNotExistError(group_id)
+            raise GroupDoesNotExistError(f"Gruppe mit ID {group_id} eistiert nicht.")
         return group
 
-    @staticmethod
+    @staticmethod  # Hier könnte es sinnvoll sein Schemas zu verwenden
     def get_all_groups_with_locations(user_id, user_group) -> dict[str, list[str]]:
         """Get all groups with locations."""
+
         locations = {}
         groups = GroupsRepository.get_groups_by_userscope(user_id, user_group)
+
         for group in groups:
             # seperate group name and location name by splitting at the first "-"
             # match = re.match(r"^(.*?)\s*-\s*(.*)$", group.group_name)
@@ -82,9 +95,12 @@ class GroupsService:
             # group_name = match.group(1)
             group_name = group.group_name
             group_location = group.location.location_name
+
             if group_location not in locations:
                 locations[group_location] = []
+
             locations[group_location].append(group_name)
+
         return locations
 
     @staticmethod
@@ -93,7 +109,7 @@ class GroupsService:
         return GroupsRepository.get_groups_by_userscope(user_id, user_group)
 
     @staticmethod
-    def delete_group(group_id: UUID) -> None:
+    def delete_group(group_id: UUID):
         """Delete a group by its ID."""
         group = GroupsRepository.get_group_by_id(group_id)
         if not group:
@@ -101,12 +117,12 @@ class GroupsService:
                 f"Die Gruppe mit der ID {group_id} existiert nicht."
             )
         GroupsRepository.delete_group(group)
-        return None
 
     @staticmethod
     def update_group(
         group_id: UUID,
         group_name: str,
+        group_number: int,
         user_id_group_leader: UUID,
         location_id: UUID,
         user_id_replacement: UUID = None,
@@ -141,10 +157,10 @@ class GroupsService:
                     f"Der Ersatz-User mit der ID {user_id_replacement} ist kein Gruppenleiter."
                 )
             group.user_id_replacement = user_id_replacement
-
-        if user_id_replacement is None:
+        elif user_id_replacement is None:
             group.user_id_replacement = None
 
+        # Soll die Location eine Gruppe änderbar sein?
         if location_id != group.location_id:
             location_exists = LocationsRepository.get_location_by_id(location_id)
             if not location_exists:
@@ -152,6 +168,15 @@ class GroupsService:
                     f"Die Location mit der ID {location_id} existiert nicht."
                 )
             group.location_id = location_id
+
+        if group_number != group.group_number:
+            group_number_exists = GroupsRepository.get_group_by_number(group_number)
+            if group_number_exists:
+                raise GroupAlreadyExists(
+                    f"Die Gruppe mit der Nummer {group_number} existiert bereits."
+                )
+            group.group_number = group_number
+
         group.group_name = group_name
         GroupsRepository.update_group(group)
         return group
