@@ -1,9 +1,10 @@
 """Repository to handle database operations for user data."""
 
-from sqlalchemy import select, or_
+from sqlalchemy import select, or_, and_
 from src.models.user import User, UserGroup
 from src.models.group import Group
 from src.models.location import Location
+from src.repositories.orders_repository import OrdersRepository, OrdersFilters
 from src.database import db
 from uuid import UUID
 from typing import Optional
@@ -29,7 +30,12 @@ class UsersRepository:
         """
         if user_group_filter:
             return db.session.scalars(
-                select(User).where(User.user_group == user_group_filter)
+                select(User).where(
+                    and_(
+                        User.user_group == user_group_filter,
+                        User.hidden == False,
+                    )
+                )
             ).all()
 
         return db.session.scalars(select(User)).all()
@@ -44,7 +50,14 @@ class UsersRepository:
         """
         # TODO: Test this method
 
-        return db.session.scalars(select(User).where(User.id == user_id)).first()
+        return db.session.scalars(
+            select(User).where(
+                and_(
+                    User.id == user_id,
+                    User.hidden == False,
+                )
+            )
+        ).first()
 
     @staticmethod
     def get_user_by_username(username) -> User | None:
@@ -55,7 +68,14 @@ class UsersRepository:
         :return: The user with the given username or None if no user was found
         """
 
-        return db.session.scalars(select(User).where(User.username == username)).first()
+        return db.session.scalars(
+            select(User).where(
+                and_(
+                    User.username == username,
+                    User.hidden == False,
+                )
+            )
+        ).first()
 
     @staticmethod
     def get_users_by_user_group(group: UserGroup) -> list[User]:
@@ -65,21 +85,38 @@ class UsersRepository:
         """
 
         return list(
-            db.session.scalars(select(User).where(User.user_group == group)).all()
+            db.session.scalars(
+                select(User).where(
+                    and_(
+                        User.user_group == group,
+                        User.hidden == False,
+                    )
+                )
+            ).all()
         )
 
     @staticmethod
     def get_group_leader():
         """Get all group leaders"""
         return db.session.scalars(
-            select(User).where(User.user_group == UserGroup.gruppenleitung)
+            select(User).where(
+                and_(
+                    User.user_group == UserGroup.gruppenleitung,
+                    User.hidden == False,
+                )
+            )
         ).all()
 
     @staticmethod
     def get_location_leader():
         """Get all location leaders"""
         return db.session.scalars(
-            select(User).where(User.user_group == UserGroup.standortleitung)
+            select(User).where(
+                and_(
+                    User.user_group == UserGroup.standortleitung,
+                    User.hidden == False,
+                )
+            )
         ).all()
 
     @staticmethod
@@ -94,16 +131,17 @@ class UsersRepository:
     def update_user(user: User):
         """Update a user in the database"""
 
-        # SQLAlchemy automatically tracks changes to objects
-        # we only need to commit the session to save the changes
-
         db.session.commit()
 
     @staticmethod
     def delete_user(user: User):
-        """Delete a user from the database"""
+        """Set the hidden flag for a user to True and delete all pre_orders belonging to that person"""
 
-        db.session.delete(user)
+        persons_pre_orders = OrdersRepository.get_pre_orders(
+            filter=OrdersFilters(person_id=user.id)
+        )
+        db.delete(persons_pre_orders)
+        user.hidden = True
         db.session.commit()
 
     @staticmethod

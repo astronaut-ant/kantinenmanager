@@ -28,6 +28,7 @@ class Person(db.Model):
     first_name: Mapped[str] = mapped_column(String(64), nullable=False)
     last_name: Mapped[str] = mapped_column(String(64), nullable=False)
     created: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    hidden: Mapped[bool] = mapped_column(db.Boolean, nullable=False, default=False)
     type: Mapped[str]
 
     # Das sind die Beziehungen zu anderen Tabellen (SQLAlchemy löst den import, auch wenn Fehler angezeigt wird):

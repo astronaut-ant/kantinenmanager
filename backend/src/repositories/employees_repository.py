@@ -1,12 +1,13 @@
 """Repository to handle database operations for employee data."""
 
-from sqlalchemy import select, func, or_
+from sqlalchemy import select, func, or_, and_
 from src.database import db
 from uuid import UUID
 from src.models.user import UserGroup, User
 from src.models.employee import Employee
 from src.models.group import Group
 from src.repositories.users_repository import UsersRepository
+from src.repositories.orders_repository import OrdersRepository, OrdersFilters
 from src.models.location import Location
 from typing import List, Optional
 
@@ -83,7 +84,7 @@ class EmployeesRepository:
             if employee_number:
                 query = query.filter(Employee.employee_number == employee_number)
 
-            return db.session.scalars(query).all()
+            return db.session.scalars(query.where(Employee.hidden == False)).all()
         return []
 
     @staticmethod
@@ -95,10 +96,15 @@ class EmployeesRepository:
         :return: The employee with the given employee number or None if no employee was found
         """
         return db.session.scalars(
-            select(Employee).where(Employee.employee_number == employee_number)
+            select(Employee).where(
+                and_(
+                    Employee.employee_number == employee_number,
+                    Employee.hidden == False,
+                )
+            )
         ).first()
 
-    @staticmethod
+    @staticmethod  # Warum ist diese Funktion hier und nicht in group repository?
     def get_group_by_name_and_location(
         group_name: str, location_name: str
     ) -> Group | None:
@@ -133,7 +139,12 @@ class EmployeesRepository:
             or user_group == UserGroup.kuechenpersonal
         ):
             return db.session.scalars(
-                select(Employee).where(Employee.id == employee_id)
+                select(Employee).where(
+                    and_(
+                        Employee.id == employee_id,
+                        Employee.hidden == False,
+                    )
+                )
             ).first()
 
         elif user_group == UserGroup.standortleitung:
@@ -150,7 +161,12 @@ class EmployeesRepository:
                 select(Employee)
                 .join(Group)
                 .filter(Group.user_id_groupleader == user_id)
-                .where(Employee.id == employee_id)
+                .where(
+                    and_(
+                        Employee.id == employee_id,
+                        Employee.hidden == False,
+                    )
+                )
             ).first()
 
         else:
@@ -172,9 +188,13 @@ class EmployeesRepository:
             or user_group == UserGroup.kuechenpersonal
         ):
             return db.session.scalars(
-                select(Employee)
-                .where(Employee.first_name == first_name)
-                .where(Employee.last_name == last_name)
+                select(Employee).where(
+                    and_(
+                        Employee.first_name == first_name,
+                        Employee.last_name == last_name,
+                        Employee.hidden == False,
+                    )
+                )
             ).first()
 
         elif user_group == UserGroup.standortleitung:
@@ -183,8 +203,13 @@ class EmployeesRepository:
                 .join(Group)
                 .join(Location)
                 .filter(Location.user_id_location_leader == user_id)
-                .where(Employee.first_name == first_name)
-                .where(Employee.last_name == last_name)
+                .where(
+                    and_(
+                        Employee.first_name == first_name,
+                        Employee.last_name == last_name,
+                        Employee.hidden == False,
+                    )
+                )
             ).first()
 
         elif user_group == UserGroup.gruppenleitung:
@@ -192,20 +217,17 @@ class EmployeesRepository:
                 select(Employee)
                 .join(Group)
                 .filter(Group.user_id_groupleader == user_id)
-                .where(Employee.first_name == first_name)
-                .where(Employee.last_name == last_name)
+                .where(
+                    and_(
+                        Employee.first_name == first_name,
+                        Employee.last_name == last_name,
+                        Employee.hidden == False,
+                    )
+                )
             ).first()
 
         else:
             None
-
-    @staticmethod
-    def create_employee(employee: Employee) -> UUID:
-        """Create a new employee in the database"""
-        db.session.add(employee)
-        db.session.commit()
-
-        return employee.id
 
     @staticmethod
     def get_user_by_employee_number(employee_number: int) -> Employee | None:
@@ -216,8 +238,21 @@ class EmployeesRepository:
         :return: The employee associated with the given employee number or None if no employee was found
         """
         return db.session.scalars(
-            select(Employee).where(Employee.employee_number == employee_number)
+            select(Employee).where(
+                and_(
+                    Employee.employee_number == employee_number,
+                    Employee.hidden == False,
+                )
+            )
         ).first()
+
+    @staticmethod
+    def create_employee(employee: Employee) -> UUID:
+        """Create a new employee in the database"""
+        db.session.add(employee)
+        db.session.commit()
+
+        return employee.id
 
     @staticmethod
     def update_employee(employee: Employee):
@@ -230,9 +265,13 @@ class EmployeesRepository:
 
     @staticmethod
     def delete_employee(employee: Employee):
-        """Delete a employee from the database"""
+        """Set the hidden flag for a user to True and delete all pre_orders belonging to that person"""
 
-        db.session.delete(employee)
+        persons_pre_orders = OrdersRepository.get_pre_orders(
+            filter=OrdersFilters(person_id=employee.id)
+        )
+        db.delete(persons_pre_orders)
+        employee.hidden = True
         db.session.commit()
 
     @staticmethod
