@@ -54,6 +54,11 @@ class DailyOrdersService:
                 f"Person {order.person_id} gehört nicht zum Standort {user.location_id}"
             )
 
+        if order["nothing"] == True and (order["main_dish"] or order["salad_option"]):
+            raise ValueError(
+                "Wenn 'nichts' ausgewählt ist, dürfen keine Essensoptionen ausgewählt werden."
+            )
+
         order.handed_out = handed_out
 
         OrdersRepository.update_order()
