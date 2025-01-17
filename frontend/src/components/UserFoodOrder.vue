@@ -17,9 +17,7 @@
           >
           Meine Bestellungen
         </h2>
-        <v-btn class="mt-2 mb-5" color="primary">
-          <v-icon class="me-2">mdi-plus</v-icon>Neue Bestellung aufgeben
-        </v-btn>
+        <UserNewFoodOrder />
         <div>
           <v-data-table-virtual
             :hover="true"
@@ -94,6 +92,7 @@
 
 <script setup>
 import axios from "axios";
+import UserNewFoodOrder from "./UserNewFoodOrder.vue";
 
 const dialog = ref(false);
 const form = ref(false);
