@@ -63,10 +63,11 @@ class OrdersRepository:
     """Repository to handle database operations for order data."""
 
     @staticmethod
-    def create_bulk_orders(bulk_orders, commit=True):
+    def create_bulk_orders(bulk_orders: List[PreOrder], commit=True):
         """
-        Create (pre)orders
-        :param orders: List of (pre)orders
+        Create preorders
+
+        :param orders: List of preorders
         """
         db.session.bulk_save_objects(bulk_orders)
         if commit:
@@ -78,6 +79,7 @@ class OrdersRepository:
     ):
         """
         Delete orders
+
         :param orders: List of orders
         """
         try:
@@ -93,11 +95,11 @@ class OrdersRepository:
     @staticmethod
     def create_single_order(order: PreOrder) -> PreOrder:
         """
-        Create (pre)order for user
+        Create preorder for user
 
-        :param order: (pre)order object to create
+        :param order: preorder object to create
 
-        :return: Created (pre)order object
+        :return: Created preorder object
         """
         db.session.add(order)
         db.session.commit()
@@ -251,7 +253,7 @@ class OrdersRepository:
         ).first()
 
     @staticmethod
-    def get_daily_order_by_id(daily_order_id: UUID) -> DailyOrder:
+    def get_daily_order_by_id(daily_order_id: UUID) -> Optional[DailyOrder]:
         """
         Get daily order by id
 
@@ -275,7 +277,10 @@ class OrdersRepository:
         Get daily orders based on filters
 
         :param filters: Filters for orders
-        :return: List of daily orders
+        :param prejoin_person: Is Person Table Prejoined
+        :param prejoin_location: Is Location Table Prejoined
+
+        :return: List of daily orders in a response schema
         """
         query = select(DailyOrder)
 
@@ -315,6 +320,13 @@ class OrdersRepository:
 
     @staticmethod
     def get_daily_orders_filtered_by_user_scope(user_id: UUID) -> List[DailyOrder]:
+        """
+        Get daily orders based on user scope
+
+        :param user_id: UUID
+
+        :return: Daily orders in a response schmea
+        """
         user = UsersRepository.get_user_by_id(user_id)
         if user.user_group == UserGroup.verwaltung:
             return db.session.scalars(select(DailyOrder)).all()
@@ -329,7 +341,7 @@ class OrdersRepository:
             return []
 
     @staticmethod
-    def get_daily_orders_for_group(group_id: UUID, user_id: UUID) -> List[DailyOrder]:
+    def get_daily_orders_for_group(group_id: UUID) -> List[DailyOrder]:
         """
         Get daily orders for a group
 
@@ -394,7 +406,7 @@ class OrdersRepository:
     @staticmethod
     def push_preorders_to_dailyorders(today: date):
         """
-        Push preorders from todoy to dailyorders
+        Push preorders from today to dailyorders
         """
 
         db.session.execute(text("BEGIN TRANSACTION"))
