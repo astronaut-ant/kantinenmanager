@@ -3,6 +3,16 @@ from flask import Flask
 from loki_logger_handler.loki_logger_handler import LokiLoggerHandler
 import logging
 
+# Use the logger like this:
+# app.logger.info("This is a test message")
+# app.logger.warning("This is a warning message")
+# app.logger.error("This is an error message")
+# app.logger.debug("This is a debug message")
+# app.logger.critical("This is a critical message")
+#
+# You can get access to app from anywhere using:
+# from flask import current_app as app
+
 
 class LoggingMethod(Enum):
     # Define the logging method
