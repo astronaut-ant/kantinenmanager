@@ -26,27 +26,10 @@ reports_routes = Blueprint("reports_routes", __name__)
         "parameters": [
             {
                 "in": "query",
-                "name": "pdf_bool",
-                "description": "Choose the format of the report. If true, the report will be generated as a PDF, otherwise as a CSV",
-                "required": False,
-                "schema": {"type": "boolean"},
-            },
-            {
-                "in": "query",
-                "name": "location_ids",
-                "description": "Filter by multiple location IDs (UUIDs)",
+                "name": "location_id",
+                "description": "Filter by location ID",
                 "required": True,
-                "schema": {
-                    "type": "array",
-                    "items": {"type": "string", "format": "uuid"},
-                    "example": [
-                        "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-                        "d90c929c-734c-47b7-8fe5-b3774ec0004e",
-                    ],
-                },
-                "style": "form",
-                "explode": True,
-                "collectionFormat": "multi",
+                "schema": {"type": "string", "format": "uuid"},
             },
             {
                 "in": "query",
@@ -97,8 +80,8 @@ def get_report():
     de_str = request.args.get("date-end")
 
     try:
-        location_ids = request.args.getlist("location_ids")
-        if not location_ids:
+        location_id = request.args.get("location_id")
+        if not location_id:
             abort_with_err(
                 ErrMsg(
                     status_code=400,
@@ -114,8 +97,6 @@ def get_report():
             date_end=datetime.strptime(de_str, "%Y-%m-%d").date() if de_str else None,
         )
 
-        pdf_bool = request.args.get("pdf_bool")
-
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
@@ -129,10 +110,9 @@ def get_report():
     try:
         return ReportsService.get_printed_report(
             filters=filters,
-            location_ids=location_ids,
+            location_id=location_id,
             user_id=g.user_id,
             user_group=g.user_group,
-            pdf_bool=pdf_bool,
         )
 
     except ValueError as err:
