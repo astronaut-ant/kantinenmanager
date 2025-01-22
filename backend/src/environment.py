@@ -25,6 +25,9 @@ class Features(ABC):
     DATABASE: Literal["real", "in-memory", "none"]
     """The database to use. Can be 'real', 'in-memory', or 'none'."""
 
+    METRICS: bool
+    """Whether to enable metrics endpoint /api/metrics"""
+
     TESTING_MODE: bool
     """Enable testing mode for Flask"""
 
@@ -46,6 +49,7 @@ class Features(ABC):
 
 class ProductionFeatures(Features):
     DATABASE = "real"
+    METRICS = True
     TESTING_MODE = False
     CORS = False
     SWAGGER = False
@@ -56,6 +60,7 @@ class ProductionFeatures(Features):
 
 class DevelopmentFeatures(Features):
     DATABASE = "real"
+    METRICS = True
     TESTING_MODE = False
     CORS = True
     SWAGGER = True
@@ -66,6 +71,7 @@ class DevelopmentFeatures(Features):
 
 class MigrationFeatures(Features):
     DATABASE = "real"
+    METRICS = False
     TESTING_MODE = False
     CORS = False
     SWAGGER = False
@@ -76,6 +82,7 @@ class MigrationFeatures(Features):
 
 class UnitTestingFeatures(Features):
     DATABASE = "in-memory"
+    METRICS = False
     TESTING_MODE = True
     CORS = False
     SWAGGER = False

@@ -13,6 +13,7 @@ from src.utils.error import register_error_handlers
 
 from .middlewares.auth_middleware import register_auth_middleware
 from .database import create_initial_admin, init_db, setup_test_db
+from .metrics import init_metrics
 from .routes.general_routes import general_routes
 from .routes.users_routes import users_routes
 from .routes.auth_routes import auth_routes
@@ -62,6 +63,12 @@ def startup() -> None:
         setup_test_db(app)
     else:
         print("--- Database disabled            ---")
+
+    if features.METRICS:
+        print("--- Metrics enabled              ---")
+        init_metrics(app)
+    else:
+        print("--- Metrics disabled             ---")
 
     if features.TESTING_MODE:
         print("--- Testing mode enabled         ---")
