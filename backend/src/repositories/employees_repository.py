@@ -270,7 +270,8 @@ class EmployeesRepository:
         persons_pre_orders = db.session.scalars(
             select(PreOrder).where(PreOrder.person_id == employee.id)
         ).all()
-        db.delete(persons_pre_orders)
+        for pre_order in persons_pre_orders:
+            db.session.delete(pre_order)
         employee.hidden = True
         db.session.commit()
 
