@@ -1,42 +1,27 @@
 <template>
-    <v-card class="mx-2 my-2" elevation="16" style="min-width:425px">
-        <v-card-item>
-            <div class="d-flex align-center">
-                <div>
-                    <v-avatar :color="color" size="large" class="pa-6">
-                        <span class="text-h5">{{ props.firstName.charAt(0) + props.lastName.charAt(0) }}</span>
-                    </v-avatar>
-                </div>
-                <div class="ml-4">
-                    <v-card-title> 
-                        {{ props.firstName + " " + props.lastName }}
-                    </v-card-title>
-                    <v-card-subtitle>
-                        <v-icon
-                            :color="color"
-                            icon="mdi-at"
-                            size="small"
-                        ></v-icon>
-                        <span class="me-1 ml-1"> {{ props.username }} </span>
-                    </v-card-subtitle>
-                </div>
-            </div>
-        </v-card-item>
-        <v-card-text>
-            <v-divider></v-divider>
-            <div class="mt-3 d-flex justify-space-between align-center">
-                <v-chip 
-                    :prepend-icon="props.role === 'verwaltung' ? 'mdi-shield-account' : 'mdi-badge-account'" 
-                    :color="color"
-                    density="comfortable"
-                    > {{ formattedRole }} </v-chip>
-                <div class="d-flex ga-1 justify-end">
-                    <v-btn class="bg-primary" @click="editDialog = true" size="default" density="comfortable"><v-icon>mdi-lead-pencil</v-icon></v-btn>
-                    <v-btn class="bg-red" @click="deleteDialog = true" size="default" density="comfortable"><v-icon>mdi-trash-can-outline</v-icon></v-btn>
-                </div>
-            </div>
-        </v-card-text>
-    </v-card>
+    <v-data-table-virtual
+        :headers="headers"  
+        :items="props.users" 
+        :sort-by="sortBy" 
+        :hover="true" 
+        item-value="id"
+        class="my-2"
+        style="width:60%"
+        >
+        <template v-slot:[`item.user_group`]="{ item }">
+            <v-chip 
+                :prepend-icon="item.user_group === 'verwaltung' ? 'mdi-shield-account' : 'mdi-badge-account'" 
+                :color="item.user_group === 'verwaltung' ? 'red' : 'primary'"
+                density="comfortable">
+                {{ formattedRole(item.user_group) }}
+            </v-chip>
+        </template>
+        <template v-slot:[`item.actions`]="{ item }">
+            <v-btn icon="mdi-lead-pencil" class="bg-primary mr-2" @click="openeditDialog(item)" size="small"></v-btn>
+            <v-btn icon="mdi-trash-can-outline" class="bg-red" @click="opendeleteDialog(item)" size="small"></v-btn>
+        </template>
+    </v-data-table-virtual>
+
     <v-dialog
         v-model="deleteDialog"
         no-click-animation
@@ -51,7 +36,7 @@
             <div class="text-medium-emphasis">
             <p>
                 Sind Sie sicher, dass Sie den Benutzer
-                <strong>{{ props.firstName + " " + props.lastName }}</strong> löschen möchten?
+                <strong> {{ userToDelete }} </strong> löschen möchten?
             </p>
             </div>
         </v-card-text>
@@ -107,34 +92,41 @@
         />
     </v-dialog>
     <SuccessSnackbar v-model="snackbar" :text="snackbarText"></SuccessSnackbar>
-
 </template>
 
 <script setup>
 import axios from "axios";
-const props = defineProps(["id", "username", "role", "firstName", "lastName", "location_id"]);
+const props = defineProps(["users"]);
 const emit = defineEmits(["user-removed", "user-edited"]);
-const color = computed(() => {
-    switch (props.role) {
-        case 'verwaltung':
-            return 'red';
-        default:
-            return 'primary';
-    }
-});
+
+
+const headers = [
+     { title: "Benutzername", key: "username", nowrap: true },
+     { title: "Vorname", key: "first_name", nowrap: true },
+     { title: "Nachname", key: "last_name", nowrap: true },
+     { title: "Rolle", key: "user_group", nowrap: true },
+     { title: "", key: "actions", sortable: false, nowrap: true },];
+const sortBy = [{ key: 'username', order: 'asc' }]
+
 const deleteDialog = ref(false);
 const editDialog = ref(false);
+const userToDeleteID = ref("");
+const userToDelete = ref("");
 
-const formattedRole = computed(() => {
-  let capitalized = props.role.charAt(0).toUpperCase() + props.role.slice(1);
-  return capitalized.replace("ue", "ü");
-});
+const formattedRole = (role) => {
+    let capitalized = role.charAt(0).toUpperCase() + role.slice(1);
+    return capitalized.replace("ue", "ü");
+};
 
-
+const opendeleteDialog = (item) => {
+    userToDelete.value = item.first_name  + " " + item.last_name;
+    userToDeleteID.value = item.id;
+    deleteDialog.value= true;
+};
 
 const confirmDelete = () => {
   axios
-    .delete(`${import.meta.env.VITE_API}/api/users/${props.id}`, {
+    .delete(`${import.meta.env.VITE_API}/api/users/${userToDeleteID.value}`, {
       withCredentials: true,
     })
     .then(() => {
@@ -142,6 +134,7 @@ const confirmDelete = () => {
       deleteDialog.value = false;
       snackbarText.value = "Der Benutzer wurde erfolgreich gelöscht!";
       snackbar.value = true;
+      employeeToDeleteID.value = " ";
     })
     .catch((err) => console.log(err));
 };
@@ -149,10 +142,12 @@ const confirmDelete = () => {
 
 const validation = ref("");
 const form = ref(false);
-const first_name = ref(props.firstName);
-const last_name = ref(props.lastName);
-const username = ref(props.username);
-const user_group = ref(props.role);
+const first_name = ref("");
+const last_name = ref("");
+const username = ref("");
+const user_group = ref("");
+const location_id = ref("");
+const userToEditID = ref("");
 const showConfirm = ref(false);
 const initialPassword = ref();
 const snackbarText = ref(" ");
@@ -161,7 +156,7 @@ const snackbar = ref(false);
 const handlePasswordReset = () => {
     axios
         .put(
-            `${import.meta.env.VITE_API}/api/users/${props.id}/reset-password`,
+            `${import.meta.env.VITE_API}/api/users/${userToEditID.value}/reset-password`,
             {},
             { withCredentials: true }
         )
@@ -178,18 +173,28 @@ const required = (v) => {
     return !!v || "Eingabe erforderlich";
 };
 
+const openeditDialog = (item) => {
+    userToEditID.value = item.id;
+    first_name.value = item.first_name;
+    last_name.value = item.last_name;
+    username.value = item.username;
+    user_group.value = item.user_group;
+    location_id.value = item.location_id;
+    editDialog.value = true;
+};
+
 const confirmEdit = () => {
     const updatedUser = {
         first_name: first_name.value,
         last_name: last_name.value,
         username: username.value,
         user_group: user_group.value,
-        location_id: props.location_id
+        location_id: location_id.value
     };
 
     axios
         .put(
-            import.meta.env.VITE_API + `/api/users/${props.id}`,
+            import.meta.env.VITE_API + `/api/users/${userToEditID.value}`,
             updatedUser,
             {
                 withCredentials: true,
@@ -205,5 +210,6 @@ const confirmEdit = () => {
             console.error("Error updating user:", err);
         });
 };
+
 
 </script>
