@@ -1,6 +1,6 @@
 import uuid
 from typing import Optional, Set
-from sqlalchemy import UUID, String, ForeignKey
+from sqlalchemy import UUID, String, Integer, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database import db
 
@@ -24,7 +24,7 @@ class Group(db.Model):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     group_name: Mapped[str] = mapped_column(String(64), nullable=False)
-    # group_number: Mapped[int] = mapped_column(String(64), nullable=False)
+    group_number: Mapped[int] = mapped_column(Integer, nullable=False)
     user_id_group_leader: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("user.id"), nullable=False
     )
@@ -53,7 +53,7 @@ class Group(db.Model):
     def __init__(
         self,
         group_name: str,
-        # group_number: int,
+        group_number: int,
         user_id_group_leader: uuid.UUID,
         user_id_replacement: Optional[uuid.UUID],
         location_id: uuid.UUID,
@@ -63,13 +63,13 @@ class Group(db.Model):
         :param group_name: Name of the Group
         """
         self.group_name = group_name
+        self.group_number = group_number
         self.user_id_group_leader = user_id_group_leader
         self.user_id_replacement = user_id_replacement
         self.location_id = location_id
-        # self.group_number=group_number
 
     def __repr__(self):
-        return f"<Group {self.id!r} {self.group_name!r}>"
+        return f"<Group {self.id!r} {self.group_name!r} {self.group_number!r}>"
 
     def to_dict(self) -> dict[str, str | int | bool]:
         """Convert the group to a dictionary
@@ -82,7 +82,7 @@ class Group(db.Model):
         return {
             "id": str(self.id),
             "group_name": self.group_name,
-            # "group_number": self.group_number,
+            "group_number": self.group_number,
             "group_leader": (
                 self.group_leader.to_dict_reduced() if self.group_leader else None
             ),
@@ -103,6 +103,7 @@ class Group(db.Model):
         return {
             "id": str(self.id),
             "group_name": self.group_name,
+            "group_number": self.group_number,
             "location": self.location.to_dict_reduced() if self.location else None,
             "user_id_group_leader": str(self.user_id_group_leader),
             "user_id_replacement": str(self.user_id_replacement),
@@ -119,6 +120,7 @@ class Group(db.Model):
         return {
             "id": str(self.id),
             "group_name": self.group_name,
+            "group_number": self.group_number,
             "user_id_group_leader": str(self.user_id_group_leader),
             "user_id_replacement": str(self.user_id_replacement),
             "location_id": str(self.location_id),
@@ -133,7 +135,7 @@ class Group(db.Model):
         return {
             "id": str(self.id),
             "group_name": self.group_name,
-            # "group_number": self.group_number,
+            "group_number": self.group_number,
             "group_leader": (
                 self.group_leader.to_dict_reduced() if self.group_leader else None
             ),

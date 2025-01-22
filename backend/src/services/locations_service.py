@@ -3,6 +3,7 @@ from typing import List, Optional
 from src.models.group import Group
 from src.models.location import Location
 from src.repositories.locations_repository import LocationsRepository
+from src.repositories.users_repository import UsersRepository
 from src.utils.exceptions import (
     LocationAlreadyExistsError,
     LeaderDoesNotExist,
@@ -47,7 +48,7 @@ class LocationsService:
                 f"Standort {location_name} existiert bereits"
             )
 
-        location_leader = LocationsRepository.get_user_by_id(user_id_location_leader)
+        location_leader = UsersRepository.get_user_by_id(user_id_location_leader)
         if not location_leader:
             raise LeaderDoesNotExist(
                 f"Gruppenleiter mit ID {user_id_location_leader} existiert nicht"

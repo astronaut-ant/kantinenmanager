@@ -1,10 +1,9 @@
-from src.models.employee import Employee
 from src.models.location import Location
 from src.models.user import UserGroup
 from src.models.group import Group
 from uuid import UUID
 from src.database import db
-from sqlalchemy import func, or_, select
+from sqlalchemy import or_, select
 
 
 class GroupsRepository:
@@ -13,6 +12,7 @@ class GroupsRepository:
     @staticmethod
     def create_group(
         group_name: str,
+        group_number: int,
         user_id_group_leader: UUID,
         location_id: UUID,
         user_id_replacement: UUID = None,
@@ -20,6 +20,7 @@ class GroupsRepository:
         """Create a new group in the database."""
         new_group = Group(
             group_name=group_name,
+            group_number=group_number,
             user_id_group_leader=user_id_group_leader,
             user_id_replacement=user_id_replacement,
             location_id=location_id,
@@ -35,6 +36,13 @@ class GroupsRepository:
         return db.session.query(Group).filter(Group.id == group_id).first()
 
     @staticmethod
+    def get_group_by_number(group_number: int) -> Group | None:
+        """Helper method to retrieve a group by number."""
+        return (
+            db.session.query(Group).filter(Group.group_number == group_number).first()
+        )
+
+    @staticmethod
     def get_groups_by_group_leader(user_id: UUID):
         """Get all groups belonging to a group leader.
 
@@ -45,6 +53,7 @@ class GroupsRepository:
             select(
                 Group.id,
                 Group.group_name,
+                Group.group_number,
                 (Group.user_id_group_leader == user_id).label("is_home_group"),
             )
             .join(Group.employees)
