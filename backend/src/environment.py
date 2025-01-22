@@ -2,6 +2,8 @@ from abc import ABC
 import enum
 from typing import Literal
 
+from src.logging import LoggingMethod
+
 
 class Environment(enum.Enum):
     """Represents the environment in which the application is running."""
@@ -46,6 +48,9 @@ class Features(ABC):
     CRONJOBS: bool
     """Whether to enable cronjobs"""
 
+    LOGGING: LoggingMethod
+    """The logging method to use"""
+
 
 class ProductionFeatures(Features):
     DATABASE = "real"
@@ -56,6 +61,7 @@ class ProductionFeatures(Features):
     INSERT_DEFAULT_DATA = True
     INSERT_MOCK_DATA = True
     CRONJOBS = True
+    LOGGING = LoggingMethod.LOKI
 
 
 class DevelopmentFeatures(Features):
@@ -67,6 +73,7 @@ class DevelopmentFeatures(Features):
     INSERT_DEFAULT_DATA = True
     INSERT_MOCK_DATA = True
     CRONJOBS = True
+    LOGGING = LoggingMethod.CONSOLE
 
 
 class MigrationFeatures(Features):
@@ -78,6 +85,7 @@ class MigrationFeatures(Features):
     INSERT_DEFAULT_DATA = False
     INSERT_MOCK_DATA = False
     CRONJOBS = False
+    LOGGING = LoggingMethod.CONSOLE
 
 
 class UnitTestingFeatures(Features):
@@ -89,6 +97,7 @@ class UnitTestingFeatures(Features):
     INSERT_DEFAULT_DATA = False
     INSERT_MOCK_DATA = False
     CRONJOBS = False
+    LOGGING = LoggingMethod.CONSOLE
 
 
 def get_features(env: Environment) -> Features:

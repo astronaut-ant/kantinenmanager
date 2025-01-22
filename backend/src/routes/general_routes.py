@@ -53,7 +53,7 @@ def health():
     Checks the application's uptime and the database connection.
     """
 
-    db_health = check_db_connection()
+    db_health = check_db_connection(app)
     start_time = app.config.get("APP_START_TIME")
 
     return {

@@ -6,6 +6,7 @@ from flasgger import Swagger
 from flask_cors import CORS
 from dotenv import load_dotenv
 
+from src.logging import LoggingMethod, init_logger
 from src.utils.cronjobs import register_cronjobs
 from src.utils.db_utils import insert_mock_data
 from src.environment import Environment, get_features
@@ -46,38 +47,41 @@ def startup() -> None:
 
     configure(app)
 
-    print(f"Application starting in {app.config['ENV'].value} mode.")
-
     features = app.config["FEATURES"]
 
-    print("\nFeatures:")
+    if features.LOGGING == "loki":
+        init_logger(app, method=LoggingMethod.LOKI, loki_url=app.config["LOKI_URL"])
+        app.logger.info("--- Loki logging enabled         ---")
+    else:
+        init_logger(app, method=LoggingMethod.CONSOLE)
+        app.logger.info("--- Console logging enabled      ---")
 
     if features.DATABASE == "real":
-        print("--- Database enabled             ---")
+        app.logger.info("--- Database enabled             ---")
         init_db(app)
     elif features.DATABASE == "in-memory":
-        print("--- In-memory database enabled   ---")
+        app.logger.info("--- In-memory database enabled   ---")
         app.config["SQLALCHEMY_DATABASE_URI"] = (
             "sqlite:///:memory:"  # Override the database URI
         )
         setup_test_db(app)
     else:
-        print("--- Database disabled            ---")
+        app.logger.info("--- Database disabled            ---")
 
     if features.METRICS:
-        print("--- Metrics enabled              ---")
+        app.logger.info("--- Metrics enabled              ---")
         init_metrics(app)
     else:
-        print("--- Metrics disabled             ---")
+        app.logger.info("--- Metrics disabled             ---")
 
     if features.TESTING_MODE:
-        print("--- Testing mode enabled         ---")
+        app.logger.info("--- Testing mode enabled         ---")
         app.config["TESTING"] = True
     else:
-        print("--- Testing mode disabled        ---")
+        app.logger.info("--- Testing mode disabled        ---")
 
     if features.CORS:
-        print("--- CORS enabled                 ---")
+        app.logger.info("--- CORS enabled                 ---")
         CORS(
             app,
             resources={
@@ -88,35 +92,37 @@ def startup() -> None:
             supports_credentials=True,
         )
     else:
-        print("--- CORS disabled                ---")
+        app.logger.info("--- CORS disabled                ---")
 
     if features.SWAGGER:
-        print("--- Swagger enabled              ---")
+        app.logger.info("--- Swagger enabled              ---")
         Swagger(app, template=swagger_template)
     else:
-        print("--- Swagger disabled             ---")
+        app.logger.info("--- Swagger disabled             ---")
 
     if features.INSERT_DEFAULT_DATA:
-        print("--- Inserting default data       ---")
+        app.logger.info("--- Inserting default data       ---")
         create_initial_admin(
             app,
             app.config["INITIAL_ADMIN_USERNAME"],
             app.config["INITIAL_ADMIN_PASSWORD"],
         )
     else:
-        print("--- Default data insertion disabled ---")
+        app.logger.info("--- Default data insertion disabled ---")
 
     if features.INSERT_MOCK_DATA:
-        print("--- Inserting mock data          ---")
+        app.logger.info("--- Inserting mock data          ---")
         insert_mock_data(app)
     else:
-        print("--- Mock data insertion disabled ---")
+        app.logger.info("--- Mock data insertion disabled ---")
 
     if features.CRONJOBS:
-        print("--- Cronjobs enabled             ---")
+        app.logger.info("--- Cronjobs enabled             ---")
         register_cronjobs(app)
     else:
-        print("--- Cronjobs disabled            ---")
+        app.logger.info("--- Cronjobs disabled            ---")
+
+    app.logger.info(f"Application started in {app.config['ENV'].value} mode.")
 
     register_routes(app)
 
@@ -136,6 +142,7 @@ def configure(app: Flask) -> None:
     db_port = os.getenv("DB_PORT")
     db_password = os.getenv("DB_PASSWORD")
     jwt_secret = os.getenv("JWT_SECRET")
+    loki_url = os.getenv("LOKI_URL")
 
     # Check if all environment variables are set
     if (
@@ -148,6 +155,7 @@ def configure(app: Flask) -> None:
         or not db_port
         or not db_password
         or not jwt_secret
+        or not loki_url
     ):
         raise Exception(
             "Missing environment variables. Please run `docker compose run init` to create the .env file."
@@ -176,6 +184,8 @@ def configure(app: Flask) -> None:
     app.config["INITIAL_ADMIN_PASSWORD"] = initial_admin_password
 
     app.config["MAX_CONTENT_LENGTH"] = 20971520
+
+    app.config["LOKI_URL"] = loki_url
 
 
 def register_routes(app: Flask) -> None:

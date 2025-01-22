@@ -5,3 +5,5 @@ loki:
     enabled: true
     storageClassName: microk8s-hostpath
     size: 2Gi
+  limits_config:
+    volume_enabled: true

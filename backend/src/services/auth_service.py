@@ -80,6 +80,8 @@ class AuthService:
         auth_token = AuthService.__make_auth_token(user, jwt_secret)
         refresh_token = AuthService.__make_refresh_token(user)
 
+        app.logger.info("New successful login")
+
         return user, auth_token, refresh_token
 
     @staticmethod
@@ -114,22 +116,23 @@ class AuthService:
             raise ValueError("JWT_SECRET not set in app config")
 
         # Validate auth token
-        try:
-            payload = AuthService.__verify_auth_token(auth_token, jwt_secret)
+        if auth_token is not None:
+            try:
+                payload = AuthService.__verify_auth_token(auth_token, jwt_secret)
 
-            user_info = {
-                "id": UUID(payload.get("sub")),
-                "username": payload.get("app-username"),
-                "group": UserGroup[payload.get("app-group")],
-                "first_name": payload.get("app-first-name"),
-                "last_name": payload.get("app-last-name"),
-            }
+                user_info = {
+                    "id": UUID(payload.get("sub")),
+                    "username": payload.get("app-username"),
+                    "group": UserGroup[payload.get("app-group")],
+                    "first_name": payload.get("app-first-name"),
+                    "last_name": payload.get("app-last-name"),
+                }
 
-            return user_info, None, None
-        except jwt.PyJWTError as e:
-            # Auth token is invalid
-            # That's fine, we can try to refresh the token with the refresh token
-            print(e)
+                return user_info, None, None
+            except jwt.PyJWTError:
+                # Auth token is invalid
+                # That's fine, we can try to refresh the token with the refresh token
+                pass
 
         # Validate refresh token
 

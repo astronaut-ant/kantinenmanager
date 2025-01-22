@@ -6,6 +6,7 @@ from src.database import db
 from uuid import UUID
 from typing import List, Optional
 from datetime import date, datetime
+from flask import current_app as app
 from src.models.employee import Employee
 from src.models.group import Group
 from src.models.preorder import PreOrder
@@ -423,7 +424,7 @@ class OrdersRepository:
         )
 
         result = db.session.execute(delete(PreOrder).filter(PreOrder.date == today))
-        print(f"Pushed {result.rowcount} orders to daily orders table.")
+        app.logger.info(f"Pushed {result.rowcount} orders to daily orders table.")
 
         db.session.commit()
 
@@ -459,7 +460,7 @@ class OrdersRepository:
         )
 
         result = db.session.execute(delete(DailyOrder).filter(DailyOrder.date < today))
-        print(f"Pushed {result.rowcount} daily orders to old orders table.")
+        app.logger.info(f"Pushed {result.rowcount} daily orders to old orders table.")
 
         db.session.commit()
 
@@ -496,6 +497,6 @@ class OrdersRepository:
         )
 
         result = db.session.execute(delete(PreOrder).filter(PreOrder.date < today))
-        print(f"Pushed {result.rowcount} preorders to old orders table.")
+        app.logger.info(f"Pushed {result.rowcount} preorders to old orders table.")
 
         db.session.commit()

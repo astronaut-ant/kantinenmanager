@@ -10,7 +10,7 @@ def register_cronjobs(app):
 
     scheduler = BackgroundScheduler()
 
-    print("Registering cronjobs")
+    app.logger.info("Registering cronjobs")
 
     scheduler.add_job(
         lambda: push_orders_to_next_table(app),
@@ -32,7 +32,7 @@ def push_orders_to_next_table(app):
         timezone = pytz.timezone("Europe/Berlin")
         today = datetime.now(timezone).date()
 
-        print("Running cronjob to push orders to the next table.")
+        app.logger.info("Running cronjob to push orders to the next table.")
 
         OrdersRepository.push_dailyorders_to_oldorders(today)
         OrdersRepository.push_preorders_to_dailyorders(today)
