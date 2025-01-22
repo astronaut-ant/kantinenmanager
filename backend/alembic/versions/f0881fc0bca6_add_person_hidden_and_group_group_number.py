@@ -24,7 +24,7 @@ def upgrade() -> None:
     op.add_column(
         "group",
         sa.Column(
-            "group_number", sa.String(length=64), nullable=True
+            "group_number", sa.Integer, nullable=True
         ),  # TODO to be changed to False after migration
     )
     op.add_column(

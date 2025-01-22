@@ -1,10 +1,9 @@
-from src.models.employee import Employee
 from src.models.location import Location
 from src.models.user import UserGroup
 from src.models.group import Group
 from uuid import UUID
 from src.database import db
-from sqlalchemy import func, or_, select
+from sqlalchemy import or_, select
 
 
 class GroupsRepository:

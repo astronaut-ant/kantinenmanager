@@ -1,6 +1,6 @@
 import uuid
 from typing import Optional, Set
-from sqlalchemy import UUID, String, ForeignKey
+from sqlalchemy import UUID, String, Integer, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.database import db
 
@@ -24,7 +24,7 @@ class Group(db.Model):
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
     group_name: Mapped[str] = mapped_column(String(64), nullable=False)
-    group_number: Mapped[int] = mapped_column(String(64), nullable=False)
+    group_number: Mapped[int] = mapped_column(Integer, nullable=False)
     user_id_group_leader: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("user.id"), nullable=False
     )
