@@ -120,3 +120,13 @@ class GroupsRepository:
         db.session.delete(group)
         db.session.commit()
         return None
+
+    @staticmethod
+    def check_if_user_already_group_leader(user_id: UUID) -> bool:
+        """Check if a user is already a group leader."""
+        return (
+            db.session.query(Group)
+            .filter(Group.user_id_group_leader == user_id)
+            .first()
+            is not None
+        )

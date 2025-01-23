@@ -39,6 +39,10 @@ class GroupsService:
             raise ValueError(
                 f"Der User mit der ID {user_id_group_leader} ist kein Gruppenleiter."
             )
+        if GroupsRepository.check_if_user_already_group_leader(user_id_group_leader):
+            raise ValueError(
+                f"Der User mit der ID {user_id_group_leader} ist bereits Gruppenleiter."
+            )
 
         if user_id_replacement:
             group_replacement_exists = UsersRepository.get_user_by_id(
@@ -50,7 +54,7 @@ class GroupsService:
                 )
             if group_replacement_exists.user_group != UserGroup.gruppenleitung:
                 raise ValueError(
-                    f"Der Ersatz-User mit der ID {user_id_replacement} ist kein Gruppenleiter."
+                    f"Der User mit der ID {user_id_replacement} ist kein Gruppenleiter."
                 )
 
         location_exists = LocationsRepository.get_location_by_id(location_id)
