@@ -96,6 +96,10 @@ docker compose -f docker-compose.debug.yml up --build # Start the application in
 
 **Hint:** The default backend port is `4200` and the frontend uses `3000`.
 
+## Grafana
+
+Access Grafana on `http://<server-ip>:30433`.
+
 ## Running Tests
 
 ### Backend

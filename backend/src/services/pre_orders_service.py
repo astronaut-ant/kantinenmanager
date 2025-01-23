@@ -131,6 +131,9 @@ class PreOrdersService:
                 raise PersonNotPartOfLocation(
                     f"Person {order["person_id"]} gehört nicht zum Standort {order["location_id"]}"
                 )
+            
+            if order["nothing"] == True and (order["main_dish"] or order["salad_option"]):
+                raise ValueError("Wenn 'nichts' ausgewählt ist, dürfen keine Essensoptionen ausgewählt werden.")
 
             # Überprüfen, ob die Bestellung bereits existiert. Falls ja, aktualisiere oder lösche diese
             order_exists = OrdersRepository.preorder_already_exists(
@@ -185,6 +188,9 @@ class PreOrdersService:
             raise WrongUserError(
                 f"Sie haben nicht die Befugnis für '{order['person_id']}' zu bestellen."
             )
+        
+        if order["nothing"] == True and (order["main_dish"] or order["salad_option"]):
+                raise ValueError("Wenn 'nichts' ausgewählt ist, dürfen keine Essensoptionen ausgewählt werden.")
 
         order = OrdersRepository.create_single_order(PreOrder(**order))
 
@@ -227,13 +233,9 @@ class PreOrdersService:
             raise WrongUserError(
                 f"Sie haben nicht die Befugnis für '{new_order['person_id']}' zu bestellen."
             )
-
-        if (
-            not new_order["main_dish"]
-            and not new_order["salad_option"]
-            and not new_order["nothing"]
-        ):
-            return OrdersRepository.delete_order(new_order)
+        
+        if new_order["nothing"] == True and (new_order["main_dish"] or new_order["salad_option"]):
+                raise ValueError("Wenn 'nichts' ausgewählt ist, dürfen keine Essensoptionen ausgewählt werden.")
 
         old_order = OrdersRepository.get_pre_order_by_id(preorder_id)
         if not old_order:
@@ -260,6 +262,6 @@ class PreOrdersService:
             raise NotFoundError(f"Bestellung {preorder_id} nicht gefunden")
         if user_id != preorder.person_id:
             raise WrongUserError(
-                f"Sie haben nicht die Befugnis für '{preorder.person_id}' zu bestellen."
+                f"Sie haben nicht die Befugnis für diese Person zu bestellen."
             )
         OrdersRepository.delete_order(preorder)

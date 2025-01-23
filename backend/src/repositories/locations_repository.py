@@ -49,16 +49,6 @@ class LocationsRepository:
         ).first()
 
     @staticmethod
-    def get_user_by_id(user_id: UUID) -> User | None:
-        """Retrieve a user by their ID
-
-        :param user_id: The ID of the user to retrieve
-
-        :return: The user with the given ID or None if no user was found
-        """
-        return db.session.scalars(select(User).where(User.id == user_id)).first()
-
-    @staticmethod
     def create_location(location_name: str, user_id_location_leader: UUID) -> UUID:
         """Create a new location
 

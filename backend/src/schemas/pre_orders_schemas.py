@@ -40,6 +40,7 @@ class PreOrderFullSchema(PreOrderBaseSchema):
 class PreOrdersByGroupLeaderGroupSchema(Schema):
     id = fields.UUID(dump_only=True)
     group_name = fields.String()
+    group_number = fields.Integer()
     is_home_group = fields.Boolean()
     employees = fields.List(fields.Nested(EmployeeBaseSchema))
     orders = fields.List(fields.Nested(PreOrderFullSchema))

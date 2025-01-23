@@ -7,6 +7,7 @@ class GroupBaseSchema(Schema):
 
     id = fields.UUID(required=True, dump_only=True)
     group_name = fields.String(required=True, validate=Length(min=1, max=64))
+    group_number = fields.Integer(required=True)
 
 
 class GroupFullSchema(GroupBaseSchema):

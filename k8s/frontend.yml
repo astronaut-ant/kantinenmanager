@@ -19,7 +19,7 @@ metadata:
   labels:
     app: frontend-deployment
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: frontend-deployment
@@ -32,5 +32,12 @@ spec:
         - name: frontend-deployment
           image: swpgruppe16/frontend:latest
           imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
       imagePullSecrets:
         - name: regcred

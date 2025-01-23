@@ -4,15 +4,15 @@ from datetime import datetime
 from flask import Blueprint, current_app as app, redirect
 from flasgger import swag_from
 
+from src.metrics import metrics
 from src.database import check_db_connection
-
-from src.utils.cronjobs import push_orders_to_next_table as push
 
 
 general_routes = Blueprint("general_routes", __name__)
 
 
 @general_routes.get("/")
+@metrics.do_not_track()
 def index():
     """Redirect to health page"""
     return redirect("/api/health", code=302)
@@ -53,7 +53,7 @@ def health():
     Checks the application's uptime and the database connection.
     """
 
-    db_health = check_db_connection()
+    db_health = check_db_connection(app)
     start_time = app.config.get("APP_START_TIME")
 
     return {

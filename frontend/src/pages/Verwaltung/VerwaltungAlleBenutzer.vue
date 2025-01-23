@@ -1,164 +1,57 @@
 <template>
   <NavbarVerwaltung />
-  <div class="mx-4 my-5 d-flex justify-start flex-wrap">
-    <UserCard
-      v-for="user in users"
-      :id="user.id"
-      :name="user.username"
-      :role="user.user_group"
-      :firstName="user.first_name"
-      :lastName="user.last_name"
-      @delete="opendeleteDialog"
-      @edit="openeditDialog"
-    />
+  <FilterBar 
+    :items="users"
+    @searchresult="updateOverview"
+    @changeview="changeview"
+  />
+  <div v-if="ansicht == 'cardview' && userlist.length != 0" class="grid-container">
+    <div
+      v-for="user in userlist"
+      :key="user.id"
+      class="grid-item"
+    >
+      <UserCard
+        :id="user.id"
+        :username="user.username"
+        :role="user.user_group"
+        :firstName="user.first_name"
+        :lastName="user.last_name"
+        :location_id="user.location_id"
+        @user-edited="fetchData"
+        @user-removed="fetchData"
+      />
+    </div>
   </div>
-  <v-dialog
-    v-model="deleteDialog"
-    no-click-animation
-    persistent
-    max-width="400"
-  >
-    <v-card>
-      <v-card-text>
-        <div class="d-flex justify-center text-red mb-4">
-          <p class="text-h5 font-weight-black">Benutzer löschen</p>
-        </div>
-        <div class="text-medium-emphasis">
-          <p>
-            Sind Sie sicher, dass Sie den Benutzer
-            <strong>{{ userToDeleteName }}</strong> löschen möchten?
-          </p>
-        </div>
-      </v-card-text>
-      <v-card-actions>
-        <v-btn text @click="closedeleteDialog">Abbrechen</v-btn>
-        <v-btn color="red" variant="elevated" @click="confirmDelete"
-          >Löschen</v-btn
-        >
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-
-  <v-dialog v-model="editDialog" no-click-animation persistent max-width="500">
-    <v-card>
-      <v-card-text>
-        <div class="d-flex justify-center align-center text-primary mb-7">
-          <p class="text-h5 font-weight-black">Benutzer bearbeiten</p>
-        </div>
-        <div>
-          <v-form ref="validation" v-model="form">
-            <v-radio-group
-              v-model="user_group"
-              :rules="[required]"
-              color="primary"
-            >
-              <div class="d-flex">
-                <v-radio label="Verwaltung" value="verwaltung"></v-radio>
-                <v-radio
-                  label="Standortleitung"
-                  value="standortleitung"
-                ></v-radio>
-              </div>
-              <div class="d-flex">
-                <v-radio
-                  label="Gruppenleitung"
-                  value="gruppenleitung"
-                ></v-radio>
-                <v-radio
-                  label="Küchenpersonal"
-                  value="kuechenpersonal"
-                ></v-radio>
-              </div>
-            </v-radio-group>
-            <div class="d-flex ga-5">
-              <v-text-field
-                v-model="first_name"
-                :rules="[required]"
-                class="mb-2"
-                label="Vorname"
-                clearable
-              ></v-text-field>
-              <v-text-field
-                v-model="last_name"
-                :rules="[required]"
-                class="mb-2"
-                label="Nachname"
-                clearable
-              ></v-text-field>
-            </div>
-            <div block>
-              <v-text-field
-                v-model="username"
-                :rules="[required]"
-                label="Benutzername"
-                clearable
-              ></v-text-field>
-              <div></div>
-            </div>
-            <v-btn @click="handlePasswordReset" class="bg-red" block
-              >Passwort zurücksetzen</v-btn
-            >
-          </v-form>
-        </div>
-      </v-card-text>
-      <v-card-actions>
-        <v-btn text @click="closeeditDialog">Abbrechen</v-btn>
-        <v-btn
-          color="primary"
-          :disabled="!form"
-          type="submit"
-          variant="elevated"
-          @click="confirmEdit"
-          >Speichern
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-    <ConfirmDialogCreateUser
-      :showConfirm="showConfirm"
-      :user-name="username"
-      user-group=""
-      :initial-password="initialPassword"
-      text="Das Passwort wurder erfolgreich zurückgesetzt"
-      @close="showConfirm = false"
-    />
-  </v-dialog>
-  <SuccessSnackbar
-    v-model="snackbar"
-    :text="snackbarText"
-    @close="snackbar = false"
-  ></SuccessSnackbar>
+  <div v-if="ansicht == 'tableview' && userlist.length != 0" class="d-flex justify-center">
+    <UserTable
+      :users="userlist"
+      @user-edited="fetchData"
+      @user-removed="fetchData"
+    >
+    </UserTable>
+  </div>
+  <NoResult v-if="userlist.length == 0" />
 </template>
 
 <script setup>
-import ConfirmDialogCreateUser from "@/components/ConfirmDialogCreateUser.vue";
-import UserCard from "@/components/UserCard.vue";
 import axios from "axios";
-const snackbarText = ref(" ");
-const snackbar = ref(false);
+import FilterBar from "@/components/SearchComponents/FilterBar.vue";
+import NoResult from "@/components/SearchComponents/NoResult.vue";
+
 const users = ref({});
-const deleteDialog = ref(false);
-const editDialog = ref(false);
-const userToEdit = ref(null);
-const userToDelete = ref(null);
-const userToDeleteName = ref("");
+const userlist = ref([]);
+const ansicht = ref("cardview");
 
-const validation = ref("");
-const form = ref(false);
-const first_name = ref("");
-const last_name = ref("");
-const username = ref("");
-const user_group = ref("");
-const showConfirm = ref(false);
-const initialPassword = ref();
 const allLocations = ref([]);
-const location_id = ref("");
 
-onMounted(() => {
+const fetchData = () => {
   axios
     .get(import.meta.env.VITE_API + "/api/users", { withCredentials: true })
     .then((response) => {
       users.value = response.data;
-      console.log(users.value);
+      userlist.value = Object.values(response.data);
+      //console.log(users.value);
     })
     .catch((err) => console.log(err));
 
@@ -168,116 +61,47 @@ onMounted(() => {
       response.data.forEach((location) => {
         allLocations.value.push(location.location_name);
       });
+      //console.log(allLocations.value);
     })
     .catch((err) => console.log(err));
-
+  
   //TODO Fetch actual location for initial selection in v-Select
+};
+
+onMounted(() => {
+  fetchData();
 });
 
-const opendeleteDialog = (id) => {
-  const user = users.value.find((user) => user.id === id);
-  userToDelete.value = id;
-  userToDeleteName.value =
-    user?.first_name +
-    " " +
-    user?.last_name +
-    " (Benutzername: " +
-    user?.username +
-    ")";
-  deleteDialog.value = true;
+const updateOverview = (items) => {
+  userlist.value = items;
 };
 
-const closedeleteDialog = () => {
-  deleteDialog.value = false;
-  userToDelete.value = null;
+const changeview = (string) => {
+  ansicht.value = string;
 };
 
-const confirmDelete = () => {
-  axios
-    .delete(`${import.meta.env.VITE_API}/api/users/${userToDelete.value}`, {
-      withCredentials: true,
-    })
-    .then(() => {
-      users.value = users.value.filter(
-        (user) => user.id !== userToDelete.value
-      );
-      closedeleteDialog();
-      snackbarText.value = "Der Benutzer wurde erfolgreich gelöscht!";
-      snackbar.value = true;
-    })
-    .catch((err) => console.log(err));
-};
-
-const closeeditDialog = () => {
-  editDialog.value = false;
-  userToEdit.value = null;
-};
-
-const openeditDialog = (id) => {
-  const user = users.value.find((user) => user.id === id);
-
-  userToEdit.value = id;
-  first_name.value = user.first_name;
-  last_name.value = user.last_name;
-  username.value = user.username;
-  user_group.value = user.user_group;
-  location_id.value = user.location_id;
-  editDialog.value = true;
-};
-
-const handlePasswordReset = () => {
-  axios
-    .put(
-      //What happens if User is Logged in?
-      `${import.meta.env.VITE_API}/api/users/${
-        userToEdit.value
-      }/reset-password`,
-      {},
-      { withCredentials: true }
-    )
-    .then((response) => {
-      console.log(response.data.new_password);
-      initialPassword.value = response.data.new_password;
-      showConfirm.value = true;
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-  console.log();
-};
-
-const required = (v) => {
-  return !!v || "Eingabe erforderlich";
-};
-
-const confirmEdit = () => {
-  const updatedUser = {
-    first_name: first_name.value,
-    last_name: last_name.value,
-    username: username.value,
-    user_group: user_group.value,
-    location_id: location_id.value,
-  };
-
-  axios
-    .put(
-      import.meta.env.VITE_API + `/api/users/${userToEdit.value}`,
-      updatedUser,
-      {
-        withCredentials: true,
-      }
-    )
-    .then(() => {
-      const index = users.value.findIndex((u) => u.id === userToEdit.value);
-      if (index !== -1) {
-        users.value[index] = { ...users.value[index], ...updatedUser };
-      }
-      closeeditDialog();
-      snackbarText.value = "Der Benutzer wurde erfolgreich aktualisiert!";
-      snackbar.value = true;
-    })
-    .catch((err) => {
-      console.error("Error updating user:", err);
-    });
-};
 </script>
+
+<style scoped>
+
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(425px, 1fr));
+  gap: 10px;
+  justify-content: center;
+  justify-items: center; 
+  padding: 20px;
+  width: 100%; 
+  max-width: 100%; 
+  box-sizing: border-box;
+}
+
+.grid-item {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-width: 400px;
+  max-width: 425px;
+}
+
+</style>

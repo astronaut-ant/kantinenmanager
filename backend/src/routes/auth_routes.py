@@ -1,9 +1,10 @@
 """Routes for authentication and session management."""
 
-from flask import Blueprint, g, make_response, request
+from flask import Blueprint, g, make_response, request, current_app as app
 from flasgger import swag_from
 from marshmallow import ValidationError
 
+from src.metrics import metrics
 from src.schemas.users_schemas import UserFullSchema
 from src.constants import REFRESH_TOKEN_COOKIE_NAME, REFRESH_TOKEN_DURATION
 from src.schemas.auth_schemas import AuthLoginSchema, AuthPasswordChangeSchema
@@ -21,6 +22,7 @@ auth_routes = Blueprint("auth_routes", __name__)
 
 
 @auth_routes.post("/api/login")
+@metrics.counter("flask_login_requests_total", "Total number of login requests")
 @swag_from(
     {
         "tags": ["auth"],
@@ -74,6 +76,7 @@ def login():
     except UserNotFoundException:
         # Both Exceptions return the same error message as it would be a security risk to
         # differentiate between invalid username and invalid password
+        app.logger.info("Login failed")
         abort_with_err(
             ErrMsg(
                 status_code=401,
@@ -82,6 +85,7 @@ def login():
             )
         )
     except InvalidCredentialsException:
+        app.logger.info("Login failed")
         abort_with_err(
             ErrMsg(
                 status_code=401,
