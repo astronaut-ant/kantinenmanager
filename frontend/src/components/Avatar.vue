@@ -37,7 +37,7 @@
                 </p>
               </div>
               <v-divider color="text-blue-grey" class="my-3"></v-divider>
-              <UserFoodOrder />
+              <UserFoodOrder :personId="appStore.userData.id" />
               <div>
                 <UserQRCode :qr-value="appStore.userData.id" />
               </div>

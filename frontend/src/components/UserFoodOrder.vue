@@ -17,7 +17,7 @@
           >
           Meine Bestellungen
         </h2>
-        <UserNewFoodOrder />
+        <UserNewFoodOrder :person-id="props.personId" />
         <div>
           <v-data-table-virtual
             :hover="true"
@@ -99,6 +99,7 @@ const form = ref(false);
 const close = () => {
   dialog.value = false;
 };
+const props = defineProps(["personId"]);
 </script>
 
 <!-- Dummy -->

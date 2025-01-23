@@ -19,5 +19,7 @@ export default createVuetify({
   },
   locale: {
     locale: "de",
+    messages: { de },
+    fallback: "en",
   },
 });
