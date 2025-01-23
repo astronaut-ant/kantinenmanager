@@ -23,3 +23,6 @@ alembic-postgresql-enum==1.4.0
 flask-cors==5.0.0
 APScheduler==3.11.0
 pytz==2024.2
+loki-logger-handler==1.1.0
+requests==2.32.3
+prometheus-flask-exporter==0.23.1

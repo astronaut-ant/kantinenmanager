@@ -87,6 +87,8 @@ def register_error_handlers(app: Flask):
     def handle_bad_request(e):
         """Handle 400 Bad Request errors."""
 
+        app.logger.info(f"Bad request: {e}")
+
         return make_response(
             ErrMsg(
                 status_code=400,
@@ -100,6 +102,8 @@ def register_error_handlers(app: Flask):
     @app.errorhandler(werkzeug.exceptions.Unauthorized)
     def handle_unauthorized(e):
         """Handle 401 Unauthorized errors."""
+
+        app.logger.info(f"Unauthorized: {e}")
 
         return make_response(
             ErrMsg(
@@ -115,6 +119,8 @@ def register_error_handlers(app: Flask):
     def handle_forbidden(e):
         """Handle 403 Forbidden errors."""
 
+        app.logger.info(f"Forbidden: {e}")
+
         return make_response(
             ErrMsg(
                 status_code=403,
@@ -128,6 +134,8 @@ def register_error_handlers(app: Flask):
     @app.errorhandler(werkzeug.exceptions.NotFound)
     def handle_not_found(e):
         """Handle 404 Not Found errors."""
+
+        app.logger.info(f"Not found: {e}")
 
         return make_response(
             ErrMsg(
@@ -143,6 +151,8 @@ def register_error_handlers(app: Flask):
     def handle_method_not_allowed(e):
         """Handle 405 Method Not Allowed errors."""
 
+        app.logger.info(f"Method not allowed: {e}")
+
         return make_response(
             ErrMsg(
                 status_code=405,
@@ -157,7 +167,7 @@ def register_error_handlers(app: Flask):
     def handle_internal_server_error(e):
         """Handle 500 Internal Server Error errors."""
 
-        sys.stderr.write(f"An internal server error occurred: {e}\n")
+        app.logger.critical(f"Internal server error: {e}")
 
         return make_response(
             ErrMsg(
@@ -173,8 +183,9 @@ def register_error_handlers(app: Flask):
     def handle_exception(e):
         """Handle all exceptions that are not caught by other error handlers."""
 
-        sys.stderr.write(f"An unhandled exception occurred: {e}\n")
-        traceback.print_exc()
+        app.logger.critical(
+            f"An unhandled exception occurred: {e}\n\n{traceback.format_exc()}"
+        )
 
         return make_response(
             ErrMsg(

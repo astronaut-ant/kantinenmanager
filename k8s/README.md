@@ -11,6 +11,8 @@ microk8s status --wait-ready # Check status while K8s starts
 
 microk8s enable dashboard # Enable dashboard addon
 
+microk8s enable rbac # Enable rbac addon
+
 sudo snap install kubectl --classic # Install kubectl client
 
 sudo snap install helm --classic # Install helm
@@ -23,7 +25,7 @@ sudo snap install helm --classic # Install helm
 2. Generate an Access Token for DockerHub and create a K8s secret for authentication:
 
 ```bash
-kubectl create secret docker-registry regcred docker-server=DOCKER_REGISTRY_SERVER --docker-username=DOCKER_USER --docker-password=DOCKER_PASSWORD
+kubectl create secret docker-registry regcred --docker-server=DOCKER_REGISTRY_SERVER --docker-username=DOCKER_USER --docker-password=DOCKER_PASSWORD
 ```
 
 3. Create the following generic secrets for the application. The values may be random and must not contain special characters.
