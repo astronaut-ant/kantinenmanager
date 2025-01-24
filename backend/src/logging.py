@@ -1,5 +1,6 @@
 from enum import Enum
-from flask import Flask
+from flask import Flask, has_request_context, request
+from flask.logging import default_handler
 from loki_logger_handler.loki_logger_handler import LokiLoggerHandler
 import logging
 
@@ -20,19 +21,39 @@ class LoggingMethod(Enum):
     CONSOLE = "console"
 
 
+class RequestFormatter(logging.Formatter):
+    def format(self, record):
+        if has_request_context():
+            record.url = request.url
+            record.remote_addr = request.remote_addr
+        else:
+            record.url = None
+            record.remote_addr = None
+
+        return super().format(record)
+
+
 def init_logger(app: Flask, method: LoggingMethod, loki_url: str = "") -> None:
     """Initialize the logger with the given Flask app."""
+
+    formatter = RequestFormatter(
+        "[%(asctime)s] %(remote_addr)s requested %(url)s\n"
+        "%(levelname)s in %(module)s: %(message)s"
+    )
+    default_handler.setFormatter(formatter)
 
     if method == LoggingMethod.CONSOLE:
         return
 
-    custom_handler = LokiLoggerHandler(
-        url=loki_url,
-        labels={"backend": "flask"},
-        label_keys={},
-        timeout=10,
-        additional_headers={"X-Scope-OrgId": "sep"},
-    )
-    custom_handler.setLevel(logging.INFO)
+    if method == LoggingMethod.LOKI:
+        custom_handler = LokiLoggerHandler(
+            url=loki_url,
+            labels={"service": "flask_api", "environment": "production"},
+            label_keys={},
+            timeout=10,
+            additional_headers={"X-Scope-OrgId": "sep"},
+            enable_self_errors=True,
+        )
+        custom_handler.setLevel(logging.INFO)
 
-    app.logger.addHandler(custom_handler)
+        app.logger.addHandler(custom_handler)

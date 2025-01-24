@@ -1,6 +1,8 @@
 <template>
   <NavbarVerwaltung />
-  <FilterBar 
+  <FilterBar
+    :viewSwitcherEnabled="true"
+    :filterList="['username', 'first_name', 'last_name', 'user_group']" 
     :items="users"
     @searchresult="updateOverview"
     @changeview="changeview"

@@ -8,7 +8,7 @@
         :style="isPinned ? { transform: `translateY(${translateY}px)` } : ''"
       >
         <v-toolbar border color="white" density="comfortable" style="max-width: 800px;" rounded="lg" floating>
-          <div class="d-flex align-center flex-column ml-6 mr-6">
+          <div v-if="props.viewSwitcherEnabled" class="d-flex align-center flex-column ml-6 mr-6">
             <v-btn-toggle v-model="ansicht" variant="outlined" base-color="black" color="primary" mandatory divided density="comfortable" @update:modelValue="onToggleChange">
               <v-btn
                 icon="mdi-card-outline"
@@ -20,7 +20,7 @@
               ></v-btn>
             </v-btn-toggle>
           </div>
-          <v-divider inset vertical></v-divider>
+          <v-divider v-if="props.viewSwitcherEnabled" inset vertical></v-divider>
           <v-text-field
             class="ml-6 mr-6"
             v-model="search"
@@ -42,7 +42,7 @@
   <script setup>
   import { ref, onMounted, onUnmounted } from "vue";
 
-  const props = defineProps(["items"]);
+  const props = defineProps(["items", "viewSwitcherEnabled", "filterList"]);
   const emit = defineEmits(["searchresult", "changeview"]);
 
   const ansicht = ref("cardview");
@@ -93,7 +93,7 @@
       const searchTerm = search.value.toLowerCase();
 
       return Object.values(props.items).filter((user) =>
-          ["username", "user_group", "first_name", "last_name"].some((key) =>
+        props.filterList.some((key) =>
               user[key]?.toLowerCase().includes(searchTerm)
           )
       );
