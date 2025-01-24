@@ -1,7 +1,10 @@
 <template>
     <v-card class="mx-2 my-2" width="450" elevation="16">
         <v-card-item>
-            <v-card-title>{{ props.name }}</v-card-title>
+            <div class="d-flex justify-space-between align-center">
+                <v-card-title>{{ props.name }}</v-card-title>
+                <v-chip color="primary" density="comfortable">{{ props.group_number }}</v-chip>
+            </div>
             <v-card-subtitle>
                 <v-icon
                 color="primary"
@@ -14,8 +17,8 @@
         <v-card-text>
             <v-divider></v-divider>
             <div class="mt-3 d-flex justify-space-between align-center">
-                <v-chip prepend-icon="mdi-account-multiple" color="primary" label density="compact"> Mitgliederanzahl: {{props.employees.length}} </v-chip>
-                <v-btn class="bg-primary" @click="openDialog" size="small"><v-icon>mdi-information-outline</v-icon></v-btn>
+                <v-chip prepend-icon="mdi-account-multiple" color="primary" label density="comfortable"> Mitgliederanzahl: {{props.employees.length}} </v-chip>
+                <v-btn class="bg-primary" @click="openDialog" size="default" density="comfortable"><v-icon>mdi-information-outline</v-icon></v-btn>
             </div>
         </v-card-text>
 
@@ -42,6 +45,7 @@
                             <p class="font-weight-black"> Gruppe </p>
                         </div>
                         <div class="ml-5 mb-4 text-medium-emphasis">
+                            <p color="text-primary"> Gruppennummer: {{props.group_number}} </p>
                             <p color="text-primary"> Mitgliederanzahl: {{props.employees.length}} </p>
                         </div>
                         <v-divider></v-divider>
@@ -83,7 +87,7 @@
 </template>
 
 <script setup>
-    const props = defineProps(["id", "name" , "group_leader", "group_leader_replacement", "employees"]);
+    const props = defineProps(["group_number", "id", "name" , "group_leader", "group_leader_replacement", "employees"]);
     const more = ref(false);
     const tab = ref("");
     const search = ref("");

@@ -25,6 +25,7 @@
           class="d-flex justify-center"
         >
           <GroupCard
+            :group_number="group.group_number"
             :id="group.id"
             :name="group.group_name"
             :group_leader="group.group_leader"
