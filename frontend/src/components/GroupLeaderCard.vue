@@ -16,30 +16,30 @@
             <div>
                 <div>
                     <v-card-title>{{ props.group_leader.first_name }} {{ props.group_leader.last_name }}</v-card-title>
-                        <v-slide-group :mobile="false">
-                            <v-slide-group-item>
-                                <v-chip
-                                    color="primary"
-                                    class="mr-2"
-                                    size="small"
-                                    label
-                                >
-                                    <v-icon icon="mdi-account-group" class="me-2"></v-icon>
-                                    <span>Hauptgruppe: {{ props.group_name }}</span>
-                                </v-chip>
-                            </v-slide-group-item>
-                            <v-slide-group-item v-for="replacing_group in replacing_groups" >
-                                <v-chip
-                                    color="orange"
-                                    class="mr-2"
-                                    size="small"
-                                    label
-                                    >   
-                                    <v-icon class="me-2">mdi-calendar-clock-outline</v-icon>
-                                    Vertretung für {{ replacing_group.name }}
-                                </v-chip>
-                            </v-slide-group-item>
-                        </v-slide-group>
+                    <v-slide-group :mobile="false">
+                        <v-slide-group-item>
+                            <v-chip
+                                color="primary"
+                                class="mr-2"
+                                size="small"
+                                label
+                            >
+                                <v-icon icon="mdi-account-group" class="me-2"></v-icon>
+                                <span>Hauptgruppe: {{ props.group_name }}</span>
+                            </v-chip>
+                        </v-slide-group-item>
+                        <v-slide-group-item v-for="replacing_group in replacing_groups" >
+                            <v-chip
+                                color="orange"
+                                class="mr-2"
+                                size="small"
+                                label
+                                >   
+                                <v-icon class="me-2">mdi-calendar-clock-outline</v-icon>
+                                Vertretung für {{ replacing_group.name }}
+                            </v-chip>
+                        </v-slide-group-item>
+                    </v-slide-group>
                 </div>
             </div>
             

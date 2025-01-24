@@ -127,7 +127,11 @@ def insert_group_mock_data():
 
         try:
             group_id = GroupsService.create_group(
-                name, leader, location_id, replacement
+                group_name=name,
+                group_number=group["index"],
+                user_id_group_leader=leader,
+                location_id=location_id,
+                user_id_replacement=replacement,
             )
             print(f"Inserted group with ID {group_id} and leader {leader}")
         except GroupAlreadyExists:

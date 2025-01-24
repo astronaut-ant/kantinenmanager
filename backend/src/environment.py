@@ -2,6 +2,8 @@ from abc import ABC
 import enum
 from typing import Literal
 
+from src.logging import LoggingMethod
+
 
 class Environment(enum.Enum):
     """Represents the environment in which the application is running."""
@@ -25,6 +27,9 @@ class Features(ABC):
     DATABASE: Literal["real", "in-memory", "none"]
     """The database to use. Can be 'real', 'in-memory', or 'none'."""
 
+    METRICS: bool
+    """Whether to enable metrics endpoint /api/metrics"""
+
     TESTING_MODE: bool
     """Enable testing mode for Flask"""
 
@@ -43,45 +48,56 @@ class Features(ABC):
     CRONJOBS: bool
     """Whether to enable cronjobs"""
 
+    LOGGING: LoggingMethod
+    """The logging method to use"""
+
 
 class ProductionFeatures(Features):
     DATABASE = "real"
+    METRICS = True
     TESTING_MODE = False
     CORS = False
     SWAGGER = False
     INSERT_DEFAULT_DATA = True
     INSERT_MOCK_DATA = True
     CRONJOBS = True
+    LOGGING = LoggingMethod.LOKI
 
 
 class DevelopmentFeatures(Features):
     DATABASE = "real"
+    METRICS = True
     TESTING_MODE = False
     CORS = True
     SWAGGER = True
     INSERT_DEFAULT_DATA = True
     INSERT_MOCK_DATA = True
     CRONJOBS = True
+    LOGGING = LoggingMethod.CONSOLE
 
 
 class MigrationFeatures(Features):
     DATABASE = "real"
+    METRICS = False
     TESTING_MODE = False
     CORS = False
     SWAGGER = False
     INSERT_DEFAULT_DATA = False
     INSERT_MOCK_DATA = False
     CRONJOBS = False
+    LOGGING = LoggingMethod.CONSOLE
 
 
 class UnitTestingFeatures(Features):
     DATABASE = "in-memory"
+    METRICS = False
     TESTING_MODE = True
     CORS = False
     SWAGGER = False
     INSERT_DEFAULT_DATA = False
     INSERT_MOCK_DATA = False
     CRONJOBS = False
+    LOGGING = LoggingMethod.CONSOLE
 
 
 def get_features(env: Environment) -> Features:

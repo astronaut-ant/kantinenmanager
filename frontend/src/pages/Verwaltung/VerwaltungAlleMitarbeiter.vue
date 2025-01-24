@@ -1,6 +1,6 @@
 <template>
   <NavbarVerwaltung />
-  <v-container max-width="1000">
+  <v-container style="width: 70%;">
     <div>
       <v-toolbar color="white" flat dark>
         <p class="text-h5 font-weight-black" >Übersicht Mitarbeiter</p>

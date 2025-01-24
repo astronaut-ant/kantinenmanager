@@ -37,6 +37,8 @@ db_password = "miau"
 
 jwt_secret = "".join(secrets.choice(alphabet) for _ in range(256))
 
+loki_url_testing = "http://127.0.0.1:3100/loki/api/v1/push"
+
 with open(template, "r") as f:
     lines = f.read()
 
@@ -50,6 +52,7 @@ lines = lines.replace("$$DB_HOST$$", db_host)
 lines = lines.replace("$$DB_PORT$$", db_port)
 lines = lines.replace("$$DB_PASSWORD$$", f'"{db_password}"')
 lines = lines.replace("$$JWT_SECRET$$", f'"{jwt_secret}"')
+lines = lines.replace("$$LOKI_URL$$", loki_url_testing)
 
 with open(output, "w") as f:
     f.write(lines)

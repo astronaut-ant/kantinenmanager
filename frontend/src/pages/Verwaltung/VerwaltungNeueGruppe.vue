@@ -21,6 +21,16 @@
         <v-form ref="validation" v-model="form" @submit.prevent="handleSubmit">
           <v-text-field
             v-if="!noGruppenleiter && !noStandorte"
+            v-model="gruppenNr"
+            :rules="[required]"
+            class="mb-2"
+            label="Gruppennummer"
+            required
+            clearable
+            type="number"
+          ></v-text-field>
+          <v-text-field
+            v-if="!noGruppenleiter && !noStandorte"
             v-model="gruppenName"
             :rules="[required]"
             class="mb-2"
@@ -76,6 +86,7 @@ import axios from "axios";
 const validation = ref("");
 const showConfirm = ref(false);
 const form = ref(false);
+const gruppenNr = ref(null);
 const gruppenName = ref("");
 const gruppenleitung = ref(null);
 const gruppenleiterList = ref([]);
@@ -133,6 +144,7 @@ const handleSubmit = () => {
     .post(
       import.meta.env.VITE_API + "/api/groups",
       {
+        group_number: gruppenNr.value,
         group_name: gruppenName.value,
         location_id: standortLookupTable[standort.value],
         user_id_group_leader: gruppenleiterLookupTable[gruppenleitung.value],

@@ -61,16 +61,15 @@ def create_initial_admin(app: Flask, username: str, password: str):
             user_group=UserGroup.verwaltung,
         )
 
-        print(f"Created initial admin user {username}")
+        app.logger.info(f"Created initial admin user {username}")
 
 
-def check_db_connection():
+def check_db_connection(app: Flask) -> bool:
     """Check if the database connection is working."""
 
     try:
         db.session.execute(text("SELECT 1"))
     except Exception as e:
-        print("Database connection failed")
-        print(e)
+        app.logger.error("Database connection failed: %s", e)
         return False
     return True
