@@ -222,7 +222,7 @@ class ReportsService:
     @staticmethod
     def get_printed_invoice(
         filters: OrdersFilters,
-    ) -> Union[Response, None]:
+    ) -> Union[Response]:
         """
         Get an invoice report #TODO filterd by date and location
         :param filters: Filters for old orders
@@ -241,7 +241,7 @@ class ReportsService:
         orders: List[OldOrder] = OrdersRepository.get_old_orders_date(filters)
 
         if not orders:
-            return None
+            return make_response("Keine Daten gefunden", 400)
 
         if filters.person_id:
             return PDFCreationUtils.create_pdf_invoice_person(

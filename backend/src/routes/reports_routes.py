@@ -239,6 +239,6 @@ def get_invoices():
         )
 
     try:
-        return ReportsService.get_printed_invoice(filters=filters, person_id=person_id)
+        return ReportsService.get_printed_invoice(filters=filters)
     except ValueError as err:
         pass
