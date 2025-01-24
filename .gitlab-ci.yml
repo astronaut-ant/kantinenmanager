@@ -98,6 +98,7 @@ push-frontend:
   script:
     - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - crane push frontend.tar $CI_REGISTRY_IMAGE
+    - crane tag $CI_REGISTRY_IMAGE latest # TODO remove
     - |
       if [[ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]]; then
         crane tag $CI_REGISTRY_IMAGE latest
@@ -113,8 +114,8 @@ push-backend:
   script:
     - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
     - crane tag $CI_REGISTRY_IMAGE latest
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+#  rules:
+#    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 deploy-job:
   stage: deploy
@@ -158,3 +159,5 @@ deploy_staging:
     - ssh -i ~/.ssh/sep_vm $PROD_USER@$PROD_IP "kubectl rollout status deployment/frontend-deployment"
     - ssh -i ~/.ssh/sep_vm $PROD_USER@$PROD_IP "kubectl rollout status deployment/backend-deployment"
     - echo "Application successfully deployed."
+  rules:
+#    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
