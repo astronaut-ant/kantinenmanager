@@ -409,10 +409,11 @@ def remove_group_replacement(group_id: UUID):
 
     try:
         group = GroupsService.update_group(
-            group_id,
-            group.group_name,
-            group.user_id_group_leader,
-            group.location_id,
+            group_id=group_id,
+            group_name=group.group_name,
+            group_number=group.group_number,
+            user_id_group_leader=group.user_id_group_leader,
+            location_id=group.location_id,
             user_id_replacement=None,
         )
     except ValueError as err:
