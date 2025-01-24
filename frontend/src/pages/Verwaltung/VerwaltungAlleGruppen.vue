@@ -51,49 +51,8 @@
         </v-col>
       </v-row>
     </div>
-  <div class="mx-4 my-5 d-flex justify-start flex-wrap">
-    <v-card
-      class="mx-4 my-4"
-      elevation="16"
-      min-width="17em"
-      max-width="17em"
-      v-for="group in sortedGroups"
-      :key="group.id"
-    >
-      <v-card-item>
-        <v-btn
-          icon="mdi-information-outline"
-          class="position-absolute"
-          style="top: 5px; right: 5px"
-          @click="showDetails(group)"
-          density="compact"
-        >
-        </v-btn>
-        <div>
-          <v-card-title>
-            <div class="d-flex flex-column">
-              <span class="text-h6 font-weight-bold text-truncate">{{
-                group.group_name
-              }}</span>
-              <span class="text-subtitle-2 text-truncate"
-                >Standort: {{ group.location.location_name }}</span
-              >
-            </div>
-          </v-card-title>
-        </div>
-        <v-card-actions class="justify-end">
-          <v-btn class="mt-2 bg-primary" @click="openEditDialog(group)">
-            <v-icon>mdi-lead-pencil</v-icon>
-          </v-btn>
-          <v-btn class="mt-2 bg-red" @click="handleDelete(group)">
-            <v-icon>mdi-trash-can-outline</v-icon>
-          </v-btn>
-        </v-card-actions>
-      </v-card-item>
-    </v-card>
-  </div>
 
-  <v-dialog v-model="more" max-width="600" max-height="600" scrollable>
+  <v-dialog v-model="detailDialog" max-width="600" max-height="600" scrollable>
     <v-card>
         <v-card-title color="primary">
             <div class="text-center mt-4">
@@ -278,7 +237,6 @@ const deleteDialog = ref(false);
 const secondDeleteDialog = ref(false);
 const selectedGroup = ref(null);
 const groupToDelete = ref(null);
-const selectedEmployees = ref([]);
 const editDialog = ref(false);
 const groupToEdit = ref(null);
 const groupLeaders = ref([]);
@@ -286,7 +244,6 @@ const newLeaderID = ref(null);
 const newLeaderName = ref("");
 const form = ref(false);
 
-const more = ref(false);
 const tab = ref("");
 const search = ref("");
 
@@ -344,12 +301,12 @@ const headers = [
 const sortBy = [{ key: 'employee_number', order: 'asc' }]
 
 const openDialog = (group) => {
-    more.value = true;
+    detailDialog.value = true;
     selectedGroup.value = group;
 };
 
 const closeDialog = () => {
-    more.value = false;
+    detailDialog.value = false;
     selectedGroup.value = null;
 };
 
@@ -363,11 +320,12 @@ const selectLeader = (newLeader) => {
   form.value = true;
 };
 const confirmEdit = () => {
+  console.log(groupToEdit.value.group_leader_replacement)
   const updatedGroup = {
     group_name: groupToEdit.value.group_name,
-    location_id: groupToEdit.value.location.id,
+    location_id: groupToEdit.value.location.location_id,
     user_id_group_leader: newLeaderID.value,
-    user_id_replacement: groupToEdit.value.group_leader_replacement.id,
+    user_id_replacement: groupToEdit.value.group_leader_replacement?.id || null,
   };
   axios
     .put(
