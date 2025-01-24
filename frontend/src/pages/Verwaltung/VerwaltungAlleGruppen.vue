@@ -42,8 +42,8 @@
                 <div class="mt-3 d-flex justify-space-between align-center">
                     <v-chip prepend-icon="mdi-account-multiple" color="primary" label density="compact"> Mitgliederanzahl: {{group?.employees.length}} </v-chip>
                     <div class="d-flex">
-                      <v-btn class="bg-primary mx-1" @click="openEditDialog(group)" size="small"><v-icon>mdi-lead-pencil</v-icon></v-btn>
-                      <v-btn class="bg-red" @click="handleDelete(group)" size="small"><v-icon>mdi-trash-can-outline</v-icon></v-btn>
+                      <v-btn class="bg-primary mx-1" @click="openEditDialog(group)" size="default" density="comfortable"><v-icon>mdi-lead-pencil</v-icon></v-btn>
+                      <v-btn class="bg-red" @click="handleDelete(group)" size="default" density="comfortable"><v-icon>mdi-trash-can-outline</v-icon></v-btn>
                     </div>
                 </div>
             </v-card-text>
@@ -320,13 +320,13 @@ const selectLeader = (newLeader) => {
   form.value = true;
 };
 const confirmEdit = () => {
-  console.log(groupToEdit.value.group_leader_replacement)
   const updatedGroup = {
     group_name: groupToEdit.value.group_name,
-    location_id: groupToEdit.value.location.location_id,
+    group_number: groupToEdit.value.group_number,
+    location_id: groupToEdit.value.location.id,
     user_id_group_leader: newLeaderID.value,
-    user_id_replacement: groupToEdit.value.group_leader_replacement?.id || null,
   };
+  console.log(updatedGroup)
   axios
     .put(
       import.meta.env.VITE_API + `/api/groups/${groupToEdit.value.id}`,
