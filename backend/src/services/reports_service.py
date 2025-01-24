@@ -238,9 +238,9 @@ class ReportsService:
                 "Nur eine UUID von Standort, Gruppe ODER Person kann verwendet werden"
             )
 
-        orders: List[OldOrder] = OrdersRepository.get_old_orders_date(filters)
+        orders: List[OldOrder] = OrdersRepository.get_old_orders(filters)
 
-        if not orders:
+        if not orders:  # TODO: Maybe create an empty invoice?
             return make_response("Keine Daten gefunden", 400)
 
         if filters.person_id:
@@ -255,3 +255,5 @@ class ReportsService:
             return PDFCreationUtils.create_pdf_invoice_group(
                 filters.date_start, filters.date_end, orders
             )
+        else:
+            return make_response("Es wurde keine UUID übergeben", 400)
