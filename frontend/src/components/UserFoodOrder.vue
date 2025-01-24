@@ -28,6 +28,7 @@
         />
         <div>
           <v-data-table-virtual
+            v-model:sort-by="sortBy"
             :hover="true"
             :headers="headers"
             :items="items"
@@ -84,16 +85,6 @@
           @click="close"
         ></v-btn>
       </v-card-actions>
-
-      <!-- <div class="mt-5">
-        <v-date-input
-          :allowed-dates="[new Date('1/25/25')]"
-          label="Select a date"
-          prepend-icon=""
-          prepend-inner-icon="$calendar"
-          variant="solo"
-        ></v-date-input>
-      </div> -->
     </v-card>
   </v-dialog>
 </template>
@@ -107,6 +98,7 @@ const form = ref(false);
 const orders = ref([]);
 const locationItems = ref([]);
 const locationTable = {};
+const sortBy = ref([{ key: "date", order: "desc" }]);
 
 const headers = ref([
   { title: "Datum", align: "start", key: "date" },
