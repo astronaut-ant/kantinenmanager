@@ -146,13 +146,12 @@ deploy_staging:
   environment:
     name: production
     url: https://$PROD_IP
-  before_script:
+  script:
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
     - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
     - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
-  script:
 #    - ssh $PROD_USER@$PROD_IP "kubectl apply -f k8s"
     - ssh $PROD_USER@$PROD_IP "kubectl set image deployment/frontend-deployment frontend-deployment=$CI_REGISTRY_FRONTEND_IMAGE:$CI_COMMIT_SHORT_SHA"
     - ssh $PROD_USER@$PROD_IP "kubectl set image deployment/backend-deployment backend-deployment=$CI_REGISTRY_BACKEND_IMAGE:$CI_COMMIT_SHORT_SHA"
