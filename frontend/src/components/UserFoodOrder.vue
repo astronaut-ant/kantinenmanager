@@ -68,7 +68,11 @@
                 <v-btn variant="tonal" color="primary" class="mt-2"
                   ><v-icon>mdi-lead-pencil</v-icon></v-btn
                 >
-                <v-btn variant="tonal" color="red" class="mt-2"
+                <v-btn
+                  @click="deleteOrder(item)"
+                  variant="tonal"
+                  color="red"
+                  class="mt-2"
                   ><v-icon>mdi-trash-can-outline</v-icon></v-btn
                 >
               </div>
@@ -169,10 +173,29 @@ const getOrders = () => {
           location: order.location_name,
           mainDish: order.main_dish,
           salad: order.salad_option,
+          id: order.id,
         });
       });
       console.log("Orders", orders.value);
     })
+    .catch((err) => console.log(err));
+};
+
+const deleteOrder = (item) => {
+  axios
+    .delete(import.meta.env.VITE_API + `/api/pre-orders/${item.id}`, {
+      withCredentials: true,
+    })
+    .then((response) => {
+      console.log(response.data);
+      items.value.splice(
+        items.value.findIndex((order) => {
+          return order.id === item.id;
+        }),
+        1
+      );
+    })
+
     .catch((err) => console.log(err));
 };
 </script>
