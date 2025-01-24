@@ -1,14 +1,13 @@
 from marshmallow import ValidationError
 from src.utils.auth_utils import login_required
 from src.utils.error import ErrMsg, abort_with_err
-from flask import Blueprint, jsonify, request, g
+from flask import Blueprint, request, g
 from flasgger import swag_from
 from datetime import datetime
 from src.models.user import UserGroup
 from src.repositories.orders_repository import OrdersFilters
 from src.services.reports_service import (
     ReportsService,
-    OrderType,
     LocationDoesNotExist,
     AccessDeniedError,
 )
@@ -73,7 +72,7 @@ def get_report():
     de_str = request.args.get("date-end")
 
     try:
-        location_id = request.args.getlist("location_id")
+        location_id = request.args.get("location_id")
         if not location_id:
             abort_with_err(
                 ErrMsg(
@@ -142,9 +141,29 @@ def get_report():
         "parameters": [
             {
                 "in": "query",
+                "name": "location_id",
+                "description": "Choose the location for the invoice",
+                "required": False,
+                "schema": {
+                    "type": "string",
+                    "format": "uuid",
+                },
+            },
+            {
+                "in": "query",
+                "name": "group_id",
+                "description": "Choose the group for the invoice",
+                "required": False,
+                "schema": {
+                    "type": "string",
+                    "format": "uuid",
+                },
+            },
+            {
+                "in": "query",
                 "name": "person_id",
                 "description": "Choose the person for the invoice",
-                "required": True,
+                "required": False,
                 "schema": {
                     "type": "string",
                     "format": "uuid",
@@ -188,19 +207,25 @@ def get_invoices():
         date_end = request.args.get("date-end")
 
         person_id = request.args.get("person_id")
-        if not person_id:
+        group_id = request.args.get("group_id")
+        location_id = request.args.get("location_id")
+
+        if not person_id and not group_id and not location_id:
             abort_with_err(
                 ErrMsg(
                     status_code=400,
                     title="Validierungsfehler",
-                    description="Es wurde keine Person übergeben",
-                    details="Die Abfrage erfordert mindestens eine Person.",
+                    description="Es wurde keine UUID übergeben",
+                    details="Die Abfrage erfordert die UUID eines Standorts, einer Gruppe oder einer Person.",
                 )
             )
 
         filters = OrdersFilters(
             date_start=(datetime.strptime(date_str, "%Y-%m-%d").date()),
             date_end=(datetime.strptime(date_end, "%Y-%m-%d").date()),
+            person_id=person_id,
+            group_id=group_id,
+            location_id=location_id,
         )
 
     except ValidationError as err:
