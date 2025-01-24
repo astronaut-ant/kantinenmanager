@@ -1,74 +1,115 @@
 <template>
   <NavbarVerwaltung />
-  <div class="mx-4 my-5 d-flex justify-start flex-wrap">
-    <v-card
-      class="mx-4 my-4"
-      elevation="16"
-      min-width="17em"
-      max-width="17em"
-      v-for="group in sortedGroups"
-      :key="group.id"
-    >
-      <v-card-item>
-        <v-btn
-          icon="mdi-information-outline"
-          class="position-absolute"
-          style="top: 5px; right: 5px"
-          @click="showDetails(group)"
-          density="compact"
+  <div class="ml-10 mr-10 mt-5">
+      <v-row class="d-flex justify-start">
+        <v-col
+          v-for="group in groups"
+          :key="group?.id"
+          cols="12" sm="12" md="6" lg="4" xl="3" xxl = "2"
+          class="d-flex justify-center"
         >
-        </v-btn>
-        <div>
-          <v-card-title>
-            <div class="d-flex flex-column">
-              <span class="text-h6 font-weight-bold text-truncate">{{
-                group.group_name
-              }}</span>
-              <span class="text-subtitle-2 text-truncate"
-                >Standort: {{ group.location.location_name }}</span
-              >
-            </div>
-          </v-card-title>
-        </div>
-        <v-card-actions class="justify-end">
-          <v-btn class="mt-2 bg-primary" @click="openEditDialog(group)">
-            <v-icon>mdi-lead-pencil</v-icon>
-          </v-btn>
-          <v-btn class="mt-2 bg-red" @click="handleDelete(group)">
-            <v-icon>mdi-trash-can-outline</v-icon>
-          </v-btn>
-        </v-card-actions>
-      </v-card-item>
-    </v-card>
-  </div>
+          <v-card class="mx-2 my-2" width="450" elevation="16">
+            <v-card-item>
+                <v-card-title>
+                  <div class="mt-3 d-flex justify-space-between align-center">
+                    {{ group?.group_name }}
+                    <v-btn class="bg-primary mx-1" @click="openDialog(group)" size="small"><v-icon>mdi-information-outline</v-icon></v-btn>
+                  </div>
+                </v-card-title>
+                <v-card-subtitle>
+                  <div class="d-flex flex-column">
+                    <div>
+                      <v-icon
+                      color="primary"
+                      icon="mdi-account-circle"
+                      size="small"
+                      ></v-icon>
+                      <span class="me-1 ml-2">{{ group?.group_leader.first_name }} {{ group?.group_leader.last_name }}</span>
+                    </div>
+                    <div>
+                      <v-icon
+                      color="primary"
+                      icon="mdi-map-marker"
+                      size="small"
+                      ></v-icon>
+                      <span class="me-1 ml-2">{{ group?.location.location_name }}</span>
+                    </div>
+                  </div>
+                </v-card-subtitle>
+            </v-card-item>
+            <v-card-text>
+                <v-divider></v-divider>
+                <div class="mt-3 d-flex justify-space-between align-center">
+                    <v-chip prepend-icon="mdi-account-multiple" color="primary" label density="compact"> Mitgliederanzahl: {{group?.employees.length}} </v-chip>
+                    <div class="d-flex">
+                      <v-btn class="bg-primary mx-1" @click="openEditDialog(group)" size="default" density="comfortable"><v-icon>mdi-lead-pencil</v-icon></v-btn>
+                      <v-btn class="bg-red" @click="handleDelete(group)" size="default" density="comfortable"><v-icon>mdi-trash-can-outline</v-icon></v-btn>
+                    </div>
+                </div>
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+    </div>
 
-  <v-dialog v-model="detailDialog" persistent max-width="600">
+  <v-dialog v-model="detailDialog" max-width="600" max-height="600" scrollable>
     <v-card>
-      <v-card-title>
-        <div>
-          <v-icon left class="mr-2">mdi-account-group</v-icon>
-          <span
-            class="text-h5"
-            style="white-space: normal; word-wrap: break-word"
-          >
-            {{ selectedGroup?.group_name }} -
-            {{ selectedGroup?.location.location_name }}
-          </span>
+        <v-card-title color="primary">
+            <div class="text-center mt-4">
+                <v-chip color="primary" label> <p class="text-h5 font-weight-black"> {{ selectedGroup?.group_name }} </p> </v-chip>
+            </div>
+        </v-card-title>
+        <div class="mb-2">
+            <v-tabs v-model="tab" align-tabs="center" color="primary">
+                <v-tab value="one">Übersicht</v-tab>
+                <v-tab value="two">Mitglieder</v-tab>
+            </v-tabs>
         </div>
-      </v-card-title>
-      <v-card-text>
-        <p>
-          <strong>Gruppenleiter:</strong>
-          {{ selectedGroup?.group_leader.first_name }}
-          {{ selectedGroup?.group_leader.last_name }}
-        </p>
-        <p><strong>Mitglieder:</strong></p>
-        <v-data-table :headers="headers" :items="selectedEmployees">
-        </v-data-table>
-      </v-card-text>
-      <v-card-actions>
-        <v-btn color="primary" @click="closeDetailDialog">Schließen</v-btn>
-      </v-card-actions>
+
+        <v-card-text>
+            <v-tabs-window v-model="tab">
+                <v-tabs-window-item value="one">
+                    <div class="text-left ml-4 mb-2 mt-2">
+                        <p class="font-weight-black"> Gruppe </p>
+                    </div>
+                    <div class="ml-5 mb-4 text-medium-emphasis">
+                        <p color="text-primary"> Standort: {{ selectedGroup?.location.location_name }}</p>
+                        <p color="text-primary"> Mitgliederanzahl: {{selectedGroup?.employees.length}} </p>
+                    </div>
+                    <v-divider></v-divider>
+                    <div class="text-left ml-4 mb-2 mt-4">
+                        <p class="font-weight-black"> Gruppenleitung </p>
+                    </div>
+                    <div class="ml-5 text-medium-emphasis">
+                        <p color="text-primary"> Vorname: {{selectedGroup?.group_leader.first_name}} </p>
+                        <p color="text-primary"> Nachname: {{selectedGroup?.group_leader.last_name}} </p>
+                        <p color="text-primary"> Benutzername: {{selectedGroup?.group_leader.username}} </p>
+                    </div>
+                </v-tabs-window-item>
+
+                <v-tabs-window-item value="two">
+                    <v-text-field
+                        v-model="search"
+                        density="compact"
+                        label="Suche"
+                        prepend-inner-icon="mdi-magnify"
+                        variant="solo-filled"
+                        flat
+                        hide-details
+                        clearable
+                        single-line
+                        rounded
+                    ></v-text-field>
+                    <v-data-table-virtual :items="selectedGroup?.employees" :search="search" :headers="headers" :sort-by="sortBy" :hover="true" density="compact">
+                    </v-data-table-virtual>
+                </v-tabs-window-item>
+            </v-tabs-window>
+        </v-card-text>
+        <v-card-actions>
+            <div class="d-flex justify-end ga-1">
+                <v-btn class="mt-2 bg-primary" @click="closeDialog"><v-icon>mdi-close-thick</v-icon></v-btn>
+            </div>
+        </v-card-actions>
     </v-card>
   </v-dialog>
 
@@ -196,7 +237,6 @@ const deleteDialog = ref(false);
 const secondDeleteDialog = ref(false);
 const selectedGroup = ref(null);
 const groupToDelete = ref(null);
-const selectedEmployees = ref([]);
 const editDialog = ref(false);
 const groupToEdit = ref(null);
 const groupLeaders = ref([]);
@@ -204,9 +244,12 @@ const newLeaderID = ref(null);
 const newLeaderName = ref("");
 const form = ref(false);
 
+const tab = ref("");
+const search = ref("");
+
 onMounted(() => {
   axios
-    .get(import.meta.env.VITE_API + "/api/groups", { withCredentials: true })
+    .get(import.meta.env.VITE_API + "/api/groups/with-employees", { withCredentials: true })
     .then((response) => {
       groups.value = response.data;
 
@@ -250,27 +293,21 @@ onMounted(() => {
 });
 
 const headers = [
-  { title: "Nummer", key: "employee_number" },
-  { title: "Vorname", key: "first_name" },
+  { title: "Nummer", key: "employee_number"},
   { title: "Nachname", key: "last_name" },
+  { title: "Vorname", key: "first_name" },
 ];
 
-const showDetails = (group) => {
-  selectedGroup.value = group;
-  if (employees.value && employees.value.length > 0) {
-    selectedEmployees.value = employees.value.filter(
-      (employee) => employee.group.id == group.id
-    );
-  } else {
-    selectedEmployees.value = [];
-  }
-  detailDialog.value = true;
+const sortBy = [{ key: 'employee_number', order: 'asc' }]
+
+const openDialog = (group) => {
+    detailDialog.value = true;
+    selectedGroup.value = group;
 };
 
-const closeDetailDialog = () => {
-  detailDialog.value = false;
-  selectedGroup.value = null;
-  selectedEmployees.value = [];
+const closeDialog = () => {
+    detailDialog.value = false;
+    selectedGroup.value = null;
 };
 
 const openEditDialog = (group) => {
@@ -285,10 +322,11 @@ const selectLeader = (newLeader) => {
 const confirmEdit = () => {
   const updatedGroup = {
     group_name: groupToEdit.value.group_name,
+    group_number: groupToEdit.value.group_number,
     location_id: groupToEdit.value.location.id,
     user_id_group_leader: newLeaderID.value,
-    user_id_replacement: groupToEdit.value.group_leader_replacement.id,
   };
+  console.log(updatedGroup)
   axios
     .put(
       import.meta.env.VITE_API + `/api/groups/${groupToEdit.value.id}`,
