@@ -187,22 +187,24 @@ const mainDishItems = [
 
 const preOrderObject = {};
 
-const props = defineProps(["personId"]);
-console.log(props.personId);
+const props = defineProps(["personId", "locationItems"]);
+const emit = defineEmits(["ordered"]);
+
+locationItems.value = props.locationItems;
 
 // get all locations for Step 2
-axios
-  .get(import.meta.env.VITE_API + "/api/locations", { withCredentials: true })
-  .then((response) => {
-    response.data.forEach((locationobject) =>
-      locationItems.value.push({
-        title: locationobject.location_name,
-        value: locationobject.id,
-      })
-    );
-    console.log(locationItems.value);
-  })
-  .catch((err) => console.log(err));
+// axios
+//   .get(import.meta.env.VITE_API + "/api/locations", { withCredentials: true })
+//   .then((response) => {
+//     response.data.forEach((locationobject) =>
+//       locationItems.value.push({
+//         title: locationobject.location_name,
+//         value: locationobject.id,
+//       })
+//     );
+//     console.log(locationItems.value);
+//   })
+//   .catch((err) => console.log(err));
 
 const incrementStep = () => {
   stepperValue.value += 1;
@@ -229,6 +231,7 @@ const finish = () => {
       withCredentials: true,
     })
     .then((response) => {
+      emit("ordered");
       console.log(response.data);
       dialog.value = false;
     })
@@ -261,8 +264,10 @@ const addDishesToPreOrderObject = () => {
   }
   if (foodChoice.value.includes(1)) {
     preOrderObject.main_dish = "blau";
-  } else {
+  } else if (foodChoice.value.includes(2)) {
     preOrderObject.main_dish = "rot";
+  } else {
+    preOrderObject.main_dish = null;
   }
 };
 </script>

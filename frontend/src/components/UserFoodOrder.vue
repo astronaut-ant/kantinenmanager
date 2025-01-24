@@ -2,7 +2,11 @@
   <v-dialog color="" v-model="dialog" max-width="800">
     <template v-slot:activator="{ props: activatorProps }">
       <div class="text-start">
-        <v-btn variant="text" v-bind="activatorProps" class="text-blue-grey"
+        <v-btn
+          @click="getData"
+          variant="text"
+          v-bind="activatorProps"
+          class="text-blue-grey"
           ><v-icon class="me-4">mdi-calendar-edit-outline</v-icon>Meine
           Bestellungen</v-btn
         >
@@ -17,7 +21,11 @@
           >
           Meine Bestellungen
         </h2>
-        <UserNewFoodOrder :person-id="props.personId" />
+        <UserNewFoodOrder
+          :person-id="props.personId"
+          :location-items="locationItems"
+          @ordered="getData"
+        />
         <div>
           <v-data-table-virtual
             :hover="true"
@@ -96,48 +104,83 @@ import UserNewFoodOrder from "./UserNewFoodOrder.vue";
 
 const dialog = ref(false);
 const form = ref(false);
+const orders = ref([]);
+const locationItems = ref([]);
+const locationTable = {};
+
+const headers = ref([
+  { title: "Datum", align: "start", key: "date" },
+  { title: "Standort", align: "start", key: "location" },
+  {
+    title: "Hauptgericht",
+    align: "start",
+    key: "mainDish",
+  },
+  { title: "Salat", align: "start", key: "salad" },
+  {
+    title: "Aktionen",
+    align: "start",
+    key: "actions",
+    sortable: false,
+  },
+]);
+
+const items = ref([]);
+
 const close = () => {
   dialog.value = false;
 };
 const props = defineProps(["personId"]);
-</script>
 
-<!-- Dummy -->
-<script>
-export default {
-  data() {
-    return {
-      headers: [
-        { title: "Datum", align: "start", key: "date" },
-        { title: "Standort", align: "start", key: "location" },
-        {
-          title: "Hauptgericht",
-          align: "start",
-          key: "mainDish",
-        },
-        { title: "Salat", align: "start", key: "salad" },
-        {
-          title: "Aktionen",
-          align: "start",
-          key: "actions",
-          sortable: false,
-        },
-      ],
-      items: [
-        {
-          date: "2025-01-02",
-          location: "W3",
-          mainDish: 0,
-          salad: true,
-        },
-        {
-          date: "2025-01-04",
-          location: "W5",
-          mainDish: 2,
-          salad: false,
-        },
-      ],
-    };
-  },
+const getData = () => {
+  orders.value.length = 0;
+  locationItems.value.length = 0;
+  items.value.length = 0;
+  locationTable.value = {};
+  axios
+    .get(import.meta.env.VITE_API + "/api/locations", { withCredentials: true })
+    .then((response) => {
+      response.data.forEach((locationobject) => {
+        locationItems.value.push({
+          title: locationobject.location_name,
+          value: locationobject.id,
+        }),
+          (locationTable[locationobject.id] = locationobject.location_name);
+      });
+      console.log(locationItems.value);
+      getOrders();
+    })
+    .catch((err) => console.log(err));
+};
+
+const getOrders = () => {
+  axios
+    .get(
+      import.meta.env.VITE_API + `/api/pre-orders?person-id=${props.personId}`,
+      {
+        withCredentials: true,
+      }
+    )
+    .then((response) => {
+      orders.value = response.data;
+      orders.value.forEach((order) => {
+        order.location_name = locationTable[order.location_id];
+        if (order.main_dish == "blau") {
+          order.main_dish = 1;
+        } else if (order.main_dish == "rot") {
+          order.main_dish = 2;
+        } else {
+          order.main_dish = 0;
+        }
+        items.value.push({
+          date: order.date,
+          location: order.location_name,
+          mainDish: order.main_dish,
+          salad: order.salad_option,
+        });
+      });
+      console.log("Orders", orders.value);
+    })
+    .catch((err) => console.log(err));
 };
 </script>
