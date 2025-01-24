@@ -16,7 +16,7 @@ from src.services.reports_service import (
 reports_routes = Blueprint("reports_routes", __name__)
 
 
-@reports_routes.get("/api/reports")
+@reports_routes.get("/api/invoices/locations")
 @login_required(
     groups=[UserGroup.verwaltung, UserGroup.standortleitung, UserGroup.kuechenpersonal]
 )
@@ -27,28 +27,12 @@ reports_routes = Blueprint("reports_routes", __name__)
             {
                 "in": "query",
                 "name": "location_id",
-                "description": "Filter by multiple location IDs (UUIDs)",
+                "description": "choose the location for the invoice",
                 "required": True,
                 "schema": {
-                    "type": "array",
-                    "items": {"type": "string", "format": "uuid"},
-                    "example": [
-                        "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-                        "d90c929c-734c-47b7-8fe5-b3774ec0004e",
-                    ],
+                    "type": "string",
+                    "format": "uuid",
                 },
-                "style": "form",
-                "explode": True,
-                "collectionFormat": "multi",
-            },
-            {
-                "in": "query",
-                "name": "date",
-                "description": "filter by a specific date (YYYY-MM-DD)",
-                "type": "string",
-                "format": "date",
-                "required": False,
-                "example": "2024-12-08",
             },
             {
                 "in": "query",
@@ -85,7 +69,6 @@ reports_routes = Blueprint("reports_routes", __name__)
 def get_report():
     """Get reports for orders filtered by date and location"""
 
-    d_str = request.args.get("date")
     ds_str = request.args.get("date-start")
     de_str = request.args.get("date-end")
 
@@ -102,9 +85,9 @@ def get_report():
             )
 
         filters = OrdersFilters(
-            date=datetime.strptime(d_str, "%Y-%m-%d").date() if d_str else None,
             date_start=datetime.strptime(ds_str, "%Y-%m-%d").date() if ds_str else None,
             date_end=datetime.strptime(de_str, "%Y-%m-%d").date() if de_str else None,
+            location_id=location_id,
         )
 
     except ValidationError as err:
@@ -118,9 +101,8 @@ def get_report():
         )
 
     try:
-        return ReportsService.get_printed_report(
+        return ReportsService.get_location_report(
             filters=filters,
-            location_id=location_id,
             user_id=g.user_id,
             user_group=g.user_group,
         )

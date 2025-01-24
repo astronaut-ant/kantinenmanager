@@ -1,11 +1,10 @@
-from datetime import datetime, timedelta, date, time
+from datetime import datetime, timedelta, time
 import pytz
-from typing import List, Optional, Union
+from typing import List, Union
 from uuid import UUID
 from enum import Enum
 from flask import send_file, Response, make_response
-import csv
-from io import BytesIO, StringIO
+from io import BytesIO
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.lib.styles import getSampleStyleSheet
@@ -51,9 +50,8 @@ ORDER_TYPE_GETTER = {
 class ReportsService:
 
     @staticmethod
-    def get_printed_report(
+    def get_location_report(
         filters: OrdersFilters,
-        location_id: Optional[List[UUID]],
         user_id: UUID,
         user_group: UserGroup,
     ) -> Union[Response, None]:
@@ -63,39 +61,12 @@ class ReportsService:
         :return: a pdf file with the report or None if no orders were found
         """
 
-        if not location_id:
-            raise ValueError("Keine Standort-ID übergeben")
+        if not filters.location_id or not filters.date_start or not filters.date_end:
+            raise ValueError("Keine Standort-ID oder Datum übergeben")
 
-        try:
-            order_types_with_dates = ReportsService._get_order_details(
-                filters.date, filters.date_start, filters.date_end
-            )
-        except ValueError as err:
-            raise ValueError(str(err))
-
-        if not order_types_with_dates:
-            raise ValueError("Keine Bestellungen für dieses Datum gefunden")
-
-        orders: List[PreOrder | DailyOrder | OldOrder] = []
-
-        for order_type, date_start, date_end in order_types_with_dates:
-            if ReportsService._check_user_access_to_location(
-                location_id, user_id, user_group
-            ):
-                orders.extend(
-                    ORDER_TYPE_GETTER[order_type](
-                        OrdersFilters(
-                            date_start=date_start,
-                            date_end=date_end,
-                            location_id=location_id,
-                        )
-                    )
-                )
-
-            else:
-                raise AccessDeniedError(
-                    f"Nutzer:in hat keine Berechtigung für Standort {location_id}."
-                )
+        orders = ReportsService._get_orders_by_location(
+            f=filters, user_id=user_id, user_group=user_group
+        )
 
         location_counts = ReportsService._count_location_orders(orders)
 
@@ -165,11 +136,11 @@ class ReportsService:
 
         return CountOrdersSchema(many=True).dump(orders)
 
-    def _get_order_details(
-        single_date: Optional[date],
-        date_start: Optional[date],
-        date_end: Optional[date],
-    ) -> List[dict]:
+    def _get_orders_by_location(
+        f: OrdersFilters,
+        user_id: UUID,
+        user_group: UserGroup,
+    ) -> List[PreOrder | DailyOrder | OldOrder]:
 
         timezone = pytz.timezone("Europe/Berlin")
         today = datetime.now(timezone).date()
@@ -180,51 +151,53 @@ class ReportsService:
 
         order_types = []
 
-        print(single_date, date_start, date_end)
+        if f.date_start and f.date_end and (f.date_start <= f.date_end):
 
-        if single_date:
+            if f.date_end < yesterday:
+                order_types.append(("OLD_ORDER", f.date_start, f.date_end))
 
-            if (single_date == today and current_time <= time(8, 0)) or (
-                single_date > today
-            ):
-                order_types.append(("PRE_ORDER", single_date, single_date))
+            if today < f.date_start:
+                order_types.append(("PRE_ORDER", f.date_start, f.date_end))
 
-            elif (single_date == today and current_time > time(8, 0)) or (
-                single_date == yesterday and current_time < time(8, 0)
-            ):
-                order_types.append(("DAILY_ORDER", single_date, single_date))
-
-            else:
-                order_types.append(("OLD_ORDER", single_date, single_date))
-
-        elif date_start and date_end and (date_start <= date_end):
-
-            if date_end < yesterday:
-                order_types.append(("OLD_ORDER", date_start, date_end))
-
-            if today < date_start:
-                order_types.append(("PRE_ORDER", date_start, date_end))
-
-            if date_start <= today <= date_end:
+            if f.date_start <= today <= f.date_end:
                 if current_time < time(8, 0):
-                    order_types.append(("PRE_ORDER", date_start, today))
+                    order_types.append(("PRE_ORDER", f.date_start, today))
                 else:
-                    order_types.append(("PRE_ORDER", date_start, tomorrow))
+                    order_types.append(("PRE_ORDER", f.date_start, tomorrow))
                     order_types.append(("DAILY_ORDER", today, today))
 
-            if date_start <= yesterday <= date_end:
+            if f.date_start <= yesterday <= f.date_end:
                 if current_time < time(8, 0):
                     order_types.append(("DAILY_ORDER", yesterday, yesterday))
-                    order_types.append(("OLD_ORDER", before_yesterday, date_end))
+                    order_types.append(("OLD_ORDER", before_yesterday, f.date_end))
                 else:
-                    order_types.append(("OLD_ORDER", yesterday, date_end))
+                    order_types.append(("OLD_ORDER", yesterday, f.date_end))
 
         else:
-            raise ValueError(
-                "Kein valides Datum. Übergebe entweder ein Datum oder ein valides Start- und ein Enddatum."
-            )
+            raise ValueError("Kein valides Start- und/oder Enddatum.")
 
-        return order_types
+        orders: List[PreOrder | DailyOrder | OldOrder] = []
+
+        for order_type, date_start, date_end in order_types:
+            if ReportsService._check_user_access_to_location(
+                f.location_id, user_id, user_group
+            ):
+                orders.extend(
+                    ORDER_TYPE_GETTER[order_type](
+                        OrdersFilters(
+                            date_start=date_start,
+                            date_end=date_end,
+                            location_id=f.location_id,
+                        )
+                    )
+                )
+
+            else:
+                raise AccessDeniedError(
+                    f"Nutzer:in hat keine Berechtigung für Standort {f.location_id}."
+                )
+
+        return orders
 
     def _check_user_access_to_location(
         location_id: UUID, user_id: UUID, user_group: UserGroup
