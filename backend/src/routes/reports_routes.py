@@ -16,7 +16,7 @@ from src.services.reports_service import (
 reports_routes = Blueprint("reports_routes", __name__)
 
 
-@reports_routes.get("/api/invoices/locations")
+@reports_routes.get("/api/reports/locations")
 @login_required(
     groups=[UserGroup.verwaltung, UserGroup.standortleitung, UserGroup.kuechenpersonal]
 )

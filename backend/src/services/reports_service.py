@@ -50,65 +50,10 @@ ORDER_TYPE_GETTER = {
 class ReportsService:
 
     @staticmethod
-    def get_location_report(
-        filters: OrdersFilters,
-        user_id: UUID,
-        user_group: UserGroup,
-    ) -> Union[Response, None]:
-        """
-        Get a preorders report filterd by date and location
-        :param filters: Filters for old orders
-        :return: a pdf file with the report or None if no orders were found
-        """
-
-        if not filters.location_id or not filters.date_start or not filters.date_end:
-            raise ValueError("Keine Standort-ID oder Datum übergeben")
-
-        orders = ReportsService._get_orders_by_location(
-            f=filters, user_id=user_id, user_group=user_group
-        )
-
-        location_counts = ReportsService._count_location_orders(orders)
-
-        return ReportsService._create_pdf_report(
-            filters=filters, location_counts=location_counts
-        )
-
-    @staticmethod
-    def get_printed_invoice(
-        filters: OrdersFilters,
-        person_id: UUID,
-    ) -> Union[Response, None]:
-        """
-        Get an invoice report #TODO filterd by date and location
-        :param filters: Filters for old orders
-        :return: a pdf file with the report or None if no orders were found
-        """
-
-        if not person_id:
-            raise ValueError("Keine Person-ID übergeben")
-
-        orders: List[OldOrder] = []
-
-        orders = OrdersRepository.get_old_orders_date(
-            OrdersFilters(
-                date_start=filters.date_start,
-                date_end=filters.date_end,
-                person_id=person_id,
-            )
-        )
-        print(orders)
-        if orders == []:
-            return None
-
-        return ReportsService._create_pdf_invoice(
-            filters.date_start, filters.date_end, orders
-        )
-
-    @staticmethod
     def get_daily_orders_count(
         user_group: UserGroup, user_id: UUID
     ) -> List[CountOrdersSchema]:
+        """Function for daily_orders_routes"""
 
         if user_group == UserGroup.kuechenpersonal:
             user = UsersRepository.get_user_by_id(user_id)
@@ -136,7 +81,34 @@ class ReportsService:
 
         return CountOrdersSchema(many=True).dump(orders)
 
-    def _get_orders_by_location(
+    ################################# Report Service #################################
+
+    @staticmethod
+    def get_location_report(
+        filters: OrdersFilters,
+        user_id: UUID,
+        user_group: UserGroup,
+    ) -> Union[Response, None]:
+        """
+        Create a orders report filterd by date and location
+        :param filters: Filters for date_start, date_end and location_id
+        :return: a pdf file with the report or None if no orders were found
+        """
+
+        if not filters.location_id or not filters.date_start or not filters.date_end:
+            raise ValueError("Keine Standort-ID oder Datum übergeben")
+
+        orders = ReportsService._get_reports_orders_by_location(
+            f=filters, user_id=user_id, user_group=user_group
+        )
+
+        location_counts = ReportsService._count_location_orders(orders)
+
+        return ReportsService._create_pdf_report(
+            filters=filters, location_counts=location_counts
+        )
+
+    def _get_reports_orders_by_location(
         f: OrdersFilters,
         user_id: UUID,
         user_group: UserGroup,
@@ -279,6 +251,19 @@ class ReportsService:
 
         return response
 
+    def _get_date_string(filters: OrdersFilters) -> str:
+
+        if filters.date_start and filters.date_end:
+            if filters.date_start.year == filters.date_end.year:
+                date_range = f"{filters.date_start.strftime('%d.%m')}–{filters.date_end.strftime('%d.%m.%Y')}"
+            else:
+                date_range = f"{filters.date_start.strftime('%d.%m.%Y')}–{filters.date_end.strftime('%d.%m.%Y')}"
+            return date_range
+        elif filters.date:
+            return f"{filters.date.strftime('%d.%m.%Y')}"
+        else:
+            return None
+
     def _create_location_pdf_block(location_name, counts, styles):
         location_block = []
         location_block.append(Paragraph(location_name, styles["Heading3"]))
@@ -311,18 +296,38 @@ class ReportsService:
 
         return location_block
 
-    def _get_date_string(filters: OrdersFilters) -> str:
+    ################################# Invoice Services #################################
 
-        if filters.date_start and filters.date_end:
-            if filters.date_start.year == filters.date_end.year:
-                date_range = f"{filters.date_start.strftime('%d.%m')}–{filters.date_end.strftime('%d.%m.%Y')}"
-            else:
-                date_range = f"{filters.date_start.strftime('%d.%m.%Y')}–{filters.date_end.strftime('%d.%m.%Y')}"
-            return date_range
-        elif filters.date:
-            return f"{filters.date.strftime('%d.%m.%Y')}"
-        else:
+    @staticmethod
+    def get_printed_invoice(
+        filters: OrdersFilters,
+        person_id: UUID,
+    ) -> Union[Response, None]:
+        """
+        Get an invoice report #TODO filterd by date and location
+        :param filters: Filters for old orders
+        :return: a pdf file with the report or None if no orders were found
+        """
+
+        if not person_id:
+            raise ValueError("Keine Person-ID übergeben")
+
+        orders: List[OldOrder] = []
+
+        orders = OrdersRepository.get_old_orders_date(
+            OrdersFilters(
+                date_start=filters.date_start,
+                date_end=filters.date_end,
+                person_id=person_id,
+            )
+        )
+        print(orders)
+        if orders == []:
             return None
+
+        return ReportsService._create_pdf_invoice(
+            filters.date_start, filters.date_end, orders
+        )
 
     def create_footer(canvas, doc):
         """
