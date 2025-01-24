@@ -49,8 +49,8 @@ def startup() -> None:
 
     features = app.config["FEATURES"]
 
-    if features.LOGGING == "loki":
-        init_logger(app, method=LoggingMethod.LOKI, loki_url=app.config["LOKI_URL"])
+    if features.LOGGING == LoggingMethod.LOKI:
+        init_logger(app, method=features.LOGGING, loki_url=app.config["LOKI_URL"])
         app.logger.info("--- Loki logging enabled         ---")
     else:
         init_logger(app, method=LoggingMethod.CONSOLE)
