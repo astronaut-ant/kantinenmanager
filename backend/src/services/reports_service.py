@@ -240,7 +240,9 @@ class ReportsService:
 
         orders: List[OldOrder] = OrdersRepository.get_old_orders(filters)
 
-        if not orders:  # TODO: Maybe create an empty invoice?
+        if (
+            not orders
+        ):  # TODO: Maybe create an empty invoice? - Muss denn wenn man geld von 70€ Pro monat bezahlt und nichts isst bekommt man das geld zurück
             return make_response("Keine Daten gefunden", 400)
 
         if filters.person_id:

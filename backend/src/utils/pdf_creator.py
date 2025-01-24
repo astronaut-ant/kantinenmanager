@@ -325,6 +325,7 @@ class PDFCreationUtils:
         # The following Struture is used to create the main Table for the Invoice from the Array of Old Orders
 
         current_month = start.month
+        current_year = start.year
         main = 0
         mainstart = ""
         mainend = ""
@@ -443,14 +444,11 @@ class PDFCreationUtils:
                             ["nothing", nothingstart, nothingend, nothing]
                         )
                         nothing = 0
-                firstdayofmonth = orderarray[1][1]
-                year = firstdayofmonth.year
-                month = firstdayofmonth.month
                 data.append(
                     [
                         "3001",
                         "Abzug Vorrauszahlung",
-                        f"{month}.{year}",
+                        f"{current_month}.{current_year}",
                         "-70,00",
                         "1,00",
                         "-70,00",
@@ -460,7 +458,7 @@ class PDFCreationUtils:
                 gesamtpreis -= 70
                 monatssumme = -70
                 for time in orderarray:
-                    start = time[1].strftime("%d.%m.%Y").replace(f"{year}", "")
+                    start = time[1].strftime("%d.%m.%Y").replace(f"{current_year}", "")
                     end = time[2].strftime("%d.%m.%Y")
                     if time[0] == "main":
                         zwischenpreis = (time[3] * 41) / 10
@@ -527,7 +525,7 @@ class PDFCreationUtils:
                     "Dezember",
                 ]
                 monatalsname = monate[current_month - 1]
-                StringMonat = f"Summe {monatalsname} {year}"
+                StringMonat = f"Summe {monatalsname} {current_year}"
                 data.append(
                     [
                         "",
@@ -542,6 +540,7 @@ class PDFCreationUtils:
                 current_month = current_month + 1
                 if current_month == 13:
                     current_month = 1
+                    current_year += 1
                 if orders.index(order) != len(orders) - 1:
                     if order.nothing == True:
                         nothing = 1
