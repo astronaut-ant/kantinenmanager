@@ -85,23 +85,25 @@
   onUnmounted(() => {
     window.removeEventListener("scroll", handleScroll);
   });
-  const filteredUsers = computed(() => {
-      if (!search.value) {
-          return Object.values(props.items);
-      }
 
-      const searchTerm = search.value.toLowerCase();
+  const normalizedItems = computed(() => Array.isArray(props.items) ? props.items : Object.values(props.items));
 
-      return Object.values(props.items).filter((user) =>
-        props.filterList.some((key) =>
-              user[key]?.toLowerCase().includes(searchTerm)
-          )
-      );
-  });
+  const getNestedValue = (obj, path) => {
+    return path.split('.').reduce((acc, part) => acc?.[part], obj);
+  };
 
+  const filterItems = () => {
+    if (!search.value || !search.value.trim()) return normalizedItems.value;
+    return normalizedItems.value.filter(item =>
+      props.filterList.some(key => {
+        const val = getNestedValue(item, key);
+        return val?.toString().toLowerCase().includes(search.value.toLowerCase());
+      })
+    );
+  };
 
-  watch(filteredUsers, (newFilteredUsers) => {
-    emit("searchresult", newFilteredUsers);
+  watch(search, () => {
+    emit("searchresult", filterItems());
   });
 
   const onToggleChange = (newValue) => {

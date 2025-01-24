@@ -1,5 +1,5 @@
 <template>
-    <v-card class="mx-2 my-2" elevation="16" style="min-width:425px">
+    <v-card class="mx-2 my-2" width="425" elevation="16">
         <v-card-item>
             <div class="d-flex align-center">
                 <div>

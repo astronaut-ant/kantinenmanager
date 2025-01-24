@@ -1,5 +1,5 @@
 <template>
-    <v-card class="mx-2 my-2" width="450" elevation="16">
+    <v-card class="mx-2 my-2" width="425" elevation="16">
         <v-card-item>
             <div class="d-flex justify-space-between align-center">
                 <v-card-title>{{ props.name }}</v-card-title>
