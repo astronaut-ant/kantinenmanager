@@ -1,6 +1,6 @@
 """Flask middleware to authenticate a user on each request"""
 
-from flask import Flask, after_this_request, request, g
+from flask import Flask, after_this_request, make_response, request, g
 
 from src.utils.error import ErrMsg, abort_with_err
 from src.utils.exceptions import UserBlockedError
@@ -10,7 +10,7 @@ from src.constants import (
     ROUTES_TO_NOT_OVERRIDE_AUTH_TOKENS,
 )
 from src.services.auth_service import AuthService, UnauthenticatedException
-from src.utils.auth_utils import set_token_cookies
+from src.utils.auth_utils import delete_token_cookies, set_token_cookies
 
 
 def register_auth_middleware(app: Flask):
@@ -73,12 +73,17 @@ def register_auth_middleware(app: Flask):
         except UserBlockedError as e:
             # User is blocked.
 
+            resp = make_response()
+
+            delete_token_cookies(resp)
+
             abort_with_err(
                 ErrMsg(
                     status_code=403,
                     title="Account gesperrt",
                     description="Ihr Account wurde gesperrt. Bitte kontaktieren Sie einen Administrator.",
-                )
+                ),
+                resp=resp,
             )
 
         if (

@@ -72,13 +72,17 @@ def login():
     try:
         body = AuthLoginSchema().load(request.json)
     except ValidationError as err:
+        resp = make_response()
+        delete_token_cookies(resp)
+
         abort_with_err(
             ErrMsg(
                 status_code=400,
                 title="Validierungsfehler",
                 description="Format der Daten im Request-Body nicht valide",
                 details=err.messages,
-            )
+            ),
+            resp=resp,
         )
 
     try:
@@ -86,35 +90,36 @@ def login():
             body.get("username"), body.get("password")
         )
 
-    except UserNotFoundException:
+    except (UserNotFoundException, InvalidCredentialsException):
         # Both Exceptions return the same error message as it would be a security risk to
         # differentiate between invalid username and invalid password
         failed_login_counter.inc()
+
+        resp = make_response()
+        delete_token_cookies(resp)
+
         abort_with_err(
             ErrMsg(
                 status_code=401,
                 title="Anmeldung fehlgeschlagen",
                 description="Nutzername oder Passwort falsch",
-            )
-        )
-    except InvalidCredentialsException:
-        failed_login_counter.inc()
-        abort_with_err(
-            ErrMsg(
-                status_code=401,
-                title="Anmeldung fehlgeschlagen",
-                description="Nutzername oder Passwort falsch",
-            )
+            ),
+            resp=resp,
         )
     except UserBlockedError:
         failed_login_counter.inc()
         blocked_login_counter.inc()
+
+        resp = make_response()
+        delete_token_cookies(resp)
+
         abort_with_err(
             ErrMsg(
                 status_code=403,
                 title="Account gesperrt",
                 description="Ihr Account wurde gesperrt. Bitte kontaktieren Sie einen Administrator.",
-            )
+            ),
+            resp=resp,
         )
 
     resp = make_response(
