@@ -19,6 +19,7 @@ from src.repositories.refresh_token_session_repository import (
 from src.models.refresh_token_session import RefreshTokenSession
 from src.models.user import User, UserGroup
 from src.repositories.users_repository import UsersRepository
+from src.utils.exceptions import UserBlockedError
 from flask import current_app as app
 
 
@@ -71,6 +72,11 @@ class AuthService:
 
         user.last_login = datetime.now()
         UsersRepository.update_user(user)
+
+        if user.blocked:
+            # blocked message should be displayed only for the right user,
+            # so not to give away information about the existence of the user
+            raise UserBlockedError("User account is blocked")
 
         # Create authentication and refresh tokens
         jwt_secret = app.config["JWT_SECRET"]
@@ -151,6 +157,9 @@ class AuthService:
 
         if user is None:
             raise UnauthenticatedException("User not found")
+
+        if user.blocked:
+            raise UserBlockedError("User account is blocked")
 
         new_auth_token = AuthService.__make_auth_token(user, jwt_secret)
         new_refresh_token = AuthService.__make_refresh_token(user)

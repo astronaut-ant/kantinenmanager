@@ -2,6 +2,8 @@
 
 from flask import Flask, after_this_request, request, g
 
+from src.utils.error import ErrMsg, abort_with_err
+from src.utils.exceptions import UserBlockedError
 from src.constants import (
     AUTHENTICATION_TOKEN_COOKIE_NAME,
     REFRESH_TOKEN_COOKIE_NAME,
@@ -68,6 +70,16 @@ def register_auth_middleware(app: Flask):
             g.user_group = None
             g.user_first_name = None
             g.user_last_name = None
+        except UserBlockedError as e:
+            # User is blocked.
+
+            abort_with_err(
+                ErrMsg(
+                    status_code=403,
+                    title="Account gesperrt",
+                    description="Ihr Account wurde gesperrt. Bitte kontaktieren Sie einen Administrator.",
+                )
+            )
 
         if (
             new_auth_token
