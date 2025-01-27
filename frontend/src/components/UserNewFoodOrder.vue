@@ -2,7 +2,7 @@
   <v-dialog v-model="dialog" width="400">
     <template v-slot:activator="{ props: activatorProps }">
       <v-btn
-        @click="stepperValue = 1"
+        @click="reset"
         v-bind="activatorProps"
         class="mt-2 mb-5"
         color="primary"
@@ -40,6 +40,7 @@
                   color="primary"
                   bg-color="#ECEFF1"
                   :first-day-of-week="1"
+                  :allowed-dates="selectableDates"
                   :hide-header="true"
                 >
                 </v-date-picker>
@@ -152,6 +153,7 @@ const step2Valid = ref(true);
 const step3Valid = ref(true);
 const foodChoice = ref([]);
 const selectRef = useTemplateRef("selectRef");
+const selectableDates = ref([]);
 
 const checkForOneMainDish = () => {
   if (foodChoice.value.includes(1) && foodChoice.value.includes(2)) {
@@ -269,6 +271,56 @@ const addDishesToPreOrderObject = () => {
   } else {
     preOrderObject.main_dish = null;
   }
+};
+
+const calcAllowedDates = () => {
+  axios
+    .get(
+      import.meta.env.VITE_API + `/api/pre-orders?person-id=${props.personId}`,
+      {
+        withCredentials: true,
+      }
+    )
+    .then((response) => {
+      const blockedDates = [];
+      const allowedDates = [];
+      response.data.forEach((data) => {
+        blockedDates.push(data.date);
+      });
+      console.log("blockedDates", blockedDates);
+
+      const actualDate = new Date();
+      const preOrderTimeExceeded = actualDate.getHours() >= 8;
+      if (!preOrderTimeExceeded) {
+        allowedDates.push(actualDate.toISOString().split("T")[0]);
+      }
+      actualDate.setHours(1);
+      for (let i = 1; i < 13; i++) {
+        const nextDate = new Date();
+        nextDate.setDate(actualDate.getDate() + i);
+        const dayOfWeek = nextDate.getDay();
+        if (!(dayOfWeek === 6 || dayOfWeek === 0)) {
+          const formattedNextDate = nextDate.toISOString().split("T")[0];
+          allowedDates.push(formattedNextDate);
+        }
+      }
+      const filteredDates = allowedDates.filter((date) => {
+        return !blockedDates.includes(date);
+      });
+      selectableDates.value = filteredDates;
+    })
+
+    .catch((err) => console.log(err));
+};
+const reset = () => {
+  calcAllowedDates();
+  step1Valid.value = true;
+  step2Valid.value = true;
+  step3Valid.value = true;
+  stepperValue.value = 1;
+  dateSelection.value = undefined;
+  locationSelection.value = undefined;
+  foodChoice.value = [];
 };
 </script>
 <style scoped>
