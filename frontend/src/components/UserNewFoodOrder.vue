@@ -75,6 +75,7 @@
                 persistent-clear
                 v-model="foodChoice"
                 @update:model-value="checkForOneMainDish()"
+                @update:menu="changeOpenState"
                 color="blue-grey"
                 placeholder="Wähle Hauptgericht und Salat-Option"
                 variant="solo"
@@ -91,6 +92,13 @@
                     <span>{{ item.title }}</span>
                   </v-chip>
                 </template>
+
+                <template v-slot:append-inner="{}">
+                  <v-icon v-if="foodChoice.length === 1 && isOpen">
+                    mdi-checkbox-marked-circle</v-icon
+                  >
+                </template>
+
                 <template v-slot:item="{ props, item }">
                   <v-divider v-if="item.value === 3"></v-divider>
                   <v-list-item class="h-75" v-bind="props" title="">
@@ -154,6 +162,12 @@ const step3Valid = ref(true);
 const foodChoice = ref([]);
 const selectRef = useTemplateRef("selectRef");
 const selectableDates = ref([]);
+const isOpen = ref(false);
+
+const changeOpenState = () => {
+  isOpen.value = !isOpen.value;
+  console.log(isOpen.value);
+};
 
 const checkForOneMainDish = () => {
   if (foodChoice.value.includes(1) && foodChoice.value.includes(2)) {
