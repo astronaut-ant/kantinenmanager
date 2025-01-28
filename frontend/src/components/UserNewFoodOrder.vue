@@ -23,12 +23,9 @@
         :items="['Datum', 'Standort', 'Menü']"
       >
         <template v-slot:item.1>
-          <v-card
-            class="test"
-            color="#ECEFF1"
-            title="Datum der Bestellung"
-            flat
-          >
+          <v-card class="test" color="#ECEFF1" flat>
+            <v-card-title class="ps-0 ms-3">Gewünschtes Datum</v-card-title>
+
             <v-container>
               <v-row justify="center">
                 <v-date-picker
@@ -38,7 +35,6 @@
                   class="test"
                   height="350"
                   color="primary"
-                  bg-color="#ECEFF1"
                   :first-day-of-week="1"
                   :allowed-dates="selectableDates"
                   :hide-header="true"
@@ -50,25 +46,33 @@
         </template>
 
         <template v-slot:item.2>
-          <v-card
-            color="#ECEFF1"
-            class="text-blue-grey"
-            title="Standort der Bestellung"
-            flat
-          >
+          <v-card color="#ECEFF1" class="text-blue-grey" flat>
+            <v-card-title class="ps-0">Gewünschter Standort</v-card-title>
             <v-select
               @update:model-value="step2Valid = false"
               v-model="locationSelection"
               placeholder="Standort auswählen"
               :items="locationItems"
-              color="primary"
+              color="blue-grey"
               variant="solo"
-            ></v-select>
+            >
+              <template v-slot:selection="{ item }">
+                <span class="text-blue-grey">{{ item.title }}</span>
+              </template>
+
+              <template v-slot:item="{ props, item }">
+                <v-list-item class="h-75" v-bind="props" title="">
+                  <span class="text-blue-grey">{{ item.title }}</span>
+                </v-list-item>
+              </template>
+            </v-select>
           </v-card>
         </template>
 
         <template v-slot:item.3>
-          <v-card class="text-blue-grey" title="Menü" color="#ECEFF1" flat>
+          <v-card class="text-blue-grey" color="#ECEFF1" flat>
+            <v-card-title class="ps-0">Gewünschtes Menü</v-card-title>
+
             <div class="d-flex">
               <v-select
                 clearable
@@ -105,6 +109,7 @@
                     <div class="d-flex justify-space-between">
                       <v-checkbox-btn
                         :model-value="foodChoice.includes(item.value)"
+                        class="text-blue-grey"
                         true-icon="mdi-circle"
                         false-icon="mdi-circle"
                         :color="decideColor(item.value)"
@@ -304,11 +309,11 @@ const calcAllowedDates = () => {
       console.log("blockedDates", blockedDates);
 
       const actualDate = new Date();
+      // actualDate.setDate(actualDate.getDate() + 1);
       const preOrderTimeExceeded = actualDate.getHours() >= 8;
       if (!preOrderTimeExceeded) {
         allowedDates.push(actualDate.toISOString().split("T")[0]);
       }
-      actualDate.setHours(1);
       for (let i = 1; i < 13; i++) {
         const nextDate = new Date();
         nextDate.setDate(actualDate.getDate() + i);
@@ -337,7 +342,7 @@ const reset = () => {
   foodChoice.value = [];
 };
 </script>
-<style scoped>
+<style scoped lang="scss">
 .test {
   color: #607d8b !important;
 }
@@ -346,10 +351,6 @@ const reset = () => {
 <style>
 .v-stepper-item__avatar.v-avatar {
   background: #1867c0 !important;
-}
-.zUp {
-  position: absolute;
-  z-index: 1000 !important;
 }
 </style>
 
