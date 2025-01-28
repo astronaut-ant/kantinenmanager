@@ -24,6 +24,7 @@
         <UserNewFoodOrder
           :person-id="props.personId"
           :location-items="locationItems"
+          :open-modal="openModal"
           @ordered="getData"
         />
 
@@ -66,7 +67,15 @@
 
             <template v-slot:item.actions="{ item }">
               <div class="d-flex justify-space-between ga-2 me-n4 mb-2">
-                <v-btn variant="tonal" color="primary" class="mt-2"
+                <v-btn
+                  @click="
+                    console.log(openModal),
+                      (openModal = [!openModal[0], item.id]),
+                      console.log(openModal)
+                  "
+                  variant="tonal"
+                  color="primary"
+                  class="mt-2"
                   ><v-icon>mdi-lead-pencil</v-icon></v-btn
                 >
                 <v-btn
@@ -105,6 +114,7 @@ const orders = ref([]);
 const locationItems = ref([]);
 const locationTable = {};
 const sortBy = ref([{ key: "date", order: "desc" }]);
+const openModal = ref([false, -1]);
 
 const headers = ref([
   { title: "Datum", align: "start", key: "date" },

@@ -159,10 +159,9 @@
 
 <script setup>
 import axios from "axios";
-import ConfirmDialogCreateUser from "./ConfirmDialogCreateUser.vue";
 import ConfirmUserOrder from "./ConfirmUserOrder.vue";
+import { useTemplateRef } from "vue";
 
-const dialog = ref(false);
 const stepperValue = ref();
 const dateSelection = ref();
 const locationItems = ref([]);
@@ -215,8 +214,18 @@ const mainDishItems = [
 
 const preOrderObject = {};
 
-const props = defineProps(["personId", "locationItems"]);
+const props = defineProps(["personId", "locationItems", "openModal"]);
 const emit = defineEmits(["ordered"]);
+const dialog = ref(false);
+dialog.value = false;
+watch(
+  () => props.openModal,
+  (newVal) => {
+    dialog.value = true;
+    const preOrderId = newVal[1];
+    reset(); //TODO replace with restore(preOrderId); set editing flag; if editingFlag true => put request!
+  }
+);
 
 locationItems.value = props.locationItems;
 
