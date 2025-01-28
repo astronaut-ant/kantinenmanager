@@ -150,11 +150,17 @@
       <!-- </v-card-text> -->
       <!-- </v-card> -->
     </div>
+    <ConfirmUserOrder
+      :show-confirm="showConfirmation"
+      @close="(showConfirmation = false), (dialog = false)"
+    />
   </v-dialog>
 </template>
 
 <script setup>
 import axios from "axios";
+import ConfirmDialogCreateUser from "./ConfirmDialogCreateUser.vue";
+import ConfirmUserOrder from "./ConfirmUserOrder.vue";
 
 const dialog = ref(false);
 const stepperValue = ref();
@@ -168,6 +174,7 @@ const foodChoice = ref([]);
 const selectRef = useTemplateRef("selectRef");
 const selectableDates = ref([]);
 const isOpen = ref(false);
+const showConfirmation = ref(false);
 
 const changeOpenState = () => {
   isOpen.value = !isOpen.value;
@@ -252,9 +259,9 @@ const finish = () => {
       withCredentials: true,
     })
     .then((response) => {
+      showConfirmation.value = true;
       emit("ordered");
       console.log(response.data);
-      dialog.value = false;
     })
     .catch((err) => {
       console.log(err);
@@ -332,6 +339,7 @@ const calcAllowedDates = () => {
     .catch((err) => console.log(err));
 };
 const reset = () => {
+  showConfirmation.value = false;
   calcAllowedDates();
   step1Valid.value = true;
   step2Valid.value = true;

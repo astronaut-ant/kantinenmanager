@@ -26,6 +26,7 @@
           :location-items="locationItems"
           @ordered="getData"
         />
+
         <div>
           <v-data-table-virtual
             v-model:sort-by="sortBy"
@@ -96,6 +97,7 @@
 <script setup>
 import axios from "axios";
 import UserNewFoodOrder from "./UserNewFoodOrder.vue";
+import ConfirmDialogCreateUser from "./ConfirmDialogCreateUser.vue";
 
 const dialog = ref(false);
 const form = ref(false);
