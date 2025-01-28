@@ -16,8 +16,12 @@ from reportlab.platypus import (
     KeepTogether,
 )
 from src.models.person import Person  # noqa: F401
-from src.repositories.orders_repository import OrdersFilters
 from src.models.oldorder import OldOrder
+
+from src.repositories.orders_repository import OrdersFilters
+from src.repositories.locations_repository import LocationsRepository
+from src.repositories.persons_repository import PersonsRepository
+from src.repositories.groups_repository import GroupsRepository
 
 
 class PDFCreationUtils:
@@ -239,7 +243,9 @@ class PDFCreationUtils:
     ################################# Invoice PDF Person #################################
 
     @staticmethod
-    def create_pdf_invoice_person(start, end, orders: List[OldOrder]) -> Response:
+    def create_pdf_invoice_person(
+        start, end, orders: List[OldOrder], personid
+    ) -> Response:
         """
         This function creates an invoice for the orders given in the array orders. The invoice is returned as a PDF File.
         """
@@ -254,7 +260,10 @@ class PDFCreationUtils:
         styles = getSampleStyleSheet()
         elements = []
 
-        Name = orders[0].person.first_name + " " + orders[0].person.last_name
+        person = PersonsRepository.get_person_by_id(personid)
+        if not person:
+            raise ValueError("UUID gehört nicht zu Person")
+        Name = person.first_name + " " + person.last_name
 
         header_data = [
             ["", "", "Sozial-Arbeiten-Wohnen Borna gGmbH"],
@@ -388,7 +397,7 @@ class PDFCreationUtils:
                             main = 0
             else:
                 if orders.index(order) == len(orders) - 1:
-                    if order.nothing == True:
+                    if order.nothing is True:
                         if nothing > 0:
                             nothing += 1
                             orderarray.append(["nothing", nothingstart, date, 1])
@@ -542,12 +551,12 @@ class PDFCreationUtils:
                     current_month = 1
                     current_year += 1
                 if orders.index(order) != len(orders) - 1:
-                    if order.nothing == True:
+                    if order.nothing is True:
                         nothing = 1
                         nothingstart = date
                         nothingend = date
                     else:
-                        if order.salad_option == True:
+                        if order.salad_option is True:
                             salad = 1
                             saladstart = date
                             saladend = date
@@ -611,9 +620,345 @@ class PDFCreationUtils:
         return response
 
     ################################# Location Invoice PDF #################################
-    def create_pdf_invoice_location():
-        pass
+
+    def create_pdf_invoice_location(
+        start_date, end_date, orders: List[OldOrder], locationid
+    ) -> Response:
+        startmonth = start_date.month
+        startyear = start_date.year
+        endmonth = end_date.month
+        endyear = end_date.year
+        months = []
+        location = LocationsRepository.get_location_by_id(locationid)
+        if not location:
+            raise ValueError("UUID gehört nicht zu Standort")
+
+        buffer = BytesIO()
+        pdf = SimpleDocTemplate(buffer, pagesize=A4)
+        elements = []
+
+        header_data = [
+            [f"Standort: {location.location_name}", "", ""],
+            ["", "", ""],
+            [
+                "Abrechnung für den Zeitraum:",
+                "",
+                f"{start_date.strftime("%d.%m.%Y")} - {end_date.strftime("%d.%m.%Y")}",
+            ],
+            ["", "", ""],
+        ]
+        tableHead = Table(
+            header_data,
+            colWidths=[245, 5, 245],
+        )
+        tableHead.setStyle(
+            TableStyle(
+                [
+                    ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+                    ("ALIGN", (2, 2), (2, 2), "RIGHT"),
+                    ("FONTNAME", (0, 0), (0, 0), "Helvetica-Bold"),
+                    ("FONTNAME", (1, 0), (-1, -1), "Helvetica"),
+                    ("FONTSIZE", (0, 0), (-1, -1), 10),
+                    ("TOPPADDING", (0, 0), (-1, -1), 0),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+                ]
+            )
+        )
+        elements.append(tableHead)
+
+        data = [["Gruppe", "", "Hauptgericht Anzahl", "Salat Anzahl"]]
+
+        while 1:
+            months.append([startmonth, startyear])
+            if startmonth == endmonth and startyear == endyear:
+                break
+            startmonth += 1
+            if startmonth == 13:
+                startmonth = 1
+                startyear += 1
+
+        allmain = 0
+        allsalad = 0
+        for month, year in months:
+            monthly_main = 0
+            monthly_salad = 0
+            groups = []
+            food = []
+            for order in orders:
+                if order.date.month == month and order.date.year == year:
+                    if order.person.group not in groups:
+                        groups.append(order.person.group)
+                        food.append([order.person.group, 0, 0])
+                    if order.main_dish is not None:
+                        food[groups.index(order.person.group)][1] += 1
+                        monthly_main += 1
+                    if order.salad_option is True:
+                        food[groups.index(order.person.group)][2] += 1
+                        monthly_salad += 1
+            allmain += monthly_main
+            allsalad += monthly_salad
+            groups.sort(key=lambda x: x.group_name)
+            for group in groups:
+                index = groups.index(group)
+                data.append(
+                    [
+                        group.group_name,
+                        "",
+                        f"{food[index][1]:.2f}".replace(".", ","),
+                        f"{food[index][2]:.2f}".replace(".", ","),
+                    ]
+                )
+            data.append(
+                [
+                    "",
+                    "____________________________________________________________",
+                    "",
+                    "",
+                ]
+            )
+            monate = [
+                "Januar",
+                "Februar",
+                "März",
+                "April",
+                "Mai",
+                "Juni",
+                "Juli",
+                "August",
+                "September",
+                "Oktober",
+                "November",
+                "Dezember",
+            ]
+            monatalsname = monate[month - 1]
+            StringMonat = f"Summe {monatalsname} {year}"
+            data.append(
+                [
+                    "",
+                    StringMonat,
+                    f"{monthly_main:.2f}".replace(".", ","),
+                    f"{monthly_salad:.2f}".replace(".", ","),
+                ]
+            )
+            data.append(["", "", "", ""])
+
+        data.append(
+            [
+                "",
+                "Gesamt:",
+                f"{allmain:.2f}".replace(".", ","),
+                f"{allsalad:.2f}".replace(".", ","),
+            ]
+        )
+
+        table = Table(data, colWidths=[225, 100, 90, 90])  # Gesamt: 505
+        table.setStyle(
+            TableStyle(
+                [
+                    ("LINEABOVE", (0, 0), (-1, 0), 0.7, colors.black),
+                    ("LINEBELOW", (0, 0), (-1, 0), 0.7, colors.black),
+                    ("FONTNAME", (0, 0), (3, 0), "Helvetica-Bold"),
+                    ("FONTNAME", (0, 1), (3, -1), "Helvetica"),
+                    ("FONTSIZE", (0, 0), (3, -1), 8),
+                    ("BACKGROUND", (-1, -1), (-1, -1), colors.white),
+                    ("TEXTCOLOR", (0, 0), (-1, -1), colors.black),
+                    ("ALIGN", (0, 0), (0, -1), "LEFT"),
+                    ("ALIGN", (2, 0), (3, -1), "RIGHT"),
+                    ("ALIGN", (1, 0), (1, -1), "LEFT"),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+                    ("TOPPADDING", (0, 0), (-1, -1), 0),
+                    ("LINEABOVE", (0, -1), (-1, -1), 0.7, colors.black),
+                    ("LINEBELOW", (1, -1), (-1, -1), 1, colors.black),
+                    ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
+                    ("TOPPADDING", (0, -1), (-1, -1), 2),
+                ]
+            )
+        )
+        elements.append(table)
+
+        pdf.build(elements)
+        buffer.seek(0)
+
+        response = make_response(
+            send_file(
+                buffer,
+                mimetype="application/pdf",
+                as_attachment=True,
+                download_name=f"Rechnung_{start_date}_bis_{end_date}_{location.location_name}.pdf",
+            )
+        )
+        response.headers["Access-Control-Expose-Headers"] = "Content-Disposition"
+
+        return response
 
     ################################# Group Invoice PDF #################################
-    def create_pdf_invoice_group():
-        pass
+
+    def create_pdf_invoice_group(
+        start_date, end_date, orders: List[OldOrder], groupid
+    ) -> Response:
+        startmonth = start_date.month
+        startyear = start_date.year
+        endmonth = end_date.month
+        endyear = end_date.year
+        months = []
+        group = GroupsRepository.get_group_by_id(groupid)
+        if not group:
+            raise ValueError("UUID gehört nicht zu einer Gruppe")
+
+        buffer = BytesIO()
+        pdf = SimpleDocTemplate(buffer, pagesize=A4)
+        elements = []
+
+        header_data = [
+            [f"Gruppe: {group.group_name}", "", ""],
+            ["", "", ""],
+            [
+                "Abrechnung für den Zeitraum:",
+                "",
+                f"{start_date.strftime("%d.%m.%Y")} - {end_date.strftime("%d.%m.%Y")}",
+            ],
+            ["", "", ""],
+        ]
+        tableHead = Table(
+            header_data,
+            colWidths=[245, 5, 245],
+        )
+        tableHead.setStyle(
+            TableStyle(
+                [
+                    ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+                    ("ALIGN", (2, 2), (2, 2), "RIGHT"),
+                    ("FONTNAME", (0, 0), (0, 0), "Helvetica-Bold"),
+                    ("FONTNAME", (1, 0), (-1, -1), "Helvetica"),
+                    ("FONTSIZE", (0, 0), (-1, -1), 10),
+                    ("TOPPADDING", (0, 0), (-1, -1), 0),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+                ]
+            )
+        )
+        elements.append(tableHead)
+
+        data = [["Mitarbeiter", "", "Hauptgericht Anzahl", "Salat Anzahl"]]
+
+        while True:
+            months.append([startmonth, startyear])
+            if startmonth == endmonth and startyear == endyear:
+                break
+            startmonth += 1
+            if startmonth == 13:
+                startmonth = 1
+                startyear += 1
+
+        allmain = 0
+        allsalad = 0
+        for month, year in months:
+            monthly_main = 0
+            monthly_salad = 0
+            persons = []
+            food = []
+            for order in orders:
+                if order.date.month == month and order.date.year == year:
+                    if order.person not in persons:
+                        persons.append(order.person)
+                        food.append([order.person, 0, 0])
+                    if order.main_dish is not None:
+                        food[persons.index(order.person)][1] += 1
+                        monthly_main += 1
+                    if order.salad_option is True:
+                        food[persons.index(order.person)][2] += 1
+                        monthly_salad += 1
+            allmain += monthly_main
+            allsalad += monthly_salad
+            persons.sort(key=lambda x: x.first_name)
+            for person in persons:
+                index = persons.index(person)
+                data.append(
+                    [
+                        f"{person.first_name} {person.last_name}",
+                        "",
+                        f"{food[index][1]:.2f}".replace(".", ","),
+                        f"{food[index][2]:.2f}".replace(".", ","),
+                    ]
+                )
+            data.append(
+                [
+                    "",
+                    "____________________________________________________________",
+                    "",
+                    "",
+                ]
+            )
+            monate = [
+                "Januar",
+                "Februar",
+                "März",
+                "April",
+                "Mai",
+                "Juni",
+                "Juli",
+                "August",
+                "September",
+                "Oktober",
+                "November",
+                "Dezember",
+            ]
+            monatalsname = monate[month - 1]
+            StringMonat = f"Summe {monatalsname} {year}"
+            data.append(
+                [
+                    "",
+                    StringMonat,
+                    f"{monthly_main:.2f}".replace(".", ","),
+                    f"{monthly_salad:.2f}".replace(".", ","),
+                ]
+            )
+            data.append(["", "", "", ""])
+
+        data.append(
+            [
+                "",
+                "Gesamt:",
+                f"{allmain:.2f}".replace(".", ","),
+                f"{allsalad:.2f}".replace(".", ","),
+            ]
+        )
+
+        table = Table(data, colWidths=[225, 100, 90, 90])  # Gesamt: 505
+        table.setStyle(
+            TableStyle(
+                [
+                    ("LINEABOVE", (0, 0), (-1, 0), 0.7, colors.black),
+                    ("LINEBELOW", (0, 0), (-1, 0), 0.7, colors.black),
+                    ("FONTNAME", (0, 0), (3, 0), "Helvetica-Bold"),
+                    ("FONTNAME", (0, 1), (3, -1), "Helvetica"),
+                    ("FONTSIZE", (0, 0), (3, -1), 8),
+                    ("BACKGROUND", (-1, -1), (-1, -1), colors.white),
+                    ("TEXTCOLOR", (0, 0), (-1, -1), colors.black),
+                    ("ALIGN", (0, 0), (0, -1), "LEFT"),
+                    ("ALIGN", (2, 0), (3, -1), "RIGHT"),
+                    ("ALIGN", (1, 0), (1, -1), "LEFT"),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+                    ("TOPPADDING", (0, 0), (-1, -1), 0),
+                    ("LINEABOVE", (0, -1), (-1, -1), 0.7, colors.black),
+                    ("LINEBELOW", (1, -1), (-1, -1), 1, colors.black),
+                    ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
+                    ("TOPPADDING", (0, -1), (-1, -1), 2),
+                ]
+            )
+        )
+        elements.append(table)
+
+        pdf.build(elements)
+        buffer.seek(0)
+
+        response = make_response(
+            send_file(
+                buffer,
+                mimetype="application/pdf",
+                as_attachment=True,
+                download_name=f"Rechnung_{start_date}_bis_{end_date}_{group.group_name}.pdf",
+            )
+        )
+        response.headers["Access-Control-Expose-Headers"] = "Content-Disposition"
+
+        return response

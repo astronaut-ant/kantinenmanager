@@ -240,22 +240,22 @@ class ReportsService:
 
         orders: List[OldOrder] = OrdersRepository.get_old_orders(filters)
 
-        if (
-            not orders
-        ):  # TODO: Maybe create an empty invoice? - Muss denn wenn man geld von 70€ Pro monat bezahlt und nichts isst bekommt man das geld zurück
-            return make_response("Keine Daten gefunden", 400)
+        # if (
+        #     not orders
+        # ):  # TODO: Maybe create an empty invoice? - Muss denn wenn man geld von 70€ Pro monat bezahlt und nichts isst bekommt man das geld zurück
+        #     return make_response("Keine Daten gefunden", 400)
 
         if filters.person_id:
             return PDFCreationUtils.create_pdf_invoice_person(
-                filters.date_start, filters.date_end, orders
+                filters.date_start, filters.date_end, orders, filters.person_id
             )
         elif filters.location_id:
             return PDFCreationUtils.create_pdf_invoice_location(
-                filters.date_start, filters.date_end, orders
+                filters.date_start, filters.date_end, orders, filters.location_id
             )
         elif filters.group_id:
             return PDFCreationUtils.create_pdf_invoice_group(
-                filters.date_start, filters.date_end, orders
+                filters.date_start, filters.date_end, orders, filters.group_id
             )
         else:
             return make_response("Es wurde keine UUID übergeben", 400)
