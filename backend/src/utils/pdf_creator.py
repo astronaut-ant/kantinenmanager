@@ -263,7 +263,8 @@ class PDFCreationUtils:
         person = PersonsRepository.get_person_by_id(personid)
         if not person:
             raise ValueError("UUID gehört nicht zu Person")
-        Name = person.first_name + " " + person.last_name
+        else:
+            Name = person.first_name + " " + person.last_name
 
         header_data = [
             ["", "", "Sozial-Arbeiten-Wohnen Borna gGmbH"],
@@ -293,7 +294,7 @@ class PDFCreationUtils:
         ]
         tableHead = Table(
             header_data,
-            colWidths=[203, 50, 200],  # Erste Spalte ist leer, dritte Spalte rechts
+            colWidths=[203, 50, 200],  
             hAlign="RIGHT",
         )
         tableHead.setStyle(
@@ -304,27 +305,26 @@ class PDFCreationUtils:
                         (0, 0),
                         (2, -1),
                         "LEFT",
-                    ),  # Text in der dritten Spalte rechtsbündig
-                    ("FONTNAME", (2, 0), (2, -1), "Helvetica-Bold"),  # Fettschrift
-                    ("FONTNAME", (2, 8), (2, 8), "Helvetica-Bold"),  # Fettschrift
-                    ("FONTNAME", (2, 1), (2, 7), "Helvetica"),  # Normaler Text
-                    ("FONTNAME", (2, 9), (2, -1), "Helvetica"),  # Normaler Text
-                    ("FONTSIZE", (2, 0), (2, -1), 8),  # Schriftgröße 10
-                    ("FONTSIZE", (0, 5), (0, 5), 7),  # Schriftgröße 6
-                    ("FONTSIZE", (0, 8), (0, -1), 10),  # Schriftgröße 10
+                    ),  
+                    ("FONTNAME", (2, 0), (2, -1), "Helvetica-Bold"),  
+                    ("FONTNAME", (2, 8), (2, 8), "Helvetica-Bold"), 
+                    ("FONTNAME", (2, 1), (2, 7), "Helvetica"),  
+                    ("FONTNAME", (2, 9), (2, -1), "Helvetica"),
+                    ("FONTSIZE", (2, 0), (2, -1), 8),  
+                    ("FONTSIZE", (0, 5), (0, 5), 7),  
+                    ("FONTSIZE", (0, 8), (0, -1), 10),  
                     (
                         "TOPPADDING",
                         (0, 0),
                         (-1, -1),
                         0,
-                    ),  # Abstand oberhalb der Zellen reduzieren
+                    ),  
                     (
                         "BOTTOMPADDING",
                         (0, 0),
                         (-1, -1),
                         0,
-                    ),  # Abstand unterhalb der Zellen reduzieren
-                ]
+                    ),  
             )
         )
         elements.append(tableHead)
@@ -335,6 +335,10 @@ class PDFCreationUtils:
 
         current_month = start.month
         current_year = start.year
+        end_year = end.year
+        end_month = end.month
+        months = []
+
         main = 0
         mainstart = ""
         mainend = ""
@@ -344,64 +348,30 @@ class PDFCreationUtils:
         nothing = 0
         nothingstart = ""
         nothingend = ""
-        orderarray = []
-        gesamtpreis = 0
 
-        for order in orders:
-            date = order.date
-            if date.month == current_month and orders.index(order) != len(orders) - 1:
-                if order.nothing == True:
-                    if nothing > 0:
-                        nothing += 1
-                        nothingend = date
-                    else:
-                        if main != 0:
-                            orderarray.append(["main", mainstart, mainend, main])
-                            main = 0
-                        if salad != 0:
-                            orderarray.append(["salad", saladstart, saladend, salad])
-                            salad = 0
-                        nothingstart = date
-                        nothingend = date
-                        nothing = 1
-                else:
-                    if order.salad_option == True:
-                        if salad > 0:
-                            salad += 1
-                            saladend = date
-                        else:
-                            if nothing != 0:
-                                orderarray.append(
-                                    ["nothing", nothingstart, nothingend, nothing]
-                                )
-                                nothing = 0
-                            saladstart = date
-                            saladend = date
-                            salad = 1
-                    if order.main_dish != "":
-                        if main > 0:
-                            main += 1
-                            mainend = date
-                        else:
-                            if nothing != 0:
-                                orderarray.append(
-                                    ["nothing", nothingstart, nothingend, nothing]
-                                )
-                                nothing = 0
-                            mainstart = date
-                            mainend = date
-                            main = 1
-                    else:
-                        if main > 0:
-                            orderarray.append(["main", mainstart, mainend, main])
-                            main = 0
-            else:
-                if orders.index(order) == len(orders) - 1:
+        mainprice = 41
+        saladprice = 15
+
+        orderarray = []
+        credit = 0
+
+        while True:
+            months.append([current_month, current_year])
+            if current_month == end_month and current_year == end_year:
+                break
+            current_month += 1
+            if current_month == 13:
+                current_month = 1
+                current_year += 1
+
+        for month, year in months:
+            for order in orders:
+                if order.date.month == month and order.date.year == year:
+                    date = order.date
                     if order.nothing is True:
                         if nothing > 0:
                             nothing += 1
-                            orderarray.append(["nothing", nothingstart, date, 1])
-                            nothing = 0
+                            nothingend = date
                         else:
                             if main != 0:
                                 orderarray.append(["main", mainstart, mainend, main])
@@ -411,159 +381,139 @@ class PDFCreationUtils:
                                     ["salad", saladstart, saladend, salad]
                                 )
                                 salad = 0
-                            orderarray.append(["nothing", date, date, 1])
-                    else:
-                        if order.salad_option == True:
-                            if salad > 0:
-                                salad += 1
-                                orderarray.append(["salad", saladstart, date, salad])
-                                salad = 0
-                            else:
-                                if nothing != 0:
-                                    orderarray.append(
-                                        ["nothing", nothingstart, nothingend, nothing]
-                                    )
-                                    nothing = 0
-                                orderarray.append(["salad", date, date, 1])
-                        if order.main_dish != "":
-                            if main > 0:
-                                main += 1
-                                orderarray.append(["main", mainstart, date, main])
-                                main = 0
-                            else:
-                                if nothing != 0:
-                                    orderarray.append(
-                                        ["nothing", nothingstart, nothingend, nothing]
-                                    )
-                                    nothing = 0
-                                orderarray.append(["main", date, date, 1])
-                        else:
-                            if main > 0:
-                                orderarray.append(["main", mainstart, mainend, main])
-                                main = 0
-                else:
-                    if main != 0:
-                        orderarray.append(["main", mainstart, mainend, main])
-                        main = 0
-                    if salad != 0:
-                        orderarray.append(["salad", saladstart, saladend, salad])
-                        salad = 0
-                    if nothing != 0:
-                        orderarray.append(
-                            ["nothing", nothingstart, nothingend, nothing]
-                        )
-                        nothing = 0
-                data.append(
-                    [
-                        "3001",
-                        "Abzug Vorrauszahlung",
-                        f"{current_month}.{current_year}",
-                        "-70,00",
-                        "1,00",
-                        "-70,00",
-                    ]
-                )
-                data.append(["", "Mittagessen", "", "", "", ""])
-                gesamtpreis -= 70
-                monatssumme = -70
-                for time in orderarray:
-                    start = time[1].strftime("%d.%m.%Y").replace(f"{current_year}", "")
-                    end = time[2].strftime("%d.%m.%Y")
-                    if time[0] == "main":
-                        zwischenpreis = (time[3] * 41) / 10
-                        gesamtpreis += zwischenpreis
-                        monatssumme += zwischenpreis
-                        data.append(
-                            [
-                                "3000",
-                                "Mittagessen WfbM",
-                                f"{start} - {end}",
-                                "4,10",
-                                f"{time[3]:.2f}".replace(".", ","),
-                                f"{zwischenpreis:.2f}".replace(".", ","),
-                            ]
-                        )
-                    if time[0] == "salad":
-                        zwischenpreis = (time[3] * 15) / 10
-                        gesamtpreis += zwischenpreis
-                        monatssumme += zwischenpreis
-                        data.append(
-                            [
-                                "3000",
-                                "Mittagessen WfbM Salat",
-                                f"{start} - {end}",
-                                "1,50",
-                                f"{time[3]:.2f}".replace(".", ","),
-                                f"{zwischenpreis:.2f}".replace(".", ","),
-                            ]
-                        )
-                    if time[0] == "nothing":
-                        data.append(
-                            [
-                                "3000",
-                                "Mittagessen WfbM Nichtesser",
-                                f"{start} - {end}",
-                                "0,00",
-                                f"{time[3]:.2f}".replace(".", ","),
-                                "0,00",
-                            ]
-                        )
-                orderarray = []
-                data.append(
-                    [
-                        "",
-                        "",
-                        "_______________________________________________________",
-                        "",
-                        "",
-                        "",
-                    ]
-                )
-                monate = [
-                    "Januar",
-                    "Februar",
-                    "März",
-                    "April",
-                    "Mai",
-                    "Juni",
-                    "Juli",
-                    "August",
-                    "September",
-                    "Oktober",
-                    "November",
-                    "Dezember",
-                ]
-                monatalsname = monate[current_month - 1]
-                StringMonat = f"Summe {monatalsname} {current_year}"
-                data.append(
-                    [
-                        "",
-                        "",
-                        StringMonat,
-                        "",
-                        "",
-                        f"{monatssumme:.2f}".replace(".", ","),
-                    ]
-                )
-                data.append(["", "", "", "", "", ""])
-                current_month = current_month + 1
-                if current_month == 13:
-                    current_month = 1
-                    current_year += 1
-                if orders.index(order) != len(orders) - 1:
-                    if order.nothing is True:
-                        nothing = 1
-                        nothingstart = date
-                        nothingend = date
+                            nothingstart = date
+                            nothingend = date
+                            nothing = 1
                     else:
                         if order.salad_option is True:
-                            salad = 1
-                            saladstart = date
-                            saladend = date
-                        if order.main_dish != "":
-                            main = 1
-                            mainstart = date
-                            mainend = date
+                            if salad > 0:
+                                salad += 1
+                                saladend = date
+                            else:
+                                if nothing != 0:
+                                    orderarray.append(
+                                        ["nothing", nothingstart, nothingend, nothing]
+                                    )
+                                    nothing = 0
+                                saladstart = date
+                                saladend = date
+                                salad = 1
+                        if order.main_dish is not None:
+                            if main > 0:
+                                main += 1
+                                mainend = date
+                            else:
+                                if nothing != 0:
+                                    orderarray.append(
+                                        ["nothing", nothingstart, nothingend, nothing]
+                                    )
+                                    nothing = 0
+                                mainstart = date
+                                mainend = date
+                                main = 1
+            if nothing != 0:
+                orderarray.append(["nothing", nothingstart, nothingend, nothing])
+                nothing = 0
+            else:
+                if main != 0:
+                    orderarray.append(["main", mainstart, mainend, main])
+                    main = 0
+                if salad != 0:
+                    orderarray.append(["salad", saladstart, saladend, salad])
+                    salad = 0
+            data.append(
+                [
+                    "3001",
+                    "Abzug Vorrauszahlung",
+                    f"{month}.{year}",
+                    "-70,00",
+                    "1,00",
+                    "-70,00",
+                ]
+            )
+            data.append(["", "Mittagessen", "", "", "", ""])
+            credit -= 70
+            monthly = -70
+            for type, start, end, count in orderarray:
+                start = start.strftime("%d.%m.%Y").replace(f"{current_year}", "")
+                end = end.strftime("%d.%m.%Y")
+                if type == "main":
+                    price = (count * mainprice) / 10
+                    credit += price
+                    monthly += price
+                    data.append(
+                        [
+                            "3000",
+                            "Mittagessen WfbM",
+                            f"{start} - {end}",
+                            "4,10",
+                            f"{count:.2f}".replace(".", ","),
+                            f"{price:.2f}".replace(".", ","),
+                        ]
+                    )
+                if type == "salad":
+                    price = (count * (saladprice)) / 10
+                    credit += price
+                    monthly += price
+                    data.append(
+                        [
+                            "3000",
+                            "Mittagessen WfbM Salat",
+                            f"{start} - {end}",
+                            "1,50",
+                            f"{count:.2f}".replace(".", ","),
+                            f"{price:.2f}".replace(".", ","),
+                        ]
+                    )
+                if type == "nothing":
+                    data.append(
+                        [
+                            "3000",
+                            "Mittagessen WfbM Nichtesser",
+                            f"{start} - {end}",
+                            "0,00",
+                            f"{count:.2f}".replace(".", ","),
+                            "0,00",
+                        ]
+                    )
+            orderarray = []
+            data.append(
+                [
+                    "",
+                    "",
+                    "_______________________________________________________",
+                    "",
+                    "",
+                    "",
+                ]
+            )
+            month_names_german = [
+                "Januar",
+                "Februar",
+                "März",
+                "April",
+                "Mai",
+                "Juni",
+                "Juli",
+                "August",
+                "September",
+                "Oktober",
+                "November",
+                "Dezember",
+            ]
+            month_name = month_names_german[month - 1]
+            StringMonat = f"Summe {month_name} {current_year}"
+            data.append(
+                [
+                    "",
+                    "",
+                    StringMonat,
+                    "",
+                    "",
+                    f"{monthly:.2f}".replace(".", ","),
+                ]
+            )
+            data.append(["", "", "", "", "", ""])
 
         data.append(
             [
@@ -572,7 +522,7 @@ class PDFCreationUtils:
                 "Rechnungsbetrag:",
                 "",
                 "",
-                f"{gesamtpreis:.2f} €".replace(".", ","),
+                f"{credit:.2f} €".replace(".", ","),
             ]
         )
 
