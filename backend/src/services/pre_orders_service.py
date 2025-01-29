@@ -72,14 +72,14 @@ class PreOrdersService:
         return PreOrdersByGroupLeaderSchema().dump(group_leader)
 
     @staticmethod
-    def get_pre_orders(filters: OrdersFilters) -> List[PreOrderFullSchema]:
+    def get_pre_orders(filters: OrdersFilters, user_id: UUID, user_group: UserGroup) -> List[PreOrderFullSchema]:
         """
         Get orders
         :param filters: Filters for orders
         :return: List of orders
         """
 
-        preorders = OrdersRepository.get_pre_orders(filters)
+        preorders = OrdersRepository.get_pre_orders(filters, user_id, user_group)
         return PreOrderFullSchema(many=True).dump(preorders)
 
     @staticmethod

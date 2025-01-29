@@ -103,8 +103,6 @@ def get_pre_orders():
     ---
     """
 
-    # TODO only return user scope
-
     try:
         query_params = OrdersFilterSchema().load(request.args)
         filters = OrdersFilters(**query_params)
@@ -118,7 +116,7 @@ def get_pre_orders():
             )
         )
 
-    pre_orders = PreOrdersService.get_pre_orders(filters)
+    pre_orders = PreOrdersService.get_pre_orders(filters, g.user_id, g.user_group)
     return jsonify(pre_orders), 200
 
 

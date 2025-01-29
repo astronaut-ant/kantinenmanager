@@ -166,7 +166,9 @@ def insert_order_users_mock_data():
 
         first_user = users_dict[orders[0]["user"]]
         existing_orders = PreOrdersService.get_pre_orders(
-            OrdersFilters(date=date, person_id=first_user.id)
+            OrdersFilters(date=date, person_id=first_user.id),
+            user_id=first_user.id,
+            user_group=first_user.user_group,
         )
         if len(existing_orders) > 0:
             # Orders for this date already exist
@@ -218,7 +220,9 @@ def insert_order_employees_mock_data():
         first_employee = employees_dict[orders[0]["employee_number"]]
 
         existing_orders = PreOrdersService.get_pre_orders(
-            OrdersFilters(date=date, person_id=first_employee.id)
+            OrdersFilters(date=date, person_id=first_employee.id),
+            user_id=admin.id,
+            user_group=admin.user_group,
         )
         if len(existing_orders) > 0:
             # Orders for this date already exist

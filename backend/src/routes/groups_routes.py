@@ -52,6 +52,15 @@ def create_group():
         body = GroupFullSchema().load(request.json)
         group_id = GroupsService.create_group(**body)
 
+    except ValidationError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Validierungsfehler",
+                description="Ungültige Daten wurden übergeben.",
+                details=err.messages,
+            )
+        )
     except AlreadyExistsError as err:
         abort_with_err(
             ErrMsg(

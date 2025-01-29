@@ -179,6 +179,8 @@ class OrdersRepository:
     @staticmethod
     def get_pre_orders(
         filters: OrdersFilters,
+        user_id: UUID,
+        user_group: UserGroup,
         prejoin_person: bool = False,
         prejoin_location: bool = False,
     ) -> List[PreOrder]:
@@ -188,6 +190,7 @@ class OrdersRepository:
         :param filters: Filters for orders
         :return: List of pre orders
         """
+        # TODO: Filter by user scope
         query = select(PreOrder)
 
         if filters.person_id:
