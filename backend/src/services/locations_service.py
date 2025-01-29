@@ -40,7 +40,7 @@ class LocationsService:
         """
 
         if LocationsRepository.get_location_by_name(location_name):
-            raise AlreadyExistsError(f"Standort {location_name}")
+            raise AlreadyExistsError(ressource=f"Standort {location_name}")
 
         location_leader = UsersRepository.get_user_by_id(user_id_location_leader)
         if not location_leader:
@@ -78,13 +78,15 @@ class LocationsService:
             location_name != location.location_name
             and LocationsRepository.get_location_by_name(location_name)
         ):
-            raise AlreadyExistsError(f"Standort {location_name}")
+            raise AlreadyExistsError(ressource=f"Standort {location_name}")
 
         if (
             user_id_location_leader != location.user_id_location_leader
             and LocationsRepository.get_location_by_leader(user_id_location_leader)
         ):
-            raise AlreadyExistsError(ressource="User", details="als Standortleiter")
+            raise AlreadyExistsError(
+                ressource="Nutzer:in", details="als Standortleiter"
+            )
 
         location.location_name = location_name
         location.user_id_location_leader = user_id_location_leader

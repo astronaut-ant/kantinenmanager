@@ -119,7 +119,7 @@ def create_location():
     except AlreadyExistsError as err:
         abort_with_err(
             ErrMsg(
-                status_code=400,
+                status_code=409,
                 title="Standort konnte nicht erstellt werden",
                 description="Der Standort konnte nicht erstellt werden",
                 detail=str(err),
@@ -128,7 +128,7 @@ def create_location():
     except NotFoundError as err:
         abort_with_err(
             ErrMsg(
-                status_code=400,
+                status_code=404,
                 title="Standort konnte nicht erstellt werden",
                 description="Der Standort konnte nicht erstellt werden",
                 detail=str(err),
@@ -196,7 +196,7 @@ def update_location(location_id: UUID):
     except AlreadyExistsError:
         abort_with_err(
             ErrMsg(
-                status_code=400,
+                status_code=409,
                 title="Standort konnte nicht aktualisiert werden",
                 description=f"Der Standort mit ID {body['id']} konnte nicht aktualisiert werden",
             )

@@ -6,13 +6,12 @@ import pytz
 from src.repositories.employees_repository import EmployeesRepository
 from src.repositories.groups_repository import GroupsRepository
 from src.repositories.users_repository import UsersRepository
-from src.repositories.locations_repository import LocationsRepository
 from src.schemas.pre_orders_schemas import PreOrderFullSchema, PreOrdersByGroupLeaderSchema
 from src.models.preorder import PreOrder
 from src.models.maindish import MainDish
 from src.models.user import UserGroup
 from src.repositories.orders_repository import OrdersFilters, OrdersRepository
-from src.utils.exceptions import NotFoundError, ActionNotPossibleError, AccessDeniedError, BadValueError
+from src.utils.exceptions import NotFoundError, ActionNotPossibleError, AccessDeniedError, BadValueError, AlreadyExistsError
 
 timezone = pytz.timezone("Europe/Berlin")
 
@@ -167,8 +166,8 @@ class PreOrdersService:
         current_time = datetime.now(timezone).time()
 
         if OrdersRepository.preorder_already_exists(order["person_id"], order["date"]):
-            raise BadValueError(
-                f"Bestellung für {order['person_id']} am {order['date']} existiert bereits."
+            raise AlreadyExistsError(
+                f"Bestellung für {order['person_id']} am {order['date']}"
             )
 
         if order["date"] < today:
@@ -188,7 +187,7 @@ class PreOrdersService:
             raise BadValueError(f"Das Datum {order['date']} ist kein Werktag.")
 
         if user_id != order["person_id"]:
-            raise AccessDeniedError(f" Person {order['person_id']}'")
+            raise AccessDeniedError(f"Person {order['person_id']}'")
 
         if order["nothing"] == True and (order["main_dish"] or order["salad_option"]):
             raise BadValueError(

@@ -68,7 +68,7 @@ class UsersService:
         """
 
         if UsersRepository.get_user_by_username(username):
-            raise AlreadyExistsError(f"User {username}")
+            raise AlreadyExistsError(ressource=f"Nutzer:in {username}")
 
         if location_id and LocationsRepository.get_location_by_id(location_id) is None:
             raise NotFoundError(f"Standort mit ID {location_id}")
@@ -115,7 +115,7 @@ class UsersService:
         """
 
         if username != user.username and UsersRepository.get_user_by_username(username):
-            raise AlreadyExistsError(f"User {username}")
+            raise AlreadyExistsError(ressource=f"Nutzer:in {username}")
 
         user.first_name = first_name
         user.last_name = last_name

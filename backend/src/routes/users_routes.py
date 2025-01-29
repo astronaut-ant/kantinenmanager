@@ -204,7 +204,7 @@ def create_user():
     except AlreadyExistsError:
         abort_with_err(
             ErrMsg(
-                status_code=400,
+                status_code=409,
                 title="Nutzername bereits vergeben",
                 description="Der Nutzername ist bereits vergeben",
             )
@@ -347,9 +347,9 @@ def update_user(user_id: UUID):
     except AlreadyExistsError:
         abort_with_err(
             ErrMsg(
-                status_code=400,
-                title="Nutzername bereits vergeben",
-                description="Der Nutzername ist bereits vergeben",
+                status_code=409,
+                title="Nutzer:in-Name bereits vergeben",
+                description="Der Nutzer:in-Name ist bereits vergeben",
             )
         )
 
@@ -499,7 +499,7 @@ def delete_user(user_id: UUID):
     except ActionNotPossibleError:
         abort_with_err(
             ErrMsg(
-                status_code=400,
+                status_code=409,
                 title="Nutzer:in kann nicht gelöscht werden",
                 description="Nutzer:in kann nicht gelöscht werden, da er/sie aktive Standort- oder Gruppenleitung ist",
             )

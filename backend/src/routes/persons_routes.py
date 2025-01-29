@@ -51,7 +51,7 @@ def create_qr_code(person_id: UUID):
     except NotFoundError:
         abort_with_err(
             ErrMsg(
-                status_code=400,
+                status_code=404,
                 title="Person existiert nicht",
                 description="Es existiert keine Person zu der ID in der Datenbank",
             )

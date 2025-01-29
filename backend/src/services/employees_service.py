@@ -74,7 +74,7 @@ class EmployeesService:
         """
 
         if EmployeesRepository.get_employee_by_number(employee_number):
-            raise AlreadyExistsError(f"Mitarbeiter:in {employee_number}")
+            raise AlreadyExistsError(ressource=f"Mitarbeiter:in {employee_number}")
 
         group = EmployeesRepository.get_group_by_name_and_location(
             group_name, location_name
@@ -113,7 +113,7 @@ class EmployeesService:
             employee_number != employee.employee_number
             and EmployeesRepository.get_user_by_employee_number(employee_number)
         ):
-            raise AlreadyExistsError(f"Mitarbeiter:in {employee_number}")
+            raise AlreadyExistsError(ressource=f"Mitarbeiter:in {employee_number}")
 
         employee.first_name = first_name
         employee.last_name = last_name
@@ -207,7 +207,9 @@ class EmployeesService:
                     raise NotFoundError(f"Gruppe {row['Gruppen-Name 1']}")
 
                 if EmployeesRepository.get_employee_by_number(row["Kunden-Nr."]):
-                    raise AlreadyExistsError(f"Mitarbeiter:in {row['Kunden-Nr.']}")
+                    raise AlreadyExistsError(
+                        ressource=f"Mitarbeiter:in {row['Kunden-Nr.']}"
+                    )
 
                 employee = Employee(
                     first_name=firstname,

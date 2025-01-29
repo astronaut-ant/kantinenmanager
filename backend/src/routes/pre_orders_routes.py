@@ -10,6 +10,7 @@ from src.utils.exceptions import (
     ActionNotPossibleError,
     AccessDeniedError,
     BadValueError,
+    AlreadyExistsError,
 )
 from src.utils.auth_utils import login_required
 from src.utils.error import ErrMsg, abort_with_err
@@ -107,13 +108,12 @@ def get_pre_orders():
     try:
         query_params = OrdersFilterSchema().load(request.args)
         filters = OrdersFilters(**query_params)
-
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
                 title="Validierungsfehler",
-                description="Format der Daten in der Query nicht valide",
+                description="Format der Daten im Request-Body nicht valide",
                 details=err.messages,
             )
         )
@@ -198,7 +198,7 @@ def get_pre_orders_by_group_leader(person_id: UUID):
     except AccessDeniedError as err:
         abort_with_err(
             ErrMsg(
-                status_code=400,
+                status_code=403,
                 title="Keine Gruppenleitung",
                 description="Person ist keine Gruppenleitung",
                 details=str(err),
@@ -245,7 +245,18 @@ def create_update_preorders_employees():
     """
     Bulk create and update preorders for employees
     """
-    orders = PreOrderFullSchema(many=True).load(request.json)
+    try:
+        orders = PreOrderFullSchema(many=True).load(request.json)
+    except ValidationError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Validierungsfehler",
+                description="Format der Daten im Request-Body nicht valide",
+                details=err.messages,
+            )
+        )
+
     if not orders:
         abort_with_err(
             ErrMsg(
@@ -269,7 +280,7 @@ def create_update_preorders_employees():
     except ActionNotPossibleError as err:
         abort_with_err(
             ErrMsg(
-                status_code=400,
+                status_code=409,
                 title="Person gehört nicht zu Standort/Gruppe",
                 description="Eine der Personen gehört entweder nicht zum Standort oder zur Gruppe.",
                 details=str(err),
@@ -307,10 +318,29 @@ def create_preorder_user():
     """
     Create a new preorder for an user
     """
-    preorder = PreOrderFullSchema().load(request.json)
+    try:
+        preorder = PreOrderFullSchema().load(request.json)
+    except ValidationError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Validierungsfehler",
+                description="Format der Daten im Request-Body nicht valide",
+                details=err.messages,
+            )
+        )
 
     try:
         order = PreOrdersService.create_preorder_user(preorder, g.user_id)
+    except AlreadyExistsError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=409,
+                title="Bestellung existiert bereits",
+                description="Eine Bestellung für diese Person an diesem Datum existiert bereits.",
+                details=str(err),
+            )
+        )
     except BadValueError as err:
         abort_with_err(
             ErrMsg(

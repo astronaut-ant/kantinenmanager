@@ -55,7 +55,7 @@ def create_group():
     except AlreadyExistsError as err:
         abort_with_err(
             ErrMsg(
-                status_code=400,
+                status_code=409,
                 title="Gruppe existiert bereits",
                 description="Eine Gruppe mit diesem Namen existiert bereits.",
                 details=str(err),
@@ -64,7 +64,7 @@ def create_group():
     except NotFoundError as err:
         abort_with_err(
             ErrMsg(
-                status_code=400,
+                status_code=404,
                 title="Gruppenleitung oder Standort existiert nicht",
                 description="Gruppenleitung oder Standort existiert nicht.",
                 details=str(err),
@@ -151,7 +151,7 @@ def update_group(group_id: UUID):
     except AlreadyExistsError as err:
         abort_with_err(
             ErrMsg(
-                status_code=400,
+                status_code=409,
                 title="Gruppe existiert bereits",
                 description="Eine Gruppe mit diesem Namen existiert bereits.",
                 details=str(err),
@@ -400,7 +400,7 @@ def remove_group_replacement(group_id: UUID):
     except AlreadyExistsError as err:
         abort_with_err(
             ErrMsg(
-                status_code=400,
+                status_code=409,
                 title="Gruppe existiert bereits",
                 description=f"Eine Gruppe mit Nummer {group.group_number} existiert bereits.",
                 details=str(err),

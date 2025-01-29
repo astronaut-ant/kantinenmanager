@@ -115,7 +115,7 @@ def login():
 
         abort_with_err(
             ErrMsg(
-                status_code=403,
+                status_code=423,
                 title="Account gesperrt",
                 description="Ihr Account wurde gesperrt. Bitte kontaktieren Sie einen Administrator.",
             ),

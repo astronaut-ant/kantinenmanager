@@ -54,7 +54,7 @@ class GroupsService:
 
         group_number_exists = GroupsRepository.get_group_by_number(group_number)
         if group_number_exists:
-            raise AlreadyExistsError(f"Gruppe {group_number}")
+            raise AlreadyExistsError(ressource=f"Gruppe {group_number}")
 
         return GroupsRepository.create_group(
             group_name,
@@ -155,7 +155,7 @@ class GroupsService:
         if group_number != group.group_number:
             group_number_exists = GroupsRepository.get_group_by_number(group_number)
             if group_number_exists:
-                raise AlreadyExistsError(f"Gruppe {group_number}")
+                raise AlreadyExistsError(ressource=f"Gruppe {group_number}")
             group.group_number = group_number
 
         group.group_name = group_name

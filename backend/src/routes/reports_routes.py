@@ -143,7 +143,7 @@ def get_report():
     except NotFoundError as err:
         abort_with_err(
             ErrMsg(
-                status_code=400,
+                status_code=404,
                 title="Einer der Standorte existiert nicht",
                 description="Einer der Standorte existiert nicht in der Datenbank mit gegebener ID",
             )

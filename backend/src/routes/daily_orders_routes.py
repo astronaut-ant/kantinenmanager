@@ -95,13 +95,13 @@ def get_daily_orders_counted():
         orders_counted_by_location = ReportsService.get_daily_orders_count(
             g.user_group, g.user_id
         )
-    except BadValueError:
+    except BadValueError as err:
         abort_with_err(
             ErrMsg(
-                status_code=404,
+                status_code=400,
                 title="Fehler",
                 description="Ein Fehler ist aufgetreten.",
-                details="Ein Fehler ist aufgetreten.",
+                details=str(err),
             )
         )
     except AccessDeniedError as err:

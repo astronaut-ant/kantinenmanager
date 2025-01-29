@@ -203,7 +203,7 @@ def create_user():
     except AlreadyExistsError:
         abort_with_err(
             ErrMsg(
-                status_code=400,
+                status_code=409,
                 title="Kunden-Nr. bereits vergeben",
                 description="Die Kunden-Nr. ist bereits vergeben",
             )
@@ -282,7 +282,7 @@ def csv_create():
     except AlreadyExistsError:
         abort_with_err(
             ErrMsg(
-                status_code=400,
+                status_code=409,
                 title="Ein Nutzer existiert bereits",
                 description="Einer der Nutzer existiert bereits",
             )
@@ -295,20 +295,13 @@ def csv_create():
                 description="Die Gruppe zu mindestens einem der Benutzer existiert nicht",
             )
         )
-    except BadValueError:
+    except BadValueError as err:
         abort_with_err(
             ErrMsg(
                 status_code=422,
-                title="Ein Name ist nicht verarbeitbar",
-                description="Der Vor-/Nachname ist entweder zu lang, oder Namen können nicht getrennt werden",
-            )
-        )
-    except BadValueError:
-        abort_with_err(
-            ErrMsg(
-                status_code=400,
-                title="Datei hat unlesbares Format",
-                description="Datei muss utf-8 mit , oder iso-8859-1 mit ; sein",
+                title="Übergebene Daten nicht verarbeitbar",
+                description="Name oder übergebene Datei können nicht verarbeitet werden.",
+                details=str(err),
             )
         )
 
@@ -371,9 +364,9 @@ def update_employee(employee_id: UUID):
     except AlreadyExistsError:
         abort_with_err(
             ErrMsg(
-                status_code=400,
-                title="Mitarbeiterummer bereits vergeben",
-                description="Diese Mitarbeiternummer ist bereits vergeben",
+                status_code=409,
+                title="Mitarbeiter:in-Nummer bereits vergeben",
+                description="Diese Mitarbeiter:in-Nummer ist bereits vergeben",
             )
         )
 
