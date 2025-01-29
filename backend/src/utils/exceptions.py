@@ -16,6 +16,12 @@ class UserAlreadyExistsError(Exception):
     pass
 
 
+class UserBlockedError(Exception):
+    """Exception raised when a user is blocked."""
+
+    pass
+
+
 class UserCannotBeDeletedError(Exception):
     """Exception raised when a user cannot be deleted."""
 

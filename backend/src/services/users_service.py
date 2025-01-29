@@ -13,14 +13,6 @@ from src.utils.exceptions import (
     UserCannotBeDeletedError,
 )
 
-# Services enthalten die Businesslogik der Anwendung.
-# Sie werden von den Routen aufgerufen und ziehen sich
-# die notwendigen Daten aus den Repositories.
-#
-# Hier würde so etwas reinkommen wie die Ertellung des QR-Codes
-# oder die Validierung, dass ein Nutzer die korrekten Anmeldedaten
-# eingegeben hat.
-
 
 class UsersService:
     """Service for handling user management."""
@@ -140,6 +132,26 @@ class UsersService:
         UsersRepository.update_user(user)
 
         return user
+
+    @staticmethod
+    def block_user(user: User):
+        """Block a user.
+
+        :param user: The user to block
+        """
+        user.blocked = True
+
+        UsersRepository.update_user(user)
+
+    @staticmethod
+    def unblock_user(user: User):
+        """Unblock a user.
+
+        :param user: The user to unblock
+        """
+        user.blocked = False
+
+        UsersRepository.update_user(user)
 
     @staticmethod
     def delete_user(user: User):

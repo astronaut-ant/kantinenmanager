@@ -10,10 +10,10 @@ Typical usage example:
     abort_with_err(msg)
 """
 
-import sys
+import json
 import time
 import traceback
-from flask import abort, make_response, request, Flask
+from flask import Response, abort, make_response, request, Flask
 import werkzeug
 from werkzeug.http import HTTP_STATUS_CODES
 
@@ -72,10 +72,19 @@ class ErrMsg:
         }
 
 
-def abort_with_err(err: ErrMsg):
-    """Immediately abort the request with an error message."""
+def abort_with_err(err: ErrMsg, resp: Response = None):
+    """Immediately abort the request with an error message.
 
-    resp = make_response(err.to_dict(), err.status_code)
+    :param err: The error message to return
+    :param resp: Optional response object to return the error message in
+    """
+
+    if resp is None:
+        resp = make_response()
+
+    resp.data = json.dumps(err.to_dict())
+    resp.status_code = err.status_code
+    resp.headers["Content-Type"] = "application/json"
 
     abort(resp)
 

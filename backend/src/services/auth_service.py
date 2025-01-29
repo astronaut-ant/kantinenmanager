@@ -19,6 +19,7 @@ from src.repositories.refresh_token_session_repository import (
 from src.models.refresh_token_session import RefreshTokenSession
 from src.models.user import User, UserGroup
 from src.repositories.users_repository import UsersRepository
+from src.utils.exceptions import UserBlockedError
 from flask import current_app as app
 
 
@@ -36,6 +37,12 @@ class InvalidCredentialsException(Exception):
 
 class UnauthenticatedException(Exception):
     """User is not authenticated"""
+
+    pass
+
+
+class RefreshTokenAlreadyUsedError(Exception):
+    """Refresh token has already been used"""
 
     pass
 
@@ -71,6 +78,11 @@ class AuthService:
 
         user.last_login = datetime.now()
         UsersRepository.update_user(user)
+
+        if user.blocked:
+            # blocked message should be displayed only for the right user,
+            # so not to give away information about the existence of the user
+            raise UserBlockedError("User account is blocked")
 
         # Create authentication and refresh tokens
         jwt_secret = app.config["JWT_SECRET"]
@@ -139,18 +151,32 @@ class AuthService:
         if refresh_token is None:
             raise UnauthenticatedException("No refresh token provided")
 
-        session = None
-        try:
-            session = AuthService.__verify_refresh_token(refresh_token)
-        except UnauthenticatedException as e:
-            # Refresh token is invalid
-            raise e
+        session = RefreshTokenSessionRepository.get_token(refresh_token)
+
+        if session is None:
+            raise UnauthenticatedException("Refresh token not found in DB")
+
+        if session.expires < datetime.now():
+            raise UnauthenticatedException("Refresh token expired")
+
+        if session.has_been_used():
+            # Block user
+            user = UsersRepository.get_user_by_id(session.user_id)
+            user.blocked = True
+            UsersRepository.update_user(user)
+            app.logger.warning(
+                f"User account '{user.username}' with id '{session.user_id}' blocked due to repeated refresh token usage"
+            )
+            raise UserBlockedError("Refresh token has already been used")
 
         # Generate new tokens
         user = UsersRepository.get_user_by_id(session.user_id)
 
         if user is None:
             raise UnauthenticatedException("User not found")
+
+        if user.blocked:
+            raise UserBlockedError("User account is blocked")
 
         new_auth_token = AuthService.__make_auth_token(user, jwt_secret)
         new_refresh_token = AuthService.__make_refresh_token(user)
@@ -368,28 +394,3 @@ class AuthService:
         RefreshTokenSessionRepository.create_token(session)
 
         return session.refresh_token
-
-    @staticmethod
-    def __verify_refresh_token(refresh_token: str) -> RefreshTokenSession:
-        """Verify a refresh token
-
-        :param refresh_token: The refresh token to verify
-
-        :return: The refresh token session if it is valid
-
-        :raises auth_service.UnauthenticatedException: If the token is invalid
-        """
-
-        session = RefreshTokenSessionRepository.get_token(refresh_token)
-
-        if session is None:
-            raise UnauthenticatedException("Refresh token not found in DB")
-
-        if session.expires < datetime.now():
-            raise UnauthenticatedException("Refresh token expired")
-
-        if session.has_been_used():
-            # TODO block user account
-            raise UnauthenticatedException("Refresh token already used")
-
-        return session

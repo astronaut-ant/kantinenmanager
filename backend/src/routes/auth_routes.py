@@ -3,7 +3,9 @@
 from flask import Blueprint, g, make_response, request, current_app as app
 from flasgger import swag_from
 from marshmallow import ValidationError
+from prometheus_client import Counter
 
+from src.utils.exceptions import UserBlockedError
 from src.metrics import metrics
 from src.schemas.users_schemas import UserFullSchema
 from src.constants import REFRESH_TOKEN_COOKIE_NAME, REFRESH_TOKEN_DURATION
@@ -20,9 +22,20 @@ from src.utils.error import ErrMsg, abort_with_err
 
 auth_routes = Blueprint("auth_routes", __name__)
 
+successful_login_counter = Counter(
+    "flask_successful_login_counter", "Total number of successful logins"
+)
+failed_login_counter = Counter(
+    "flask_failed_login_counter", "Total number of failed logins"
+)
+blocked_login_counter = Counter(
+    "flask_blocked_login_counter", "Total number of logins for blocked users"
+)
+
 
 @auth_routes.post("/api/login")
 @metrics.counter("flask_login_requests_total", "Total number of login requests")
+@metrics.summary("flask_login_request_latency_seconds", "Request latency for login")
 @swag_from(
     {
         "tags": ["auth"],
@@ -59,13 +72,17 @@ def login():
     try:
         body = AuthLoginSchema().load(request.json)
     except ValidationError as err:
+        resp = make_response()
+        delete_token_cookies(resp)
+
         abort_with_err(
             ErrMsg(
                 status_code=400,
                 title="Validierungsfehler",
                 description="Format der Daten im Request-Body nicht valide",
                 details=err.messages,
-            )
+            ),
+            resp=resp,
         )
 
     try:
@@ -73,25 +90,36 @@ def login():
             body.get("username"), body.get("password")
         )
 
-    except UserNotFoundException:
+    except (UserNotFoundException, InvalidCredentialsException):
         # Both Exceptions return the same error message as it would be a security risk to
         # differentiate between invalid username and invalid password
-        app.logger.info("Login failed")
+        failed_login_counter.inc()
+
+        resp = make_response()
+        delete_token_cookies(resp)
+
         abort_with_err(
             ErrMsg(
                 status_code=401,
                 title="Anmeldung fehlgeschlagen",
                 description="Nutzername oder Passwort falsch",
-            )
+            ),
+            resp=resp,
         )
-    except InvalidCredentialsException:
-        app.logger.info("Login failed")
+    except UserBlockedError:
+        failed_login_counter.inc()
+        blocked_login_counter.inc()
+
+        resp = make_response()
+        delete_token_cookies(resp)
+
         abort_with_err(
             ErrMsg(
-                status_code=401,
-                title="Anmeldung fehlgeschlagen",
-                description="Nutzername oder Passwort falsch",
-            )
+                status_code=403,
+                title="Account gesperrt",
+                description="Ihr Account wurde gesperrt. Bitte kontaktieren Sie einen Administrator.",
+            ),
+            resp=resp,
         )
 
     resp = make_response(
@@ -107,6 +135,8 @@ def login():
     )  # TODO: Set secure=True and samesite="Strict" in production
 
     set_token_cookies(resp, auth_token, refresh_token)
+
+    successful_login_counter.inc()
 
     return resp
 
