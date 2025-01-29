@@ -1,7 +1,25 @@
+class AccessDeniedError(Exception):
+    """Exception raised when a user is not allowed to access a resource."""
+
+    def __init__(self, ressource: str):
+        super().__init__(f"Nutzer hat keinen Zugriff auf {ressource}.", code=400)
+
+
 class NotFoundError(Exception):
     """Exception raised when an object is not found in the database."""
 
-    pass
+    def __init__(self, ressource: str):
+        super().__init__(f"{ressource} nicht gefunden oder existiert nicht.", code=404)
+
+
+class AlreadyExistsError(Exception):
+    """Exception raised when an object already exists in the database."""
+
+    def __init__(self, ressource: str):
+        super().__init__(f"{ressource} existiert bereits.", code=400)
+
+
+###########################################################################
 
 
 class LocationAlreadyExistsError(Exception):
