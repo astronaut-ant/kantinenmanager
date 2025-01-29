@@ -3,9 +3,10 @@ from flask import Blueprint, request
 from flasgger import swag_from
 from marshmallow import ValidationError
 
+from src.utils.exceptions import NotFoundError
 from src.utils.error import ErrMsg, abort_with_err
 from src.services.dish_prices_service import DishPricesService
-from src.schemas.dish_prices_schemas import DishPriceFullSchema
+from src.schemas.dish_prices_schemas import DishPriceBaseSchema, DishPriceFullSchema
 from src.models.user import UserGroup
 from src.utils.auth_utils import login_required
 
@@ -61,7 +62,20 @@ def get_dish_prices():
 def get_dish_price_by_date(date: datetime):
     """Get a dish price by its date"""
 
-    price = DishPricesService.get_price_by_date(date)
+    try:
+        parsed_date = DishPriceBaseSchema(only=("date",)).load({"date": date})
+        print(parsed_date)
+    except ValidationError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Validierungsfehler",
+                description="Format des Datums nicht valide",
+                details=err.messages,
+            )
+        )
+
+    price = DishPricesService.get_price_by_date(parsed_date.get("date"))
 
     if price is None:
         abort_with_err(
@@ -119,7 +133,11 @@ def get_newest_dish_price():
     }
 )
 def get_dish_price_today():
-    """Get the todays dish price"""
+    """Get the todays dish price
+
+    Get the price that is valid today.
+    ---
+    """
 
     price = DishPricesService.get_todays_price()
 
@@ -219,6 +237,18 @@ def update_dish_price(date: datetime):
     """Update an existing dish price"""
 
     try:
+        parsed_date = DishPriceBaseSchema(only=("date",)).load({"date": date})
+    except ValidationError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Validierungsfehler",
+                description="Format des Datums nicht valide",
+                details=err.messages,
+            )
+        )
+
+    try:
         body = DishPriceFullSchema().load(request.json)
     except ValidationError as err:
         abort_with_err(
@@ -231,12 +261,20 @@ def update_dish_price(date: datetime):
         )
 
     try:
-        price = DishPricesService.update_price(old_date=date, **body)
+        price = DishPricesService.update_price(old_date=parsed_date.get("date"), **body)
     except ValueError as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
                 title="Fehler beim Aktualisieren",
+                description=str(err),
+            )
+        )
+    except NotFoundError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Fehler beim Löschen",
                 description=str(err),
             )
         )
@@ -267,11 +305,23 @@ def delete_dish_price(date: datetime):
     """Delete a dish price"""
 
     try:
-        DishPricesService.delete_price(date)
-    except ValueError as err:
+        parsed_date = DishPriceBaseSchema(only=("date",)).load({"date": date})
+    except ValidationError as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
+                title="Validierungsfehler",
+                description="Format des Datums nicht valide",
+                details=err.messages,
+            )
+        )
+
+    try:
+        DishPricesService.delete_price(parsed_date.get("date"))
+    except NotFoundError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
                 title="Fehler beim Löschen",
                 description=str(err),
             )

@@ -26,6 +26,7 @@ def upgrade() -> None:
         sa.Column("date", sa.DateTime(), nullable=False),
         sa.Column("main_dish_price", sa.Float(), nullable=False),
         sa.Column("salad_price", sa.Float(), nullable=False),
+        sa.Column("prepayment", sa.Float(), nullable=False),
         sa.PrimaryKeyConstraint("date"),
     )
     # ### end Alembic commands ###

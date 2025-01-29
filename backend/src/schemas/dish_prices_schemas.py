@@ -7,6 +7,7 @@ class DishPriceBaseSchema(Schema):
     date = fields.Date(required=True)
     main_dish_price = fields.Float(required=True)
     salad_price = fields.Float(required=True)
+    prepayment = fields.Float(required=True)
 
 
 class DishPriceFullSchema(DishPriceBaseSchema):

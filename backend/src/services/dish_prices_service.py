@@ -45,13 +45,14 @@ class DishPricesService:
 
     @staticmethod
     def create_price(
-        date: datetime, main_dish_price: float, salad_price: float
+        date: datetime, main_dish_price: float, salad_price: float, prepayment: float
     ) -> DishPrice:
         """Create a new dish price.
 
         :param date: The date of the dish price
         :param main_dish_price: The price of the main dish
         :param salad_price: The price of the salad
+        :param prepayment: The price of the prepayment
 
         :return: The created dish price
         """
@@ -62,8 +63,14 @@ class DishPricesService:
         if main_dish_price < 0 or salad_price < 0:
             raise ValueError("Prices must not be negative")
 
+        if prepayment < 0:
+            raise ValueError("Prepayment must not be negative")
+
         price = DishPrice(
-            date=date, main_dish_price=main_dish_price, salad_price=salad_price
+            date=date,
+            main_dish_price=main_dish_price,
+            salad_price=salad_price,
+            prepayment=prepayment,
         )
         DishPricesRepository.create_price(price)
 
@@ -71,13 +78,18 @@ class DishPricesService:
 
     @staticmethod
     def update_price(
-        old_date: datetime, date: datetime, main_dish_price: float, salad_price: float
+        old_date: datetime,
+        date: datetime,
+        main_dish_price: float,
+        salad_price: float,
+        prepayment: float,
     ) -> DishPrice:
         """Update an existing dish price.
 
         :param date: The date of the dish price
         :param main_dish_price: The price of the main dish
         :param salad_price: The price of the salad
+        :param prepayment: The price of the prepayment
 
         :return: The updated dish price
         """
@@ -93,9 +105,13 @@ class DishPricesService:
         if main_dish_price < 0 or salad_price < 0:
             raise ValueError("Prices must not be negative")
 
+        if prepayment < 0:
+            raise ValueError("Prepayment must not be negative")
+
         price.date = date
         price.main_dish_price = main_dish_price
         price.salad_price = salad_price
+        price.prepayment = prepayment
 
         DishPricesRepository.update_price(price)
 
