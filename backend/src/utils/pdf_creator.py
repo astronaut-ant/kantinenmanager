@@ -294,7 +294,7 @@ class PDFCreationUtils:
         ]
         tableHead = Table(
             header_data,
-            colWidths=[203, 50, 200],  
+            colWidths=[203, 50, 200],
             hAlign="RIGHT",
         )
         tableHead.setStyle(
@@ -305,26 +305,27 @@ class PDFCreationUtils:
                         (0, 0),
                         (2, -1),
                         "LEFT",
-                    ),  
-                    ("FONTNAME", (2, 0), (2, -1), "Helvetica-Bold"),  
-                    ("FONTNAME", (2, 8), (2, 8), "Helvetica-Bold"), 
-                    ("FONTNAME", (2, 1), (2, 7), "Helvetica"),  
+                    ),
+                    ("FONTNAME", (2, 0), (2, -1), "Helvetica-Bold"),
+                    ("FONTNAME", (2, 8), (2, 8), "Helvetica-Bold"),
+                    ("FONTNAME", (2, 1), (2, 7), "Helvetica"),
                     ("FONTNAME", (2, 9), (2, -1), "Helvetica"),
-                    ("FONTSIZE", (2, 0), (2, -1), 8),  
-                    ("FONTSIZE", (0, 5), (0, 5), 7),  
-                    ("FONTSIZE", (0, 8), (0, -1), 10),  
+                    ("FONTSIZE", (2, 0), (2, -1), 8),
+                    ("FONTSIZE", (0, 5), (0, 5), 7),
+                    ("FONTSIZE", (0, 8), (0, -1), 10),
                     (
                         "TOPPADDING",
                         (0, 0),
                         (-1, -1),
                         0,
-                    ),  
+                    ),
                     (
                         "BOTTOMPADDING",
                         (0, 0),
                         (-1, -1),
                         0,
-                    ),  
+                    ),
+                ]
             )
         )
         elements.append(tableHead)
