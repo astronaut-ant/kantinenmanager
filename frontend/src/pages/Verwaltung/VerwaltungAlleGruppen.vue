@@ -1,56 +1,60 @@
 <template>
   <NavbarVerwaltung />
-  <div class="ml-10 mr-10 mt-5">
-      <v-row class="d-flex justify-start">
-        <v-col
-          v-for="group in groups"
-          :key="group?.id"
-          cols="12" sm="12" md="6" lg="4" xl="3" xxl = "2"
-          class="d-flex justify-center"
-        >
-          <v-card class="mx-2 my-2" width="450" elevation="16">
-            <v-card-item>
-                <v-card-title>
-                  <div class="mt-3 d-flex justify-space-between align-center">
-                    {{ group?.group_name }}
-                    <v-btn class="bg-primary mx-1" @click="openDialog(group)" size="small"><v-icon>mdi-information-outline</v-icon></v-btn>
-                  </div>
-                </v-card-title>
-                <v-card-subtitle>
-                  <div class="d-flex flex-column">
-                    <div>
-                      <v-icon
-                      color="primary"
-                      icon="mdi-account-circle"
-                      size="small"
-                      ></v-icon>
-                      <span class="me-1 ml-2">{{ group?.group_leader.first_name }} {{ group?.group_leader.last_name }}</span>
-                    </div>
-                    <div>
-                      <v-icon
-                      color="primary"
-                      icon="mdi-map-marker"
-                      size="small"
-                      ></v-icon>
-                      <span class="me-1 ml-2">{{ group?.location.location_name }}</span>
-                    </div>
-                  </div>
-                </v-card-subtitle>
-            </v-card-item>
-            <v-card-text>
-                <v-divider></v-divider>
-                <div class="mt-3 d-flex justify-space-between align-center">
-                    <v-chip prepend-icon="mdi-account-multiple" color="primary" label density="compact"> Mitgliederanzahl: {{group?.employees.length}} </v-chip>
-                    <div class="d-flex">
-                      <v-btn class="bg-primary mx-1" @click="openEditDialog(group)" size="default" density="comfortable"><v-icon>mdi-lead-pencil</v-icon></v-btn>
-                      <v-btn class="bg-red" @click="handleDelete(group)" size="default" density="comfortable"><v-icon>mdi-trash-can-outline</v-icon></v-btn>
-                    </div>
+  <FilterBar
+    :viewSwitcherEnabled="false"
+    :filterList="['group_name', 'group_number', 'group_leader.first_name', 'group_leader.last_name', 'location.location_name']"
+    :items="sortGroups(groups)"
+    @searchresult="updateOverview"
+    @changeview=""
+    />
+  <div v-if="grouplist.length != 0" class="grid-container">
+    <div
+      v-for="group in grouplist"
+      :key="group?.id"
+      class="grid-item"
+    >
+      <v-card class="mx-2 my-2" width="425" elevation="16">
+        <v-card-item>
+            <v-card-title>
+              <div class="d-flex justify-space-between align-center">
+                {{ group?.group_name }}
+                <v-btn class="bg-primary mt-1 mx-1" @click="openDialog(group)" size="small"><v-icon>mdi-information-outline</v-icon></v-btn>
+              </div>
+            </v-card-title>
+            <v-card-subtitle>
+              <div class="d-flex flex-column">
+                <div>
+                  <v-icon
+                  color="primary"
+                  icon="mdi-account-circle"
+                  size="small"
+                  ></v-icon>
+                  <span class="me-1 ml-2">{{ group?.group_leader.first_name }} {{ group?.group_leader.last_name }}</span>
                 </div>
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
+                <div>
+                  <v-icon
+                  color="primary"
+                  icon="mdi-map-marker"
+                  size="small"
+                  ></v-icon>
+                  <span class="me-1 ml-2">{{ group?.location.location_name }}</span>
+                </div>
+              </div>
+            </v-card-subtitle>
+        </v-card-item>
+        <v-card-text>
+            <v-divider></v-divider>
+            <div class="mt-3 d-flex justify-space-between align-center">
+                <v-chip prepend-icon="mdi-account-multiple" color="primary" label density="comfortable"> Mitgliederanzahl: {{group?.employees.length}} </v-chip>
+                <div class="d-flex ga-1 justify-end">
+                  <v-btn class="bg-primary mx-1" @click="openEditDialog(group)" size="default" density="comfortable"><v-icon>mdi-lead-pencil</v-icon></v-btn>
+                  <v-btn class="bg-red" @click="handleDelete(group)" size="default" density="comfortable"><v-icon>mdi-trash-can-outline</v-icon></v-btn>
+                </div>
+            </div>
+        </v-card-text>
+      </v-card>
     </div>
+  </div>
 
   <v-dialog v-model="detailDialog" max-width="600" max-height="600" scrollable>
     <v-card>
@@ -73,6 +77,7 @@
                         <p class="font-weight-black"> Gruppe </p>
                     </div>
                     <div class="ml-5 mb-4 text-medium-emphasis">
+                        <p color="text-primary"> Gruppennummer: {{ selectedGroup?.group_number }}</p>
                         <p color="text-primary"> Standort: {{ selectedGroup?.location.location_name }}</p>
                         <p color="text-primary"> Mitgliederanzahl: {{selectedGroup?.employees.length}} </p>
                     </div>
@@ -222,14 +227,24 @@
     :text="snackbarText"
     @close="snackbar = false"
   ></SuccessSnackbar>
+  <ErrorSnackbar
+    v-model="errorSnackbar"
+    :text="errorSnackbarText"
+    @close="errorSnackbar = false"
+  ></ErrorSnackbar>
+  <NoResult v-if="grouplist.length == 0" />
 </template>
 
 <script setup>
+import FilterBar from "@/components/SearchComponents/FilterBar.vue";
+import NoResult from "@/components/SearchComponents/NoResult.vue";
 import axios from "axios";
 const snackbarText = ref(" ");
 const snackbar = ref(false);
+const errorSnackbar = ref(false);
+const errorSnackbarText = ref("");
 const groups = ref(null);
-const sortedGroups = ref([]);
+const grouplist = ref([]);
 const employees = ref(null);
 const employeesToDelete = ref([]);
 const detailDialog = ref(false);
@@ -251,28 +266,8 @@ onMounted(() => {
   axios
     .get(import.meta.env.VITE_API + "/api/groups/with-employees", { withCredentials: true })
     .then((response) => {
-      groups.value = response.data;
-
-      sortedGroups.value =
-        groups.value && groups.value.length > 0
-          ? groups.value.sort((a, b) => {
-              if (a.location.location_name < b.location.location_name) {
-                return -1;
-              }
-              if (a.location.location_name > b.location.location_name) {
-                return 1;
-              }
-
-              if (a.group_name < b.group_name) {
-                return -1;
-              }
-              if (a.group_name > b.group_name) {
-                return 1;
-              }
-
-              return 0;
-            })
-          : [];
+      groups.value = sortGroups(response.data);
+      grouplist.value = Object.values(sortGroups(response.data));
     })
     .catch((err) => console.log(err));
   axios
@@ -367,7 +362,11 @@ const confirmEdit = () => {
       snackbarText.value = "Die Gruppe wurde erfolgreich aktualisiert!";
       snackbar.value = true;
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.log(err);
+      errorSnackbarText.value = "Fehler beim aktualisieren der Gruppe!";
+      errorSnackbar.value = true;
+    });
 };
 const closeEditDialog = () => {
   newLeaderID.value = null;
@@ -408,9 +407,6 @@ const confirmDelete = () => {
       groups.value = groups.value.filter(
         (group) => group.id !== groupToDelete.value.id
       );
-      sortedGroups.value = sortedGroups.value.filter(
-        (group) => group.id !== groupToDelete.value.id
-      );
       console.log(groups);
       closeDeleteDialog();
       snackbarText.value = "Die Gruppe wurde erfolgreich gelöscht!";
@@ -428,4 +424,55 @@ const closeDeleteDialog = () => {
   groupToDelete.value = null;
   employeesToDelete.value = [];
 };
+
+const updateOverview = (items) => {
+  grouplist.value = sortGroups(items);
+};
+
+const sortGroups = (array) => {
+  if (!array || array.length === 0) {
+    return [];
+  }
+  return [...array].sort((a, b) => {
+    if (a.location.location_name < b.location.location_name) {
+      return -1;
+    }
+    if (a.location.location_name > b.location.location_name) {
+      return 1;
+    }
+    if (a.group_name < b.group_name) {
+      return -1;
+    }
+    if (a.group_name > b.group_name) {
+      return 1;
+    }
+    return 0;
+  });
+};
+
 </script>
+
+
+<style scoped>
+
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(425px, 1fr));
+  gap: 10px;
+  justify-content: center;
+  justify-items: center;
+  padding: 20px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.grid-item {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-width: 400px;
+  max-width: 425px;
+}
+
+</style>

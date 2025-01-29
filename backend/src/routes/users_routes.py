@@ -356,6 +356,101 @@ def update_user(user_id: UUID):
     return UserFullSchema().dump(updated_user)
 
 
+@users_routes.put("/api/users/<uuid:user_id>/block")
+@login_required(groups=[UserGroup.verwaltung])
+@swag_from(
+    {
+        "tags": ["users"],
+        "parameters": [
+            {
+                "in": "path",
+                "name": "user_id",
+                "required": True,
+                "schema": {"type": "string"},
+            }
+        ],
+        "responses": {
+            200: {
+                "description": "User successfully blocked",
+                "schema": {
+                    "type": "object",
+                    "properties": {"message": {"type": "string"}},
+                },
+            },
+            404: {"description": "User not found"},
+        },
+    }
+)
+def block_user(user_id: UUID):
+    """Block a user
+    Block a user by ID. The user will not be able to log in anymore,
+    although the authentication token will remain valid for a few minutes.
+
+    Authentication: required
+    Authorization: Verwaltung
+    ---
+    """
+    user = UsersService.get_user_by_id(user_id)
+    if user is None:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Nutzer nicht gefunden",
+                description="Es wurde kein Nutzer mit dieser ID gefunden",
+            )
+        )
+
+    UsersService.block_user(user)
+    return jsonify({"message": "Nutzer erfolgreich blockiert"})
+
+
+@users_routes.put("/api/users/<uuid:user_id>/unblock")
+@login_required(groups=[UserGroup.verwaltung])
+@swag_from(
+    {
+        "tags": ["users"],
+        "parameters": [
+            {
+                "in": "path",
+                "name": "user_id",
+                "required": True,
+                "schema": {"type": "string"},
+            }
+        ],
+        "responses": {
+            200: {
+                "description": "User successfully unblocked",
+                "schema": {
+                    "type": "object",
+                    "properties": {"message": {"type": "string"}},
+                },
+            },
+            404: {"description": "User not found"},
+        },
+    }
+)
+def unblock_user(user_id: UUID):
+    """Unblock a user
+    Unblock a user by ID
+
+    Authentication: required
+    Authorization: Verwaltung
+    ---
+    """
+    user = UsersService.get_user_by_id(user_id)
+    if user is None:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Nutzer nicht gefunden",
+                description="Es wurde kein Nutzer mit dieser ID gefunden",
+            )
+        )
+
+    UsersService.unblock_user(user)
+    return jsonify({"message": "Nutzer erfolgreich freigeschaltet"})
+
+
 @users_routes.delete("/api/users/<uuid:user_id>")
 @login_required(groups=[UserGroup.verwaltung])
 @swag_from(

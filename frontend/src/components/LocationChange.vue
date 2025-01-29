@@ -50,7 +50,7 @@ import SuccessSnackbar from "@/components/SuccessSnackbar.vue";
 import router from "@/router";
 import axios from "axios";
 const props = defineProps(["oldValues"]);
-const emit = defineEmits(["close", "save", "success"]);
+const emit = defineEmits(["close", "save", "success", "error"]);
 const close = () => {
   emit("close");
 };
@@ -60,6 +60,9 @@ const save = () => {
 const success = () => {
   emit("success");
 };
+const error = () => {
+  emit("error");
+}
 const validation = ref("");
 const showConfirm = ref(false);
 const form = ref(false);
@@ -237,7 +240,10 @@ const handleSubmit = () => {
         close();
       })
 
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        console.log(err);
+        error();
+      });
   });
 };
 

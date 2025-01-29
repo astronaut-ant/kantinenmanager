@@ -87,6 +87,11 @@
       </v-card>
     </div>
   </div>
+  <ErrorSnackbar
+    v-model="errorSnackbar"
+    :text="errorSnackbarText"
+    @close="errorSnackbar = false"
+  ></ErrorSnackbar>
 </template>
 
 <script setup>
@@ -101,6 +106,8 @@ const group_name = ref("");
 const location_name = ref("");
 const groupnames = ref({});
 const keys = ref([]);
+const errorSnackbar = ref(false);
+const errorSnackbarText = ref("");
 
 onMounted(() => {
   axios
@@ -125,7 +132,11 @@ const handleSubmit = () => {
       console.log(response.data);
       showConfirm.value = true;
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.log(err);
+      errorSnackbarText.value = "Fehler beim Anlegen des Mitarbeiters!";
+      errorSnackbar.value = true;
+    });
 };
 
 const required = (v) => {

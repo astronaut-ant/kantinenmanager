@@ -2,7 +2,7 @@
   <NavbarVerwaltung />
   <FilterBar
     :viewSwitcherEnabled="true"
-    :filterList="['username', 'first_name', 'last_name', 'user_group']" 
+    :filterList="['username', 'first_name', 'last_name', 'user_group']"
     :items="users"
     @searchresult="updateOverview"
     @changeview="changeview"
@@ -34,6 +34,11 @@
     </UserTable>
   </div>
   <NoResult v-if="userlist.length == 0" />
+  <ErrorSnackbar
+    v-model="errorSnackbar"
+    :text="errorSnackbarText"
+    @close="errorSnackbar = false"
+  ></ErrorSnackbar>
 </template>
 
 <script setup>
@@ -44,6 +49,8 @@ import NoResult from "@/components/SearchComponents/NoResult.vue";
 const users = ref({});
 const userlist = ref([]);
 const ansicht = ref("cardview");
+const errorSnackbar = ref(false);
+const errorSnackbarText = ref ("");
 
 const allLocations = ref([]);
 
@@ -55,7 +62,11 @@ const fetchData = () => {
       userlist.value = Object.values(response.data);
       //console.log(users.value);
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.log(err);
+      errorSnackbarText.value = "Fehler beim laden der Nutzer!";
+      errorSnackbar.value = true;
+    });
 
   axios
     .get(import.meta.env.VITE_API + "/api/locations", { withCredentials: true })
@@ -66,7 +77,7 @@ const fetchData = () => {
       //console.log(allLocations.value);
     })
     .catch((err) => console.log(err));
-  
+
   //TODO Fetch actual location for initial selection in v-Select
 };
 
@@ -91,10 +102,10 @@ const changeview = (string) => {
   grid-template-columns: repeat(auto-fill, minmax(425px, 1fr));
   gap: 10px;
   justify-content: center;
-  justify-items: center; 
+  justify-items: center;
   padding: 20px;
-  width: 100%; 
-  max-width: 100%; 
+  width: 100%;
+  max-width: 100%;
   box-sizing: border-box;
 }
 

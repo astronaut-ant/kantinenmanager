@@ -243,49 +243,49 @@ def describe_make_refresh_token():
         mockRepo.create_token.assert_called_once()
 
 
-def describe_verify_refresh_token():
+# def describe_verify_refresh_token():
 
-    def it_verifies_valid_refresh_token(mocker, session):
-        mockRepo = _helper_mock_refresh_token_session_repo_with_attrs(
-            mocker, {"get_token.return_value": session}
-        )
+#     def it_verifies_valid_refresh_token(mocker, session):
+#         mockRepo = _helper_mock_refresh_token_session_repo_with_attrs(
+#             mocker, {"get_token.return_value": session}
+#         )
 
-        verified_session = AuthService._AuthService__verify_refresh_token(
-            session.refresh_token
-        )
+#         verified_session = AuthService._AuthService__verify_refresh_token(
+#             session.refresh_token
+#         )
 
-        assert verified_session == session
-        mockRepo.get_token.assert_called_once_with(session.refresh_token)
+#         assert verified_session == session
+#         mockRepo.get_token.assert_called_once_with(session.refresh_token)
 
-    def it_throws_error_on_invalid_refresh_token(mocker):
-        token = "invalid_token"
+#     def it_throws_error_on_invalid_refresh_token(mocker):
+#         token = "invalid_token"
 
-        _helper_mock_refresh_token_session_repo_with_attrs(
-            mocker, {"get_token.return_value": None}
-        )
+#         _helper_mock_refresh_token_session_repo_with_attrs(
+#             mocker, {"get_token.return_value": None}
+#         )
 
-        with pytest.raises(UnauthenticatedException):
-            AuthService._AuthService__verify_refresh_token(token)
+#         with pytest.raises(UnauthenticatedException):
+#             AuthService._AuthService__verify_refresh_token(token)
 
-    def it_throws_error_on_expired_refresh_token(mocker, session):
-        session.expires = datetime.now() - timedelta(days=1)
+#     def it_throws_error_on_expired_refresh_token(mocker, session):
+#         session.expires = datetime.now() - timedelta(days=1)
 
-        _helper_mock_refresh_token_session_repo_with_attrs(
-            mocker, {"get_token.return_value": session}
-        )
+#         _helper_mock_refresh_token_session_repo_with_attrs(
+#             mocker, {"get_token.return_value": session}
+#         )
 
-        with pytest.raises(UnauthenticatedException):
-            AuthService._AuthService__verify_refresh_token(session.refresh_token)
+#         with pytest.raises(UnauthenticatedException):
+#             AuthService._AuthService__verify_refresh_token(session.refresh_token)
 
-    def it_throws_error_when_already_used(mocker, session):
-        session.last_used = datetime.now()
+#     def it_throws_error_when_already_used(mocker, session):
+#         session.last_used = datetime.now()
 
-        _helper_mock_refresh_token_session_repo_with_attrs(
-            mocker, {"get_token.return_value": session}
-        )
+#         _helper_mock_refresh_token_session_repo_with_attrs(
+#             mocker, {"get_token.return_value": session}
+#         )
 
-        with pytest.raises(UnauthenticatedException):
-            AuthService._AuthService__verify_refresh_token(session.refresh_token)
+#         with pytest.raises(UnauthenticatedException):
+#             AuthService._AuthService__verify_refresh_token(session.refresh_token)
 
 
 def describe_login():

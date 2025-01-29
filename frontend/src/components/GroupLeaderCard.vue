@@ -108,7 +108,7 @@
     const setGroupReplacementDialog = ref(false);
     const removeGroupReplacementDialog = ref(false);
     const trueavailable_group_leaders = ref([]);
-    const props = defineProps(["group_id", "group_name", "location" , "group_leader", "group_leader_replacement", "replacing_groups", "available", "available_group_leaders"]);
+    const props = defineProps(["group_number","group_id", "group_name", "location" , "group_leader", "group_leader_replacement", "replacing_groups", "available", "available_group_leaders"]);
     const emit = defineEmits(["replacement-set", "replacement-removed"]);
 
     import axios from "axios";
@@ -154,6 +154,7 @@
         axios
             .put(`${import.meta.env.VITE_API}/api/groups/${props.group_id}`, 
                 {   
+                    group_number: props.group_number,
                     group_name: props.group_name,
                     location_id: props.location.id,
                     user_id_group_leader: props.group_leader.id,
