@@ -160,3 +160,100 @@ def get_report():
                 description=f"Nutzer:in {g.user_id} hat keine Berechtigung, einen der Standort zu sehen",
             )
         )
+
+
+@reports_routes.get("/api/invoices")
+@login_required(groups=[UserGroup.verwaltung], disabled=True)
+@swag_from(
+    {
+        "tags": ["reports"],
+        "parameters": [
+            {
+                "in": "query",
+                "name": "pdf_bool",
+                "description": "Choose the format of the report. If true, the report will be generated as a PDF, otherwise as a CSV",
+                "required": False,
+                "schema": {"type": "boolean"},
+            },
+            {
+                "in": "query",
+                "name": "person_id",
+                "description": "Choose the person for the invoice",
+                "required": True,
+                "schema": {
+                    "type": "string",
+                    "format": "uuid",
+                },
+            },
+            {
+                "in": "query",
+                "name": "date-start",
+                "description": "Insert the start date for the invoice",
+                "required": True,
+                "schema": {"type": "string", "format": "date"},
+                "example": "2024-12-08",
+            },
+            {
+                "in": "query",
+                "name": "date-end",
+                "description": "Insert the end date for the invoice",
+                "required": True,
+                "schema": {"type": "string", "format": "date"},
+                "example": "2024-12-08",
+            },
+        ],
+        "responses": {
+            200: {
+                "description": "Report generated successfully",
+                "content": {
+                    "application/pdf": {
+                        "schema": {"type": "string", "format": "binary"}
+                    }
+                },
+            },
+            400: {"description": "Validation error"},
+        },
+    }
+)
+def get_invoices():
+    """Get invoices for orders filtered by date and person"""
+
+    try:
+        date_str = request.args.get("date-start")
+        date_end = request.args.get("date-end")
+        pdf_bool = request.args.get("pdf_bool")
+
+        person_id = request.args.get("person_id")
+        if not person_id:
+            abort_with_err(
+                ErrMsg(
+                    status_code=400,
+                    title="Validierungsfehler",
+                    description="Es wurde keine Person übergeben",
+                    details="Die Abfrage erfordert mindestens eine Person.",
+                )
+            )
+
+        filters = OrdersFilters(
+            date_start=(datetime.strptime(date_str, "%Y-%m-%d").date()),
+            date_end=(datetime.strptime(date_end, "%Y-%m-%d").date()),
+        )
+
+    except ValidationError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Validierungsfehler",
+                description="Format der Daten in der Query nicht valide",
+                details=err.messages,
+            )
+        )
+
+    try:
+        return ReportsService.get_printed_invoice(
+            filters=filters,
+            person_id=person_id,
+            pdf_bool=pdf_bool,
+        )
+    except ValueError as err:
+        pass

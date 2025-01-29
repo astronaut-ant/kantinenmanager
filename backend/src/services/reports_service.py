@@ -7,7 +7,7 @@ from flask import send_file, Response, make_response
 import csv
 from io import BytesIO, StringIO
 from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
+from reportlab.lib.pagesizes import letter, A4
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import (
     SimpleDocTemplate,
@@ -28,6 +28,7 @@ from src.models.user import UserGroup
 from src.models.preorder import PreOrder
 from src.models.dailyorder import DailyOrder
 from src.models.oldorder import OldOrder
+from src.models.person import Person
 
 from src.schemas.reports_schemas import CountOrdersObject, CountOrdersSchema
 
@@ -82,7 +83,9 @@ class ReportsService:
 
             for location_id in location_ids:
 
-                if ReportsService._check_user_access_to_location:
+                if ReportsService._check_user_access_to_location(
+                    location_id, user_id, user_group
+                ):
                     orders.extend(
                         ORDER_TYPE_GETTER[order_type](
                             OrdersFilters(
@@ -107,6 +110,43 @@ class ReportsService:
         else:
             return ReportsService._create_csv_report(
                 filters=filters, location_counts=location_counts
+            )
+
+    @staticmethod
+    def get_printed_invoice(
+        filters: OrdersFilters,
+        person_id: UUID,
+        pdf_bool: bool = True,
+    ) -> Union[Response, None]:
+        """
+        Get an invoice report #TODO filterd by date and location(s)
+        :param filters: Filters for old orders
+        :return: a pdf file with the report or None if no orders were found
+        """
+
+        if not person_id:
+            raise ValueError("Keine Person-ID übergeben")
+
+        orders: List[OldOrder] = []
+
+        orders = OrdersRepository.get_old_orders_date(
+            OrdersFilters(
+                date_start=filters.date_start,
+                date_end=filters.date_end,
+                person_id=person_id,
+            )
+        )
+        print(orders)
+        if orders == []:
+            return None
+
+        if pdf_bool:
+            return ReportsService._create_pdf_invoice(
+                filters.date_start, filters.date_end, orders
+            )
+        else:
+            return ReportsService._create_csv_report(
+                filters=filters,
             )
 
     @staticmethod
@@ -362,3 +402,447 @@ class ReportsService:
             return f"{filters.date.strftime('%d.%m.%Y')}"
         else:
             return None
+
+    def create_footer(canvas, doc):
+        """
+        Draws the Footer of the invoice.
+        """
+        canvas.saveState()
+        width, height = A4
+
+        canvas.setLineWidth(0.5)
+        canvas.line(50, 70, width - 50, 70)
+
+        canvas.setFont("Helvetica", 8)
+        canvas.drawString(
+            50, 60, "Rechnung zahlbar ohne Abzug innerhalb 30 Tagen ab Rechnungsdatum."
+        )
+
+        canvas.drawString(50, 35, "Stadt- und Kreissparkasse Leip")
+        canvas.drawString(50, 25, "IBAN: DE12 8605 5592 1090 2270 31")
+        canvas.drawString(50, 15, "BIC: WELADE8LXXX")
+
+        page_number_text = f"Seite {doc.page}"
+        canvas.drawRightString(width - 50, 15, page_number_text)
+
+        canvas.restoreState()
+
+    def create_footer_and_header(canvas, doc):
+        """
+        Draws the Header for the invoice.
+        """
+        canvas.saveState()
+        width, height = A4
+
+        canvas.setLineWidth(0.5)
+        canvas.line(50, 70, width - 50, 70)
+
+        canvas.setFont("Helvetica", 8)
+        canvas.drawString(
+            50, 60, "Rechnung zahlbar ohne Abzug innerhalb 30 Tagen ab Rechnungsdatum."
+        )
+
+        canvas.drawString(50, 35, "Stadt- und Kreissparkasse Leip")
+        canvas.drawString(50, 25, "IBAN: DE12 8605 5592 1090 2270 31")
+        canvas.drawString(50, 15, "BIC: WELADE8LXXX")
+
+        page_number_text = f"Seite {doc.page}"
+        canvas.drawRightString(width - 50, 15, page_number_text)
+
+        header_data = [
+            ["Leistungsnr./-art", "", "Zeitraum", "Preis", "Anzahl", "Gesamtpreis"]
+        ]
+
+        header_table = Table(header_data, colWidths=[75, 175, 100, 60, 35, 60])
+        header_table.setStyle(
+            TableStyle(
+                [
+                    ("LINEABOVE", (0, 0), (-1, 0), 0.7, colors.black),
+                    ("LINEBELOW", (0, 0), (-1, 0), 0.7, colors.black),
+                    ("FONTNAME", (0, 0), (5, -1), "Helvetica"),
+                    ("FONTSIZE", (0, 0), (5, -1), 8),
+                    ("BACKGROUND", (-1, -1), (-1, -1), colors.white),
+                    ("TEXTCOLOR", (0, 0), (-1, -1), colors.black),
+                    ("ALIGN", (0, 0), (0, -1), "RIGHT"),
+                    ("ALIGN", (3, 0), (5, -1), "RIGHT"),
+                    ("ALIGN", (1, 0), (2, -1), "LEFT"),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+                    ("TOPPADDING", (0, 0), (-1, -1), 0),
+                ]
+            )
+        )
+        width, height = A4
+        header_table.wrapOn(canvas, width, height)
+        header_table.drawOn(canvas, 45, height - 70)
+
+        canvas.restoreState()
+
+    def _create_pdf_invoice(start, end, orders: List[OldOrder]) -> Response:
+        """
+        This function creates an invoice for the orders given in the array orders. The invoice is returned as a PDF File.
+        """
+
+        styles = getSampleStyleSheet()
+        small_style = styles["Normal"]
+        small_style.fontName = "Helvetica"
+        small_style.fontSize = 6
+
+        buffer = BytesIO()
+        pdf = SimpleDocTemplate(buffer, pagesize=A4)
+        styles = getSampleStyleSheet()
+        elements = []
+
+        Name = orders[0].person.first_name + " " + orders[0].person.last_name
+
+        header_data = [
+            ["", "", "Sozial-Arbeiten-Wohnen Borna gGmbH"],
+            ["", "", "Am Wilhelmsschacht 1"],
+            ["", "", "04552 Borna"],
+            ["", "", ""],
+            ["", "", ""],
+            [
+                Paragraph(
+                    "<u>Sozial Arbeiten - Am Wilhelmsschacht 1 - 04552 Borna</u>",
+                    small_style,
+                ),
+                "",
+                "Telefon: 03433/209790",
+            ],
+            ["", "", ""],
+            ["", "", ""],
+            [Name, "", "Verpflegung WfbM"],
+            ["Platzhalter 1", "", "Am Wilhelmschacht 1"],
+            ["Platzhalter 2", "", "04552 Borna"],
+            ["", "", ""],
+            ["", "", ""],
+            ["", "", "Telefon: 03433/20979103"],
+            ["", "", ""],
+            ["", "", ""],
+            ["", "", ""],
+        ]
+        tableHead = Table(
+            header_data,
+            colWidths=[203, 50, 200],  # Erste Spalte ist leer, dritte Spalte rechts
+            hAlign="RIGHT",
+        )
+        tableHead.setStyle(
+            TableStyle(
+                [
+                    (
+                        "ALIGN",
+                        (0, 0),
+                        (2, -1),
+                        "LEFT",
+                    ),  # Text in der dritten Spalte rechtsbündig
+                    ("FONTNAME", (2, 0), (2, -1), "Helvetica-Bold"),  # Fettschrift
+                    ("FONTNAME", (2, 8), (2, 8), "Helvetica-Bold"),  # Fettschrift
+                    ("FONTNAME", (2, 1), (2, 7), "Helvetica"),  # Normaler Text
+                    ("FONTNAME", (2, 9), (2, -1), "Helvetica"),  # Normaler Text
+                    ("FONTSIZE", (2, 0), (2, -1), 8),  # Schriftgröße 10
+                    ("FONTSIZE", (0, 5), (0, 5), 7),  # Schriftgröße 6
+                    ("FONTSIZE", (0, 8), (0, -1), 10),  # Schriftgröße 10
+                    (
+                        "TOPPADDING",
+                        (0, 0),
+                        (-1, -1),
+                        0,
+                    ),  # Abstand oberhalb der Zellen reduzieren
+                    (
+                        "BOTTOMPADDING",
+                        (0, 0),
+                        (-1, -1),
+                        0,
+                    ),  # Abstand unterhalb der Zellen reduzieren
+                ]
+            )
+        )
+        elements.append(tableHead)
+
+        data = [["Leistungsnr./-art", "", "Zeitraum", "Preis", "Anzahl", "Gesamtpreis"]]
+
+        # The following Struture is used to create the main Table for the Invoice from the Array of Old Orders
+
+        current_month = start.month
+        main = 0
+        mainstart = ""
+        mainend = ""
+        salad = 0
+        saladstart = ""
+        saladend = ""
+        nothing = 0
+        nothingstart = ""
+        nothingend = ""
+        orderarray = []
+        gesamtpreis = 0
+
+        for order in orders:
+            date = order.date
+            if date.month == current_month and orders.index(order) != len(orders) - 1:
+                if order.nothing == True:
+                    if nothing > 0:
+                        nothing += 1
+                        nothingend = date
+                    else:
+                        if main != 0:
+                            orderarray.append(["main", mainstart, mainend, main])
+                            main = 0
+                        if salad != 0:
+                            orderarray.append(["salad", saladstart, saladend, salad])
+                            salad = 0
+                        nothingstart = date
+                        nothingend = date
+                        nothing = 1
+                else:
+                    if order.salad_option == True:
+                        if salad > 0:
+                            salad += 1
+                            saladend = date
+                        else:
+                            if nothing != 0:
+                                orderarray.append(
+                                    ["nothing", nothingstart, nothingend, nothing]
+                                )
+                                nothing = 0
+                            saladstart = date
+                            saladend = date
+                            salad = 1
+                    if order.main_dish != "":
+                        if main > 0:
+                            main += 1
+                            mainend = date
+                        else:
+                            if nothing != 0:
+                                orderarray.append(
+                                    ["nothing", nothingstart, nothingend, nothing]
+                                )
+                                nothing = 0
+                            mainstart = date
+                            mainend = date
+                            main = 1
+                    else:
+                        if main > 0:
+                            orderarray.append(["main", mainstart, mainend, main])
+                            main = 0
+            else:
+                if orders.index(order) == len(orders) - 1:
+                    if order.nothing == True:
+                        if nothing > 0:
+                            nothing += 1
+                            orderarray.append(["nothing", nothingstart, date, 1])
+                            nothing = 0
+                        else:
+                            if main != 0:
+                                orderarray.append(["main", mainstart, mainend, main])
+                                main = 0
+                            if salad != 0:
+                                orderarray.append(
+                                    ["salad", saladstart, saladend, salad]
+                                )
+                                salad = 0
+                            orderarray.append(["nothing", date, date, 1])
+                    else:
+                        if order.salad_option == True:
+                            if salad > 0:
+                                salad += 1
+                                orderarray.append(["salad", saladstart, date, salad])
+                                salad = 0
+                            else:
+                                if nothing != 0:
+                                    orderarray.append(
+                                        ["nothing", nothingstart, nothingend, nothing]
+                                    )
+                                    nothing = 0
+                                orderarray.append(["salad", date, date, 1])
+                        if order.main_dish != "":
+                            if main > 0:
+                                main += 1
+                                orderarray.append(["main", mainstart, date, main])
+                                main = 0
+                            else:
+                                if nothing != 0:
+                                    orderarray.append(
+                                        ["nothing", nothingstart, nothingend, nothing]
+                                    )
+                                    nothing = 0
+                                orderarray.append(["main", date, date, 1])
+                        else:
+                            if main > 0:
+                                orderarray.append(["main", mainstart, mainend, main])
+                                main = 0
+                else:
+                    if main != 0:
+                        orderarray.append(["main", mainstart, mainend, main])
+                        main = 0
+                    if salad != 0:
+                        orderarray.append(["salad", saladstart, saladend, salad])
+                        salad = 0
+                    if nothing != 0:
+                        orderarray.append(
+                            ["nothing", nothingstart, nothingend, nothing]
+                        )
+                        nothing = 0
+                firstdayofmonth = orderarray[1][1]
+                year = firstdayofmonth.year
+                month = firstdayofmonth.month
+                data.append(
+                    [
+                        "3001",
+                        "Abzug Vorrauszahlung",
+                        f"{month}.{year}",
+                        "-70,00",
+                        "1,00",
+                        "-70,00",
+                    ]
+                )
+                data.append(["", "Mittagessen", "", "", "", ""])
+                gesamtpreis -= 70
+                monatssumme = -70
+                for time in orderarray:
+                    start = time[1].strftime("%d.%m.%Y").replace(f"{year}", "")
+                    end = time[2].strftime("%d.%m.%Y")
+                    if time[0] == "main":
+                        zwischenpreis = (time[3] * 41) / 10
+                        gesamtpreis += zwischenpreis
+                        monatssumme += zwischenpreis
+                        data.append(
+                            [
+                                "3000",
+                                "Mittagessen WfbM",
+                                f"{start} - {end}",
+                                "4,10",
+                                f"{time[3]:.2f}".replace(".", ","),
+                                f"{zwischenpreis:.2f}".replace(".", ","),
+                            ]
+                        )
+                    if time[0] == "salad":
+                        zwischenpreis = (time[3] * 15) / 10
+                        gesamtpreis += zwischenpreis
+                        monatssumme += zwischenpreis
+                        data.append(
+                            [
+                                "3000",
+                                "Mittagessen WfbM Salat",
+                                f"{start} - {end}",
+                                "1,50",
+                                f"{time[3]:.2f}".replace(".", ","),
+                                f"{zwischenpreis:.2f}".replace(".", ","),
+                            ]
+                        )
+                    if time[0] == "nothing":
+                        data.append(
+                            [
+                                "3000",
+                                "Mittagessen WfbM Nichtesser",
+                                f"{start} - {end}",
+                                "0,00",
+                                f"{time[3]:.2f}".replace(".", ","),
+                                "0,00",
+                            ]
+                        )
+                orderarray = []
+                data.append(
+                    [
+                        "",
+                        "",
+                        "_______________________________________________________",
+                        "",
+                        "",
+                        "",
+                    ]
+                )
+                monate = [
+                    "Januar",
+                    "Februar",
+                    "März",
+                    "April",
+                    "Mai",
+                    "Juni",
+                    "Juli",
+                    "August",
+                    "September",
+                    "Oktober",
+                    "November",
+                    "Dezember",
+                ]
+                monatalsname = monate[current_month - 1]
+                StringMonat = f"Summe {monatalsname} {year}"
+                data.append(
+                    [
+                        "",
+                        "",
+                        StringMonat,
+                        "",
+                        "",
+                        f"{monatssumme:.2f}".replace(".", ","),
+                    ]
+                )
+                data.append(["", "", "", "", "", ""])
+                current_month = current_month + 1
+                if current_month == 13:
+                    current_month = 1
+                if orders.index(order) != len(orders) - 1:
+                    if order.nothing == True:
+                        nothing = 1
+                        nothingstart = date
+                        nothingend = date
+                    else:
+                        if order.salad_option == True:
+                            salad = 1
+                            saladstart = date
+                            saladend = date
+                        if order.main_dish != "":
+                            main = 1
+                            mainstart = date
+                            mainend = date
+
+        data.append(
+            [
+                "",
+                "",
+                "Rechnungsbetrag:",
+                "",
+                "",
+                f"{gesamtpreis:.2f} €".replace(".", ","),
+            ]
+        )
+
+        table = Table(data, colWidths=[75, 175, 100, 60, 35, 60])
+        table.setStyle(
+            TableStyle(
+                [
+                    ("LINEABOVE", (0, 0), (-1, 0), 0.7, colors.black),
+                    ("LINEBELOW", (0, 0), (-1, 0), 0.7, colors.black),
+                    ("FONTNAME", (0, 0), (5, -1), "Helvetica"),
+                    ("FONTSIZE", (0, 0), (5, -1), 8),
+                    ("BACKGROUND", (-1, -1), (-1, -1), colors.white),
+                    ("TEXTCOLOR", (0, 0), (-1, -1), colors.black),
+                    ("ALIGN", (0, 0), (0, -1), "RIGHT"),
+                    ("ALIGN", (3, 0), (5, -1), "RIGHT"),
+                    ("ALIGN", (1, 0), (2, -1), "LEFT"),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+                    ("TOPPADDING", (0, 0), (-1, -1), 0),
+                    ("LINEABOVE", (0, -1), (-1, -1), 0.7, colors.black),
+                    ("LINEBELOW", (2, -1), (-1, -1), 1, colors.black),
+                    ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
+                    ("TOPPADDING", (0, -1), (-1, -1), 2),
+                ]
+            )
+        )
+        elements.append(table)
+
+        pdf.build(
+            elements, onFirstPage=ReportsService.create_footer, onLaterPages=ReportsService.create_footer_and_header
+        )
+        buffer.seek(0)
+
+        response = make_response(
+            send_file(
+                buffer,
+                mimetype="application/pdf",
+                as_attachment=True,
+                download_name=f"Rechnung_{start}_bis_{end}_{Name}.pdf",
+            )
+        )
+        response.headers["Access-Control-Expose-Headers"] = "Content-Disposition"
+
+        return response

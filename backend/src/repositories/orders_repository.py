@@ -390,6 +390,22 @@ class OrdersRepository:
 
         return db.session.execute(query).scalars().all()
 
+    @staticmethod
+    def get_old_orders_date(filters: OrdersFilters) -> List[OldOrder]:
+        """
+        Get old orders based on filters
+
+        :param filters: Filters for orders
+        :return: List of old orders
+        """
+        query = select(OldOrder)
+        query = query.filter(OldOrder.person_id == filters.person_id)
+        query = query.filter(OldOrder.date >= filters.date_start)
+        query = query.filter(OldOrder.date <= filters.date_end)
+        query = query.order_by(OldOrder.date.asc())
+
+        return db.session.execute(query).scalars().all()
+
     ############################ Migrations ############################
 
     @staticmethod
