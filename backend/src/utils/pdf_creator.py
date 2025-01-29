@@ -697,9 +697,10 @@ class PDFCreationUtils:
                         monthly_salad += 1
             allmain += monthly_main
             allsalad += monthly_salad
+            groupsreplica = groups.copy()
             groups.sort(key=lambda x: x.group_name)
             for group in groups:
-                index = groups.index(group)
+                index = groupsreplica.index(group)
                 data.append(
                     [
                         group.group_name,
@@ -869,9 +870,10 @@ class PDFCreationUtils:
                         monthly_salad += 1
             allmain += monthly_main
             allsalad += monthly_salad
+            personsreplica = persons.copy()
             persons.sort(key=lambda x: x.first_name)
             for person in persons:
-                index = persons.index(person)
+                index = personsreplica.index(person)
                 data.append(
                     [
                         f"{person.first_name} {person.last_name}",
