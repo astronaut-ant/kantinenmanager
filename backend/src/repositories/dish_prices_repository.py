@@ -19,7 +19,7 @@ class DishPricesRepository:
 
     @staticmethod
     def get_price_by_date(date: datetime) -> DishPrice | None:
-        """Retrieve a dish price by its date
+        """Get dish price by its (starting) date.
 
         :param date: The date of the dish price to retrieve
 
@@ -27,30 +27,21 @@ class DishPricesRepository:
         """
 
         return db.session.scalars(
-            select(DishPrice).where(DishPrice.date == date)
+            select(DishPrice).filter(DishPrice.date == date)
         ).first()
 
     @staticmethod
-    def get_newest_price() -> DishPrice | None:
-        """Retrieve the newest dish price
+    def get_price_valid_at_date(date: datetime) -> DishPrice | None:
+        """Get dish price that was or will be valid at a specific date.
 
-        :return: The newest dish price or None if no dish price was found
-        """
+        :param date: The date of the dish price to retrieve
 
-        return db.session.scalars(
-            select(DishPrice).order_by(DishPrice.date.desc()).limit(1)
-        ).first()
-
-    @staticmethod
-    def get_todays_price() -> DishPrice | None:
-        """Retrieve the dish price for today
-
-        :return: The dish price for today or None if no dish price was found
+        :return: The dish price with the given date or None if no dish price was found
         """
 
         return db.session.scalars(
             select(DishPrice)
-            .where(DishPrice.date <= datetime.now().date())
+            .filter(DishPrice.date <= date)
             .order_by(DishPrice.date.desc())
             .limit(1)
         ).first()

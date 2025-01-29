@@ -15,7 +15,7 @@ class DishPricesService:
         return DishPricesRepository.get_prices()
 
     @staticmethod
-    def get_price_by_date(date: datetime) -> DishPrice | None:
+    def get_price_valid_at_date(date: datetime) -> DishPrice | None:
         """Retrieve a dish price by its date
 
         :param date: The date of the dish price to retrieve
@@ -23,25 +23,16 @@ class DishPricesService:
         :return: The dish price with the given date or None if no dish price was found
         """
 
-        return DishPricesRepository.get_price_by_date(date)
+        return DishPricesRepository.get_price_valid_at_date(date)
 
     @staticmethod
-    def get_newest_price() -> DishPrice | None:
-        """Retrieve the newest dish price
-
-        :return: The newest dish price or None if no dish price was found
-        """
-
-        return DishPricesRepository.get_newest_price()
-
-    @staticmethod
-    def get_todays_price() -> DishPrice | None:
+    def get_current_price() -> DishPrice | None:
         """Retrieve the dish price for today
 
         :return: The dish price for today or None if no dish price was found
         """
 
-        return DishPricesRepository.get_todays_price()
+        return DishPricesService.get_price_valid_at_date(datetime.now().date())
 
     @staticmethod
     def create_price(

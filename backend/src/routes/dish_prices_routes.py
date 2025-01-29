@@ -21,7 +21,7 @@ dish_prices_routes = Blueprint("dish_prices_routes", __name__)
         "tags": ["dish_price"],
         "responses": {
             200: {
-                "description": "Get all dish prices",
+                "description": "List of all dish prices",
                 "schema": {"type": "array", "items": DishPriceFullSchema},
             }
         },
@@ -53,18 +53,21 @@ def get_dish_prices():
         ],
         "responses": {
             200: {
-                "description": "Get a dish price by its date",
+                "description": "Dish price valid at date",
                 "schema": DishPriceFullSchema,
             }
         },
     }
 )
 def get_dish_price_by_date(date: datetime):
-    """Get a dish price by its date"""
+    """Get a dish price valid at a specific date
+
+    Get the dish price that was or will be valid at the specified date.
+    ---
+    """
 
     try:
         parsed_date = DishPriceBaseSchema(only=("date",)).load({"date": date})
-        print(parsed_date)
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
@@ -75,7 +78,7 @@ def get_dish_price_by_date(date: datetime):
             )
         )
 
-    price = DishPricesService.get_price_by_date(parsed_date.get("date"))
+    price = DishPricesService.get_price_valid_at_date(parsed_date.get("date"))
 
     if price is None:
         abort_with_err(
@@ -89,64 +92,34 @@ def get_dish_price_by_date(date: datetime):
     return DishPriceFullSchema().dump(price)
 
 
-@dish_prices_routes.get("/api/dish_prices/newest")
+@dish_prices_routes.get("/api/dish_prices/current")
 @login_required(groups=[UserGroup.verwaltung])
 @swag_from(
     {
         "tags": ["dish_price"],
         "responses": {
             200: {
-                "description": "Get a dish price by its date",
+                "description": "Today's dish price",
                 "schema": DishPriceFullSchema,
             }
         },
     }
 )
-def get_newest_dish_price():
-    """Get the newest dish price"""
-
-    price = DishPricesService.get_newest_price()
-
-    if price is None:
-        abort_with_err(
-            ErrMsg(
-                status_code=404,
-                title="Preis existiert nicht",
-                description="Es existiert kein Preis",
-            )
-        )
-
-    return DishPriceFullSchema().dump(price)
-
-
-@dish_prices_routes.get("/api/dish_prices/today")
-@login_required(groups=[UserGroup.verwaltung])
-@swag_from(
-    {
-        "tags": ["dish_price"],
-        "responses": {
-            200: {
-                "description": "Get a dish price by its date",
-                "schema": DishPriceFullSchema,
-            }
-        },
-    }
-)
-def get_dish_price_today():
-    """Get the todays dish price
+def get_current_dish_price():
+    """Get the current dish price
 
     Get the price that is valid today.
     ---
     """
 
-    price = DishPricesService.get_todays_price()
+    price = DishPricesService.get_current_price()
 
     if price is None:
         abort_with_err(
             ErrMsg(
                 status_code=404,
                 title="Preis existiert nicht",
-                description="Es existiert kein Preis",
+                description="Es existiert kein Preis.",
             )
         )
 
@@ -168,7 +141,7 @@ def get_dish_price_today():
         ],
         "responses": {
             201: {
-                "description": "Create a new dish price",
+                "description": "Newly created dish price",
                 "schema": DishPriceFullSchema,
             }
         },
@@ -216,7 +189,7 @@ def create_dish_price():
                 "format": "date",
                 "required": True,
                 "example": "2025-01-01",
-                "description": "The date of the dish price to update",
+                "description": "The starting date of the dish price to update",
             },
             {
                 "in": "body",
@@ -227,7 +200,7 @@ def create_dish_price():
         ],
         "responses": {
             200: {
-                "description": "Update an existing dish price",
+                "description": "Updated dish price",
                 "schema": DishPriceFullSchema,
             }
         },
@@ -295,7 +268,7 @@ def update_dish_price(date: datetime):
                 "format": "date",
                 "required": True,
                 "example": "2025-01-01",
-                "description": "The date of the dish price to delete",
+                "description": "The starting date of the dish price to delete",
             }
         ],
         "responses": {204: {"description": "Delete a dish price"}},
