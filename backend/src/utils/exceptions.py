@@ -40,3 +40,21 @@ class UserBlockedError(Exception):
 
     def __init__(self, message):
         super().__init__(f"Blockiert: {message}")
+
+
+class InvalidCredentialsException(Exception):
+    """User credentials are invalid"""
+
+    pass
+
+
+class UnauthenticatedException(Exception):
+    """User is not authenticated"""
+
+    pass
+
+
+class RefreshTokenAlreadyUsedError(Exception):
+    """Refresh token has already been used"""
+
+    pass

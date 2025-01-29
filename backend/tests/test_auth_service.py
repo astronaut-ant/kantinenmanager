@@ -8,11 +8,11 @@ import jwt
 from src import app as project_app
 from src.models.refresh_token_session import RefreshTokenSession
 from src.models.user import User, UserGroup
-from src.services.auth_service import (
-    AuthService,
+from src.services.auth_service import AuthService
+from src.utils.exceptions import (
     InvalidCredentialsException,
     UnauthenticatedException,
-    UserNotFoundException,
+    NotFoundError,
 )
 
 # * Fixtures bieten eine Möglichkeit, Code zu schreiben, der von mehreren Tests verwendet wird.
@@ -294,7 +294,7 @@ def describe_login():
         attrs = {"get_user_by_username.return_value": None}
         _helper_mock_users_repo_with_attrs(mocker, attrs)
 
-        with pytest.raises(UserNotFoundException):
+        with pytest.raises(NotFoundError):
             AuthService.login("johndoe", "password")
 
     def it_throws_error_on_invalid_password(mocker, user):

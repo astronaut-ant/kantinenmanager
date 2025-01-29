@@ -19,32 +19,13 @@ from src.repositories.refresh_token_session_repository import (
 from src.models.refresh_token_session import RefreshTokenSession
 from src.models.user import User, UserGroup
 from src.repositories.users_repository import UsersRepository
-from src.utils.exceptions import UserBlockedError
+from src.utils.exceptions import (
+    UserBlockedError,
+    NotFoundError,
+    InvalidCredentialsException,
+    UnauthenticatedException,
+)
 from flask import current_app as app
-
-
-class UserNotFoundException(Exception):
-    """User does not exist"""
-
-    pass
-
-
-class InvalidCredentialsException(Exception):
-    """User credentials are invalid"""
-
-    pass
-
-
-class UnauthenticatedException(Exception):
-    """User is not authenticated"""
-
-    pass
-
-
-class RefreshTokenAlreadyUsedError(Exception):
-    """Refresh token has already been used"""
-
-    pass
 
 
 class AuthService:
@@ -59,14 +40,14 @@ class AuthService:
 
         :return: The user object, the authentication token and the refresh token
 
-        :raises auth_service.UserNotFoundException: If the user does not exist
+        :raises auth_service.NotFoundError: If the user does not exist
         :raises auth_service.InvalidCredentialsException: If the password is incorrect
         """
 
         # Fetch user from DB
         user = UsersRepository.get_user_by_username(username)
         if user is None:
-            raise UserNotFoundException(f"User with username '{username}' not found")
+            raise NotFoundError(f"Nutzer:in '{username}'")
 
         # Check password
         if not AuthService.__check_password(password, user.hashed_password):
@@ -214,14 +195,14 @@ class AuthService:
         :param old_password: The current password
         :param new_password: The new password
 
-        :raises auth_service.UserNotFoundException: If the user does not exist
+        :raises auth_service.NotFoundError: If the user does not exist
         :raises auth_service.InvalidCredentialsException: If the old password is incorrect
         """
 
         # Fetch user from DB
         user = UsersRepository.get_user_by_id(user_id)
         if user is None:
-            raise UserNotFoundException(f"User with id '{str(user_id)}' not found")
+            raise NotFoundError(f"Nutzer:in mit ID '{user_id}'")
 
         # Check password
         if not AuthService.__check_password(old_password, user.hashed_password):
