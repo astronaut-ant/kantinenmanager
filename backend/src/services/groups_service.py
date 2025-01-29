@@ -1,5 +1,4 @@
 from uuid import UUID
-import re
 from src.models.user import UserGroup
 from src.models.group import Group
 from src.repositories.groups_repository import GroupsRepository

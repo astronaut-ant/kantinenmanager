@@ -2,8 +2,6 @@ from typing import List
 from uuid import UUID
 
 from src.models.dailyorder import DailyOrder
-from src.models.maindish import MainDish
-from src.models.user import UserGroup
 from src.repositories.groups_repository import GroupsRepository
 from src.repositories.orders_repository import OrdersRepository
 from src.repositories.users_repository import UsersRepository

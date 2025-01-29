@@ -1,7 +1,6 @@
 from uuid import UUID
 from marshmallow import ValidationError
 from src.schemas.locations_schemas import LocationFullNestedSchema, LocationFullSchema
-from src.schemas.users_schemas import UserFullSchema
 from src.utils.auth_utils import login_required
 from src.utils.error import ErrMsg, abort_with_err
 from src.models.user import UserGroup

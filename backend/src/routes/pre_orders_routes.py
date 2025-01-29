@@ -1,12 +1,12 @@
 from uuid import UUID
 from marshmallow import ValidationError
-from src.utils.exceptions import NotFoundError
 from src.schemas.pre_orders_schemas import (
     OrdersFilterSchema,
     PreOrderFullSchema,
     PreOrdersByGroupLeaderSchema,
 )
 from src.utils.exceptions import (
+    NotFoundError,
     ActionNotPossibleError,
     AccessDeniedError,
     BadValueError,
