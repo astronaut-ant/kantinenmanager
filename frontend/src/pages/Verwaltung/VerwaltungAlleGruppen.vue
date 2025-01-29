@@ -5,7 +5,7 @@
     :filterList="['group_name', 'group_number', 'group_leader.first_name', 'group_leader.last_name', 'location.location_name']"
     :items="sortGroups(groups)"
     @searchresult="updateOverview"
-    @changeview="" 
+    @changeview=""
     />
   <div v-if="grouplist.length != 0" class="grid-container">
     <div
@@ -227,6 +227,11 @@
     :text="snackbarText"
     @close="snackbar = false"
   ></SuccessSnackbar>
+  <ErrorSnackbar
+    v-model="errorSnackbar"
+    :text="errorSnackbarText"
+    @close="errorSnackbar = false"
+  ></ErrorSnackbar>
   <NoResult v-if="grouplist.length == 0" />
 </template>
 
@@ -236,6 +241,8 @@ import NoResult from "@/components/SearchComponents/NoResult.vue";
 import axios from "axios";
 const snackbarText = ref(" ");
 const snackbar = ref(false);
+const errorSnackbar = ref(false);
+const errorSnackbarText = ref("");
 const groups = ref(null);
 const grouplist = ref([]);
 const employees = ref(null);
@@ -355,7 +362,11 @@ const confirmEdit = () => {
       snackbarText.value = "Die Gruppe wurde erfolgreich aktualisiert!";
       snackbar.value = true;
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.log(err);
+      errorSnackbarText.value = "Fehler beim aktualisieren der Gruppe!";
+      errorSnackbar.value = true;
+    });
 };
 const closeEditDialog = () => {
   newLeaderID.value = null;
@@ -449,10 +460,10 @@ const sortGroups = (array) => {
   grid-template-columns: repeat(auto-fill, minmax(425px, 1fr));
   gap: 10px;
   justify-content: center;
-  justify-items: center; 
+  justify-items: center;
   padding: 20px;
-  width: 100%; 
-  max-width: 100%; 
+  width: 100%;
+  max-width: 100%;
   box-sizing: border-box;
 }
 

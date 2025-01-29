@@ -8,7 +8,7 @@
                     </v-avatar>
                 </div>
                 <div class="ml-4">
-                    <v-card-title> 
+                    <v-card-title>
                         {{ props.firstName + " " + props.lastName }}
                     </v-card-title>
                     <v-card-subtitle>
@@ -25,8 +25,8 @@
         <v-card-text>
             <v-divider></v-divider>
             <div class="mt-3 d-flex justify-space-between align-center">
-                <v-chip 
-                    :prepend-icon="props.role === 'verwaltung' ? 'mdi-shield-account' : 'mdi-badge-account'" 
+                <v-chip
+                    :prepend-icon="props.role === 'verwaltung' ? 'mdi-shield-account' : 'mdi-badge-account'"
                     :color="color"
                     density="comfortable"
                     > {{ formattedRole }} </v-chip>
@@ -107,6 +107,7 @@
         />
     </v-dialog>
     <SuccessSnackbar v-model="snackbar" :text="snackbarText"></SuccessSnackbar>
+    <ErrorSnackbar v-model="errorSnackbar" :text="errorSnackbarText" @close="errorSnackbar = false"></ErrorSnackbar>
 
 </template>
 
@@ -143,7 +144,11 @@ const confirmDelete = () => {
       snackbarText.value = "Der Benutzer wurde erfolgreich gelöscht!";
       snackbar.value = true;
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.log(err);
+      errorSnackbarText.value = "Fehler beim löschen des Nutzers!";
+      errorSnackbar.value = true;
+    });
 };
 
 
@@ -157,6 +162,8 @@ const showConfirm = ref(false);
 const initialPassword = ref();
 const snackbarText = ref(" ");
 const snackbar = ref(false);
+const errorSnackbar = ref(false);
+const errorSnackbarText = ref(" ")
 
 const handlePasswordReset = () => {
     axios
@@ -171,6 +178,8 @@ const handlePasswordReset = () => {
         })
         .catch((err) => {
             console.log(err);
+            errorSnackbarText.value = "Fehler beim zurücksetzen des Passwortes!";
+            errorSnackbar.value = true;
         });
 };
 
@@ -203,6 +212,8 @@ const confirmEdit = () => {
         })
         .catch((err) => {
             console.error("Error updating user:", err);
+            errorSnackbarText.value = "Fehler beim aktualisieren des Benutzers!";
+            errorSnackbar.value = true;
         });
 };
 

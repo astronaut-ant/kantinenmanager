@@ -22,11 +22,12 @@
             </span>
           </div>
         </v-card-title>
+        <v-divider></v-divider>
         <v-card-actions class="justify-end">
-          <v-btn class="mt-2 bg-primary" @click="openEditDialog(location)">
+          <v-btn class="mt-2 bg-primary" density="comfortable" @click="openEditDialog(location)">
             <v-icon>mdi-lead-pencil</v-icon>
           </v-btn>
-          <v-btn class="mt-2 bg-red" @click="handleDelete(location)">
+          <v-btn class="mt-2 bg-red" density="comfortable" @click="handleDelete(location)">
             <v-icon>mdi-trash-can-outline</v-icon>
           </v-btn>
         </v-card-actions>
@@ -39,6 +40,7 @@
       @close="closeEditDialog"
       @save="initialize"
       @success="snackbarConfirm"
+      @error="snackbarError"
       :oldValues="locationToEdit"
     />
   </v-dialog>
@@ -91,13 +93,17 @@
     :text="snackbarText"
     @close="snackbar = false"
   ></SuccessSnackbar>
+  <ErrorSnackbar
+    v-model="errorSnackbar"
+    :text="errorSnackbarText"
+    @close="errorSnackbar = false"
+  ></ErrorSnackbar>
 </template>
 
 <script setup>
 import LocationChange from "@/components/LocationChange.vue";
 import LocationCreation from "@/components/LocationCreation.vue";
 import axios from "axios";
-const snackbar = ref(false);
 const locations = ref({});
 const locationLeaders = ref({});
 const newLocationLeaderID = ref(null);
@@ -108,7 +114,10 @@ const locationToEdit = ref(null);
 const deleteDialog = ref(false);
 const secondDeleteDialog = ref(false);
 const locationToDelete = ref(null);
+const snackbar = ref(false);
 const snackbarText = ref("");
+const errorSnackbar = ref(false);
+const errorSnackbarText = ("");
 
 const initialize = () => {
   axios
@@ -117,7 +126,11 @@ const initialize = () => {
       locations.value = response.data;
       // console.log(locations.value);
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.log(err);
+      errorSnackbarText.value = "Fehler beim Laden der Standorte!";
+      errorSnackbar.value = true;
+    });
   axios
     .get(import.meta.env.VITE_API + "/api/users/location-leaders", {
       withCredentials: true,
@@ -188,6 +201,10 @@ const snackbarConfirm = () => {
   snackbarText.value = "Der Standort wurde erfolgreich aktualisiert";
   snackbar.value = true;
 };
+const snackbarError = () => {
+  errorSnackbarText.value = "Fehler beim aktualisieren des Standorts!"
+  errorSnackbar.value = true;
+}
 const closeEditDialog = () => {
   editDialog.value = false;
   locationToEdit.value = null;
