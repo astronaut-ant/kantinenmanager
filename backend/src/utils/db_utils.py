@@ -21,10 +21,8 @@ from src.services.pre_orders_service import PreOrdersService
 from src.repositories.orders_repository import OrdersFilters
 from src.services.users_service import UsersService
 from src.utils.exceptions import (
-    EmployeeAlreadyExistsError,
-    GroupAlreadyExists,
-    LocationAlreadyExistsError,
-    UserAlreadyExistsError,
+    AlreadyExistsError,
+    AlreadyExistsError,
 )
 
 
@@ -55,7 +53,7 @@ def insert_user_mock_data():
                 user_group=user["user_group"],
             )
             print(f"Inserted user with ID {user_id}")
-        except UserAlreadyExistsError:
+        except AlreadyExistsError(f"User {user['username']}"):
             continue
 
 
@@ -77,7 +75,7 @@ def insert_location_mock_data():
         try:
             location_id = LocationsService.create_location(name, leader)
             print(f"Inserted location with ID {location_id}")
-        except LocationAlreadyExistsError:
+        except AlreadyExistsError(f"Standort {name}"):
             continue
 
 
@@ -134,7 +132,7 @@ def insert_group_mock_data():
                 user_id_replacement=replacement,
             )
             print(f"Inserted group with ID {group_id} and leader {leader}")
-        except GroupAlreadyExists:
+        except AlreadyExistsError(f"Gruppe {name}"):
             continue
 
 
@@ -151,7 +149,7 @@ def insert_employee_mock_data():
                 employee["location_name"],
             )
             print(f"Inserted employee with ID {employee_id}")
-        except EmployeeAlreadyExistsError:
+        except AlreadyExistsError(f"Mitarbeiter:in {employee['employee_number']}"):
             continue
 
 

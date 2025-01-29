@@ -4,11 +4,7 @@ from src.models.group import Group
 from src.models.location import Location
 from src.repositories.locations_repository import LocationsRepository
 from src.repositories.users_repository import UsersRepository
-from src.utils.exceptions import (
-    LocationAlreadyExistsError,
-    LeaderDoesNotExist,
-    NotFoundError,
-)
+from src.utils.exceptions import AlreadyExistsError, NotFoundError
 
 
 class LocationsService:
@@ -44,18 +40,16 @@ class LocationsService:
         """
 
         if LocationsRepository.get_location_by_name(location_name):
-            raise LocationAlreadyExistsError(
-                f"Standort {location_name} existiert bereits"
-            )
+            raise AlreadyExistsError(f"Standort {location_name}")
 
         location_leader = UsersRepository.get_user_by_id(user_id_location_leader)
         if not location_leader:
-            raise LeaderDoesNotExist(
-                f"Gruppenleiter mit ID {user_id_location_leader} existiert nicht"
-            )
+            raise NotFoundError(f"Gruppenleitung mit ID {user_id_location_leader}")
+
         if LocationsRepository.get_location_by_leader(location_leader.id):
-            raise LocationAlreadyExistsError(
-                f"User {location_leader.username} ist bereits Standortleiter"
+            raise AlreadyExistsError(
+                ressource=f"User {location_leader.username}",
+                details=" als Standortleiter",
             )
 
         location_id = LocationsRepository.create_location(
@@ -78,23 +72,19 @@ class LocationsService:
         location = LocationsService.get_location_by_id(location_id)
 
         if location == None:
-            raise NotFoundError
+            raise NotFoundError(f"Standort mit ID {location_id}")
 
         if (
             location_name != location.location_name
             and LocationsRepository.get_location_by_name(location_name)
         ):
-            raise LocationAlreadyExistsError(
-                f"Ein anderer Standort mit Name {location_name} existiert bereits."
-            )
+            raise AlreadyExistsError(f"Standort {location_name}")
 
         if (
             user_id_location_leader != location.user_id_location_leader
             and LocationsRepository.get_location_by_leader(user_id_location_leader)
         ):
-            raise LocationAlreadyExistsError(
-                f"User mit ID {user_id_location_leader} ist bereits Standortleiter eines anderen Standorts."
-            )
+            raise AlreadyExistsError(ressource="User", details="als Standortleiter")
 
         location.location_name = location_name
         location.user_id_location_leader = user_id_location_leader

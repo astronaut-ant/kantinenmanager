@@ -82,7 +82,7 @@ class AuthService:
         if user.blocked:
             # blocked message should be displayed only for the right user,
             # so not to give away information about the existence of the user
-            raise UserBlockedError("User account is blocked")
+            raise UserBlockedError("Account von Nutzer:in ist gesperrt.")
 
         # Create authentication and refresh tokens
         jwt_secret = app.config["JWT_SECRET"]
@@ -167,7 +167,7 @@ class AuthService:
             app.logger.warning(
                 f"User account '{user.username}' with id '{session.user_id}' blocked due to repeated refresh token usage"
             )
-            raise UserBlockedError("Refresh token has already been used")
+            raise UserBlockedError("Refresh Token wurde bereits verwendet.")
 
         # Generate new tokens
         user = UsersRepository.get_user_by_id(session.user_id)
@@ -176,7 +176,7 @@ class AuthService:
             raise UnauthenticatedException("User not found")
 
         if user.blocked:
-            raise UserBlockedError("User account is blocked")
+            raise UserBlockedError("Account von Nutzer:in ist gesperrt.")
 
         new_auth_token = AuthService.__make_auth_token(user, jwt_secret)
         new_refresh_token = AuthService.__make_refresh_token(user)

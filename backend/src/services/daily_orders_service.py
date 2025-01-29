@@ -5,10 +5,10 @@ from src.models.dailyorder import DailyOrder
 from src.models.maindish import MainDish
 from src.models.user import UserGroup
 from src.repositories.groups_repository import GroupsRepository
-from src.repositories.orders_repository import OrdersRepository, OrdersFilters
+from src.repositories.orders_repository import OrdersRepository
 from src.repositories.users_repository import UsersRepository
 from src.schemas.daily_orders_schema import DailyOrderFullSchema
-from src.utils.exceptions import AccessDeniedError, NotFoundError, WrongLocationError
+from src.utils.exceptions import AccessDeniedError, NotFoundError, BadValueError
 
 
 class DailyOrdersService:
@@ -20,16 +20,17 @@ class DailyOrdersService:
 
         order = OrdersRepository.get_daily_order_by_person_id(person_id)
         if not order:
-            raise NotFoundError(f"Bestellung für Person '{person_id}' nicht gefunden.")
+            raise NotFoundError(f"Bestellung für Person '{person_id}'")
 
         user = UsersRepository.get_user_by_id(user_id)
 
         if not user:
-            raise ValueError(f"Nutzer {person_id} existiert nicht.")
+            raise NotFoundError(f"Nutzer:in {person_id}")
 
         if order.location_id != user.location_id:
-            raise WrongLocationError(
-                f"Person {person_id} gehört nicht zum Standort {user.location_id}"
+            raise AccessDeniedError(
+                resssource=f"Person {person_id}",
+                details=f" auf Standort {user.location_id}",
             )
 
         return order
@@ -42,20 +43,21 @@ class DailyOrdersService:
 
         order = OrdersRepository.get_daily_order_by_id(daily_order_id)
         if not order:
-            raise NotFoundError(f"Bestellung '{daily_order_id}' nicht gefunden.")
+            raise NotFoundError(f"Bestellung {daily_order_id}")
 
         user = UsersRepository.get_user_by_id(user_id)
 
         if not user:
-            raise ValueError(f"Nutzer {order.person_id} existiert nicht.")
+            raise NotFoundError(f"Nutzer {order.person_id}")
 
         if order.location_id != user.location_id:
-            raise WrongLocationError(
-                f"Person {order.person_id} gehört nicht zum Standort {user.location_id}"
+            raise AccessDeniedError(
+                ressource=f"Person {order.person_id}",
+                details=f" auf Standort {user.location_id}",
             )
 
         if order["nothing"] == True and (order["main_dish"] or order["salad_option"]):
-            raise ValueError(
+            raise BadValueError(
                 "Wenn 'nichts' ausgewählt ist, dürfen keine Essensoptionen ausgewählt werden."
             )
 
@@ -83,7 +85,7 @@ class DailyOrdersService:
         group = GroupsRepository.get_group_by_id(group_id)
 
         if not group:
-            raise NotFoundError(f"Gruppe {group_id} nicht gefunden.")
+            raise NotFoundError(f"Gruppe mit ID {group_id}")
         if (
             user_id != group.user_id_group_leader
             and user_id != group.user_id_replacement

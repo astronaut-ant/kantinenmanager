@@ -8,11 +8,7 @@ from src.models.user import UserGroup
 from flask import Blueprint, jsonify, request
 from flasgger import swag_from
 from src.services.locations_service import LocationsService
-from src.utils.exceptions import (
-    LocationAlreadyExistsError,
-    LeaderDoesNotExist,
-    NotFoundError,
-)
+from src.utils.exceptions import AlreadyExistsError, NotFoundError
 
 
 locations_routes = Blueprint("locations_routes", __name__)
@@ -120,7 +116,7 @@ def create_location():
 
     try:
         location_id = LocationsService.create_location(**body)
-    except LocationAlreadyExistsError as err:
+    except AlreadyExistsError as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
@@ -129,7 +125,7 @@ def create_location():
                 detail=str(err),
             )
         )
-    except LeaderDoesNotExist as err:
+    except NotFoundError as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
@@ -197,7 +193,7 @@ def update_location(location_id: UUID):
                 details=err,
             )
         )
-    except LocationAlreadyExistsError:
+    except AlreadyExistsError:
         abort_with_err(
             ErrMsg(
                 status_code=400,

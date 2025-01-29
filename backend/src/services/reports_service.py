@@ -31,7 +31,7 @@ from src.models.oldorder import OldOrder
 
 from src.schemas.reports_schemas import CountOrdersObject, CountOrdersSchema
 
-from src.utils.exceptions import AccessDeniedError, LocationDoesNotExist
+from src.utils.exceptions import AccessDeniedError, NotFoundError, BadValueError
 
 
 class OrderType(Enum):
@@ -64,17 +64,17 @@ class ReportsService:
         """
 
         if not location_ids:
-            raise ValueError("Keine Standort-ID übergeben")
+            raise BadValueError("Standort ID fehlt.")
 
         try:
             order_types_with_dates = ReportsService._get_order_details(
                 filters.date, filters.date_start, filters.date_end
             )
-        except ValueError as err:
-            raise ValueError(str(err))
+        except BadValueError as err:
+            raise BadValueError(str(err))
 
         if not order_types_with_dates:
-            raise ValueError("Keine Bestellungen für dieses Datum gefunden")
+            raise NotFoundError("Bestellung(en) für das Datum")
 
         orders: List[PreOrder | DailyOrder | OldOrder] = []
 
@@ -122,9 +122,7 @@ class ReportsService:
         elif user_group == UserGroup.verwaltung:
             daily_orders = OrdersRepository.get_all_daily_orders()
         else:
-            raise AccessDeniedError(
-                f"Zugriff verweigert. Nutzer:in {user_id} hat keine Berechtigung."
-            )
+            raise AccessDeniedError(f"Nutzer:in {user_id}")
 
         location_counts = ReportsService._count_location_orders(daily_orders)
 
@@ -195,9 +193,7 @@ class ReportsService:
                     order_types.append(("OLD_ORDER", yesterday, date_end))
 
         else:
-            raise ValueError(
-                "Kein valides Datum. Übergebe entweder ein Datum oder ein valides Start- und ein Enddatum."
-            )
+            raise BadValueError("Kein valides Start- und Enddatum übergeben.")
 
         return order_types
 
@@ -228,7 +224,7 @@ class ReportsService:
 
             location = LocationsRepository.get_location_by_id(order.location_id)
             if not location:
-                raise LocationDoesNotExist("Standort nicht gefunden")
+                raise NotFoundError(f"Standort mit ID {order.location_id}")
 
             if location not in location_counts:
                 location_counts[location] = {
@@ -255,7 +251,7 @@ class ReportsService:
 
         date_str = ReportsService._get_date_string(filters)
         if not date_str:
-            raise ValueError("Kein Datum übergeben")
+            raise BadValueError("Kein Datum übergeben")
 
         elements.append(Paragraph(f"Datum: {date_str}", styles["Heading2"]))
         elements.append(Spacer(1, 12))
