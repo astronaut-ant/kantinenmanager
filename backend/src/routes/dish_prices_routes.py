@@ -105,6 +105,36 @@ def get_newest_dish_price():
     return DishPriceFullSchema().dump(price)
 
 
+@dish_prices_routes.get("/api/dish_prices/today")
+@login_required(groups=[UserGroup.verwaltung])
+@swag_from(
+    {
+        "tags": ["dish_price"],
+        "responses": {
+            200: {
+                "description": "Get a dish price by its date",
+                "schema": DishPriceFullSchema,
+            }
+        },
+    }
+)
+def get_dish_price_today():
+    """Get the todays dish price"""
+
+    price = DishPricesService.get_todays_price()
+
+    if price is None:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Preis existiert nicht",
+                description="Es existiert kein Preis",
+            )
+        )
+
+    return DishPriceFullSchema().dump(price)
+
+
 @dish_prices_routes.post("/api/dish_prices")
 @login_required(groups=[UserGroup.verwaltung])
 @swag_from(

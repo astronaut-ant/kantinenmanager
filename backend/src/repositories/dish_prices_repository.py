@@ -42,6 +42,20 @@ class DishPricesRepository:
         ).first()
 
     @staticmethod
+    def get_todays_price() -> DishPrice | None:
+        """Retrieve the dish price for today
+
+        :return: The dish price for today or None if no dish price was found
+        """
+
+        return db.session.scalars(
+            select(DishPrice)
+            .where(DishPrice.date <= datetime.now().date())
+            .order_by(DishPrice.date.desc())
+            .limit(1)
+        ).first()
+
+    @staticmethod
     def create_price(price: DishPrice):
         """Create a new dish price in the database.
 

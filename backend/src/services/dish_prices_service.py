@@ -35,6 +35,15 @@ class DishPricesService:
         return DishPricesRepository.get_newest_price()
 
     @staticmethod
+    def get_todays_price() -> DishPrice | None:
+        """Retrieve the dish price for today
+
+        :return: The dish price for today or None if no dish price was found
+        """
+
+        return DishPricesRepository.get_todays_price()
+
+    @staticmethod
     def create_price(
         date: datetime, main_dish_price: float, salad_price: float
     ) -> DishPrice:
@@ -84,6 +93,7 @@ class DishPricesService:
         if main_dish_price < 0 or salad_price < 0:
             raise ValueError("Prices must not be negative")
 
+        price.date = date
         price.main_dish_price = main_dish_price
         price.salad_price = salad_price
 
