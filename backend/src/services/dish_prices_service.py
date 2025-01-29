@@ -58,12 +58,15 @@ class DishPricesService:
         """
 
         if DishPricesRepository.get_price_by_date(date):
+            # TODO: Use BadValueError
             raise ValueError(f"Dish price for date {date} already exists")
 
         if main_dish_price < 0 or salad_price < 0:
+            # TODO: Use BadValueError
             raise ValueError("Prices must not be negative")
 
         if prepayment < 0:
+            # TODO: Use BadValueError
             raise ValueError("Prepayment must not be negative")
 
         price = DishPrice(
@@ -100,12 +103,15 @@ class DishPricesService:
             raise NotFoundError(f"Dish price for date {date} does not exist")
 
         if old_date != date and DishPricesRepository.get_price_by_date(date):
+            # TODO: Use BadValueError
             raise ValueError(f"Dish price for date {date} already exists")
 
         if main_dish_price < 0 or salad_price < 0:
+            # TODO: Use BadValueError
             raise ValueError("Prices must not be negative")
 
         if prepayment < 0:
+            # TODO: Use BadValueError
             raise ValueError("Prepayment must not be negative")
 
         price.date = date
