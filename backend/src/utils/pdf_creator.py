@@ -265,6 +265,8 @@ class PDFCreationUtils:
             raise ValueError("UUID gehört nicht zu Person")
         else:
             Name = person.first_name + " " + person.last_name
+            Gruppenname = person.group.group_name
+            Locationname = person.group.location.location_name
 
         header_data = [
             ["", "", "Sozial-Arbeiten-Wohnen Borna gGmbH"],
@@ -283,8 +285,8 @@ class PDFCreationUtils:
             ["", "", ""],
             ["", "", ""],
             [Name, "", "Verpflegung WfbM"],
-            ["Platzhalter 1", "", "Am Wilhelmschacht 1"],
-            ["Platzhalter 2", "", "04552 Borna"],
+            [Gruppenname, "", "Am Wilhelmschacht 1"],
+            [Locationname, "", "04552 Borna"],
             ["", "", ""],
             ["", "", ""],
             ["", "", "Telefon: 03433/20979103"],
