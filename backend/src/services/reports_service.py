@@ -3,20 +3,7 @@ import pytz
 from typing import List, Union
 from uuid import UUID
 from enum import Enum
-from flask import send_file, Response, make_response
-from io import BytesIO
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter, A4
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import (
-    SimpleDocTemplate,
-    Table,
-    TableStyle,
-    Paragraph,
-    Spacer,
-    PageBreak,
-    KeepTogether,
-)
+from flask import Response, make_response
 
 from src.repositories.orders_repository import OrdersRepository, OrdersFilters
 from src.repositories.locations_repository import LocationsRepository
@@ -27,7 +14,6 @@ from src.models.user import UserGroup
 from src.models.preorder import PreOrder
 from src.models.dailyorder import DailyOrder
 from src.models.oldorder import OldOrder
-from src.models.person import Person
 
 from src.schemas.reports_schemas import CountOrdersObject, CountOrdersSchema
 

@@ -5,7 +5,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
 from io import BytesIO
 from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter, A4
+from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import (
     SimpleDocTemplate,
@@ -88,7 +88,7 @@ class PDFCreationUtils:
     def create_pdf_report(filters: OrdersFilters, location_counts: dict) -> Response:
 
         buffer = BytesIO()
-        pdf = SimpleDocTemplate(buffer, pagesize=letter)
+        pdf = SimpleDocTemplate(buffer, pagesize=A4)
         styles = getSampleStyleSheet()
         elements = []
 
