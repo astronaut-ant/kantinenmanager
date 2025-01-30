@@ -265,8 +265,12 @@ class PDFCreationUtils:
             raise ValueError("UUID gehört nicht zu Person")
         else:
             Name = person.first_name + " " + person.last_name
+        if person.type == "employee":
             Gruppenname = person.group.group_name
             Locationname = person.group.location.location_name
+        else:
+            Gruppenname = f"Gruppenleiter am Standort:"
+            Locationname = person.location.location_name
 
         header_data = [
             ["", "", "Sozial-Arbeiten-Wohnen Borna gGmbH"],
