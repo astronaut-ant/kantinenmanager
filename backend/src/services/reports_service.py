@@ -2,8 +2,7 @@ from datetime import datetime, timedelta, time
 import pytz
 from typing import List, Union
 from uuid import UUID
-from enum import Enum
-from flask import Response, make_response
+from flask import Response
 
 from src.repositories.orders_repository import OrdersRepository, OrdersFilters
 from src.repositories.locations_repository import LocationsRepository
@@ -16,9 +15,9 @@ from src.models.dailyorder import DailyOrder
 from src.models.oldorder import OldOrder
 
 from src.schemas.reports_schemas import CountOrdersObject, CountOrdersSchema
-
 from src.utils.exceptions import AccessDeniedError, NotFoundError, LocationDoesNotExist
 from src.utils.pdf_creator import PDFCreationUtils
+from src.utils.error import ErrMsg, abort_with_err
 
 
 class ReportsService:
@@ -190,4 +189,10 @@ class ReportsService:
                 filters.date_start, filters.date_end, orders, filters.group_id
             )
         else:
-            return make_response("Es wurde keine UUID übergeben", 400)
+            abort_with_err(
+                ErrMsg(
+                    status_code=400,
+                    title="Ungültige Anfrage",
+                    description="Keine Standort-ID, Gruppen-ID oder Personen-ID übergeben",
+                )
+            )
