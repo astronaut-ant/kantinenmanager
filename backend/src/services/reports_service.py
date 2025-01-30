@@ -17,21 +17,8 @@ from src.models.oldorder import OldOrder
 
 from src.schemas.reports_schemas import CountOrdersObject, CountOrdersSchema
 
-from src.utils.exceptions import AccessDeniedError, LocationDoesNotExist
+from src.utils.exceptions import AccessDeniedError, NotFoundError, LocationDoesNotExist
 from src.utils.pdf_creator import PDFCreationUtils
-
-
-class OrderType(Enum):
-    OLD_ORDER = OldOrder
-    PRE_ORDER = PreOrder
-    DAILY_ORDER = DailyOrder
-
-
-ORDER_TYPE_GETTER = {
-    "OLD_ORDER": OrdersRepository.get_old_orders,
-    "PRE_ORDER": OrdersRepository.get_pre_orders,
-    "DAILY_ORDER": OrdersRepository.get_all_daily_orders,
-}
 
 
 class ReportsService:
@@ -86,7 +73,7 @@ class ReportsService:
             raise ValueError("Keine Standort-ID oder Datum übergeben")
 
         orders = ReportsService._get_reports_orders_by_location(
-            f=filters, user_id=user_id, user_group=user_group
+            fil=filters, user_id=user_id, user_group=user_group
         )
 
         location_counts = ReportsService._count_location_orders(orders)
@@ -96,65 +83,24 @@ class ReportsService:
         )
 
     def _get_reports_orders_by_location(
-        f: OrdersFilters,
+        fil: OrdersFilters,
         user_id: UUID,
         user_group: UserGroup,
     ) -> List[PreOrder | DailyOrder | OldOrder]:
 
-        timezone = pytz.timezone("Europe/Berlin")
-        today = datetime.now(timezone).date()
-        current_time = datetime.now(timezone).time()
-        yesterday = today - timedelta(days=1)
-        tomorrow = today + timedelta(days=1)
-        before_yesterday = yesterday - timedelta(days=1)
-
-        order_types = []
-
-        if f.date_start and f.date_end and (f.date_start <= f.date_end):
-
-            if f.date_end < yesterday:
-                order_types.append(("OLD_ORDER", f.date_start, f.date_end))
-
-            if today < f.date_start:
-                order_types.append(("PRE_ORDER", f.date_start, f.date_end))
-
-            if f.date_start <= today <= f.date_end:
-                if current_time < time(8, 0):
-                    order_types.append(("PRE_ORDER", f.date_start, today))
-                else:
-                    order_types.append(("PRE_ORDER", f.date_start, tomorrow))
-                    order_types.append(("DAILY_ORDER", today, today))
-
-            if f.date_start <= yesterday <= f.date_end:
-                if current_time < time(8, 0):
-                    order_types.append(("DAILY_ORDER", yesterday, yesterday))
-                    order_types.append(("OLD_ORDER", before_yesterday, f.date_end))
-                else:
-                    order_types.append(("OLD_ORDER", yesterday, f.date_end))
-
-        else:
-            raise ValueError("Kein valides Start- und/oder Enddatum.")
-
         orders: List[PreOrder | DailyOrder | OldOrder] = []
 
-        for order_type, date_start, date_end in order_types:
+        if fil.date_start and fil.date_end and (fil.date_start <= fil.date_end):
             if ReportsService._check_user_access_to_location(
-                f.location_id, user_id, user_group
+                fil.location_id, user_id, user_group
             ):
-                orders.extend(
-                    ORDER_TYPE_GETTER[order_type](
-                        OrdersFilters(
-                            date_start=date_start,
-                            date_end=date_end,
-                            location_id=f.location_id,
-                        )
-                    )
-                )
-
+                orders.extend(OrdersRepository.get_pre_orders(fil))
+                orders.extend(OrdersRepository.get_all_daily_orders(fil))
+                orders.extend(OrdersRepository.get_old_orders(fil))
             else:
-                raise AccessDeniedError(
-                    f"Nutzer:in hat keine Berechtigung für Standort {f.location_id}."
-                )
+                raise AccessDeniedError(f"Nutzer:in {user_id}")
+        else:
+            raise ValueError("Kein valides Start- und/oder Enddatum.")
 
         return orders
 
@@ -185,7 +131,7 @@ class ReportsService:
 
             location = LocationsRepository.get_location_by_id(order.location_id)
             if not location:
-                raise LocationDoesNotExist("Standort nicht gefunden")
+                raise NotFoundError(f"Standort {order.location_id}")
 
             if location not in location_counts:
                 location_counts[location] = {
