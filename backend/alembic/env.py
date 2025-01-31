@@ -23,6 +23,7 @@ import src.models.oldorder
 import src.models.person
 import src.models.preorder
 import src.models.user
+import src.models.dish_price
 import src.models.refresh_token_session  # noqa: F401
 
 # this is the Alembic Config object, which provides

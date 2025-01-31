@@ -1,5 +1,4 @@
 from flasgger import Schema, fields
-from uuid import UUID
 
 from src.models.maindish import MainDish
 
