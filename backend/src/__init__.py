@@ -25,6 +25,7 @@ from .routes.locations_routes import locations_routes
 from .routes.pre_orders_routes import pre_orders_routes
 from .routes.daily_orders_routes import daily_orders_routes
 from .routes.old_orders_routes import old_orders_routes
+from .routes.dish_prices_routes import dish_prices_routes
 from .routes.reports_routes import reports_routes
 
 # for production and testing
@@ -205,6 +206,7 @@ def register_routes(app: Flask) -> None:
     app.register_blueprint(daily_orders_routes)
     app.register_blueprint(old_orders_routes)
     app.register_blueprint(reports_routes)
+    app.register_blueprint(dish_prices_routes)
     app.register_blueprint(manual_cronjobs_routes)
 
 

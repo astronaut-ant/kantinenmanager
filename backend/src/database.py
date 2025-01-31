@@ -18,6 +18,8 @@ db = SQLAlchemy(model_class=Base, engine_options={"echo": False})
 def init_db(app: Flask):
     """Initialize the database with the given Flask app."""
 
+    #! If you add something here,
+    #! also add the import in backend/alembic/env.py
     import src.models.dailyorder
     import src.models.employee
     import src.models.group
@@ -26,6 +28,7 @@ def init_db(app: Flask):
     import src.models.person
     import src.models.preorder
     import src.models.user
+    import src.models.dish_price
     import src.models.refresh_token_session  # noqa: F401
 
     db.init_app(app)
