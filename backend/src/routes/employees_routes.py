@@ -300,7 +300,7 @@ def csv_create():
             ErrMsg(
                 status_code=422,
                 title="Übergebene Daten nicht verarbeitbar",
-                description="Name oder übergebene Datei können nicht verarbeitet werden.",
+                description="Die übergebene Datei oder ein Name darin können nicht verarbeitet werden.",
                 details=str(err),
             )
         )

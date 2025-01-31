@@ -79,9 +79,9 @@ def register_auth_middleware(app: Flask):
 
             abort_with_err(
                 ErrMsg(
-                    status_code=423,
+                    status_code=403,
                     title="Account gesperrt",
-                    description="Ihr Account wurde gesperrt. Bitte kontaktieren Sie einen Administrator.",
+                    description="Ihr Account wurde gesperrt. Bitte kontaktieren Sie eine:n Administrator:in.",
                     details=str(e),
                 ),
                 resp=resp,
