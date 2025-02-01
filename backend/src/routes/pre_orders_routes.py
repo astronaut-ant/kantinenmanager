@@ -1,23 +1,23 @@
 from uuid import UUID
 from marshmallow import ValidationError
-from src.utils.exceptions import NotFoundError
 from src.schemas.pre_orders_schemas import (
     OrdersFilterSchema,
     PreOrderFullSchema,
     PreOrdersByGroupLeaderSchema,
+)
+from src.utils.exceptions import (
+    NotFoundError,
+    ActionNotPossibleError,
+    AccessDeniedError,
+    BadValueError,
+    AlreadyExistsError,
 )
 from src.utils.auth_utils import login_required
 from src.utils.error import ErrMsg, abort_with_err
 from flask import Blueprint, jsonify, request, g
 from flasgger import swag_from
 from src.models.user import UserGroup
-from src.services.pre_orders_service import (
-    OrdersFilters,
-    PreOrdersService,
-    PersonNotPartOfGroup,
-    PersonNotPartOfLocation,
-    WrongUserError,
-)
+from src.services.pre_orders_service import OrdersFilters, PreOrdersService
 
 
 pre_orders_routes = Blueprint("pre_orders_routes", __name__)
@@ -103,23 +103,20 @@ def get_pre_orders():
     ---
     """
 
-    # TODO only return user scope
-
     try:
         query_params = OrdersFilterSchema().load(request.args)
         filters = OrdersFilters(**query_params)
-
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
                 title="Validierungsfehler",
-                description="Format der Daten in der Query nicht valide",
+                description="Format der Daten im Request-Body nicht valide",
                 details=err.messages,
             )
         )
 
-    pre_orders = PreOrdersService.get_pre_orders(filters)
+    pre_orders = PreOrdersService.get_pre_orders(filters, g.user_id, g.user_group)
     return jsonify(pre_orders), 200
 
 
@@ -196,12 +193,21 @@ def get_pre_orders_by_group_leader(person_id: UUID):
         pre_orders = PreOrdersService.get_pre_orders_by_group_leader(
             person_id, g.user_id, g.user_group
         )
-    except ValueError as err:
+    except AccessDeniedError as err:
         abort_with_err(
             ErrMsg(
-                status_code=400,
-                title="Validierungsfehler",
-                description="Eingabedaten nicht valide",
+                status_code=403,
+                title="Keine Gruppenleitung",
+                description="Person ist keine Gruppenleitung",
+                details=str(err),
+            )
+        )
+    except NotFoundError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Gruppenleitung nicht gefunden",
+                description="Gruppenleitung nicht gefunden.",
                 details=str(err),
             )
         )
@@ -260,7 +266,7 @@ def create_update_preorders_employees():
 
     try:
         PreOrdersService.create_update_bulk_preorders(orders, g.user_id)
-    except ValueError as err:
+    except BadValueError as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
@@ -269,21 +275,12 @@ def create_update_preorders_employees():
                 details=str(err),
             )
         )
-    except PersonNotPartOfGroup as err:
+    except ActionNotPossibleError as err:
         abort_with_err(
             ErrMsg(
-                status_code=400,
-                title="Person gehört nicht zur Gruppe",
-                description="Eine der Personen gehört nicht zur Gruppe.",
-                details=str(err),
-            )
-        )
-    except PersonNotPartOfLocation as err:
-        abort_with_err(
-            ErrMsg(
-                status_code=400,
-                title="Person gehört nicht zum Standort",
-                description="Eine der Personen gehört nicht zum Standort.",
+                status_code=409,
+                title="Person gehört nicht zu Standort/Gruppe",
+                description="Eine der Personen gehört entweder nicht zum Standort oder zur Gruppe.",
                 details=str(err),
             )
         )
@@ -333,7 +330,16 @@ def create_preorder_user():
 
     try:
         order = PreOrdersService.create_preorder_user(preorder, g.user_id)
-    except ValueError as err:
+    except AlreadyExistsError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=409,
+                title="Bestellung existiert bereits",
+                description="Eine Bestellung für diese Person an diesem Datum existiert bereits.",
+                details=str(err),
+            )
+        )
+    except BadValueError as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
@@ -342,11 +348,11 @@ def create_preorder_user():
                 details=str(err),
             )
         )
-    except WrongUserError as err:
+    except AccessDeniedError as err:
         abort_with_err(
             ErrMsg(
                 status_code=403,
-                title="Falscher Benutzer",
+                title="Keine Berechtigung",
                 description="Sie haben keine Berechtigung für diese Aktion.",
                 details=str(err),
             )
@@ -412,7 +418,7 @@ def update_preorder_user(preorder_id: UUID):
                 details=str(err),
             )
         )
-    except ValueError as err:
+    except BadValueError as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
@@ -421,7 +427,7 @@ def update_preorder_user(preorder_id: UUID):
                 details=str(err),
             )
         )
-    except WrongUserError as err:
+    except AccessDeniedError as err:
         abort_with_err(
             ErrMsg(
                 status_code=403,
@@ -473,7 +479,7 @@ def delete_preorder_user(preorder_id: int):
                 details=str(err),
             )
         )
-    except WrongUserError as err:
+    except AccessDeniedError as err:
         abort_with_err(
             ErrMsg(
                 status_code=403,

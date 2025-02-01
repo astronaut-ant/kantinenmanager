@@ -7,7 +7,7 @@ from reportlab.lib.utils import ImageReader
 from uuid import UUID
 from src.models.person import Person  # noqa: F401
 from src.repositories.persons_repository import PersonsRepository
-from src.utils.exceptions import PersonDoesNotExistError
+from src.utils.exceptions import NotFoundError
 
 
 class PersonsService:
@@ -24,7 +24,7 @@ class PersonsService:
 
         person = PersonsRepository.get_person_by_id(person_id)
         if not person:
-            raise PersonDoesNotExistError
+            raise NotFoundError(f"Person mit ID {person_id}")
 
         # QR-Code generieren
         qr = qrcode.QRCode(

@@ -8,9 +8,9 @@ from src.services.auth_service import AuthService
 from src.models.user import User, UserGroup
 from src.repositories.users_repository import UsersRepository
 from src.utils.exceptions import (
-    LocationDoesNotExist,
-    UserAlreadyExistsError,
-    UserCannotBeDeletedError,
+    NotFoundError,
+    AlreadyExistsError,
+    ActionNotPossibleError,
 )
 
 
@@ -64,18 +64,14 @@ class UsersService:
 
         :return: A tuple containing the ID of the new user and the initial password
 
-        :raises UserAlreadyExistsError: If a user with the given username already exists
+        :raises AlreadyExistsError: If a user with the given username already exists
         """
 
         if UsersRepository.get_user_by_username(username):
-            raise UserAlreadyExistsError(
-                f"User with username {username} already exists"
-            )
+            raise AlreadyExistsError(ressource=f"Nutzer:in {username}")
 
         if location_id and LocationsRepository.get_location_by_id(location_id) is None:
-            raise LocationDoesNotExist(
-                f"Standort mit ID '{location_id}' existiert nicht"
-            )
+            raise NotFoundError(f"Standort mit ID {location_id}")
 
         if password is None:
             password = AuthService.generate_password()
@@ -115,13 +111,11 @@ class UsersService:
 
         :return: The updated user
 
-        :raises UserAlreadyExistsError: If a user with the given username already exists
+        :raises AlreadyExistsError: If a user with the given username already exists
         """
 
         if username != user.username and UsersRepository.get_user_by_username(username):
-            raise UserAlreadyExistsError(
-                f"User with username {username} already exists"
-            )
+            raise AlreadyExistsError(ressource=f"Nutzer:in {username}")
 
         user.first_name = first_name
         user.last_name = last_name
@@ -164,8 +158,8 @@ class UsersService:
         }
 
         if user.id in leader_ids:
-            raise UserCannotBeDeletedError(
-                f"The user {user.first_name} {user.last_name} is a group or location leader and cannot be deleted right now."
+            raise ActionNotPossibleError(
+                f"User {user.first_name} {user.last_name} ist Gruppen- oder Standortleiter und kann nicht gelöscht werden."
             )
 
         UsersRepository.delete_user(user)

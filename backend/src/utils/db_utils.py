@@ -20,12 +20,7 @@ from src.services.locations_service import LocationsService
 from src.services.pre_orders_service import PreOrdersService
 from src.repositories.orders_repository import OrdersFilters
 from src.services.users_service import UsersService
-from src.utils.exceptions import (
-    EmployeeAlreadyExistsError,
-    GroupAlreadyExists,
-    LocationAlreadyExistsError,
-    UserAlreadyExistsError,
-)
+from src.utils.exceptions import AlreadyExistsError
 
 
 def insert_mock_data(app):
@@ -55,7 +50,7 @@ def insert_user_mock_data():
                 user_group=user["user_group"],
             )
             print(f"Inserted user with ID {user_id}")
-        except UserAlreadyExistsError:
+        except AlreadyExistsError:
             continue
 
 
@@ -77,7 +72,7 @@ def insert_location_mock_data():
         try:
             location_id = LocationsService.create_location(name, leader)
             print(f"Inserted location with ID {location_id}")
-        except LocationAlreadyExistsError:
+        except AlreadyExistsError:
             continue
 
 
@@ -134,7 +129,7 @@ def insert_group_mock_data():
                 user_id_replacement=replacement,
             )
             print(f"Inserted group with ID {group_id} and leader {leader}")
-        except GroupAlreadyExists:
+        except AlreadyExistsError:
             continue
 
 
@@ -151,7 +146,7 @@ def insert_employee_mock_data():
                 employee["location_name"],
             )
             print(f"Inserted employee with ID {employee_id}")
-        except EmployeeAlreadyExistsError:
+        except AlreadyExistsError:
             continue
 
 
@@ -171,7 +166,9 @@ def insert_order_users_mock_data():
 
         first_user = users_dict[orders[0]["user"]]
         existing_orders = PreOrdersService.get_pre_orders(
-            OrdersFilters(date=date, person_id=first_user.id)
+            OrdersFilters(date=date, person_id=first_user.id),
+            user_id=first_user.id,
+            user_group=first_user.user_group,
         )
         if len(existing_orders) > 0:
             # Orders for this date already exist
@@ -223,7 +220,9 @@ def insert_order_employees_mock_data():
         first_employee = employees_dict[orders[0]["employee_number"]]
 
         existing_orders = PreOrdersService.get_pre_orders(
-            OrdersFilters(date=date, person_id=first_employee.id)
+            OrdersFilters(date=date, person_id=first_employee.id),
+            user_id=admin.id,
+            user_group=admin.user_group,
         )
         if len(existing_orders) > 0:
             # Orders for this date already exist

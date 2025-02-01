@@ -1,130 +1,60 @@
+class AccessDeniedError(Exception):
+    """Exception raised when a user is not allowed to access a resource."""
+
+    def __init__(self, ressource):
+        super().__init__(f"Nutzer:in hat keinen Zugriff auf {ressource}.")
+
+
 class NotFoundError(Exception):
     """Exception raised when an object is not found in the database."""
 
-    pass
+    def __init__(self, ressource):
+        super().__init__(
+            f"{ressource} konnte nicht gefunden werden oder existiert nicht."
+        )
 
 
-class LocationAlreadyExistsError(Exception):
-    """Exception raised when a location with the same name already exists."""
+class AlreadyExistsError(Exception):
+    """Exception raised when an object already exists in the database."""
 
-    pass
+    def __init__(self, ressource, details=""):
+        super().__init__(f"Konflikt: {ressource} existiert bereits{details}.")
 
 
-class UserAlreadyExistsError(Exception):
-    """Exception raised when a username is already taken."""
+class ActionNotPossibleError(Exception):
+    """Exception raised when an action is not possible."""
 
-    pass
+    def __init__(self, message):
+        super().__init__(f"Aktion aufgrund von Konflikt nicht möglich: {message}")
+
+
+class BadValueError(Exception):
+    """Exception raised when a value is not valid."""
+
+    def __init__(self, message):
+        super().__init__(f"Ungültiger Wert: {message}")
 
 
 class UserBlockedError(Exception):
     """Exception raised when a user is blocked."""
 
-    pass
+    def __init__(self, message):
+        super().__init__(f"Blockiert: {message}")
 
 
-class UserCannotBeDeletedError(Exception):
-    """Exception raised when a user cannot be deleted."""
-
-    pass
-
-
-class EmployeeAlreadyExistsError(Exception):
-    """Exception raised when an employee number already exists."""
+class InvalidCredentialsException(Exception):
+    """User credentials are invalid"""
 
     pass
 
 
-class GroupDoesNotExistError(Exception):
-    """Exception raised when a group does not exist at a given location."""
+class UnauthenticatedException(Exception):
+    """User is not authenticated"""
 
     pass
 
 
-class EmployeeDoesNotExistError(Exception):
-    """Exception raised when an employee ID does not exist."""
-
-    pass
-
-
-class NameNotAppropriateError(Exception):
-    """Exception raised when a Name is to long or not splitable"""
-
-    pass
-
-
-class FileNotProcessableError(Exception):
-    """Exception raised when a File has wrong contents and cannot be read"""
-
-    pass
-
-
-class PersonDoesNotExistError(Exception):
-    """Exception raised when a person does not exist at a given location."""
-
-    pass
-
-
-class LocationAlreadyExistsError(Exception):
-    """Exception raised when a location already exists."""
-
-    pass
-
-
-class LeaderDoesNotExist(Exception):
-    """Exception raised when a leader does not exist."""
-
-    pass
-
-
-class LocationDoesNotExist(Exception):
-    """Exception raised when a location does not exist."""
-
-    pass
-
-
-class OrderAlreadyExistsForPersonAndDate(Exception):
-    """Exception raised when an order already exists for a person and date."""
-
-    pass
-
-
-class PersonNotPartOfGroup(Exception):
-    """Exception raised when a person is not part of the group."""
-
-    pass
-
-
-class PersonNotPartOfLocation(Exception):
-    """Exception raised when a person is not part of the location."""
-
-    pass
-
-
-class GroupAlreadyExists(Exception):
-    """Exception raised when a group that should be created already exists."""
-
-    pass
-
-
-class WrongUserError(Exception):
-    """Exception raised when a user is not allowed to create an order for another user."""
-
-    pass
-
-
-class WrongLocationError(Exception):
-    """Exception raised when a user is not allowed to create an order for another user."""
-
-    pass
-
-
-class OrderTransferError(Exception):
-    """Exception raised when the transfer of orders failed."""
-
-    pass
-
-
-class AccessDeniedError(Exception):
-    """Exception raised when the user has no access to the requested resource."""
+class RefreshTokenAlreadyUsedError(Exception):
+    """Refresh token has already been used"""
 
     pass

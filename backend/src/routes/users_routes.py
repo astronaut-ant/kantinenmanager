@@ -4,7 +4,6 @@ from flask import Blueprint, jsonify, request
 from flasgger import swag_from
 from marshmallow import ValidationError
 
-from src.utils.exceptions import LocationDoesNotExist
 from src.services.locations_service import LocationsService
 from src.schemas.users_schemas import (
     GroupLeaderNestedSchema,
@@ -12,10 +11,11 @@ from src.schemas.users_schemas import (
     UserFullSchema,
 )
 from src.models.user import UserGroup
-from src.services.users_service import (
-    UserAlreadyExistsError,
-    UserCannotBeDeletedError,
-    UsersService,
+from src.services.users_service import UsersService
+from src.utils.exceptions import (
+    NotFoundError,
+    AlreadyExistsError,
+    ActionNotPossibleError,
 )
 from src.utils.auth_utils import login_required
 from src.utils.error import ErrMsg, abort_with_err
@@ -201,10 +201,10 @@ def create_user():
 
     try:
         id, initial_password = UsersService.create_user(**body)
-    except UserAlreadyExistsError:
+    except AlreadyExistsError:
         abort_with_err(
             ErrMsg(
-                status_code=400,
+                status_code=409,
                 title="Nutzername bereits vergeben",
                 description="Der Nutzername ist bereits vergeben",
             )
@@ -325,8 +325,8 @@ def update_user(user_id: UUID):
         if (location_id := body.get("location_id")) is not None:
             location = LocationsService.get_location_by_id(location_id)
             if location is None:
-                raise LocationDoesNotExist()
-    except LocationDoesNotExist:
+                raise NotFoundError()
+    except NotFoundError:
         abort_with_err(
             ErrMsg(
                 status_code=404,
@@ -344,12 +344,12 @@ def update_user(user_id: UUID):
             user_group=body["user_group"],
             location=location,
         )
-    except UserAlreadyExistsError:
+    except AlreadyExistsError:
         abort_with_err(
             ErrMsg(
-                status_code=400,
-                title="Nutzername bereits vergeben",
-                description="Der Nutzername ist bereits vergeben",
+                status_code=409,
+                title="Nutzer:in-Name bereits vergeben",
+                description="Der Nutzer:in-Name ist bereits vergeben",
             )
         )
 
@@ -496,10 +496,10 @@ def delete_user(user_id: UUID):
 
     try:
         UsersService.delete_user(user)
-    except UserCannotBeDeletedError:
+    except ActionNotPossibleError:
         abort_with_err(
             ErrMsg(
-                status_code=400,
+                status_code=409,
                 title="Nutzer:in kann nicht gelöscht werden",
                 description="Nutzer:in kann nicht gelöscht werden, da er/sie aktive Standort- oder Gruppenleitung ist",
             )

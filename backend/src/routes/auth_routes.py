@@ -4,20 +4,19 @@ from flask import Blueprint, g, make_response, request, current_app as app
 from flasgger import swag_from
 from marshmallow import ValidationError
 from prometheus_client import Counter
-
-from src.utils.exceptions import UserBlockedError
 from src.metrics import metrics
 from src.schemas.users_schemas import UserFullSchema
 from src.constants import REFRESH_TOKEN_COOKIE_NAME, REFRESH_TOKEN_DURATION
 from src.schemas.auth_schemas import AuthLoginSchema, AuthPasswordChangeSchema
-from src.services.auth_service import (
-    AuthService,
-    InvalidCredentialsException,
-    UserNotFoundException,
-)
+from src.services.auth_service import AuthService
 from src.services.users_service import UsersService
 from src.utils.auth_utils import delete_token_cookies, login_required, set_token_cookies
 from src.utils.error import ErrMsg, abort_with_err
+from src.utils.exceptions import (
+    UserBlockedError,
+    InvalidCredentialsException,
+    NotFoundError,
+)
 
 
 auth_routes = Blueprint("auth_routes", __name__)
@@ -90,7 +89,7 @@ def login():
             body.get("username"), body.get("password")
         )
 
-    except (UserNotFoundException, InvalidCredentialsException):
+    except (NotFoundError, InvalidCredentialsException):
         # Both Exceptions return the same error message as it would be a security risk to
         # differentiate between invalid username and invalid password
         failed_login_counter.inc()
@@ -232,7 +231,7 @@ def change_password():
         AuthService.change_password(
             g.user_id, body.get("old_password"), body.get("new_password")
         )
-    except UserNotFoundException:
+    except NotFoundError:
         abort_with_err(
             ErrMsg(
                 status_code=400,

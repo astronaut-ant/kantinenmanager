@@ -1,17 +1,13 @@
 from marshmallow import ValidationError
 from src.utils.auth_utils import login_required
 from src.utils.error import ErrMsg, abort_with_err
-from flask import Blueprint, jsonify, request, g
+from flask import Blueprint, request, g
 from flasgger import swag_from
 from datetime import datetime
 from src.models.user import UserGroup
 from src.repositories.orders_repository import OrdersFilters
-from src.services.reports_service import (
-    ReportsService,
-    OrderType,
-    LocationDoesNotExist,
-    AccessDeniedError,
-)
+from src.services.reports_service import ReportsService
+from src.utils.exceptions import NotFoundError, AccessDeniedError, BadValueError
 
 reports_routes = Blueprint("reports_routes", __name__)
 
@@ -135,7 +131,7 @@ def get_report():
             pdf_bool=pdf_bool,
         )
 
-    except ValueError as err:
+    except BadValueError as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
@@ -144,10 +140,10 @@ def get_report():
                 details=str(err),
             )
         )
-    except LocationDoesNotExist as err:
+    except NotFoundError as err:
         abort_with_err(
             ErrMsg(
-                status_code=400,
+                status_code=404,
                 title="Einer der Standorte existiert nicht",
                 description="Einer der Standorte existiert nicht in der Datenbank mit gegebener ID",
             )
