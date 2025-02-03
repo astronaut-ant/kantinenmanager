@@ -54,7 +54,7 @@ class DailyOrdersService:
                 details=f" auf Standort {user.location_id}",
             )
 
-        if order["nothing"] == True and (order["main_dish"] or order["salad_option"]):
+        if order["nothing"] is True and (order["main_dish"] or order["salad_option"]):
             raise BadValueError(
                 "Wenn 'nichts' ausgewählt ist, dürfen keine Essensoptionen ausgewählt werden."
             )

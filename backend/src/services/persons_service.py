@@ -1,6 +1,6 @@
 from uuid import UUID
 from src.repositories.persons_repository import PersonsRepository
-from src.utils.exceptions import NotFoundError, PersonDoesNotExistError
+from src.utils.exceptions import NotFoundError
 from src.utils.pdf_creator import PDFCreationUtils
 
 

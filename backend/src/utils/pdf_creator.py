@@ -15,6 +15,7 @@ from reportlab.platypus import (
     Spacer,
     KeepTogether,
 )
+
 from src.models.person import Person  # noqa: F401
 from src.models.oldorder import OldOrder
 
@@ -23,6 +24,7 @@ from src.repositories.locations_repository import LocationsRepository
 from src.repositories.persons_repository import PersonsRepository
 from src.repositories.groups_repository import GroupsRepository
 
+from src.utils.exceptions import NotFoundError
 
 FONT_NORMAL = "Helvetica"
 FONT_BOLD = "Helvetica-Bold"
@@ -35,7 +37,8 @@ TELEFON = "Telefon: 03433/20979103"
 FIRMENNAME = "Sozial-Arbeiten-Wohnen Borna gGmbH"
 STRASSE = "Am Wilhelmsschacht 1"
 PLZ = "04552 Borna"
-FIRMENADRESSIERUNG = "Sozial Arbeiten - Am Wilhelmsschacht 1 - 04552 Borna</u>"
+FIRMENADRESSIERUNG = "Sozial Arbeiten - Am Wilhelmsschacht 1 - 04552 Borna"
+ABTEILUNG = "Verpflegung WfbM"
 
 BANK = "Stadt- und Kreissparkasse Leip"
 IBAN = "IBAN: DE12 8605 5592 1090 2270 31"
@@ -301,7 +304,7 @@ class PDFCreationUtils:
             Gruppenname = person.group.group_name
             Locationname = person.group.location.location_name
         else:
-            Gruppenname = f"Gruppenleiter am Standort:"
+            Gruppenname = "Gruppenleiter am Standort:"
             Locationname = person.location.location_name
 
         header_data = [
@@ -320,9 +323,9 @@ class PDFCreationUtils:
             ],
             ["", "", ""],
             ["", "", ""],
-            [Name, "", "Verpflegung WfbM"],
-            [Gruppenname, "", "Am Wilhelmschacht 1"],
-            [Locationname, "", "04552 Borna"],
+            [Name, "", ABTEILUNG],
+            [Gruppenname, "", STRASSE],
+            [Locationname, "", PLZ],
             ["", "", ""],
             ["", "", ""],
             ["", "", TELEFON],
@@ -658,30 +661,55 @@ class PDFCreationUtils:
             monthly_main = 0
             monthly_salad = 0
             groups = []
-            food = []
+            persons = []
+            foodgroups = []
+            foodusers = []
             for order in orders:
                 if order.date.month == month and order.date.year == year:
-                    if order.person.group not in groups:
-                        groups.append(order.person.group)
-                        food.append([order.person.group, 0, 0])
-                    if order.main_dish is not None:
-                        food[groups.index(order.person.group)][1] += 1
-                        monthly_main += 1
-                    if order.salad_option is True:
-                        food[groups.index(order.person.group)][2] += 1
-                        monthly_salad += 1
+                    if order.person.type == "employee":
+                        if order.person.group not in groups:
+                            groups.append(order.person.group)
+                            foodgroups.append([order.person.group, 0, 0])
+                        if order.main_dish is not None:
+                            foodgroups[groups.index(order.person.group)][1] += 1
+                            monthly_main += 1
+                        if order.salad_option is True:
+                            foodgroups[groups.index(order.person.group)][2] += 1
+                            monthly_salad += 1
+                    else:
+                        if order.person not in persons:
+                            persons.append(order.person)
+                            foodusers.append([order.person, 0, 0])
+                        if order.main_dish is not None:
+                            foodusers[groups.index(order.person.group)][1] += 1
+                            monthly_main += 1
+                        if order.salad_option is True:
+                            foodusers[groups.index(order.person.group)][2] += 1
+                            monthly_salad += 1
             allmain += monthly_main
             allsalad += monthly_salad
             groupsreplica = groups.copy()
             groups.sort(key=lambda x: x.group_name)
+            personsreplica = persons.copy()
+            persons.sort(key=lambda x: x.last_name)
+            for user in persons:
+                index = personsreplica.index(user)
+                data.append(
+                    [
+                        f"Gruppenleiter: {user.last_name}, {user.first_name}",
+                        "",
+                        f"{foodusers[index][1]:.2f}".replace(".", ","),
+                        f"{foodusers[index][2]:.2f}".replace(".", ","),
+                    ]
+                )
             for group in groups:
                 index = groupsreplica.index(group)
                 data.append(
                     [
-                        group.group_name,
+                        f"Gruppe: {group.group_name}",
                         "",
-                        f"{food[index][1]:.2f}".replace(".", ","),
-                        f"{food[index][2]:.2f}".replace(".", ","),
+                        f"{foodgroups[index][1]:.2f}".replace(".", ","),
+                        f"{foodgroups[index][2]:.2f}".replace(".", ","),
                     ]
                 )
             data.append(
@@ -817,17 +845,17 @@ class PDFCreationUtils:
             monthly_main = 0
             monthly_salad = 0
             persons = []
-            food = []
+            foodgroups = []
             for order in orders:
                 if order.date.month == month and order.date.year == year:
                     if order.person not in persons:
                         persons.append(order.person)
-                        food.append([order.person, 0, 0])
+                        foodgroups.append([order.person, 0, 0])
                     if order.main_dish is not None:
-                        food[persons.index(order.person)][1] += 1
+                        foodgroups[persons.index(order.person)][1] += 1
                         monthly_main += 1
                     if order.salad_option is True:
-                        food[persons.index(order.person)][2] += 1
+                        foodgroups[persons.index(order.person)][2] += 1
                         monthly_salad += 1
             allmain += monthly_main
             allsalad += monthly_salad
@@ -839,8 +867,8 @@ class PDFCreationUtils:
                     [
                         f"{person.first_name} {person.last_name}",
                         "",
-                        f"{food[index][1]:.2f}".replace(".", ","),
-                        f"{food[index][2]:.2f}".replace(".", ","),
+                        f"{foodgroups[index][1]:.2f}".replace(".", ","),
+                        f"{foodgroups[index][2]:.2f}".replace(".", ","),
                     ]
                 )
             data.append(
