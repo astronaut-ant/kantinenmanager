@@ -75,7 +75,6 @@ class OldOrder(db.Model):
     def to_dict(self):
         return {
             "id": self.id,
-            "date": self.date,
             "person_id": self.person_id,
             "location_id": self.location_id,
             "nothing": self.nothing,
