@@ -24,6 +24,38 @@ from src.repositories.persons_repository import PersonsRepository
 from src.repositories.groups_repository import GroupsRepository
 
 
+FONT_NORMAL = "Helvetica"
+FONT_BOLD = "Helvetica-Bold"
+FONT_SIZE_NORMAL = 8
+FONT_SIZE_BIG = 10
+FONT_SIZE_SMALL = 7
+
+TELEFONKURZ = "Telefon: 03433/209790"
+TELEFON = "Telefon: 03433/20979103"
+FIRMENNAME = "Sozial-Arbeiten-Wohnen Borna gGmbH"
+STRASSE = "Am Wilhelmsschacht 1"
+PLZ = "04552 Borna"
+FIRMENADRESSIERUNG = "Sozial Arbeiten - Am Wilhelmsschacht 1 - 04552 Borna</u>"
+
+BANK = "Stadt- und Kreissparkasse Leip"
+IBAN = "IBAN: DE12 8605 5592 1090 2270 31"
+BIC = "BIC: WELADE8LXXX"
+MONATE = [
+    "Januar",
+    "Februar",
+    "März",
+    "April",
+    "Mai",
+    "Juni",
+    "Juli",
+    "August",
+    "September",
+    "Oktober",
+    "November",
+    "Dezember",
+]
+
+
 class PDFCreationUtils:
 
     ################################# QR-Code PDF #################################
@@ -176,14 +208,14 @@ class PDFCreationUtils:
         canvas.setLineWidth(0.5)
         canvas.line(50, 70, width - 50, 70)
 
-        canvas.setFont("Helvetica", 8)
+        canvas.setFont(FONT_NORMAL, FONT_SIZE_NORMAL)
         canvas.drawString(
             50, 60, "Rechnung zahlbar ohne Abzug innerhalb 30 Tagen ab Rechnungsdatum."
         )
 
-        canvas.drawString(50, 35, "Stadt- und Kreissparkasse Leip")
-        canvas.drawString(50, 25, "IBAN: DE12 8605 5592 1090 2270 31")
-        canvas.drawString(50, 15, "BIC: WELADE8LXXX")
+        canvas.drawString(50, 35, BANK)
+        canvas.drawString(50, 25, IBAN)
+        canvas.drawString(50, 15, BIC)
 
         page_number_text = f"Seite {doc.page}"
         canvas.drawRightString(width - 50, 15, page_number_text)
@@ -200,14 +232,14 @@ class PDFCreationUtils:
         canvas.setLineWidth(0.5)
         canvas.line(50, 70, width - 50, 70)
 
-        canvas.setFont("Helvetica", 8)
+        canvas.setFont(FONT_NORMAL, FONT_SIZE_NORMAL)
         canvas.drawString(
             50, 60, "Rechnung zahlbar ohne Abzug innerhalb 30 Tagen ab Rechnungsdatum."
         )
 
-        canvas.drawString(50, 35, "Stadt- und Kreissparkasse Leip")
-        canvas.drawString(50, 25, "IBAN: DE12 8605 5592 1090 2270 31")
-        canvas.drawString(50, 15, "BIC: WELADE8LXXX")
+        canvas.drawString(50, 35, BANK)
+        canvas.drawString(50, 25, IBAN)
+        canvas.drawString(50, 15, BIC)
 
         page_number_text = f"Seite {doc.page}"
         canvas.drawRightString(width - 50, 15, page_number_text)
@@ -222,8 +254,8 @@ class PDFCreationUtils:
                 [
                     ("LINEABOVE", (0, 0), (-1, 0), 0.7, colors.black),
                     ("LINEBELOW", (0, 0), (-1, 0), 0.7, colors.black),
-                    ("FONTNAME", (0, 0), (5, -1), "Helvetica"),
-                    ("FONTSIZE", (0, 0), (5, -1), 8),
+                    ("FONTNAME", (0, 0), (5, -1), FONT_NORMAL),
+                    ("FONTSIZE", (0, 0), (5, -1), FONT_SIZE_NORMAL),
                     ("BACKGROUND", (-1, -1), (-1, -1), colors.white),
                     ("TEXTCOLOR", (0, 0), (-1, -1), colors.black),
                     ("ALIGN", (0, 0), (0, -1), "RIGHT"),
@@ -252,7 +284,7 @@ class PDFCreationUtils:
 
         styles = getSampleStyleSheet()
         small_style = styles["Normal"]
-        small_style.fontName = "Helvetica"
+        small_style.fontName = FONT_NORMAL
         small_style.fontSize = 6
 
         buffer = BytesIO()
@@ -262,7 +294,7 @@ class PDFCreationUtils:
 
         person = PersonsRepository.get_person_by_id(personid)
         if not person:
-            raise ValueError("UUID gehört nicht zu Person")
+            raise NotFoundError("Die übergebene UUID gehört nicht zu einer Person")
         else:
             Name = person.first_name + " " + person.last_name
         if person.type == "employee":
@@ -273,18 +305,18 @@ class PDFCreationUtils:
             Locationname = person.location.location_name
 
         header_data = [
-            ["", "", "Sozial-Arbeiten-Wohnen Borna gGmbH"],
-            ["", "", "Am Wilhelmsschacht 1"],
-            ["", "", "04552 Borna"],
+            ["", "", FIRMENNAME],
+            ["", "", STRASSE],
+            ["", "", PLZ],
             ["", "", ""],
             ["", "", ""],
             [
                 Paragraph(
-                    "<u>Sozial Arbeiten - Am Wilhelmsschacht 1 - 04552 Borna</u>",
+                    f"<u>{FIRMENADRESSIERUNG}</u>",
                     small_style,
                 ),
                 "",
-                "Telefon: 03433/209790",
+                TELEFONKURZ,
             ],
             ["", "", ""],
             ["", "", ""],
@@ -293,7 +325,7 @@ class PDFCreationUtils:
             [Locationname, "", "04552 Borna"],
             ["", "", ""],
             ["", "", ""],
-            ["", "", "Telefon: 03433/20979103"],
+            ["", "", TELEFON],
             ["", "", ""],
             ["", "", ""],
             ["", "", ""],
@@ -312,13 +344,13 @@ class PDFCreationUtils:
                         (2, -1),
                         "LEFT",
                     ),
-                    ("FONTNAME", (2, 0), (2, -1), "Helvetica-Bold"),
-                    ("FONTNAME", (2, 8), (2, 8), "Helvetica-Bold"),
-                    ("FONTNAME", (2, 1), (2, 7), "Helvetica"),
-                    ("FONTNAME", (2, 9), (2, -1), "Helvetica"),
-                    ("FONTSIZE", (2, 0), (2, -1), 8),
-                    ("FONTSIZE", (0, 5), (0, 5), 7),
-                    ("FONTSIZE", (0, 8), (0, -1), 10),
+                    ("FONTNAME", (2, 0), (2, -1), FONT_BOLD),
+                    ("FONTNAME", (2, 8), (2, 8), FONT_BOLD),
+                    ("FONTNAME", (2, 1), (2, 7), FONT_NORMAL),
+                    ("FONTNAME", (2, 9), (2, -1), FONT_NORMAL),
+                    ("FONTSIZE", (2, 0), (2, -1), FONT_SIZE_NORMAL),
+                    ("FONTSIZE", (0, 5), (0, 5), FONT_SIZE_SMALL),
+                    ("FONTSIZE", (0, 8), (0, -1), FONT_SIZE_BIG),
                     (
                         "TOPPADDING",
                         (0, 0),
@@ -494,21 +526,7 @@ class PDFCreationUtils:
                     "",
                 ]
             )
-            month_names_german = [
-                "Januar",
-                "Februar",
-                "März",
-                "April",
-                "Mai",
-                "Juni",
-                "Juli",
-                "August",
-                "September",
-                "Oktober",
-                "November",
-                "Dezember",
-            ]
-            month_name = month_names_german[month - 1]
+            month_name = MONATE[month - 1]
             StringMonat = f"Summe {month_name} {current_year}"
             data.append(
                 [
@@ -539,8 +557,8 @@ class PDFCreationUtils:
                 [
                     ("LINEABOVE", (0, 0), (-1, 0), 0.7, colors.black),
                     ("LINEBELOW", (0, 0), (-1, 0), 0.7, colors.black),
-                    ("FONTNAME", (0, 0), (5, -1), "Helvetica"),
-                    ("FONTSIZE", (0, 0), (5, -1), 8),
+                    ("FONTNAME", (0, 0), (5, -1), FONT_NORMAL),
+                    ("FONTSIZE", (0, 0), (5, -1), FONT_SIZE_NORMAL),
                     ("BACKGROUND", (-1, -1), (-1, -1), colors.white),
                     ("TEXTCOLOR", (0, 0), (-1, -1), colors.black),
                     ("ALIGN", (0, 0), (0, -1), "RIGHT"),
@@ -550,7 +568,7 @@ class PDFCreationUtils:
                     ("TOPPADDING", (0, 0), (-1, -1), 0),
                     ("LINEABOVE", (0, -1), (-1, -1), 0.7, colors.black),
                     ("LINEBELOW", (2, -1), (-1, -1), 1, colors.black),
-                    ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
+                    ("FONTNAME", (0, -1), (-1, -1), FONT_BOLD),
                     ("TOPPADDING", (0, -1), (-1, -1), 2),
                 ]
             )
@@ -613,9 +631,9 @@ class PDFCreationUtils:
                 [
                     ("ALIGN", (0, 0), (-1, -1), "LEFT"),
                     ("ALIGN", (2, 2), (2, 2), "RIGHT"),
-                    ("FONTNAME", (0, 0), (0, 0), "Helvetica-Bold"),
-                    ("FONTNAME", (1, 0), (-1, -1), "Helvetica"),
-                    ("FONTSIZE", (0, 0), (-1, -1), 10),
+                    ("FONTNAME", (0, 0), (0, 0), FONT_BOLD),
+                    ("FONTNAME", (1, 0), (-1, -1), FONT_NORMAL),
+                    ("FONTSIZE", (0, 0), (-1, -1), FONT_SIZE_BIG),
                     ("TOPPADDING", (0, 0), (-1, -1), 0),
                     ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
                 ]
@@ -674,21 +692,7 @@ class PDFCreationUtils:
                     "",
                 ]
             )
-            monate = [
-                "Januar",
-                "Februar",
-                "März",
-                "April",
-                "Mai",
-                "Juni",
-                "Juli",
-                "August",
-                "September",
-                "Oktober",
-                "November",
-                "Dezember",
-            ]
-            monatalsname = monate[month - 1]
+            monatalsname = MONATE[month - 1]
             StringMonat = f"Summe {monatalsname} {year}"
             data.append(
                 [
@@ -715,9 +719,9 @@ class PDFCreationUtils:
                 [
                     ("LINEABOVE", (0, 0), (-1, 0), 0.7, colors.black),
                     ("LINEBELOW", (0, 0), (-1, 0), 0.7, colors.black),
-                    ("FONTNAME", (0, 0), (3, 0), "Helvetica-Bold"),
-                    ("FONTNAME", (0, 1), (3, -1), "Helvetica"),
-                    ("FONTSIZE", (0, 0), (3, -1), 8),
+                    ("FONTNAME", (0, 0), (3, 0), FONT_BOLD),
+                    ("FONTNAME", (0, 1), (3, -1), FONT_NORMAL),
+                    ("FONTSIZE", (0, 0), (3, -1), FONT_SIZE_NORMAL),
                     ("BACKGROUND", (-1, -1), (-1, -1), colors.white),
                     ("TEXTCOLOR", (0, 0), (-1, -1), colors.black),
                     ("ALIGN", (0, 0), (0, -1), "LEFT"),
@@ -727,7 +731,7 @@ class PDFCreationUtils:
                     ("TOPPADDING", (0, 0), (-1, -1), 0),
                     ("LINEABOVE", (0, -1), (-1, -1), 0.7, colors.black),
                     ("LINEBELOW", (1, -1), (-1, -1), 1, colors.black),
-                    ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
+                    ("FONTNAME", (0, -1), (-1, -1), FONT_NORMAL),
                     ("TOPPADDING", (0, -1), (-1, -1), 2),
                 ]
             )
@@ -786,9 +790,9 @@ class PDFCreationUtils:
                 [
                     ("ALIGN", (0, 0), (-1, -1), "LEFT"),
                     ("ALIGN", (2, 2), (2, 2), "RIGHT"),
-                    ("FONTNAME", (0, 0), (0, 0), "Helvetica-Bold"),
-                    ("FONTNAME", (1, 0), (-1, -1), "Helvetica"),
-                    ("FONTSIZE", (0, 0), (-1, -1), 10),
+                    ("FONTNAME", (0, 0), (0, 0), FONT_BOLD),
+                    ("FONTNAME", (1, 0), (-1, -1), FONT_NORMAL),
+                    ("FONTSIZE", (0, 0), (-1, -1), FONT_SIZE_BIG),
                     ("TOPPADDING", (0, 0), (-1, -1), 0),
                     ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
                 ]
@@ -847,21 +851,7 @@ class PDFCreationUtils:
                     "",
                 ]
             )
-            monate = [
-                "Januar",
-                "Februar",
-                "März",
-                "April",
-                "Mai",
-                "Juni",
-                "Juli",
-                "August",
-                "September",
-                "Oktober",
-                "November",
-                "Dezember",
-            ]
-            monatalsname = monate[month - 1]
+            monatalsname = MONATE[month - 1]
             StringMonat = f"Summe {monatalsname} {year}"
             data.append(
                 [
@@ -888,9 +878,9 @@ class PDFCreationUtils:
                 [
                     ("LINEABOVE", (0, 0), (-1, 0), 0.7, colors.black),
                     ("LINEBELOW", (0, 0), (-1, 0), 0.7, colors.black),
-                    ("FONTNAME", (0, 0), (3, 0), "Helvetica-Bold"),
-                    ("FONTNAME", (0, 1), (3, -1), "Helvetica"),
-                    ("FONTSIZE", (0, 0), (3, -1), 8),
+                    ("FONTNAME", (0, 0), (3, 0), FONT_BOLD),
+                    ("FONTNAME", (0, 1), (3, -1), FONT_NORMAL),
+                    ("FONTSIZE", (0, 0), (3, -1), FONT_SIZE_NORMAL),
                     ("BACKGROUND", (-1, -1), (-1, -1), colors.white),
                     ("TEXTCOLOR", (0, 0), (-1, -1), colors.black),
                     ("ALIGN", (0, 0), (0, -1), "LEFT"),
@@ -900,7 +890,7 @@ class PDFCreationUtils:
                     ("TOPPADDING", (0, 0), (-1, -1), 0),
                     ("LINEABOVE", (0, -1), (-1, -1), 0.7, colors.black),
                     ("LINEBELOW", (1, -1), (-1, -1), 1, colors.black),
-                    ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
+                    ("FONTNAME", (0, -1), (-1, -1), FONT_BOLD),
                     ("TOPPADDING", (0, -1), (-1, -1), 2),
                 ]
             )

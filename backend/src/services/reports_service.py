@@ -100,7 +100,6 @@ class ReportsService:
                 raise AccessDeniedError(f"Nutzer:in {user_id}")
         else:
             raise ValueError("Kein valides Start- und/oder Enddatum.")
-
         return orders
 
     def _check_user_access_to_location(
@@ -165,16 +164,11 @@ class ReportsService:
             or (filters.person_id and filters.group_id)
             or (filters.location_id and filters.group_id)
         ):
-            raise ValueError(
+            raise BadValueError(
                 "Nur eine UUID von Standort, Gruppe ODER Person kann verwendet werden"
             )
 
         orders: List[OldOrder] = OrdersRepository.get_old_orders(filters)
-
-        # if (
-        #     not orders
-        # ):  # TODO: Maybe create an empty invoice? - Muss denn wenn man geld von 70€ Pro monat bezahlt und nichts isst bekommt man das geld zurück
-        #     return make_response("Keine Daten gefunden", 400)
 
         if filters.person_id:
             return PDFCreationUtils.create_pdf_invoice_person(
@@ -189,10 +183,7 @@ class ReportsService:
                 filters.date_start, filters.date_end, orders, filters.group_id
             )
         else:
-            abort_with_err(
-                ErrMsg(
-                    status_code=400,
-                    title="Ungültige Anfrage",
-                    description="Keine Standort-ID, Gruppen-ID oder Personen-ID übergeben",
-                )
+            raise BadValueError(
+                "Keine Standort-ID, Gruppen-ID oder Personen-ID übergeben"
             )
+            

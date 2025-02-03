@@ -228,5 +228,12 @@ def get_invoices():
 
     try:
         return ReportsService.get_printed_invoice(filters=filters)
-    except ValueError as err:
-        pass
+    except BadValueError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Validierungsfehler",
+                description="Es muss eine ID übergeben werden. (Standort, Gruppe oder Person)",
+                details=err.messages,
+            )
+        )
