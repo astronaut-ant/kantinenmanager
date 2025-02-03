@@ -176,7 +176,7 @@ class GroupsService:
         """Create a batch of QR codes for a group."""
         group = GroupsRepository.get_group_by_id(group_id)
         employees = EmployeesRepository.get_employees_by_user_scope(
-            group_id, user_group, user_id
+            user_group=user_group, user_id=user_id, group_id=group_id
         )
         if not employees:
             raise NotFoundError(f"Mitarbeiter:innen der Gruppe mit ID {group_id}")
@@ -252,7 +252,7 @@ class GroupsService:
                 pdf_buffer,
                 mimetype="application/pdf",
                 as_attachment=True,
-                download_name="qr_codes.pdf",
+                download_name=f"{group.group_name}_qr_codes.pdf",
             )
         )
         response.headers["Access-Control-Expose-Headers"] = "Content-Disposition"
