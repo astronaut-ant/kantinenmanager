@@ -6,6 +6,7 @@ from flasgger import swag_from
 from datetime import datetime
 from src.models.user import UserGroup
 from src.repositories.orders_repository import OrdersFilters
+from src.schemas.pre_orders_schemas import OrdersFilterSchema
 from src.services.reports_service import (
     ReportsService,
     LocationDoesNotExist,
@@ -141,7 +142,7 @@ def get_report():
         "parameters": [
             {
                 "in": "query",
-                "name": "location_id",
+                "name": "location-id",
                 "description": "Choose the location for the invoice",
                 "required": False,
                 "schema": {
@@ -151,7 +152,7 @@ def get_report():
             },
             {
                 "in": "query",
-                "name": "group_id",
+                "name": "group-id",
                 "description": "Choose the group for the invoice",
                 "required": False,
                 "schema": {
@@ -161,7 +162,7 @@ def get_report():
             },
             {
                 "in": "query",
-                "name": "person_id",
+                "name": "person-id",
                 "description": "Choose the person for the invoice",
                 "required": False,
                 "schema": {
@@ -203,14 +204,10 @@ def get_invoices():
     """Get invoices for orders filtered by date and person"""
 
     try:
-        date_str = request.args.get("date-start")
-        date_end = request.args.get("date-end")
+        query_params = OrdersFilterSchema().load(request.args)
+        filters = OrdersFilters(**query_params)
 
-        person_id = request.args.get("person_id")
-        group_id = request.args.get("group_id")
-        location_id = request.args.get("location_id")
-
-        if not person_id and not group_id and not location_id:
+        if not filters.person_id and not filters.group_id and not filters.location_id:
             abort_with_err(
                 ErrMsg(
                     status_code=400,
@@ -219,15 +216,6 @@ def get_invoices():
                     details="Die Abfrage erfordert die UUID eines Standorts, einer Gruppe oder einer Person.",
                 )
             )
-
-        filters = OrdersFilters(
-            date_start=(datetime.strptime(date_str, "%Y-%m-%d").date()),
-            date_end=(datetime.strptime(date_end, "%Y-%m-%d").date()),
-            person_id=person_id,
-            group_id=group_id,
-            location_id=location_id,
-        )
-
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
