@@ -8,12 +8,11 @@ from src.models.user import UserGroup
 from src.repositories.orders_repository import OrdersFilters
 from src.services.reports_service import ReportsService
 from src.utils.exceptions import NotFoundError, AccessDeniedError, BadValueError
-from src.schemas.pre_orders_schemas import OrdersFilterSchema
 
 reports_routes = Blueprint("reports_routes", __name__)
 
 
-@reports_routes.get("/api/reports/locations")
+@reports_routes.get("/api/reports")
 @login_required(
     groups=[UserGroup.verwaltung, UserGroup.standortleitung, UserGroup.kuechenpersonal]
 )
@@ -23,13 +22,36 @@ reports_routes = Blueprint("reports_routes", __name__)
         "parameters": [
             {
                 "in": "query",
-                "name": "location_id",
-                "description": "choose the location for the invoice",
+                "name": "pdf_bool",
+                "description": "Choose the format of the report. If true, the report will be generated as a PDF, otherwise as a CSV",
+                "required": False,
+                "schema": {"type": "boolean"},
+            },
+            {
+                "in": "query",
+                "name": "location_ids",
+                "description": "Filter by multiple location IDs (UUIDs)",
                 "required": True,
                 "schema": {
-                    "type": "string",
-                    "format": "uuid",
+                    "type": "array",
+                    "items": {"type": "string", "format": "uuid"},
+                    "example": [
+                        "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                        "d90c929c-734c-47b7-8fe5-b3774ec0004e",
+                    ],
                 },
+                "style": "form",
+                "explode": True,
+                "collectionFormat": "multi",
+            },
+            {
+                "in": "query",
+                "name": "date",
+                "description": "filter by a specific date (YYYY-MM-DD)",
+                "type": "string",
+                "format": "date",
+                "required": False,
+                "example": "2024-12-08",
             },
             {
                 "in": "query",
@@ -66,12 +88,13 @@ reports_routes = Blueprint("reports_routes", __name__)
 def get_report():
     """Get reports for orders filtered by date and location"""
 
+    d_str = request.args.get("date")
     ds_str = request.args.get("date-start")
     de_str = request.args.get("date-end")
 
     try:
-        location_id = request.args.get("location_id")
-        if not location_id:
+        location_ids = request.args.getlist("location_ids")
+        if not location_ids:
             abort_with_err(
                 ErrMsg(
                     status_code=400,
@@ -82,10 +105,12 @@ def get_report():
             )
 
         filters = OrdersFilters(
+            date=datetime.strptime(d_str, "%Y-%m-%d").date() if d_str else None,
             date_start=datetime.strptime(ds_str, "%Y-%m-%d").date() if ds_str else None,
             date_end=datetime.strptime(de_str, "%Y-%m-%d").date() if de_str else None,
-            location_id=location_id,
         )
+
+        pdf_bool = request.args.get("pdf_bool")
 
     except ValidationError as err:
         abort_with_err(
@@ -98,10 +123,12 @@ def get_report():
         )
 
     try:
-        return ReportsService.get_location_report(
+        return ReportsService.get_printed_report(
             filters=filters,
+            location_ids=location_ids,
             user_id=g.user_id,
             user_group=g.user_group,
+            pdf_bool=pdf_bool,
         )
 
     except BadValueError as err:
@@ -127,110 +154,5 @@ def get_report():
                 status_code=403,
                 title="Zugriff verweigert",
                 description=f"Nutzer:in {g.user_id} hat keine Berechtigung, einen der Standort zu sehen",
-            )
-        )
-
-
-@reports_routes.get("/api/invoices")
-@login_required(groups=[UserGroup.verwaltung], disabled=True)
-@swag_from(
-    {
-        "tags": ["reports"],
-        "parameters": [
-            {
-                "in": "query",
-                "name": "location-id",
-                "description": "Choose the location for the invoice",
-                "required": False,
-                "schema": {
-                    "type": "string",
-                    "format": "uuid",
-                },
-            },
-            {
-                "in": "query",
-                "name": "group-id",
-                "description": "Choose the group for the invoice",
-                "required": False,
-                "schema": {
-                    "type": "string",
-                    "format": "uuid",
-                },
-            },
-            {
-                "in": "query",
-                "name": "person-id",
-                "description": "Choose the person for the invoice",
-                "required": False,
-                "schema": {
-                    "type": "string",
-                    "format": "uuid",
-                },
-            },
-            {
-                "in": "query",
-                "name": "date-start",
-                "description": "Insert the start date for the invoice",
-                "required": True,
-                "schema": {"type": "string", "format": "date"},
-                "example": "2024-12-08",
-            },
-            {
-                "in": "query",
-                "name": "date-end",
-                "description": "Insert the end date for the invoice",
-                "required": True,
-                "schema": {"type": "string", "format": "date"},
-                "example": "2024-12-08",
-            },
-        ],
-        "responses": {
-            200: {
-                "description": "Report generated successfully",
-                "content": {
-                    "application/pdf": {
-                        "schema": {"type": "string", "format": "binary"}
-                    }
-                },
-            },
-            400: {"description": "Validation error"},
-        },
-    }
-)
-def get_invoices():
-    """Get invoices for orders filtered by date and person"""
-
-    try:
-        query_params = OrdersFilterSchema().load(request.args)
-        filters = OrdersFilters(**query_params)
-
-        if not filters.person_id and not filters.group_id and not filters.location_id:
-            abort_with_err(
-                ErrMsg(
-                    status_code=400,
-                    title="Validierungsfehler",
-                    description="Es wurde keine UUID übergeben",
-                    details="Die Abfrage erfordert die UUID eines Standorts, einer Gruppe oder einer Person.",
-                )
-            )
-    except ValidationError as err:
-        abort_with_err(
-            ErrMsg(
-                status_code=400,
-                title="Validierungsfehler",
-                description="Format der Daten in der Query nicht valide",
-                details=err.messages,
-            )
-        )
-
-    try:
-        return ReportsService.get_printed_invoice(filters=filters)
-    except BadValueError as err:
-        abort_with_err(
-            ErrMsg(
-                status_code=400,
-                title="Validierungsfehler",
-                description="Es muss eine ID übergeben werden. (Standort, Gruppe oder Person)",
-                details=err.messages,
             )
         )
