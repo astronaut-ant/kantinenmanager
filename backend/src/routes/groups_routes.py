@@ -448,19 +448,19 @@ def remove_group_replacement(group_id: UUID):
     }
 )
 def create_batch_qr_code(person_id: UUID):
-    """Create QR codes for each employee in a group
+    """Create pdf with QR codes for each employee in a group
 
     Authentication: required
     Authorization: Verwaltung
     ---
     """
     try:
-        return GroupsService.create_batch_qr_code(person_id)
+        return GroupsService.create_batch_qr_codes(person_id, g.user_id, g.user_group)
     except NotFoundError:
         abort_with_err(
             ErrMsg(
                 status_code=404,
-                title="Person existiert nicht",
-                description="Es existiert keine Person zu der ID in der Datenbank",
+                title="Es existieren keine Mitarbeiter:innen in der Gruppe",
+                description="Es existieren keine Mitarbeiter:innen in der Gruppe.",
             )
         )
