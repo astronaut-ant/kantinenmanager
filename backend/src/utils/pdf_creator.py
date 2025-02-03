@@ -681,10 +681,10 @@ class PDFCreationUtils:
                             persons.append(order.person)
                             foodusers.append([order.person, 0, 0])
                         if order.main_dish is not None:
-                            foodusers[groups.index(order.person.group)][1] += 1
+                            foodusers[persons.index(order.person)][1] += 1
                             monthly_main += 1
                         if order.salad_option is True:
-                            foodusers[groups.index(order.person.group)][2] += 1
+                            foodusers[persons.index(order.person)][2] += 1
                             monthly_salad += 1
             allmain += monthly_main
             allsalad += monthly_salad
