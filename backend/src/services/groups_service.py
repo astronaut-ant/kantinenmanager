@@ -4,10 +4,10 @@ from src.models.group import Group
 from src.repositories.groups_repository import GroupsRepository
 from src.repositories.users_repository import UsersRepository
 from src.repositories.locations_repository import LocationsRepository
-from src.repositories.employees_repository import EmployeesRepository
 from src.utils.exceptions import AlreadyExistsError, NotFoundError, BadValueError
 
 # TODO: Add to PDFCreator
+from src.repositories.employees_repository import EmployeesRepository
 from src.models.employee import Employee
 from io import BytesIO
 from reportlab.lib.pagesizes import A4
