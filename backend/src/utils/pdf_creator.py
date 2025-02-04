@@ -1,6 +1,7 @@
 from typing import List
 from flask import send_file, Response, make_response
 import qrcode
+from datetime import datetime
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
 from io import BytesIO
@@ -23,6 +24,9 @@ from src.repositories.orders_repository import OrdersFilters
 from src.repositories.locations_repository import LocationsRepository
 from src.repositories.persons_repository import PersonsRepository
 from src.repositories.groups_repository import GroupsRepository
+from src.repositories.dish_prices_repository import DishPricesRepository
+
+from src.models.dish_price import DishPrice  # noqa: F401
 
 from src.utils.exceptions import NotFoundError
 
@@ -57,6 +61,11 @@ MONATE = [
     "November",
     "Dezember",
 ]
+
+NUMMER_VORRAUSZAHLUNG = "3001"
+NUMMER_HAUPTGERICHT = "3000"
+NUMMER_SALAT = "3000"
+NUMMER_NICHTESSER = "3000"
 
 
 class PDFCreationUtils:
@@ -275,31 +284,41 @@ class PDFCreationUtils:
 
         canvas.restoreState()
 
-    ################################# Invoice PDF Person #################################
-
+    ################################# Invoice PDF Helper #################################
     @staticmethod
-    def create_pdf_invoice_person(
-        start, end, orders: List[OldOrder], personid
-    ) -> Response:
+    def _sort_orders(orders: List[OldOrder], start, end) -> List[OldOrder]:
         """
-        This function creates an invoice for the orders given in the array orders. The invoice is returned as a PDF File.
+        This function sorts the orders by months.
         """
+        current_month = start.month
+        current_year = start.year
+        end_year = end.year
+        end_month = end.month
+        months = []
 
-        styles = getSampleStyleSheet()
-        small_style = styles["Normal"]
-        small_style.fontName = FONT_NORMAL
-        small_style.fontSize = 6
+        while True:
+            months.append([current_month, current_year])
+            if current_month == end_month and current_year == end_year:
+                break
+            current_month += 1
+            if current_month == 13:
+                current_month = 1
+                current_year += 1
 
-        buffer = BytesIO()
-        pdf = SimpleDocTemplate(buffer, pagesize=A4)
-        styles = getSampleStyleSheet()
-        elements = []
+        orderarray = []
+        for month, year in months:
+            montharray = []
+            for order in orders:
+                if order.date.month == month and order.date.year == year:
+                    montharray.append(order)
+            orderarray.append(montharray)
 
-        person = PersonsRepository.get_person_by_id(personid)
-        if not person:
-            raise NotFoundError("Die übergebene UUID gehört nicht zu einer Person")
-        else:
-            Name = person.first_name + " " + person.last_name
+        return orderarray, months
+
+    ################################# Person PDF Helper ##################################
+    @staticmethod
+    def _get_PDFHead(person, style) -> List:
+        Name = person.first_name + " " + person.last_name
         if person.type == "employee":
             Gruppenname = person.group.group_name
             Locationname = person.group.location.location_name
@@ -316,7 +335,7 @@ class PDFCreationUtils:
             [
                 Paragraph(
                     f"<u>{FIRMENADRESSIERUNG}</u>",
-                    small_style,
+                    style,
                 ),
                 "",
                 TELEFONKURZ,
@@ -369,17 +388,65 @@ class PDFCreationUtils:
                 ]
             )
         )
-        elements.append(tableHead)
+        return tableHead
 
-        data = [["Leistungsnr./-art", "", "Zeitraum", "Preis", "Anzahl", "Gesamtpreis"]]
+    ################################# Invoice PDF Person #################################
 
-        # The following Struture is used to create the main Table for the Invoice from the Array of Old Orders
+    @staticmethod
+    def create_pdf_invoice_person(
+        start, end, orders: List[OldOrder], personid
+    ) -> Response:
+        """
+        This function creates an invoice for the orders given in the array orders. The invoice is returned as a PDF File.
+        """
 
-        current_month = start.month
-        current_year = start.year
-        end_year = end.year
-        end_month = end.month
-        months = []
+        styles = getSampleStyleSheet()
+        small_style = styles["Normal"]
+        small_style.fontName = FONT_NORMAL
+        small_style.fontSize = 6
+
+        buffer = BytesIO()
+        pdf = SimpleDocTemplate(buffer, pagesize=A4)
+        styles = getSampleStyleSheet()
+        elements = []
+
+        person = PersonsRepository.get_person_by_id(personid)
+        if not person:
+            raise NotFoundError("Die übergebene UUID gehört nicht zu einer Person")
+        else:
+            elements.append(PDFCreationUtils._get_PDFHead(person, small_style))
+
+        result = PDFCreationUtils._sort_orders(orders, start, end)
+        orders_sorted_array = result[0]
+        months = result[1]
+
+        prices = DishPricesRepository.get_prices()
+        payment = []
+        payment.append(
+            [
+                datetime.strptime("01.01.1900", "%d.%m.%Y"),
+                41,
+                15,
+                70,
+            ]
+        )
+        if prices:
+            prices.sort(key=lambda x: x.date)
+            for price in prices:
+                if (
+                    price.date.year < end.year
+                    or price.date.month <= end.month
+                    and price.date.year <= end.year
+                ):
+                    payment.append(
+                        [
+                            price.date,
+                            price.main_dish_price * 10,
+                            price.salad_price * 10,
+                            price.prepayment,
+                        ]
+                    )
+        orderarray = []
 
         main = 0
         mainstart = ""
@@ -391,68 +458,65 @@ class PDFCreationUtils:
         nothingstart = ""
         nothingend = ""
 
-        mainprice = 41
-        saladprice = 15
-
-        orderarray = []
         credit = 0
 
-        while True:
-            months.append([current_month, current_year])
-            if current_month == end_month and current_year == end_year:
-                break
-            current_month += 1
-            if current_month == 13:
-                current_month = 1
-                current_year += 1
-
+        data = [["Leistungsnr./-art", "", "Zeitraum", "Preis", "Anzahl", "Gesamtpreis"]]
         for month, year in months:
-            for order in orders:
-                if order.date.month == month and order.date.year == year:
-                    date = order.date
-                    if order.nothing is True:
-                        if nothing > 0:
-                            nothing += 1
-                            nothingend = date
-                        else:
-                            if main != 0:
-                                orderarray.append(["main", mainstart, mainend, main])
-                                main = 0
-                            if salad != 0:
-                                orderarray.append(
-                                    ["salad", saladstart, saladend, salad]
-                                )
-                                salad = 0
-                            nothingstart = date
-                            nothingend = date
-                            nothing = 1
+            index = months.index([month, year])
+            for order in orders_sorted_array[index]:
+                date = order.date
+                if order.nothing is True:
+                    if nothing > 0:
+                        nothing += 1
+                        nothingend = date
                     else:
-                        if order.salad_option is True:
-                            if salad > 0:
-                                salad += 1
-                                saladend = date
-                            else:
-                                if nothing != 0:
-                                    orderarray.append(
-                                        ["nothing", nothingstart, nothingend, nothing]
-                                    )
-                                    nothing = 0
-                                saladstart = date
-                                saladend = date
-                                salad = 1
-                        if order.main_dish is not None:
-                            if main > 0:
-                                main += 1
-                                mainend = date
-                            else:
-                                if nothing != 0:
-                                    orderarray.append(
-                                        ["nothing", nothingstart, nothingend, nothing]
-                                    )
-                                    nothing = 0
-                                mainstart = date
-                                mainend = date
-                                main = 1
+                        if main != 0:
+                            orderarray.append(["main", mainstart, mainend, main])
+                            main = 0
+                        if salad != 0:
+                            orderarray.append(["salad", saladstart, saladend, salad])
+                            salad = 0
+                        nothingstart = date
+                        nothingend = date
+                        nothing = 1
+                else:
+                    if order.salad_option is True:
+                        if salad > 0:
+                            salad += 1
+                            saladend = date
+                        else:
+                            if nothing != 0:
+                                orderarray.append(
+                                    ["nothing", nothingstart, nothingend, nothing]
+                                )
+                                nothing = 0
+                            saladstart = date
+                            saladend = date
+                            salad = 1
+                    if order.main_dish is not None:
+                        if main > 0:
+                            main += 1
+                            mainend = date
+                        else:
+                            if nothing != 0:
+                                orderarray.append(
+                                    ["nothing", nothingstart, nothingend, nothing]
+                                )
+                                nothing = 0
+                            mainstart = date
+                            mainend = date
+                            main = 1
+            month_payment = payment[0]
+            for new_entry in payment:
+                if (
+                    new_entry[0].year < year
+                    or new_entry[0].month <= month
+                    and new_entry[0].year <= year
+                ):
+                    month_payment = new_entry
+            mainprice = month_payment[1]
+            saladprice = month_payment[2]
+            prepayment = month_payment[3]
             if nothing != 0:
                 orderarray.append(["nothing", nothingstart, nothingend, nothing])
                 nothing = 0
@@ -465,19 +529,19 @@ class PDFCreationUtils:
                     salad = 0
             data.append(
                 [
-                    "3001",
+                    NUMMER_VORRAUSZAHLUNG,
                     "Abzug Vorrauszahlung",
                     f"{month}.{year}",
-                    "-70,00",
+                    f"{prepayment:.2f}".replace(".", ","),
                     "1,00",
-                    "-70,00",
+                    f"{prepayment:.2f}".replace(".", ","),
                 ]
             )
             data.append(["", "Mittagessen", "", "", "", ""])
-            credit -= 70
-            monthly = -70
+            credit -= prepayment
+            monthly = -prepayment
             for type, start, end, count in orderarray:
-                start = start.strftime("%d.%m.%Y").replace(f"{current_year}", "")
+                start = start.strftime("%d.%m.%Y").replace(f"{year}", "")
                 end = end.strftime("%d.%m.%Y")
                 if type == "main":
                     price = (count * mainprice) / 10
@@ -485,10 +549,10 @@ class PDFCreationUtils:
                     monthly += price
                     data.append(
                         [
-                            "3000",
+                            NUMMER_HAUPTGERICHT,
                             "Mittagessen WfbM",
                             f"{start} - {end}",
-                            "4,10",
+                            f"{mainprice/10:.2f}".replace(".", ","),
                             f"{count:.2f}".replace(".", ","),
                             f"{price:.2f}".replace(".", ","),
                         ]
@@ -499,10 +563,10 @@ class PDFCreationUtils:
                     monthly += price
                     data.append(
                         [
-                            "3000",
+                            NUMMER_SALAT,
                             "Mittagessen WfbM Salat",
                             f"{start} - {end}",
-                            "1,50",
+                            f"{saladprice/10:.2f}".replace(".", ","),
                             f"{count:.2f}".replace(".", ","),
                             f"{price:.2f}".replace(".", ","),
                         ]
@@ -510,7 +574,7 @@ class PDFCreationUtils:
                 if type == "nothing":
                     data.append(
                         [
-                            "3000",
+                            NUMMER_NICHTESSER,
                             "Mittagessen WfbM Nichtesser",
                             f"{start} - {end}",
                             "0,00",
@@ -530,7 +594,7 @@ class PDFCreationUtils:
                 ]
             )
             month_name = MONATE[month - 1]
-            StringMonat = f"Summe {month_name} {current_year}"
+            StringMonat = f"Summe {month_name} {year}"
             data.append(
                 [
                     "",
@@ -590,7 +654,7 @@ class PDFCreationUtils:
                 buffer,
                 mimetype="application/pdf",
                 as_attachment=True,
-                download_name=f"Rechnung_{start}_bis_{end}_{Name}.pdf",
+                download_name=f"Rechnung_{start}_bis_{end}_{person.first_name}_{person.last_name}.pdf",
             )
         )
         response.headers["Access-Control-Expose-Headers"] = "Content-Disposition"
