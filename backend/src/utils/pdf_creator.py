@@ -695,6 +695,7 @@ class PDFCreationUtils:
                 ]
             )
         )
+        return tableHead
 
     ################################# Location Invoice PDF #################################
 
