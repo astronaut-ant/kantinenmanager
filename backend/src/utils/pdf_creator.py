@@ -412,7 +412,9 @@ class PDFCreationUtils:
 
         person = PersonsRepository.get_person_by_id(personid)
         if not person:
-            raise NotFoundError("Die übergebene UUID gehört nicht zu einer Person")
+            raise NotFoundError(
+                f"Es wurde keine Person mit angegebener UUID {personid} gefunden"
+            )
         else:
             elements.append(PDFCreationUtils._get_PDFHead(person, small_style))
 
@@ -661,26 +663,13 @@ class PDFCreationUtils:
 
         return response
 
-    ################################# Location Invoice PDF #################################
+    ############################ Group/Location PDF Header #################################
 
-    def create_pdf_invoice_location(
-        start_date, end_date, orders: List[OldOrder], locationid
-    ) -> Response:
-        startmonth = start_date.month
-        startyear = start_date.year
-        endmonth = end_date.month
-        endyear = end_date.year
-        months = []
-        location = LocationsRepository.get_location_by_id(locationid)
-        if not location:
-            raise ValueError("UUID gehört nicht zu Standort")
-
-        buffer = BytesIO()
-        pdf = SimpleDocTemplate(buffer, pagesize=A4)
-        elements = []
+    @staticmethod
+    def _create_PDFHead_g_l(obj, start_date, end_date):
 
         header_data = [
-            [f"Standort: {location.location_name}", "", ""],
+            [obj, "", ""],
             ["", "", ""],
             [
                 "Abrechnung für den Zeitraum:",
@@ -706,29 +695,45 @@ class PDFCreationUtils:
                 ]
             )
         )
-        elements.append(tableHead)
+
+    ################################# Location Invoice PDF #################################
+
+    def create_pdf_invoice_location(
+        start_date, end_date, orders: List[OldOrder], locationid
+    ) -> Response:
+        location = LocationsRepository.get_location_by_id(locationid)
+        if not location:
+            raise NotFoundError(
+                f"Es wurde kein Standort mit angegebener UUID: {locationid} gefunden"
+            )
+
+        buffer = BytesIO()
+        pdf = SimpleDocTemplate(buffer, pagesize=A4)
+        elements = []
+
+        elements.append(
+            PDFCreationUtils._create_PDFHead_g_l(
+                f"Standort: {location.location_name}", start_date, end_date
+            )
+        )
 
         data = [["Gruppe", "", "Hauptgericht Anzahl", "Salat Anzahl"]]
 
-        while 1:
-            months.append([startmonth, startyear])
-            if startmonth == endmonth and startyear == endyear:
-                break
-            startmonth += 1
-            if startmonth == 13:
-                startmonth = 1
-                startyear += 1
+        result = PDFCreationUtils._sort_orders(orders, start_date, end_date)
+        orders_sorted_array = result[0]
+        months = result[1]
 
         allmain = 0
         allsalad = 0
         for month, year in months:
+            index = months.index([month, year])
             monthly_main = 0
             monthly_salad = 0
             groups = []
             persons = []
             foodgroups = []
             foodusers = []
-            for order in orders:
+            for order in orders_sorted_array[index]:
                 if order.date.month == month and order.date.year == year:
                     if order.person.type == "employee":
                         if order.person.group not in groups:
@@ -850,67 +855,38 @@ class PDFCreationUtils:
     def create_pdf_invoice_group(
         start_date, end_date, orders: List[OldOrder], groupid
     ) -> Response:
-        startmonth = start_date.month
-        startyear = start_date.year
-        endmonth = end_date.month
-        endyear = end_date.year
-        months = []
+
         group = GroupsRepository.get_group_by_id(groupid)
         if not group:
-            raise ValueError("UUID gehört nicht zu einer Gruppe")
+            raise NotFoundError(
+                f"Es wurde keine Gruppe mit angegebener UUID: {groupid} gefunden"
+            )
 
         buffer = BytesIO()
         pdf = SimpleDocTemplate(buffer, pagesize=A4)
         elements = []
 
-        header_data = [
-            [f"Gruppe: {group.group_name}", "", ""],
-            ["", "", ""],
-            [
-                "Abrechnung für den Zeitraum:",
-                "",
-                f"{start_date.strftime("%d.%m.%Y")} - {end_date.strftime("%d.%m.%Y")}",
-            ],
-            ["", "", ""],
-        ]
-        tableHead = Table(
-            header_data,
-            colWidths=[245, 5, 245],
-        )
-        tableHead.setStyle(
-            TableStyle(
-                [
-                    ("ALIGN", (0, 0), (-1, -1), "LEFT"),
-                    ("ALIGN", (2, 2), (2, 2), "RIGHT"),
-                    ("FONTNAME", (0, 0), (0, 0), FONT_BOLD),
-                    ("FONTNAME", (1, 0), (-1, -1), FONT_NORMAL),
-                    ("FONTSIZE", (0, 0), (-1, -1), FONT_SIZE_BIG),
-                    ("TOPPADDING", (0, 0), (-1, -1), 0),
-                    ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
-                ]
+        elements.append(
+            PDFCreationUtils._create_PDFHead_g_l(
+                f"Gruppe: {group.group_name}", start_date, end_date
             )
         )
-        elements.append(tableHead)
 
         data = [["Mitarbeiter", "", "Hauptgericht Anzahl", "Salat Anzahl"]]
 
-        while True:
-            months.append([startmonth, startyear])
-            if startmonth == endmonth and startyear == endyear:
-                break
-            startmonth += 1
-            if startmonth == 13:
-                startmonth = 1
-                startyear += 1
+        result = PDFCreationUtils._sort_orders(orders, start_date, end_date)
+        orders_sorted_array = result[0]
+        months = result[1]
 
         allmain = 0
         allsalad = 0
         for month, year in months:
+            index = months.index([month, year])
             monthly_main = 0
             monthly_salad = 0
             persons = []
             foodgroups = []
-            for order in orders:
+            for order in orders_sorted_array[index]:
                 if order.date.month == month and order.date.year == year:
                     if order.person not in persons:
                         persons.append(order.person)
