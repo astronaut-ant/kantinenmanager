@@ -391,6 +391,8 @@ class OrdersRepository:
         if filters.date_end:
             query = query.filter(OldOrder.date <= filters.date_end)
 
+        query = query.order_by(OldOrder.date.asc())
+
         return db.session.execute(query).scalars().all()
 
     ############################ Migrations ############################
