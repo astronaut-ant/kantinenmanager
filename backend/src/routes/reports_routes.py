@@ -230,7 +230,16 @@ def get_invoices():
             ErrMsg(
                 status_code=400,
                 title="Validierungsfehler",
-                description="Es muss eine ID übergeben werden. (Standort, Gruppe oder Person)",
+                description="Es muss genau eine ID übergeben werden. (Standort, Gruppe oder Person)",
+                details=err.messages,
+            )
+        )
+    except NotFoundError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Wurde nicht gefunden",
+                description="Die übergebene ID wurde nicht gefunden",
                 details=err.messages,
             )
         )

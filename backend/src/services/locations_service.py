@@ -71,7 +71,7 @@ class LocationsService:
         """
         location = LocationsService.get_location_by_id(location_id)
 
-        if location == None:
+        if location is None:
             raise NotFoundError(f"Standort mit ID {location_id}")
 
         if (

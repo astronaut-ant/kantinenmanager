@@ -15,7 +15,7 @@ from src.models.dailyorder import DailyOrder
 from src.models.oldorder import OldOrder
 
 from src.schemas.reports_schemas import CountOrdersObject, CountOrdersSchema
-from src.utils.exceptions import AccessDeniedError, NotFoundError, LocationDoesNotExist
+from src.utils.exceptions import AccessDeniedError, NotFoundError, BadValueError
 from src.utils.pdf_creator import PDFCreationUtils
 from src.utils.error import ErrMsg, abort_with_err
 
@@ -184,4 +184,3 @@ class ReportsService:
             raise BadValueError(
                 "Keine Standort-ID, Gruppen-ID oder Personen-ID übergeben"
             )
-            
