@@ -4,17 +4,9 @@ from src.models.group import Group
 from src.repositories.groups_repository import GroupsRepository
 from src.repositories.users_repository import UsersRepository
 from src.repositories.locations_repository import LocationsRepository
-from src.utils.exceptions import AlreadyExistsError, NotFoundError, BadValueError
-
-# TODO: Add to PDFCreator
 from src.repositories.employees_repository import EmployeesRepository
-from src.models.employee import Employee
-from io import BytesIO
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfgen import canvas
-from reportlab.lib.utils import ImageReader
-from flask import make_response, send_file
-import qrcode
+from src.utils.exceptions import AlreadyExistsError, NotFoundError, BadValueError
+from src.utils.pdf_creator import PDFCreationUtils
 
 
 class GroupsService:
@@ -180,80 +172,4 @@ class GroupsService:
         )
         if not employees:
             raise NotFoundError(f"Mitarbeiter:innen der Gruppe mit ID {group_id}")
-        # return PDFCreator.create_batch_qr_codes(group, employees)
-        return GroupsService.create_qr_codes(group, employees)
-
-    @staticmethod
-    def create_qr_codes(group: Group, employees: list[Employee]):
-        """Create a PDF with QR codes for a list of employees.
-
-        :param employees: List of employee objects to create QR codes for
-        :return: The PDF with QR codes as a Response object
-        """
-
-        pdf_buffer = BytesIO()
-        page_width, page_height = A4
-        c = canvas.Canvas(pdf_buffer, pagesize=A4)
-
-        # QR code settings
-        qr_size = 150  # Adjust size to fit 3 per row
-        margin = 30  # Margin between QR codes
-        cols = 3  # Number of QR codes per row
-        x_start = margin
-        y_start = page_height - margin - qr_size
-
-        x_position = x_start
-        y_position = y_start
-
-        for idx, employee in enumerate(employees):
-            # Generate QR code
-            qr = qrcode.QRCode(
-                version=1,
-                error_correction=qrcode.constants.ERROR_CORRECT_L,
-                box_size=10,
-                border=4,
-            )
-            qr.add_data(employee.id)
-            qr.make(fit=True)
-            img = qr.make_image(fill="black", back_color="white")
-
-            # Convert QR image to ImageReader
-            qr_buffer = BytesIO()
-            img.save(qr_buffer, format="PNG")
-            qr_buffer.seek(0)
-            qr_image = ImageReader(qr_buffer)
-
-            # Draw QR code and text
-            c.drawImage(qr_image, x_position, y_position, width=qr_size, height=qr_size)
-            c.setFont("Helvetica", 10)
-            c.drawCentredString(
-                x_position + qr_size / 2,
-                y_position - 12,
-                f"{employee.first_name} {employee.last_name}",
-            )
-
-            # Update position for next QR code
-            x_position += qr_size + margin
-
-            if (idx + 1) % cols == 0:
-                x_position = x_start
-                y_position -= qr_size + 2 * margin
-
-                # Start a new page if needed
-                if y_position < margin:
-                    c.showPage()
-                    y_position = y_start
-
-        c.save()
-        pdf_buffer.seek(0)
-
-        response = make_response(
-            send_file(
-                pdf_buffer,
-                mimetype="application/pdf",
-                as_attachment=True,
-                download_name=f"{group.group_name}_qr_codes.pdf",
-            )
-        )
-        response.headers["Access-Control-Expose-Headers"] = "Content-Disposition"
-        return response
+        return PDFCreationUtils.create_batch_qr_codes(group, employees)
