@@ -8,7 +8,7 @@ class PersonsService:
     """Service for handling person management."""
 
     @staticmethod
-    def create_qr_code(person_id: UUID):
+    def create_qr_code_person(person_id: UUID):
         """Create a QR code for a person.
 
         :param person_id: The ID of the person to create the QR code for
@@ -20,4 +20,4 @@ class PersonsService:
         if not person:
             raise NotFoundError(f"Person mit ID {person_id}")
 
-        return PDFCreationUtils.create_qr_code(person)
+        return PDFCreationUtils.create_qr_code_person(person)

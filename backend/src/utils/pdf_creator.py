@@ -18,7 +18,10 @@ from reportlab.platypus import (
 )
 
 from src.models.person import Person  # noqa: F401
+from src.models.employee import Employee
+from src.models.group import Group
 from src.models.oldorder import OldOrder
+from src.models.dish_price import DishPrice  # noqa: F401
 
 from src.repositories.orders_repository import OrdersFilters
 from src.repositories.locations_repository import LocationsRepository
@@ -26,9 +29,8 @@ from src.repositories.persons_repository import PersonsRepository
 from src.repositories.groups_repository import GroupsRepository
 from src.repositories.dish_prices_repository import DishPricesRepository
 
-from src.models.dish_price import DishPrice  # noqa: F401
-
 from src.utils.exceptions import NotFoundError
+
 
 FONT_NORMAL = "Helvetica"
 FONT_BOLD = "Helvetica-Bold"
@@ -72,7 +74,7 @@ class PDFCreationUtils:
 
     ################################# QR-Code PDF #################################
     @staticmethod
-    def create_qr_code(person: Person):
+    def create_qr_code_person(person: Person):
         # QR-Code generieren
         qr = qrcode.QRCode(
             version=1,
@@ -123,6 +125,76 @@ class PDFCreationUtils:
             )
         )
         # Explicitly expose the Content-Disposition header for the frontend
+        response.headers["Access-Control-Expose-Headers"] = "Content-Disposition"
+        return response
+    
+    @staticmethod
+    def create_batch_qr_codes(group: Group, employees: List[Employee]):
+        """Create a PDF with QR codes for a list of employees.
+
+        :param employees: List of employee objects to create QR codes for
+        :return: The PDF with QR codes as a Response object
+        """
+
+        pdf_buffer = BytesIO()
+        _, page_height = A4
+        c = canvas.Canvas(pdf_buffer, pagesize=A4)
+
+        qr_size = 150
+        horizontal_margin = 30
+        vertical_margin = 50
+        cols = 3
+        x_start = horizontal_margin
+        y_start = page_height - vertical_margin - qr_size
+
+        x_position = x_start
+        y_position = y_start
+
+        for idx, employee in enumerate(employees):
+            qr = qrcode.QRCode(
+                version=1,
+                error_correction=qrcode.constants.ERROR_CORRECT_L,
+                box_size=10,
+                border=4,
+            )
+            qr.add_data(employee.id)
+            qr.make(fit=True)
+            img = qr.make_image(fill="black", back_color="white")
+
+            qr_buffer = BytesIO()
+            img.save(qr_buffer, format="PNG")
+            qr_buffer.seek(0)
+            qr_image = ImageReader(qr_buffer)
+
+            c.drawImage(qr_image, x_position, y_position, width=qr_size, height=qr_size)
+            c.setFont("Helvetica", 10)
+            c.drawCentredString(
+                x_position + qr_size / 2,
+                y_position - 12,
+                f"{employee.first_name} {employee.last_name}",
+            )
+
+            x_position += qr_size + horizontal_margin
+
+            if (idx + 1) % cols == 0:
+                x_position = x_start
+                y_position -= qr_size + 2 * vertical_margin
+
+                if y_position < vertical_margin:
+                    c.showPage()
+                    y_position = y_start
+
+        c.save()
+        pdf_buffer.seek(0)
+
+        response = make_response(
+            send_file(
+                pdf_buffer,
+                mimetype="application/pdf",
+                as_attachment=True,
+                download_name=f"{group.group_name}_qr_codes.pdf",
+            )
+        )
         response.headers["Access-Control-Expose-Headers"] = "Content-Disposition"
         return response
 
