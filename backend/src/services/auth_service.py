@@ -143,6 +143,8 @@ class AuthService:
         if session.has_been_used():
             # Block user
             user = UsersRepository.get_user_by_id(session.user_id)
+            if user is None:
+                raise UnauthenticatedException("Nutzer nicht gefunden.")
             user.blocked = True
             UsersRepository.update_user(user)
             app.logger.warning(
@@ -154,7 +156,7 @@ class AuthService:
         user = UsersRepository.get_user_by_id(session.user_id)
 
         if user is None:
-            raise UnauthenticatedException("User not found")
+            raise UnauthenticatedException("Nutzer nicht gefunden.")
 
         if user.blocked:
             raise UserBlockedError("Account von Nutzer:in ist gesperrt.")
@@ -273,6 +275,8 @@ class AuthService:
     def __needs_rehash(hash: str) -> bool:
         """Check if a password hash needs to be rehashed
 
+        Passwords need to be rehashed when the Argon2 parameters change.
+
         :param hash: The hashed password
 
         :return: True if the hash needs to be rehashed
@@ -286,6 +290,7 @@ class AuthService:
     def __get_password_hasher() -> PasswordHasher:
         """Get a password hasher with configured settings"""
 
+        # Use sensible defaults for Argon2
         return PasswordHasher()
 
     @staticmethod
