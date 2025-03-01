@@ -179,11 +179,8 @@ class AuthService:
         return user_info, new_auth_token, new_refresh_token
 
     @staticmethod
-    def logout(refresh_token: str | None):
+    def logout(refresh_token: str):
         """Log out the user by deleting the refresh token"""
-
-        if refresh_token is None:
-            return
 
         session = RefreshTokenSessionRepository.get_token(refresh_token)
         if session is not None:
