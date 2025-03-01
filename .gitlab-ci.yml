@@ -86,6 +86,7 @@ test-backend:
     - echo "Installing requirements..."
     - python -m pip install -r backend/requirements.txt
     - pytest --cov=backend backend/
+  coverage: /TOTAL.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/
 
 push-frontend:
   stage: push
