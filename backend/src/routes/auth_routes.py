@@ -126,8 +126,6 @@ def login():
         200,
     )
 
-    # TODO: Set secure=True and samesite="Strict" in production
-
     set_token_cookies(resp, auth_token, refresh_token)
 
     successful_login_counter.inc()
