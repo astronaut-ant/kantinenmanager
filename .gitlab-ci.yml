@@ -75,14 +75,14 @@ test-backend:
   variables:
     PYTHONDONTWRITEBYTECODE: 1
     PYTHONUNBUFFERED: 1
-    FLASK_ENV: unit_testing
+    FLASK_ENV: testing
   script:
     - echo "Reading environment variables..."
     - python scripts/init.py # Generate .env
     - set -a # auto export all further variables
     - source .env # read env variables from .env
     - set +a
-    - FLASK_ENV=unit_testing # Override environment
+    - FLASK_ENV=testing # Override environment
     - echo "Installing requirements..."
     - python -m pip install -r backend/requirements.txt
     - pytest --cov=backend backend/
@@ -150,7 +150,7 @@ deploy_staging:
     - echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config
     - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
     - chmod 600 ~/.ssh/id_rsa
-#    - ssh $PROD_USER@$PROD_IP "kubectl apply -f k8s"
+    #    - ssh $PROD_USER@$PROD_IP "kubectl apply -f k8s"
     - ssh $PROD_USER@$PROD_IP "kubectl set image deployment/frontend-deployment frontend-deployment=$CI_REGISTRY_FRONTEND_IMAGE:$CI_COMMIT_SHORT_SHA"
     - ssh $PROD_USER@$PROD_IP "kubectl set image deployment/backend-deployment backend-deployment=$CI_REGISTRY_BACKEND_IMAGE:$CI_COMMIT_SHORT_SHA"
     - ssh $PROD_USER@$PROD_IP "kubectl rollout status deployment/frontend-deployment"
