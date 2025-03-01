@@ -58,7 +58,7 @@ def register_auth_middleware(app: Flask):
             g.user_group = user_info.get("group")
             g.user_first_name = user_info.get("first_name")
             g.user_last_name = user_info.get("last_name")
-        except UnauthenticatedException as e:
+        except UnauthenticatedException:
             # User is not authenticated.
             # The user is still allowed to continue.
             # The route handler can decide if authentication is required.

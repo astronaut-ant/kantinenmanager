@@ -368,6 +368,7 @@ def describe_change_password():
             mocker.patch.object(
                 UsersRepository, "update_user", side_effect=update_user_side_effect
             )
+            mocker.patch.object(RefreshTokenSessionRepository, "delete_user_tokens")
 
             AuthService.change_password(user.id, PASSWORD, "new_password")
 
