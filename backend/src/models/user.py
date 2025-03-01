@@ -47,14 +47,26 @@ class User(Person):
     """
 
     # Das sind die Attribue (Spalten) der Tabelle:
-    id: Mapped[uuid.UUID] = mapped_column(ForeignKey("person.id"), primary_key=True)
+    id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey(
+            "person.id", name="fk_user_person", onupdate="CASCADE", ondelete="CASCADE"
+        ),
+        primary_key=True,
+    )
     username: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String(256), nullable=False)
     user_group: Mapped[UserGroup] = mapped_column(
         sqlalchemy.Enum(UserGroup), nullable=False
     )
     location_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("location.id"), nullable=True
+        ForeignKey(
+            "location.id",
+            name="fk_user_location",
+            onupdate="CASCADE",
+            ondelete="SET NULL",
+            use_alter=True,
+        ),
+        nullable=True,
     )
     last_login: Mapped[datetime] = mapped_column(DateTime, nullable=True)
     blocked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)

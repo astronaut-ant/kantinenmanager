@@ -25,10 +25,13 @@ class Employee(Person):
     """
 
     # Das sind die Attribue (Spalten) der Tabelle:
-    id: Mapped[uuid.UUID] = mapped_column(ForeignKey("person.id"), primary_key=True)
+    id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("person.id", name="fk_employee_person", onupdate="CASCADE", ondelete="CASCADE"),
+        primary_key=True,
+    )
     employee_number: Mapped[int] = mapped_column(Integer, nullable=False)
     group_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("group.id", ondelete="CASCADE"), nullable=False
+        ForeignKey("group.id", name="fk_employee_group", onupdate="CASCADE", ondelete="SET NULL"), nullable=False
     )
 
     # Das sind die Beziehungen zu anderen Tabellen:

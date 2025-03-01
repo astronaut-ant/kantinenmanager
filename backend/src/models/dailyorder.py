@@ -27,9 +27,22 @@ class DailyOrder(db.Model):
     # Felder der Tabelle:
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     person_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("person.id", ondelete="CASCADE"), unique=True
+        ForeignKey(
+            "person.id",
+            name="fk_dailyorder_person",
+            onupdate="CASCADE",
+            ondelete="CASCADE",
+        ),
+        unique=True,
     )
-    location_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("location.id"))
+    location_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey(
+            "location.id",
+            name="fk_dailyorder_location",
+            onupdate="CASCADE",
+            ondelete="SET NULL",
+        )
+    )
     date: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     nothing: Mapped[bool] = mapped_column(
         Boolean, name="nothing", nullable=True, quote=True
