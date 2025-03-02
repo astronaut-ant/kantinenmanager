@@ -161,6 +161,7 @@ const getData = () => {
     .catch((err) => console.log(err));
 };
 
+//Backend Error --> old orders should not be existent!?
 const getOrders = () => {
   axios
     .get(

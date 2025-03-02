@@ -141,9 +141,16 @@
           <v-btn
             @click="finish"
             :disabled="step3Valid"
-            v-if="stepperValue === 3"
+            v-if="stepperValue === 3 && !inEditMode"
             variant="tonal"
             >Bestellung aufgeben</v-btn
+          >
+          <v-btn
+            @click="updateOrder(preOrderToEdit)"
+            :disabled="step3Valid"
+            v-if="stepperValue === 3 && inEditMode"
+            variant="tonal"
+            >Bestellung aktualisieren</v-btn
           >
         </template>
       </v-stepper>
@@ -174,6 +181,8 @@ const selectRef = useTemplateRef("selectRef");
 const selectableDates = ref([]);
 const isOpen = ref(false);
 const showConfirmation = ref(false);
+const inEditMode = ref(false);
+const preOrderToEdit = ref();
 
 const changeOpenState = () => {
   isOpen.value = !isOpen.value;
@@ -223,25 +232,12 @@ watch(
   (newVal) => {
     dialog.value = true;
     const preOrderId = newVal[1];
-    reset(); //TODO replace with restore(preOrderId); set editing flag; if editingFlag true => put request!
+    restore(preOrderId);
+    preOrderToEdit.value = preOrderId;
   }
 );
 
 locationItems.value = props.locationItems;
-
-// get all locations for Step 2
-// axios
-//   .get(import.meta.env.VITE_API + "/api/locations", { withCredentials: true })
-//   .then((response) => {
-//     response.data.forEach((locationobject) =>
-//       locationItems.value.push({
-//         title: locationobject.location_name,
-//         value: locationobject.id,
-//       })
-//     );
-//     console.log(locationItems.value);
-//   })
-//   .catch((err) => console.log(err));
 
 const incrementStep = () => {
   stepperValue.value += 1;
@@ -277,6 +273,59 @@ const finish = () => {
     });
 };
 
+const updateOrder = (preOrderToEdit) => {
+  addDateToPreOrderObject();
+  addLocationToPreOrderObject();
+  addDishesToPreOrderObject();
+  preOrderObject.person_id = props.personId;
+  console.log("Test2", preOrderObject);
+
+  //actual BackendError
+  // axios
+  //   .put(
+  //     import.meta.env.VITE_API + `/api/pre-orders/${preOrderToEdit}`,
+  //     preOrderObject,
+  //     {
+  //       withCredentials: true,
+  //     }
+  //   )
+  //   .then((response) => {
+  //     showConfirmation.value = true;
+  //     emit("ordered");
+  //     console.log("Test3", response.data);
+  //   })
+  //   .catch((err) => {
+  //     console.log(err);
+  //   });
+
+  //temporal Workaround (with Delete -> Post)
+
+  axios
+    .delete(import.meta.env.VITE_API + `/api/pre-orders/${preOrderToEdit}`, {
+      withCredentials: true,
+    })
+    .then((response) => {
+      console.log(response.data);
+      axios
+        .post(
+          import.meta.env.VITE_API + "/api/pre-orders/users",
+          preOrderObject,
+          {
+            withCredentials: true,
+          }
+        )
+        .then((response) => {
+          showConfirmation.value = true;
+          emit("ordered");
+          console.log(response.data);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    })
+    .catch((err) => console.log(err));
+};
+
 const addDateToPreOrderObject = () => {
   if (dateSelection.value != undefined) {
     const clickedDate = new Date(dateSelection.value);
@@ -288,7 +337,7 @@ const addDateToPreOrderObject = () => {
 const addLocationToPreOrderObject = () => {
   if (locationSelection.value != undefined) {
     preOrderObject.location_id = locationSelection.value;
-    console.log(preOrderObject);
+    console.log("TEST", preOrderObject);
   }
 };
 
@@ -347,7 +396,52 @@ const calcAllowedDates = () => {
 
     .catch((err) => console.log(err));
 };
+
+const calcRestoredAllowedDates = (date) => {
+  axios
+    .get(
+      import.meta.env.VITE_API + `/api/pre-orders?person-id=${props.personId}`,
+      {
+        withCredentials: true,
+      }
+    )
+    .then((response) => {
+      const blockedDates = [];
+      const allowedDates = [];
+      response.data.forEach((data) => {
+        blockedDates.push(data.date);
+      });
+      console.log("blockedDates", blockedDates);
+
+      const actualDate = new Date();
+      // actualDate.setDate(actualDate.getDate() + 1);
+      const preOrderTimeExceeded = actualDate.getHours() >= 8;
+      if (!preOrderTimeExceeded) {
+        allowedDates.push(actualDate.toISOString().split("T")[0]);
+      }
+      for (let i = 1; i < 13; i++) {
+        const nextDate = new Date();
+        nextDate.setDate(actualDate.getDate() + i);
+        const dayOfWeek = nextDate.getDay();
+        if (!(dayOfWeek === 6 || dayOfWeek === 0)) {
+          const formattedNextDate = nextDate.toISOString().split("T")[0];
+          allowedDates.push(formattedNextDate);
+        }
+      }
+      const filteredDates = allowedDates.filter((date) => {
+        return !blockedDates.includes(date);
+      });
+      selectableDates.value = filteredDates;
+      selectableDates.value.push(date);
+      console.log("selectable Date", selectableDates.value);
+      dateSelection.value = new Date(date);
+    })
+
+    .catch((err) => console.log(err));
+};
+
 const reset = () => {
+  inEditMode.value = false;
   showConfirmation.value = false;
   calcAllowedDates();
   step1Valid.value = true;
@@ -357,6 +451,37 @@ const reset = () => {
   dateSelection.value = undefined;
   locationSelection.value = undefined;
   foodChoice.value = [];
+};
+
+const restore = (preOrderId) => {
+  inEditMode.value = true;
+  axios
+    .get(import.meta.env.VITE_API + `/api/pre-orders/${preOrderId}`, {
+      withCredentials: true,
+    })
+    .then((response) => {
+      const preOrderObject = response.data;
+      console.log(preOrderObject);
+      showConfirmation.value = false;
+      calcRestoredAllowedDates(preOrderObject.date);
+      step1Valid.value = false;
+      step2Valid.value = false;
+      step3Valid.value = false;
+      stepperValue.value = 1;
+      dateSelection.value = new Date(preOrderObject.date);
+      locationSelection.value = preOrderObject.location_id;
+      foodChoice.value = [];
+      if (preOrderObject.main_dish == "blau") {
+        foodChoice.value.push(1);
+      }
+      if (preOrderObject.main_dish == "rot") {
+        foodChoice.value.push(2);
+      }
+      if (preOrderObject.salad_option) {
+        foodChoice.value.push(3);
+      }
+    })
+    .catch((err) => console.log(err));
 };
 </script>
 <style scoped lang="scss">
