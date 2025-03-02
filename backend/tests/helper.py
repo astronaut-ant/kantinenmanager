@@ -24,7 +24,7 @@ def app():
 
 
 @pytest.fixture()
-def user():
+def user_verwaltung():
     user = User(
         first_name="Jane",
         last_name="Doe",
@@ -85,9 +85,9 @@ def location(user_standortleitung):
 
 
 @pytest.fixture()
-def session(user):
+def session(user_verwaltung):
     return RefreshTokenSession(
         refresh_token="token",
-        user_id=user.id,
+        user_id=user_verwaltung.id,
         expires=datetime.now() + timedelta(days=1),
     )
