@@ -113,7 +113,7 @@ const form = ref(false);
 const orders = ref([]);
 const locationItems = ref([]);
 const locationTable = {};
-const sortBy = ref([{ key: "date", order: "desc" }]);
+const sortBy = ref([{ key: "date", order: "asc" }]);
 const openModal = ref([false, -1]);
 
 const headers = ref([
