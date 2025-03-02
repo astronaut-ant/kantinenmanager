@@ -1,11 +1,16 @@
 """Tests for the UsersService class."""
 
+from typing import Set
 import pytest
 from uuid import uuid4
 from src.models.user import UserGroup
 from src.services.auth_service import AuthService
 from src.repositories.locations_repository import LocationsRepository
-from src.utils.exceptions import AlreadyExistsError, NotFoundError
+from src.utils.exceptions import (
+    ActionNotPossibleError,
+    AlreadyExistsError,
+    NotFoundError,
+)
 from src.services.users_service import UsersService
 from src.repositories.users_repository import UsersRepository
 from .helper import *  # for fixtures # noqa: F403
@@ -320,7 +325,46 @@ def describe_unblock_user():
 
 
 def describe_delete_user():
-    pass
+    def it_raises_when_group_leader_has_own_group(mocker, user_gruppenleitung, group):
+        user_gruppenleitung.leader_of_group = group
+
+        try:
+            UsersService.delete_user(user_gruppenleitung)
+            assert False  # should raise
+        except ActionNotPossibleError as e:
+            assert "leitet/vertritt eine Gruppe und kann nicht gelöscht werden" in str(
+                e
+            )
+
+    def it_raises_when_group_leader_is_replacement(mocker, user_gruppenleitung, group):
+        user_gruppenleitung.replacement_leader_of_groups = set([group])
+        user_gruppenleitung.leader_of_group = None
+
+        try:
+            UsersService.delete_user(user_gruppenleitung)
+            assert False  # should raise
+        except ActionNotPossibleError as e:
+            assert "leitet/vertritt eine Gruppe und kann nicht gelöscht werden" in str(
+                e
+            )
+
+    def it_raises_when_standortleitung_leads_location(
+        mocker, location, user_standortleitung
+    ):
+        user_standortleitung.leader_of_location = location
+
+        try:
+            UsersService.delete_user(user_standortleitung)
+            assert False  # should raise
+        except ActionNotPossibleError as e:
+            assert "leitet einen Standort und kann nicht gelöscht werden" in str(e)
+
+    def it_deletes_user(mocker, user_verwaltung):
+        mock_delete_user = mocker.patch.object(UsersRepository, "delete_user")
+
+        UsersService.delete_user(user_verwaltung)
+
+        mock_delete_user.assert_called_once_with(user_verwaltung)
 
 
 def describe_reset_password():

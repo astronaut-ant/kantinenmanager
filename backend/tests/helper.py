@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 import uuid
 import pytest
 
+from src.models.group import Group
 from src.models.location import Location
 from src import app as project_app
 from src.models.refresh_token_session import RefreshTokenSession
@@ -82,6 +83,19 @@ def location(user_standortleitung):
     )
     location.id = uuid.uuid4()
     return location
+
+
+@pytest.fixture()
+def group(user_gruppenleitung, location):
+    group = Group(
+        group_name="Test Group",
+        group_number=1,
+        user_id_group_leader=user_gruppenleitung.id,
+        user_id_replacement=None,
+        location_id=location.id,
+    )
+    group.id = uuid.uuid4()
+    return group
 
 
 @pytest.fixture()
