@@ -243,4 +243,4 @@ class EmployeesService:
         employees = EmployeesRepository.get_employees_by_user_scope(
             user_group=user_group, user_id=user_id
         )
-        return PDFCreationUtils.create_batch_qr_codes(employees)
+        return PDFCreationUtils.create_batch_qr_codes(employees=employees)
