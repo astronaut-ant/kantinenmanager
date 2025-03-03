@@ -1,14 +1,8 @@
 <template>
-    <v-footer padless class="footer">
+    <v-footer padless color="primary">
         <v-row justify="center" no-gutters>
-            <v-btn
-                v-for="link in links"
-                :key="link"
-                class="mx-2"
-                variant="text"
-            >
-                {{ link }}
-            </v-btn>
+            <v-btn class="mx-2" variant="text"> Impressum </v-btn>
+            <v-btn class="mx-2" variant="text"> Datenschutzerklärung </v-btn>
             <v-col class="text-center mt-4" cols="12">
                 {{ new Date().getFullYear() }} — <strong>Kantinenmanager Lebenshilfe Borna e.V.</strong>
             </v-col>
@@ -17,12 +11,5 @@
 </template>
 
 <script setup>
-const links = ["Impressum", "Datenschutz", "AGB"];
-
+//
 </script>
-
-<style>
-.footer {
-  height: 64px;
-}
-</style>
