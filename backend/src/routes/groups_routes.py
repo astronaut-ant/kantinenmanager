@@ -417,3 +417,51 @@ def remove_group_replacement(group_id: UUID):
         )
 
     return GroupFullNestedSchema().dump(group)
+
+
+@groups_routes.get("/api/groups/create-qr/<uuid:group_id>")
+@login_required(groups=[UserGroup.verwaltung])
+@swag_from(
+    {
+        "tags": ["groups"],
+        "parameters": [
+            {
+                "in": "path",
+                "name": "group_id",
+                "required": True,
+                "schema": {"type": "string"},
+            }
+        ],
+        "responses": {
+            200: {
+                "description": "Successfully created QR code as a PDF for each person in the group",
+                "content": {
+                    "application/pdf": {
+                        "schema": {"type": "string", "format": "binary"}
+                    }
+                },
+            },
+            404: {
+                "description": "QR codes could not be created for the group",
+            },
+        },
+    }
+)
+def create_batch_qr_code(group_id: UUID):
+    """Create pdf with QR codes for each employee in a group
+
+    Authentication: required
+    Authorization: Verwaltung
+    ---
+    """
+    try:
+        return GroupsService.create_batch_qr_codes(group_id, g.user_id, g.user_group)
+    except NotFoundError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Es existieren keine Mitarbeiter:innen in der Gruppe",
+                description="Es existieren keine Mitarbeiter:innen in der Gruppe.",
+                details=str(err),
+            )
+        )

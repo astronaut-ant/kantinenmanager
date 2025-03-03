@@ -47,7 +47,7 @@ def create_qr_code(person_id: UUID):
     ---
     """
     try:
-        return PersonsService.create_qr_code(person_id)
+        return PersonsService.create_qr_code_person(person_id)
     except NotFoundError:
         abort_with_err(
             ErrMsg(

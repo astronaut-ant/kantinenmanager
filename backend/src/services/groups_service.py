@@ -4,7 +4,9 @@ from src.models.group import Group
 from src.repositories.groups_repository import GroupsRepository
 from src.repositories.users_repository import UsersRepository
 from src.repositories.locations_repository import LocationsRepository
+from src.repositories.employees_repository import EmployeesRepository
 from src.utils.exceptions import AlreadyExistsError, NotFoundError, BadValueError
+from src.utils.pdf_creator import PDFCreationUtils
 
 
 class GroupsService:
@@ -160,3 +162,14 @@ class GroupsService:
         group.group_name = group_name
         GroupsRepository.update_group(group)
         return group
+
+    @staticmethod
+    def create_batch_qr_codes(group_id: UUID, user_id: UUID, user_group: UserGroup):
+        """Create a batch of QR codes for a group."""
+        group = GroupsRepository.get_group_by_id(group_id)
+        employees = EmployeesRepository.get_employees_by_user_scope(
+            user_group=user_group, user_id=user_id, group_id=group_id
+        )
+        if not employees:
+            raise NotFoundError(f"Mitarbeiter:innen der Gruppe mit ID {group_id}")
+        return PDFCreationUtils.create_batch_qr_codes(group, employees)
