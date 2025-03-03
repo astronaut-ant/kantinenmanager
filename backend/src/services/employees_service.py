@@ -9,6 +9,7 @@ from src.repositories.employees_repository import EmployeesRepository
 from src.utils.error import ErrMsg, abort_with_err
 from typing import Optional
 from src.utils.exceptions import AlreadyExistsError, NotFoundError
+from src.utils.pdf_creator import PDFCreationUtils
 
 
 class EmployeesService:
@@ -233,3 +234,13 @@ class EmployeesService:
             "message": "Mitarbeiter erfolgreich erstellt",
             "count": len(employees),
         }
+
+    @staticmethod
+    def get_qr_code_for_all_employees_by_user_scope(
+        user_group: UserGroup, user_id: UUID
+    ):
+
+        employees = EmployeesRepository.get_employees_by_user_scope(
+            user_group=user_group, user_id=user_id
+        )
+        return PDFCreationUtils.create_batch_qr_codes(employees)

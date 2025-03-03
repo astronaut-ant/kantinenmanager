@@ -418,3 +418,31 @@ def delete_employee(employee_id: UUID):
 
     EmployeesService.delete_employee(employee)
     return jsonify({"message": "Mitarbeiter:in erfolgreich gelöscht"})
+
+
+@employees_routes.get("/api/employees/qr-codes")
+@login_required(
+    groups=[UserGroup.verwaltung, UserGroup.standortleitung, UserGroup.gruppenleitung]
+)
+@swag_from(
+    {
+        "tags": ["employees"],
+        "responses": {
+            200: {
+                "description": "Successfully created QR codes as a PDF",
+                "content": {
+                    "application/pdf": {
+                        "schema": {"type": "string", "format": "binary"}
+                    }
+                },
+            },
+            404: {
+                "description": "QR codes could not be created",
+            },
+        },
+    }
+)
+def get_qr_code_for_all_employees_by_user_scope():
+    return EmployeesService.get_qr_code_for_all_employees_by_user_scope(
+        user_group=g.user_group, user_id=g.user_id
+    )
