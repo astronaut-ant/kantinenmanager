@@ -10,13 +10,13 @@ from .helper import PASSWORD, get_refresh_token, get_auth_token, join_headers
 
 
 def describe_auth_middleware():
-    def it_handles_valid_auth_token(app, client, user, db):
-        db.session.add(user)
+    def it_handles_valid_auth_token(app, client, user_verwaltung, db):
+        db.session.add(user_verwaltung)
         db.session.commit()
 
         login_res = client.post(
             "/api/login",
-            json={"username": user.username, "password": PASSWORD},
+            json={"username": user_verwaltung.username, "password": PASSWORD},
         )
 
         auth_token = get_auth_token(login_res.headers)
@@ -36,19 +36,21 @@ def describe_auth_middleware():
         ):
             app.preprocess_request()
             assert g.user_authenticated
-            assert g.user_id == user.id
-            assert g.user_username == user.username
-            assert g.user_group.value == user.user_group.value
-            assert g.user_first_name == user.first_name
-            assert g.user_last_name == user.last_name
+            assert g.user_id == user_verwaltung.id
+            assert g.user_username == user_verwaltung.username
+            assert g.user_group.value == user_verwaltung.user_group.value
+            assert g.user_first_name == user_verwaltung.first_name
+            assert g.user_last_name == user_verwaltung.last_name
 
-    def it_should_not_return_new_tokens_if_auth_token_is_valid(app, client, user, db):
-        db.session.add(user)
+    def it_should_not_return_new_tokens_if_auth_token_is_valid(
+        app, client, user_verwaltung, db
+    ):
+        db.session.add(user_verwaltung)
         db.session.commit()
 
         login_res = client.post(
             "/api/login",
-            json={"username": user.username, "password": PASSWORD},
+            json={"username": user_verwaltung.username, "password": PASSWORD},
         )
 
         assert login_res.status_code == 200
@@ -61,14 +63,14 @@ def describe_auth_middleware():
         assert "refresh_token" not in headers_str
 
     def it_generates_new_tokens_if_auth_token_is_invalid_but_refresh_token_is_valid(
-        app, client, user, db
+        app, client, user_verwaltung, db
     ):
-        db.session.add(user)
+        db.session.add(user_verwaltung)
         db.session.commit()
 
         login_res = client.post(
             "/api/login",
-            json={"username": user.username, "password": PASSWORD},
+            json={"username": user_verwaltung.username, "password": PASSWORD},
         )
 
         refresh_token = get_refresh_token(login_res.headers)
@@ -98,14 +100,14 @@ def describe_auth_middleware():
             assert old_refresh_token.has_been_used()
 
     def it_returns_new_tokens_if_auth_token_is_invalid_and_refresh_token_is_valid(
-        app, client, user, db
+        app, client, user_verwaltung, db
     ):
-        db.session.add(user)
+        db.session.add(user_verwaltung)
         db.session.commit()
 
         login_res = client.post(
             "/api/login",
-            json={"username": user.username, "password": PASSWORD},
+            json={"username": user_verwaltung.username, "password": PASSWORD},
         )
 
         assert login_res.status_code == 200
@@ -153,13 +155,13 @@ def describe_auth_middleware():
             assert g.user_first_name is None
             assert g.user_last_name is None
 
-    def it_handles_expired_refresh_token(app, client, user, db):
-        db.session.add(user)
+    def it_handles_expired_refresh_token(app, client, user_verwaltung, db):
+        db.session.add(user_verwaltung)
         db.session.commit()
 
         login_res = client.post(
             "/api/login",
-            json={"username": user.username, "password": PASSWORD},
+            json={"username": user_verwaltung.username, "password": PASSWORD},
         )
 
         refresh_token = get_refresh_token(login_res.headers)
@@ -187,13 +189,15 @@ def describe_auth_middleware():
             assert g.user_first_name is None
             assert g.user_last_name is None
 
-    def it_blocks_user_when_refresh_token_has_already_been_used(app, client, user, db):
-        db.session.add(user)
+    def it_blocks_user_when_refresh_token_has_already_been_used(
+        app, client, user_verwaltung, db
+    ):
+        db.session.add(user_verwaltung)
         db.session.commit()
 
         login_res = client.post(
             "/api/login",
-            json={"username": user.username, "password": PASSWORD},
+            json={"username": user_verwaltung.username, "password": PASSWORD},
         )
 
         refresh_token = get_refresh_token(login_res.headers)
@@ -217,18 +221,18 @@ def describe_auth_middleware():
         assert res.status_code == 403
         assert res.json["title"] == "Account gesperrt"
 
-    def it_handles_blocked_user(app, client, user, db):
-        db.session.add(user)
+    def it_handles_blocked_user(app, client, user_verwaltung, db):
+        db.session.add(user_verwaltung)
         db.session.commit()
 
         login_res = client.post(
             "/api/login",
-            json={"username": user.username, "password": PASSWORD},
+            json={"username": user_verwaltung.username, "password": PASSWORD},
         )
 
         assert login_res.status_code == 200
 
-        user.blocked = True
+        user_verwaltung.blocked = True
         db.session.commit()
 
         # User blocked is only checked, when the auth token is invalid
@@ -240,13 +244,13 @@ def describe_auth_middleware():
         assert res.status_code == 403
         assert res.json["title"] == "Account gesperrt"
 
-    def it_does_not_return_new_tokens_on_logout(app, client, user, db):
-        db.session.add(user)
+    def it_does_not_return_new_tokens_on_logout(app, client, user_verwaltung, db):
+        db.session.add(user_verwaltung)
         db.session.commit()
 
         login_res = client.post(
             "/api/login",
-            json={"username": user.username, "password": PASSWORD},
+            json={"username": user_verwaltung.username, "password": PASSWORD},
         )
 
         assert login_res.status_code == 200

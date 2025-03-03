@@ -14,13 +14,16 @@ def describe_login():
 
             assert res.status_code == 400
 
-        def it_returns_401_on_invalid_credentials(client, user, db):
-            db.session.add(user)
+        def it_returns_401_on_invalid_credentials(client, user_verwaltung, db):
+            db.session.add(user_verwaltung)
             db.session.commit()
 
             res = client.post(
                 "/api/login",
-                json={"username": user.username, "password": "wrong_password"},
+                json={
+                    "username": user_verwaltung.username,
+                    "password": "wrong_password",
+                },
             )
 
             assert res.status_code == 401
@@ -33,24 +36,30 @@ def describe_login():
 
             assert res.status_code == 401
 
-        def it_returns_401_on_hidden_user(client, user, db):
-            user.hidden = True
-            db.session.add(user)
-            db.session.commit()
-
-            res = client.post(
-                "/api/login", json={"username": user.username, "password": PASSWORD}
-            )
-
-            assert res.status_code == 401
-
-        def it_removes_token_cookies_on_invalid_credentials(client, user, db):
-            db.session.add(user)
+        def it_returns_401_on_hidden_user(client, user_verwaltung, db):
+            user_verwaltung.hidden = True
+            db.session.add(user_verwaltung)
             db.session.commit()
 
             res = client.post(
                 "/api/login",
-                json={"username": user.username, "password": "wrong_password"},
+                json={"username": user_verwaltung.username, "password": PASSWORD},
+            )
+
+            assert res.status_code == 401
+
+        def it_removes_token_cookies_on_invalid_credentials(
+            client, user_verwaltung, db
+        ):
+            db.session.add(user_verwaltung)
+            db.session.commit()
+
+            res = client.post(
+                "/api/login",
+                json={
+                    "username": user_verwaltung.username,
+                    "password": "wrong_password",
+                },
             )
 
             headers_str = join_headers(res.headers)
@@ -63,41 +72,44 @@ def describe_login():
                 "refresh_token=; Expires=Thu, 01 Jan 1970 00:00:00 GMT;" in headers_str
             )
 
-        def it_returns_403_on_blocked_user(client, user, db):
-            user.blocked = True
-            db.session.add(user)
+        def it_returns_403_on_blocked_user(client, user_verwaltung, db):
+            user_verwaltung.blocked = True
+            db.session.add(user_verwaltung)
             db.session.commit()
 
             res = client.post(
-                "/api/login", json={"username": user.username, "password": PASSWORD}
+                "/api/login",
+                json={"username": user_verwaltung.username, "password": PASSWORD},
             )
 
             assert res.json["title"] == "Account gesperrt"
             assert res.status_code == 403
 
-        def it_returns_user_object_on_successful_login(user, client, db):
-            db.session.add(user)
+        def it_returns_user_object_on_successful_login(user_verwaltung, client, db):
+            db.session.add(user_verwaltung)
             db.session.commit()
 
             assert len(db.session.scalars(select(User)).all()) == 1
 
             res = client.post(
-                "/api/login", json={"username": user.username, "password": PASSWORD}
+                "/api/login",
+                json={"username": user_verwaltung.username, "password": PASSWORD},
             )
 
             assert res.status_code == 200
-            assert res.json["id"] == str(user.id)
-            assert res.json["username"] == user.username
-            assert res.json["first_name"] == user.first_name
-            assert res.json["last_name"] == user.last_name
+            assert res.json["id"] == str(user_verwaltung.id)
+            assert res.json["username"] == user_verwaltung.username
+            assert res.json["first_name"] == user_verwaltung.first_name
+            assert res.json["last_name"] == user_verwaltung.last_name
             assert not res.json["blocked"]
 
-        def it_sets_token_cookies_on_successful_login(user, client, db):
-            db.session.add(user)
+        def it_sets_token_cookies_on_successful_login(user_verwaltung, client, db):
+            db.session.add(user_verwaltung)
             db.session.commit()
 
             res = client.post(
-                "/api/login", json={"username": user.username, "password": PASSWORD}
+                "/api/login",
+                json={"username": user_verwaltung.username, "password": PASSWORD},
             )
 
             headers_str = join_headers(res.headers)
@@ -108,15 +120,16 @@ def describe_login():
             assert "auth_token" in headers_str
             assert "refresh_token" in headers_str
 
-        def it_saves_refresh_token_in_db(user, client, db):
-            db.session.add(user)
+        def it_saves_refresh_token_in_db(user_verwaltung, client, db):
+            db.session.add(user_verwaltung)
             db.session.commit()
 
             # Ensure no refresh tokens are in the database
             assert len(db.session.scalars(select(RefreshTokenSession)).all()) == 0
 
             res = client.post(
-                "/api/login", json={"username": user.username, "password": PASSWORD}
+                "/api/login",
+                json={"username": user_verwaltung.username, "password": PASSWORD},
             )
 
             headers_str = join_headers(res.headers)
@@ -139,21 +152,22 @@ def describe_is_logged_in():
 
             assert res.status_code == 401
 
-        def it_returns_user_object_on_authenticated_user(user, client, db):
-            db.session.add(user)
+        def it_returns_user_object_on_authenticated_user(user_verwaltung, client, db):
+            db.session.add(user_verwaltung)
             db.session.commit()
 
             res = client.post(
-                "/api/login", json={"username": user.username, "password": PASSWORD}
+                "/api/login",
+                json={"username": user_verwaltung.username, "password": PASSWORD},
             )
 
             res = client.get("/api/is-logged-in")
 
             assert res.status_code == 200
-            assert res.json["id"] == str(user.id)
-            assert res.json["username"] == user.username
-            assert res.json["first_name"] == user.first_name
-            assert res.json["last_name"] == user.last_name
+            assert res.json["id"] == str(user_verwaltung.id)
+            assert res.json["username"] == user_verwaltung.username
+            assert res.json["first_name"] == user_verwaltung.first_name
+            assert res.json["last_name"] == user_verwaltung.last_name
             assert not res.json["blocked"]
 
 
@@ -164,12 +178,13 @@ def describe_logout():
 
             assert res.status_code == 204
 
-        def it_removes_token_cookies_on_logout(user, client, db):
-            db.session.add(user)
+        def it_removes_token_cookies_on_logout(user_verwaltung, client, db):
+            db.session.add(user_verwaltung)
             db.session.commit()
 
             client.post(
-                "/api/login", json={"username": user.username, "password": PASSWORD}
+                "/api/login",
+                json={"username": user_verwaltung.username, "password": PASSWORD},
             )
 
             res = client.post("/api/logout")
@@ -184,12 +199,13 @@ def describe_logout():
                 "refresh_token=; Expires=Thu, 01 Jan 1970 00:00:00 GMT;" in headers_str
             )
 
-        def it_removes_refresh_token_from_db(user, client, db):
-            db.session.add(user)
+        def it_removes_refresh_token_from_db(user_verwaltung, client, db):
+            db.session.add(user_verwaltung)
             db.session.commit()
 
             client.post(
-                "/api/login", json={"username": user.username, "password": PASSWORD}
+                "/api/login",
+                json={"username": user_verwaltung.username, "password": PASSWORD},
             )
 
             assert len(db.session.scalars(select(RefreshTokenSession)).all()) == 1
@@ -207,24 +223,26 @@ def describe_change_password():
 
             assert res.status_code == 401
 
-        def it_returns_400_on_invalid_input(user, client, db):
-            db.session.add(user)
+        def it_returns_400_on_invalid_input(user_verwaltung, client, db):
+            db.session.add(user_verwaltung)
             db.session.commit()
 
             client.post(
-                "/api/login", json={"username": user.username, "password": PASSWORD}
+                "/api/login",
+                json={"username": user_verwaltung.username, "password": PASSWORD},
             )
 
             res = client.post("/api/account/change-password", json={})
 
             assert res.status_code == 400
 
-        def it_returns_400_on_invalid_credentials(user, client, db):
-            db.session.add(user)
+        def it_returns_400_on_invalid_credentials(user_verwaltung, client, db):
+            db.session.add(user_verwaltung)
             db.session.commit()
 
             client.post(
-                "/api/login", json={"username": user.username, "password": PASSWORD}
+                "/api/login",
+                json={"username": user_verwaltung.username, "password": PASSWORD},
             )
 
             res = client.post(
@@ -238,12 +256,13 @@ def describe_change_password():
             assert res.status_code == 401
             assert res.json["title"] == "Passwort ändern fehlgeschlagen"
 
-        def it_returns_204_on_successful_change(user, client, db):
-            db.session.add(user)
+        def it_returns_204_on_successful_change(user_verwaltung, client, db):
+            db.session.add(user_verwaltung)
             db.session.commit()
 
             client.post(
-                "/api/login", json={"username": user.username, "password": PASSWORD}
+                "/api/login",
+                json={"username": user_verwaltung.username, "password": PASSWORD},
             )
 
             res = client.post(
@@ -256,11 +275,11 @@ def describe_change_password():
 
             assert res.status_code == 204
 
-        def it_changes_password_hash(user, client, db):
-            db.session.add(user)
+        def it_changes_password_hash(user_verwaltung, client, db):
+            db.session.add(user_verwaltung)
             db.session.commit()
 
-            initial_password = user.hashed_password
+            initial_password = user_verwaltung.hashed_password
 
             assert (
                 db.session.scalars(select(User)).first().hashed_password
@@ -268,7 +287,8 @@ def describe_change_password():
             )
 
             client.post(
-                "/api/login", json={"username": user.username, "password": PASSWORD}
+                "/api/login",
+                json={"username": user_verwaltung.username, "password": PASSWORD},
             )
 
             res = client.post(
@@ -285,18 +305,21 @@ def describe_change_password():
                 != initial_password
             )
 
-        def it_deletes_refresh_tokens(user, client, db):
-            db.session.add(user)
+        def it_deletes_refresh_tokens(user_verwaltung, client, db):
+            db.session.add(user_verwaltung)
             db.session.commit()
 
             client.post(
-                "/api/login", json={"username": user.username, "password": PASSWORD}
+                "/api/login",
+                json={"username": user_verwaltung.username, "password": PASSWORD},
             )
             client.post(
-                "/api/login", json={"username": user.username, "password": PASSWORD}
+                "/api/login",
+                json={"username": user_verwaltung.username, "password": PASSWORD},
             )
             client.post(
-                "/api/login", json={"username": user.username, "password": PASSWORD}
+                "/api/login",
+                json={"username": user_verwaltung.username, "password": PASSWORD},
             )
 
             assert len(db.session.scalars(select(RefreshTokenSession)).all()) == 3
@@ -312,12 +335,13 @@ def describe_change_password():
             assert res.status_code == 204
             assert len(db.session.scalars(select(RefreshTokenSession)).all()) == 0
 
-        def it_removes_token_cookies_on_successful_change(user, client, db):
-            db.session.add(user)
+        def it_removes_token_cookies_on_successful_change(user_verwaltung, client, db):
+            db.session.add(user_verwaltung)
             db.session.commit()
 
             client.post(
-                "/api/login", json={"username": user.username, "password": PASSWORD}
+                "/api/login",
+                json={"username": user_verwaltung.username, "password": PASSWORD},
             )
 
             res = client.post(
