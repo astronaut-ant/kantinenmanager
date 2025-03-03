@@ -1,5 +1,6 @@
 import uuid
 import pytest
+from src.models.location import Location
 from src import app as project_app
 from src.database import create_initial_admin, db as project_db
 from src.models.user import User, UserGroup
@@ -38,7 +39,7 @@ def seed(app, db):
 
 
 @pytest.fixture()
-def user():
+def user_verwaltung():
     user = User(
         first_name="Jane",
         last_name="Doe",
@@ -48,6 +49,79 @@ def user():
     )
     user.id = uuid.uuid4()
     return user
+
+
+@pytest.fixture()
+def user_standortleitung():
+    user = User(
+        first_name="Standort",
+        last_name="Leitung",
+        username="standortleitung",
+        hashed_password="$argon2id$v=19$m=65536,t=3,p=4$3rfCHeNLgFGKSyeZU0tl5w$rpsECi3FkYbvf2DEyPrDwp5/lPD3RUecZARuaRSVrWQ",  # password: password
+        user_group=UserGroup.standortleitung,
+    )
+    user.id = uuid.uuid4()
+    return user
+
+
+@pytest.fixture()
+def user_gruppenleitung():
+    user = User(
+        first_name="Gruppen",
+        last_name="Leitung",
+        username="gruppenleitung",
+        hashed_password="$argon2id$v=19$m=65536,t=3,p=4$3rfCHeNLgFGKSyeZU0tl5w$rpsECi3FkYbvf2DEyPrDwp5/lPD3RUecZARuaRSVrWQ",  # password: password
+        user_group=UserGroup.gruppenleitung,
+    )
+    user.id = uuid.uuid4()
+    return user
+
+
+@pytest.fixture()
+def user_kuechenpersonal():
+    user = User(
+        first_name="Kuechen",
+        last_name="Personal",
+        username="kuechenpersonal",
+        hashed_password="$argon2id$v=19$m=65536,t=3,p=4$3rfCHeNLgFGKSyeZU0tl5w$rpsECi3FkYbvf2DEyPrDwp5/lPD3RUecZARuaRSVrWQ",  # password: password
+        user_group=UserGroup.kuechenpersonal,
+    )
+    user.id = uuid.uuid4()
+    return user
+
+
+@pytest.fixture()
+def users():
+    users = []
+    for x in range(0, 10):
+        user = User(
+            first_name=f"User{x}",
+            last_name=f"Lastname{x}",
+            username=f"user{x}",
+            hashed_password="$argon2id$v=19$m=65536,t=3,p=4$3rfCHeNLgFGKSyeZU0tl5w$rpsECi3FkYbvf2DEyPrDwp5/lPD3RUecZARuaRSVrWQ",  # password: password
+            user_group=UserGroup.verwaltung,
+        )
+        user.id = uuid.uuid4()
+        users.append(user)
+    return users
+
+
+@pytest.fixture()
+def location(user_standortleitung):
+    location = Location(
+        location_name="Test Location", user_id_location_leader=user_standortleitung.id
+    )
+    location.id = uuid.uuid4()
+    return location
+
+
+def login(user: User, client):
+    res = client.post(
+        "/api/login",
+        json={"username": user.username, "password": PASSWORD},
+    )
+    assert res.status_code == 200
+    return res
 
 
 def join_headers(headers):

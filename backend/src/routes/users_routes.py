@@ -220,8 +220,16 @@ def create_user():
                 description=str(e),
             )
         )
+    except NotFoundError as e:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Standort nicht gefunden",
+                description=str(e),
+            )
+        )
 
-    return jsonify({"id": id, "initial_password": initial_password})
+    return jsonify({"id": id, "initial_password": initial_password}), 201
 
 
 @users_routes.put("/api/users/<uuid:user_id>/reset-password")
@@ -336,7 +344,7 @@ def update_user(user_id: UUID):
         if (location_id := body.get("location_id")) is not None:
             location = LocationsService.get_location_by_id(location_id)
             if location is None:
-                raise NotFoundError()
+                raise NotFoundError(f"Standort mit ID {location_id}")
     except NotFoundError:
         abort_with_err(
             ErrMsg(
