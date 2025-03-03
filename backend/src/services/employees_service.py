@@ -7,7 +7,7 @@ from src.models.user import UserGroup
 from src.models.employee import Employee
 from src.repositories.employees_repository import EmployeesRepository
 from src.utils.error import ErrMsg, abort_with_err
-from typing import Optional
+from typing import Optional, List
 from src.utils.exceptions import AlreadyExistsError, NotFoundError
 from src.utils.pdf_creator import PDFCreationUtils
 
@@ -239,8 +239,27 @@ class EmployeesService:
     def get_qr_code_for_all_employees_by_user_scope(
         user_group: UserGroup, user_id: UUID
     ):
-
         employees = EmployeesRepository.get_employees_by_user_scope(
             user_group=user_group, user_id=user_id
         )
+        if not employees:
+            raise NotFoundError("Mitarbeiter:innen")
+        return PDFCreationUtils.create_batch_qr_codes(employees=employees)
+
+    @staticmethod
+    def get_qr_code_for_employees_list(
+        employee_ids: List[UUID], user_group: UserGroup, user_id: UUID
+    ):
+        employees: List[Employee] = []
+
+        for id in employee_ids:
+            employee = EmployeesRepository.get_employee_by_id_by_user_scope(
+                employee_id=id, user_group=user_group, user_id=user_id
+            )
+            if not employee:
+                raise NotFoundError(f"Mitarbeiter:in mit ID {id}")
+            employees.append(employee)
+
+        if not employees:
+            raise NotFoundError("Leere List oder Mitarbeiter:innen")
         return PDFCreationUtils.create_batch_qr_codes(employees=employees)
