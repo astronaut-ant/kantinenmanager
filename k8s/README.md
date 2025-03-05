@@ -13,6 +13,8 @@ microk8s enable dashboard # Enable dashboard addon
 
 microk8s enable rbac # Enable rbac addon
 
+microk8s enable ingress
+
 sudo snap install kubectl --classic # Install kubectl client
 
 sudo snap install helm --classic # Install helm
@@ -45,12 +47,12 @@ mkdir /home/swtp/certs
 cd /home/swtp/certs
 
 # create a new cert without a password
-openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -sha256 -days 365 -nodes 
+openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -sha256 -days 365 -nodes
 # Country Name: DE
 # State: Saxony
 # Locality: Leipzig
 # Organization Name: SEP Gruppe 16
-# Organizational Unit Name: 
+# Organizational Unit Name:
 # Common Name: <ip of server>
 
 # create K8s secret
