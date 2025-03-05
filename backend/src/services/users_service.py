@@ -2,6 +2,7 @@
 
 from typing import Optional
 from uuid import UUID
+from src.repositories.groups_repository import GroupsRepository
 from src.repositories.locations_repository import LocationsRepository
 from src.models.location import Location
 from src.services.auth_service import AuthService
@@ -69,6 +70,9 @@ class UsersService:
 
         if UsersRepository.get_user_by_username(username):
             raise AlreadyExistsError(ressource=f"Nutzer:in {username}")
+
+        if UsersRepository.get_hidden_user_by_username(username):
+            raise AlreadyExistsError(ressource=f"Nutzer:in {username} (gelöscht)")
 
         if location_id and LocationsRepository.get_location_by_id(location_id) is None:
             raise NotFoundError(f"Standort mit ID {location_id}")
@@ -153,15 +157,19 @@ class UsersService:
 
         :param user: The user to delete
         """
-        leader_ids = {
-            leader.id for leader in UsersRepository.get_group_and_location_leaders()
-        }
 
-        if user.id in leader_ids:
+        if user.user_group == UserGroup.gruppenleitung and (
+            user.leader_of_group or user.replacement_leader_of_groups
+        ):
             raise ActionNotPossibleError(
-                f"User {user.first_name} {user.last_name} ist Gruppen- oder Standortleiter und kann nicht gelöscht werden."
+                f"{user.first_name} {user.last_name} leitet/vertritt eine Gruppe und kann nicht gelöscht werden."
+            )
+        if user.user_group == UserGroup.standortleitung and user.leader_of_location:
+            raise ActionNotPossibleError(
+                f"{user.first_name} {user.last_name} leitet einen Standort und kann nicht gelöscht werden."
             )
 
+        AuthService.invalidate_all_refresh_tokens(user.id)
         UsersRepository.delete_user(user)
 
     @staticmethod
@@ -187,10 +195,29 @@ class UsersService:
         return new_password
 
     @staticmethod
-    def get_group_leader() -> list[User]:
-        """Get all users with the user group 'gruppenleitung'"""
+    def get_group_leader(user_id: UUID) -> list[User]:
+        """Get all users with the user group 'gruppenleitung'
 
-        return UsersRepository.get_group_leader()
+        When the requesting user is standortleitung, only group leaders
+        with their or no location are returned.
+
+        :param user_id: The ID of the requesting user
+        """
+
+        user = UsersRepository.get_user_by_id(user_id)
+        if user is None:
+            raise NotFoundError(f"Nutzer:in mit ID {user_id}")
+
+        group_leaders = UsersRepository.get_group_leader()
+
+        if user.user_group == UserGroup.standortleitung:
+            group_leaders = [
+                leader
+                for leader in group_leaders
+                if leader.location_id in [None, user.location_id]
+            ]
+
+        return group_leaders
 
     @staticmethod
     def get_location_leader() -> list[User]:

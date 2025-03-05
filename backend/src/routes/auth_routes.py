@@ -126,13 +126,6 @@ def login():
         200,
     )
 
-    # TODO: detete
-    resp.set_cookie(
-        "user_group",
-        user.user_group.value,
-        max_age=round(REFRESH_TOKEN_DURATION.total_seconds()),
-    )  # TODO: Set secure=True and samesite="Strict" in production
-
     set_token_cookies(resp, auth_token, refresh_token)
 
     successful_login_counter.inc()
@@ -181,7 +174,8 @@ def logout():
     """
 
     refresh_token = request.cookies.get(REFRESH_TOKEN_COOKIE_NAME)
-    AuthService.logout(refresh_token)
+    if refresh_token:
+        AuthService.logout(refresh_token)
 
     resp = make_response("", 204)
 
@@ -248,4 +242,8 @@ def change_password():
             )
         )
 
-    return "", 204
+    resp = make_response("", 204)
+
+    delete_token_cookies(resp)
+
+    return resp

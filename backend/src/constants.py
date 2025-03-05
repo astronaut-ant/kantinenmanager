@@ -13,7 +13,7 @@ AUTHENTICATION_TOKEN_COOKIE_NAME = "auth_token"
 AUTHENTICATION_TOKEN_AUDIENCE = "grp16-backend"
 """This value will be set in the 'aud' field of the authentication token"""
 
-REFRESH_TOKEN_DURATION = timedelta(days=1)  # TODO: Set to 1 year in production
+REFRESH_TOKEN_DURATION = timedelta(days=365)
 REFRESH_TOKEN_COOKIE_NAME = "refresh_token"
 REFRESH_TOKEN_LENGTH = 64
 

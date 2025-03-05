@@ -31,7 +31,13 @@ class Location(db.Model):
     )
     location_name: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
     user_id_location_leader: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("user.id"), nullable=False
+        ForeignKey(
+            "user.id",
+            name="fk_location_location_leader",
+            onupdate="CASCADE",
+            ondelete="SET NULL",
+        ),
+        nullable=False,
     )
 
     # Das sind die Beziehungen zu anderen Tabellen:

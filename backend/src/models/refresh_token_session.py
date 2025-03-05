@@ -1,11 +1,10 @@
 """Model to store refresh token sessions for user authentication"""
 
 from datetime import datetime
-import sqlalchemy
 import uuid
 from src.constants import REFRESH_TOKEN_LENGTH
 from src.database import db
-from sqlalchemy import DateTime, String
+from sqlalchemy import DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 
@@ -30,13 +29,18 @@ class RefreshTokenSession(db.Model):
         String(REFRESH_TOKEN_LENGTH), primary_key=True
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
-        sqlalchemy.UUID(as_uuid=True), nullable=False
+        ForeignKey(
+            "user.id",
+            name="fk_refresh_token_user",
+            onupdate="CASCADE",
+            ondelete="CASCADE",
+            use_alter=True,
+        ),
+        nullable=False,
     )
     created: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     expires: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     last_used: Mapped[datetime] = mapped_column(DateTime, nullable=True)
-
-    # TODO: Cascade delete
 
     def __init__(self, refresh_token: str, user_id: uuid.UUID, expires: datetime):
         """Initialize a new refresh token session
