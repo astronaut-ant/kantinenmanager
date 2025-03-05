@@ -78,7 +78,7 @@ old_orders_routes = Blueprint("old_orders_routes", __name__)
                 "description": "Returns a list of orders",
                 "schema": {
                     "type": "array",
-                    "itmes": OldOrderFullSchema,
+                    "items": OldOrderFullSchema,
                 },
             },
             401: {"description": "Unauthorized"},
