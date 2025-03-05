@@ -1,5 +1,4 @@
 from flasgger import Schema, fields
-from uuid import UUID
 
 from src.models.maindish import MainDish
 
@@ -9,10 +8,12 @@ class DailyOrderBaseSchema(Schema):
 
     id = fields.UUID(required=True, dump_only=True)
     date = fields.Date(required=True)
-    nothing = fields.Boolean(required=True, default=False)
-    main_dish = fields.Enum(MainDish, required=False, default=None, allow_none=True)
-    salad_option = fields.Boolean(required=False, default=False)
-    handed_out = fields.Boolean(required=True, default=False, allow_none=True)
+    nothing = fields.Boolean(required=True, dump_default=False)
+    main_dish = fields.Enum(
+        MainDish, required=False, dump_default=None, allow_none=True
+    )
+    salad_option = fields.Boolean(required=False, dump_default=False)
+    handed_out = fields.Boolean(required=True, dump_default=False, allow_none=True)
 
 
 class DailyOrderFullSchema(DailyOrderBaseSchema):

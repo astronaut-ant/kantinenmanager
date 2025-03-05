@@ -26,13 +26,31 @@ class Group(db.Model):
     group_name: Mapped[str] = mapped_column(String(64), nullable=False)
     group_number: Mapped[int] = mapped_column(Integer, nullable=False)
     user_id_group_leader: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("user.id"), nullable=False
+        ForeignKey(
+            "user.id",
+            name="fk_group_group_leader",
+            onupdate="CASCADE",
+            ondelete="SET NULL",
+        ),
+        nullable=False,
     )
-    user_id_replacement: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("user.id"), nullable=True
+    user_id_replacement: Mapped[Optional[uuid.UUID]] = mapped_column(
+        ForeignKey(
+            "user.id",
+            name="fk_group_replacement",
+            onupdate="CASCADE",
+            ondelete="SET NULL",
+        ),
+        nullable=True,
     )
     location_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("location.id"), nullable=False
+        ForeignKey(
+            "location.id",
+            name="fk_group_location",
+            onupdate="CASCADE",
+            ondelete="SET NULL",
+        ),
+        nullable=False,
     )
 
     # Das sind die Beziehungen zu anderen Tabellen:

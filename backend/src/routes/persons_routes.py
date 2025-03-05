@@ -5,7 +5,7 @@ from src.models.user import UserGroup
 from flask import Blueprint
 from flasgger import swag_from
 from src.services.persons_service import PersonsService
-from src.utils.exceptions import PersonDoesNotExistError
+from src.utils.exceptions import NotFoundError
 
 persons_routes = Blueprint("persons_routes", __name__)
 
@@ -47,11 +47,11 @@ def create_qr_code(person_id: UUID):
     ---
     """
     try:
-        return PersonsService.create_qr_code(person_id)
-    except PersonDoesNotExistError as err:
+        return PersonsService.create_qr_code_person(person_id)
+    except NotFoundError:
         abort_with_err(
             ErrMsg(
-                status_code=400,
+                status_code=404,
                 title="Person existiert nicht",
                 description="Es existiert keine Person zu der ID in der Datenbank",
             )

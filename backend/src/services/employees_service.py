@@ -7,11 +7,9 @@ from src.models.user import UserGroup
 from src.models.employee import Employee
 from src.repositories.employees_repository import EmployeesRepository
 from src.utils.error import ErrMsg, abort_with_err
-from typing import Optional
-from src.utils.exceptions import (
-    EmployeeAlreadyExistsError,
-    GroupDoesNotExistError,
-)
+from typing import Optional, List
+from src.utils.exceptions import AlreadyExistsError, NotFoundError
+from src.utils.pdf_creator import PDFCreationUtils
 
 
 class EmployeesService:
@@ -72,22 +70,18 @@ class EmployeesService:
 
         :return: the ID of the new employee
 
-        :raises EmployeeAlreadyExistsError: If an employee with the given employee_number already exists
-        :raises GroupDoesNotExistError: If the group does not exist at the given location
+        :raises AlreadyExistsError: If an employee with the given employee_number already exists
+        :raises NotFoundError: If the group does not exist at the given location
         """
 
         if EmployeesRepository.get_employee_by_number(employee_number):
-            raise EmployeeAlreadyExistsError(
-                f"Employee with number {employee_number} already exists"
-            )
+            raise AlreadyExistsError(ressource=f"Mitarbeiter:in {employee_number}")
 
         group = EmployeesRepository.get_group_by_name_and_location(
             group_name, location_name
         )
         if not group:
-            raise GroupDoesNotExistError(
-                f"Group {group_name} at location {location_name} does not exist"
-            )
+            raise NotFoundError(f"Gruppe '{group_name}' am Standort {location_name}")
 
         employee = Employee(
             first_name=first_name,
@@ -120,9 +114,7 @@ class EmployeesService:
             employee_number != employee.employee_number
             and EmployeesRepository.get_user_by_employee_number(employee_number)
         ):
-            raise EmployeeAlreadyExistsError(
-                f"User with employee number {employee_number} already exists"
-            )
+            raise AlreadyExistsError(ressource=f"Mitarbeiter:in {employee_number}")
 
         employee.first_name = first_name
         employee.last_name = last_name
@@ -213,13 +205,11 @@ class EmployeesService:
                     group_name, row["Bereich"]
                 )
                 if group is None:
-                    raise GroupDoesNotExistError(
-                        f"Gruppe {row['Gruppen-Name 1']} existiert nicht"
-                    )
+                    raise NotFoundError(f"Gruppe {row['Gruppen-Name 1']}")
 
                 if EmployeesRepository.get_employee_by_number(row["Kunden-Nr."]):
-                    raise EmployeeAlreadyExistsError(
-                        f"Nutzer mit Nummer {row['Kunden-Nr.']} existiert bereits"
+                    raise AlreadyExistsError(
+                        ressource=f"Mitarbeiter:in {row['Kunden-Nr.']}"
                     )
 
                 employee = Employee(
@@ -244,3 +234,32 @@ class EmployeesService:
             "message": "Mitarbeiter erfolgreich erstellt",
             "count": len(employees),
         }
+
+    @staticmethod
+    def get_qr_code_for_all_employees_by_user_scope(
+        user_group: UserGroup, user_id: UUID
+    ):
+        employees = EmployeesRepository.get_employees_by_user_scope(
+            user_group=user_group, user_id=user_id
+        )
+        if not employees:
+            raise NotFoundError("Mitarbeiter:innen")
+        return PDFCreationUtils.create_batch_qr_codes(employees=employees)
+
+    @staticmethod
+    def get_qr_code_for_employees_list(
+        employee_ids: List[UUID], user_group: UserGroup, user_id: UUID
+    ):
+        employees: List[Employee] = []
+
+        for id in employee_ids:
+            employee = EmployeesRepository.get_employee_by_id_by_user_scope(
+                employee_id=id, user_group=user_group, user_id=user_id
+            )
+            if not employee:
+                raise NotFoundError(f"Mitarbeiter:in mit ID {id}")
+            employees.append(employee)
+
+        if not employees:
+            raise NotFoundError("Leere List oder Mitarbeiter:innen")
+        return PDFCreationUtils.create_batch_qr_codes(employees=employees)

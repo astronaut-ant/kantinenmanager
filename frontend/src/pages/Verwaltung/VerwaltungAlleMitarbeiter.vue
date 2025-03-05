@@ -120,9 +120,9 @@
       </v-card-text>
       <v-card-actions>
         <v-btn @click="closeeditDialog">Abbrechen</v-btn>
-        <v-btn 
+        <v-btn
           color="primary"
-          type="submit" 
+          type="submit"
           variant="elevated"
           :disabled="!form"
           @click="submitForm"
@@ -134,6 +134,11 @@
     v-model="snackbar"
     :text="snackbarText"
   ></SuccessSnackbar>
+  <ErrorSnackbar
+    v-model="errorSnackbar"
+    :text="errorSnackbarText"
+    @close="errorSnackbar = false"
+  ></ErrorSnackbar>
 </template>
 
 
@@ -149,6 +154,8 @@
   const employeeToEditID = ref("");
   const snackbar = ref(false);
   const snackbarText = ref("");
+  const errorSnackbar = ref(false);
+  const errorSnackbarText = ref("");
   const items = ref([]);
   const employees = ref([]);
   const locations = ref([]);
@@ -207,6 +214,8 @@
       })
       .catch((err) => {
         console.error(err);
+        errorSnackbarText.value = `Fehler beim löschen von ${employeeToDelete.value}`;
+        errorSnackbar.value = true;
       })
   };
 
@@ -242,6 +251,8 @@
     })
     .catch((err) => {
       console.error("Error getting QR Code", err);
+      errorSnackbarText.value = "Fehler beim generieren des QR-Codes!"
+      errorSnackbar.value = true;
     });
   };
 
@@ -280,7 +291,7 @@
      { title: "Standort", key: "location_name", nowrap: true},
      { title: "", key: "actions", sortable: false, nowrap: true },];
   const sortBy = [{ key: 'employee_number', order: 'asc' }]
-  
+
   const fetchGroups = () => {
     axios
       .get(import.meta.env.VITE_API + "/api/groups/with-locations", { withCredentials: true })
@@ -326,6 +337,10 @@
           snackbar.value = true;
           deleteDialog.value = false;
         })
-        .catch((err) => console.error("Error updating employee", err));
+        .catch((err) => {
+          console.error("Error updating employee", err);
+          errorSnackbarText.value = `Fehler beim aktualisieren von ${payload.first_name} ${payload.last_name}`;
+          errorSnackbar.value = true;
+        });
   };
 </script>

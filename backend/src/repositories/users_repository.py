@@ -1,6 +1,6 @@
 """Repository to handle database operations for user data."""
 
-from sqlalchemy import select, or_, and_
+from sqlalchemy import delete, select, or_, and_
 from src.models.user import User, UserGroup
 from src.models.group import Group
 from src.models.preorder import PreOrder
@@ -8,14 +8,6 @@ from src.models.location import Location
 from src.database import db
 from uuid import UUID
 from typing import Optional
-
-# Repositories kapseln den Zugriff auf die Datenbank. Sie enthalten die Logik,
-# um Daten zu manipulieren und zu lesen.
-
-# Hauptsächlich verwenden wir hier Methoden und Funktionalität vom ORM:
-# SQLAlchemy: https://www.sqlalchemy.org/
-# Damit SQLAlchemy besser mit Flask spielt, gibt es diese Extension:
-# https://flask-sqlalchemy.readthedocs.io/en/stable/quickstart/
 
 
 class UsersRepository:
@@ -38,7 +30,7 @@ class UsersRepository:
                 )
             ).all()
 
-        return db.session.scalars(select(User)).all()
+        return db.session.scalars(select(User).where(User.hidden == False)).all()
 
     @staticmethod
     def get_user_by_id(user_id: UUID) -> User | None:
@@ -120,6 +112,25 @@ class UsersRepository:
         ).all()
 
     @staticmethod
+    def get_hidden_users():
+        """Get all hidden users"""
+        return db.session.scalars(select(User).where(User.hidden == True)).all()
+
+    @staticmethod
+    def get_hidden_user_by_id(user_id: UUID):
+        """Get hidden users by id"""
+        return db.session.scalars(
+            select(User.id).where(User.hidden == True, User.id == user_id)
+        ).first()
+
+    @staticmethod
+    def get_hidden_user_by_username(username):
+        """Get hidden users by username"""
+        return db.session.scalars(
+            select(User.id).where(User.hidden == True, User.username == username)
+        ).first()
+
+    @staticmethod
     def create_user(user: User):
         """Create a new user in the database"""
         db.session.add(user)
@@ -137,11 +148,7 @@ class UsersRepository:
     def delete_user(user: User):
         """Set the hidden flag for a user to True and delete all pre_orders belonging to that person"""
 
-        persons_pre_orders = db.session.scalars(
-            select(PreOrder).where(PreOrder.person_id == user.id)
-        ).all()
-        for pre_order in persons_pre_orders:
-            db.session.delete(pre_order)
+        db.session.execute(delete(PreOrder).where(PreOrder.person_id == user.id))
         user.hidden = True
         db.session.commit()
 
@@ -151,9 +158,12 @@ class UsersRepository:
         return db.session.scalars(
             select(User)
             .where(
-                or_(
-                    User.id == Group.user_id_group_leader,
-                    User.id == Location.user_id_location_leader,
+                and_(
+                    or_(
+                        User.id == Group.user_id_group_leader,
+                        User.id == Location.user_id_location_leader,
+                    ),
+                    User.hidden == False,
                 )
             )
             .join(Group, Group.user_id_group_leader == User.id)

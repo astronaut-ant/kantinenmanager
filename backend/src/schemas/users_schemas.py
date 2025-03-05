@@ -21,11 +21,13 @@ class UserFullSchema(UserBaseSchema):
     created = fields.DateTime(format="timestamp", required=True, dump_only=True)
     last_login = fields.DateTime(format="timestamp", required=True, dump_only=True)
     blocked = fields.Boolean(required=True, dump_only=True)
+    hidden = fields.Boolean(required=True, dump_only=True)
 
 
 class GroupLeaderNestedSchema(UserBaseSchema):
     """Schema representing a group leader with resolved nested fields"""
 
+    location_id = fields.UUID(required=False)
     own_group = fields.Nested(
         "GroupFullSchema", required=False, dump_only=True, attribute="leader_of_group"
     )

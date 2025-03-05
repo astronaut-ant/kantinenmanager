@@ -72,7 +72,7 @@ services:
     volumes:
       - ./backend:/app/backend
     environment:
-      FLASK_ENV: unit_testing
+      FLASK_ENV: testing
       INITIAL_ADMIN_USERNAME: ${INITIAL_ADMIN_USERNAME}
       INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD}
       DB_DATABASE: ${DB_DATABASE}
@@ -95,7 +95,7 @@ services:
     volumes:
       - ./backend:/app/backend
     environment:
-      FLASK_ENV: unit_testing
+      FLASK_ENV: testing
       INITIAL_ADMIN_USERNAME: ${INITIAL_ADMIN_USERNAME}
       INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD}
       DB_DATABASE: ${DB_DATABASE}

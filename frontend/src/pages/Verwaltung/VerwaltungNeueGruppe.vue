@@ -78,6 +78,11 @@
       </v-card>
     </div>
   </div>
+  <ErrorSnackbar
+    v-model="errorSnackbar"
+    :text="errorSnackbarText"
+    @close="errorSnackbar = false"
+  ></ErrorSnackbar>
 </template>
 
 <script setup>
@@ -92,6 +97,8 @@ const gruppenleitung = ref(null);
 const gruppenleiterList = ref([]);
 const noGruppenleiter = ref(false);
 const gruppenleiterLookupTable = {};
+const errorSnackbar = ref(false);
+const errorSnackbarText = ref ("");
 
 //Dummy for Location-Endpoint
 const standort = ref();
@@ -156,7 +163,11 @@ const handleSubmit = () => {
       showConfirm.value = true;
       emptyForm();
     })
-    .catch((err) => console.log(err.response.data.description));
+    .catch((err) => {
+      console.log(err.response.data.description);
+      errorSnackbarText.value = "Fehler beim erstellen der Gruppe!";
+      errorSnackbar.value = true;
+    });
 };
 
 //validate

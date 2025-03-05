@@ -1,10 +1,9 @@
 from uuid import UUID
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, g, jsonify, request
 from flasgger import swag_from
 from marshmallow import ValidationError
 
-from src.utils.exceptions import LocationDoesNotExist
 from src.services.locations_service import LocationsService
 from src.schemas.users_schemas import (
     GroupLeaderNestedSchema,
@@ -12,10 +11,11 @@ from src.schemas.users_schemas import (
     UserFullSchema,
 )
 from src.models.user import UserGroup
-from src.services.users_service import (
-    UserAlreadyExistsError,
-    UserCannotBeDeletedError,
-    UsersService,
+from src.services.users_service import UsersService
+from src.utils.exceptions import (
+    NotFoundError,
+    AlreadyExistsError,
+    ActionNotPossibleError,
 )
 from src.utils.auth_utils import login_required
 from src.utils.error import ErrMsg, abort_with_err
@@ -99,7 +99,7 @@ def get_user_by_id(user_id: UUID):
 
 
 @users_routes.get("/api/users/group-leaders")
-@login_required(groups=[UserGroup.verwaltung])
+@login_required(groups=[UserGroup.verwaltung, UserGroup.standortleitung])
 @swag_from(
     {
         "tags": ["users"],
@@ -110,7 +110,8 @@ def get_user_by_id(user_id: UUID):
                     "type": "array",
                     "items": GroupLeaderNestedSchema,
                 },
-            }
+            },
+            400: {"description": "User not found"},
         },
     }
 )
@@ -120,7 +121,17 @@ def get_group_leaders():
     ---
     """
 
-    group_leaders = UsersService.get_group_leader()
+    try:
+        group_leaders = UsersService.get_group_leader(g.user_id)
+    except NotFoundError:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Nutzer nicht gefunden",
+                description="Sie existieren nicht!",
+            )
+        )
+
     return GroupLeaderNestedSchema(many=True).dump(group_leaders)
 
 
@@ -201,16 +212,24 @@ def create_user():
 
     try:
         id, initial_password = UsersService.create_user(**body)
-    except UserAlreadyExistsError:
+    except AlreadyExistsError as e:
         abort_with_err(
             ErrMsg(
-                status_code=400,
+                status_code=409,
                 title="Nutzername bereits vergeben",
-                description="Der Nutzername ist bereits vergeben",
+                description=str(e),
+            )
+        )
+    except NotFoundError as e:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Standort nicht gefunden",
+                description=str(e),
             )
         )
 
-    return jsonify({"id": id, "initial_password": initial_password})
+    return jsonify({"id": id, "initial_password": initial_password}), 201
 
 
 @users_routes.put("/api/users/<uuid:user_id>/reset-password")
@@ -321,19 +340,16 @@ def update_user(user_id: UUID):
 
     location = None
 
-    try:
-        if (location_id := body.get("location_id")) is not None:
-            location = LocationsService.get_location_by_id(location_id)
-            if location is None:
-                raise LocationDoesNotExist()
-    except LocationDoesNotExist:
-        abort_with_err(
-            ErrMsg(
-                status_code=404,
-                title="Standort nicht gefunden",
-                description="Es wurde kein Standort mit dieser ID gefunden",
+    if (location_id := body.get("location_id")) is not None:
+        location = LocationsService.get_location_by_id(location_id)
+        if location is None:
+            abort_with_err(
+                ErrMsg(
+                    status_code=404,
+                    title="Standort nicht gefunden",
+                    description="Es wurde kein Standort mit dieser ID gefunden",
+                )
             )
-        )
 
     try:
         updated_user = UsersService.update_user(
@@ -344,16 +360,111 @@ def update_user(user_id: UUID):
             user_group=body["user_group"],
             location=location,
         )
-    except UserAlreadyExistsError:
+    except AlreadyExistsError:
         abort_with_err(
             ErrMsg(
-                status_code=400,
-                title="Nutzername bereits vergeben",
-                description="Der Nutzername ist bereits vergeben",
+                status_code=409,
+                title="Nutzer:in-Name bereits vergeben",
+                description="Der Nutzer:in-Name ist bereits vergeben",
             )
         )
 
     return UserFullSchema().dump(updated_user)
+
+
+@users_routes.put("/api/users/<uuid:user_id>/block")
+@login_required(groups=[UserGroup.verwaltung])
+@swag_from(
+    {
+        "tags": ["users"],
+        "parameters": [
+            {
+                "in": "path",
+                "name": "user_id",
+                "required": True,
+                "schema": {"type": "string"},
+            }
+        ],
+        "responses": {
+            200: {
+                "description": "User successfully blocked",
+                "schema": {
+                    "type": "object",
+                    "properties": {"message": {"type": "string"}},
+                },
+            },
+            404: {"description": "User not found"},
+        },
+    }
+)
+def block_user(user_id: UUID):
+    """Block a user
+    Block a user by ID. The user will not be able to log in anymore,
+    although the authentication token will remain valid for a few minutes.
+
+    Authentication: required
+    Authorization: Verwaltung
+    ---
+    """
+    user = UsersService.get_user_by_id(user_id)
+    if user is None:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Nutzer nicht gefunden",
+                description="Es wurde kein Nutzer mit dieser ID gefunden",
+            )
+        )
+
+    UsersService.block_user(user)
+    return jsonify({"message": "Nutzer erfolgreich blockiert"})
+
+
+@users_routes.put("/api/users/<uuid:user_id>/unblock")
+@login_required(groups=[UserGroup.verwaltung])
+@swag_from(
+    {
+        "tags": ["users"],
+        "parameters": [
+            {
+                "in": "path",
+                "name": "user_id",
+                "required": True,
+                "schema": {"type": "string"},
+            }
+        ],
+        "responses": {
+            200: {
+                "description": "User successfully unblocked",
+                "schema": {
+                    "type": "object",
+                    "properties": {"message": {"type": "string"}},
+                },
+            },
+            404: {"description": "User not found"},
+        },
+    }
+)
+def unblock_user(user_id: UUID):
+    """Unblock a user
+    Unblock a user by ID
+
+    Authentication: required
+    Authorization: Verwaltung
+    ---
+    """
+    user = UsersService.get_user_by_id(user_id)
+    if user is None:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Nutzer nicht gefunden",
+                description="Es wurde kein Nutzer mit dieser ID gefunden",
+            )
+        )
+
+    UsersService.unblock_user(user)
+    return jsonify({"message": "Nutzer erfolgreich freigeschaltet"})
 
 
 @users_routes.delete("/api/users/<uuid:user_id>")
@@ -401,12 +512,12 @@ def delete_user(user_id: UUID):
 
     try:
         UsersService.delete_user(user)
-    except UserCannotBeDeletedError:
+    except ActionNotPossibleError as e:
         abort_with_err(
             ErrMsg(
-                status_code=400,
+                status_code=409,
                 title="Nutzer:in kann nicht gelöscht werden",
-                description="Nutzer:in kann nicht gelöscht werden, da er/sie aktive Standort- oder Gruppenleitung ist",
+                description=str(e),
             )
         )
     return jsonify({"message": "Nutzer erfolgreich gelöscht"})

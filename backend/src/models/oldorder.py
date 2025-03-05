@@ -24,9 +24,23 @@ class OldOrder(db.Model):
     # Felder der Tabelle:
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     person_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("person.id", ondelete="SET NULL"), nullable=True
+        ForeignKey(
+            "person.id",
+            name="fk_oldorder_person",
+            onupdate="CASCADE",
+            ondelete="SET NULL",
+        ),
+        nullable=True,
     )
-    location_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("location.id"))
+    location_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey(
+            "location.id",
+            name="fk_oldorder_location",
+            onupdate="CASCADE",
+            ondelete="SET NULL",
+        ),
+        nullable=False,
+    )
     date: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     nothing: Mapped[bool] = mapped_column(
         Boolean, name="nothing", nullable=True, quote=True
@@ -75,6 +89,7 @@ class OldOrder(db.Model):
     def to_dict(self):
         return {
             "id": self.id,
+            "date": self.date,
             "person_id": self.person_id,
             "location_id": self.location_id,
             "nothing": self.nothing,

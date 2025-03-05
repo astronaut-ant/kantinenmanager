@@ -19,25 +19,13 @@ from src.repositories.refresh_token_session_repository import (
 from src.models.refresh_token_session import RefreshTokenSession
 from src.models.user import User, UserGroup
 from src.repositories.users_repository import UsersRepository
+from src.utils.exceptions import (
+    UserBlockedError,
+    NotFoundError,
+    InvalidCredentialsException,
+    UnauthenticatedException,
+)
 from flask import current_app as app
-
-
-class UserNotFoundException(Exception):
-    """User does not exist"""
-
-    pass
-
-
-class InvalidCredentialsException(Exception):
-    """User credentials are invalid"""
-
-    pass
-
-
-class UnauthenticatedException(Exception):
-    """User is not authenticated"""
-
-    pass
 
 
 class AuthService:
@@ -52,14 +40,14 @@ class AuthService:
 
         :return: The user object, the authentication token and the refresh token
 
-        :raises auth_service.UserNotFoundException: If the user does not exist
+        :raises auth_service.NotFoundError: If the user does not exist
         :raises auth_service.InvalidCredentialsException: If the password is incorrect
         """
 
         # Fetch user from DB
         user = UsersRepository.get_user_by_username(username)
         if user is None:
-            raise UserNotFoundException(f"User with username '{username}' not found")
+            raise NotFoundError(f"Nutzer:in '{username}'")
 
         # Check password
         if not AuthService.__check_password(password, user.hashed_password):
@@ -71,6 +59,11 @@ class AuthService:
 
         user.last_login = datetime.now()
         UsersRepository.update_user(user)
+
+        if user.blocked:
+            # blocked message should be displayed only for the right user,
+            # so not to give away information about the existence of the user
+            raise UserBlockedError("Account von Nutzer:in ist gesperrt.")
 
         # Create authentication and refresh tokens
         jwt_secret = app.config["JWT_SECRET"]
@@ -139,18 +132,34 @@ class AuthService:
         if refresh_token is None:
             raise UnauthenticatedException("No refresh token provided")
 
-        session = None
-        try:
-            session = AuthService.__verify_refresh_token(refresh_token)
-        except UnauthenticatedException as e:
-            # Refresh token is invalid
-            raise e
+        session = RefreshTokenSessionRepository.get_token(refresh_token)
+
+        if session is None:
+            raise UnauthenticatedException("Refresh token not found in DB")
+
+        if session.expires < datetime.now():
+            raise UnauthenticatedException("Refresh token expired")
+
+        if session.has_been_used():
+            # Block user
+            user = UsersRepository.get_user_by_id(session.user_id)
+            if user is None:
+                raise UnauthenticatedException("Nutzer nicht gefunden.")
+            user.blocked = True
+            UsersRepository.update_user(user)
+            app.logger.warning(
+                f"User account '{user.username}' with id '{session.user_id}' blocked due to repeated refresh token usage"
+            )
+            raise UserBlockedError("Refresh Token wurde bereits verwendet.")
 
         # Generate new tokens
         user = UsersRepository.get_user_by_id(session.user_id)
 
         if user is None:
-            raise UnauthenticatedException("User not found")
+            raise UnauthenticatedException("Nutzer nicht gefunden.")
+
+        if user.blocked:
+            raise UserBlockedError("Account von Nutzer:in ist gesperrt.")
 
         new_auth_token = AuthService.__make_auth_token(user, jwt_secret)
         new_refresh_token = AuthService.__make_refresh_token(user)
@@ -170,11 +179,8 @@ class AuthService:
         return user_info, new_auth_token, new_refresh_token
 
     @staticmethod
-    def logout(refresh_token: str | None):
+    def logout(refresh_token: str):
         """Log out the user by deleting the refresh token"""
-
-        if refresh_token is None:
-            return
 
         session = RefreshTokenSessionRepository.get_token(refresh_token)
         if session is not None:
@@ -188,14 +194,14 @@ class AuthService:
         :param old_password: The current password
         :param new_password: The new password
 
-        :raises auth_service.UserNotFoundException: If the user does not exist
+        :raises auth_service.NotFoundError: If the user does not exist
         :raises auth_service.InvalidCredentialsException: If the old password is incorrect
         """
 
         # Fetch user from DB
         user = UsersRepository.get_user_by_id(user_id)
         if user is None:
-            raise UserNotFoundException(f"User with id '{str(user_id)}' not found")
+            raise NotFoundError(f"Nutzer:in mit ID '{user_id}'")
 
         # Check password
         if not AuthService.__check_password(old_password, user.hashed_password):
@@ -266,6 +272,8 @@ class AuthService:
     def __needs_rehash(hash: str) -> bool:
         """Check if a password hash needs to be rehashed
 
+        Passwords need to be rehashed when the Argon2 parameters change.
+
         :param hash: The hashed password
 
         :return: True if the hash needs to be rehashed
@@ -279,6 +287,7 @@ class AuthService:
     def __get_password_hasher() -> PasswordHasher:
         """Get a password hasher with configured settings"""
 
+        # Use sensible defaults for Argon2
         return PasswordHasher()
 
     @staticmethod
@@ -368,28 +377,3 @@ class AuthService:
         RefreshTokenSessionRepository.create_token(session)
 
         return session.refresh_token
-
-    @staticmethod
-    def __verify_refresh_token(refresh_token: str) -> RefreshTokenSession:
-        """Verify a refresh token
-
-        :param refresh_token: The refresh token to verify
-
-        :return: The refresh token session if it is valid
-
-        :raises auth_service.UnauthenticatedException: If the token is invalid
-        """
-
-        session = RefreshTokenSessionRepository.get_token(refresh_token)
-
-        if session is None:
-            raise UnauthenticatedException("Refresh token not found in DB")
-
-        if session.expires < datetime.now():
-            raise UnauthenticatedException("Refresh token expired")
-
-        if session.has_been_used():
-            # TODO block user account
-            raise UnauthenticatedException("Refresh token already used")
-
-        return session

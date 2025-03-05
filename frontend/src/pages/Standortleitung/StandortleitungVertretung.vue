@@ -25,6 +25,7 @@
         class="d-flex justify-center"
       >
       <GroupLeaderCard
+        :group_number="groupLeader.group_number"
         :group_id="groupLeader.id"
         :group_name="groupLeader.group_name"
         :location="groupLeader.location"
@@ -60,6 +61,7 @@
             availableLeaders.push({
               id: group.group_leader.id,
               name: `${group.group_leader.first_name} ${group.group_leader.last_name}`,
+              group_number: group.group_number,
               group: {
                 id: group.id,
                 name: group.group_name,

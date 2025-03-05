@@ -6,18 +6,11 @@ import pytz
 from src.repositories.employees_repository import EmployeesRepository
 from src.repositories.groups_repository import GroupsRepository
 from src.repositories.users_repository import UsersRepository
-from src.repositories.locations_repository import LocationsRepository
 from src.schemas.pre_orders_schemas import PreOrderFullSchema, PreOrdersByGroupLeaderSchema
 from src.models.preorder import PreOrder
-from src.models.maindish import MainDish
 from src.models.user import UserGroup
 from src.repositories.orders_repository import OrdersFilters, OrdersRepository
-from src.utils.exceptions import (
-    NotFoundError,
-    PersonNotPartOfGroup,
-    PersonNotPartOfLocation,
-    WrongUserError
-)
+from src.utils.exceptions import NotFoundError, ActionNotPossibleError, AccessDeniedError, BadValueError, AlreadyExistsError
 
 timezone = pytz.timezone("Europe/Berlin")
 
@@ -51,10 +44,10 @@ class PreOrdersService:
         group_leader = UsersRepository.get_user_by_id(person_id)
 
         if not group_leader:
-            raise ValueError("Gruppenleiter nicht gefunden")
+            raise NotFoundError(f"Gruppenleitung mit ID {person_id}")
 
         if group_leader.user_group != UserGroup.gruppenleitung:
-            raise ValueError("Person ist kein Gruppenleiter")
+            raise AccessDeniedError("Gruppen, da keine Gruppenleitung")
 
         groups = GroupsRepository.get_groups_by_group_leader(person_id)
 
@@ -78,14 +71,14 @@ class PreOrdersService:
         return PreOrdersByGroupLeaderSchema().dump(group_leader)
 
     @staticmethod
-    def get_pre_orders(filters: OrdersFilters) -> List[PreOrderFullSchema]:
+    def get_pre_orders(filters: OrdersFilters, user_id: UUID, user_group: UserGroup) -> List[PreOrderFullSchema]:
         """
         Get orders
         :param filters: Filters for orders
         :return: List of orders
         """
 
-        preorders = OrdersRepository.get_pre_orders(filters)
+        preorders = OrdersRepository.get_pre_orders(filters, user_id, user_group)
         return PreOrderFullSchema(many=True).dump(preorders)
 
     @staticmethod
@@ -107,33 +100,39 @@ class PreOrdersService:
 
         for order in orders:
             if order["date"] < today:
-                raise ValueError(f"Datum {order['date']} liegt in der Vergangenheit.")
+                raise BadValueError(f"Datum {order['date']} liegt in der Vergangenheit.")
 
             if order["date"] > today + timedelta(days=14):
-                raise ValueError(
+                raise BadValueError(
                     f"Datum {order['date']} liegt mehr als 14 Tage in der Zukunft."
                 )
-            
+
             if order["date"] == today and current_time >= time(8, 0):
-                raise ValueError(f"Es ist nach 8 Uhr. Bestellungen sind nicht mehr möglich.")
+                raise BadValueError(
+                    f"Es ist nach 8 Uhr. Bestellungen sind nicht mehr möglich."
+                )
 
             if order["date"].weekday() >= 5:  # 0 = Montag, 6 = Sonntag
-                raise ValueError(f"Datum {order['date']} ist kein Werktag.")
+                raise BadValueError(f"Datum {order['date']} ist kein Werktag.")
 
             if order["person_id"] not in employee_ids:
-                raise PersonNotPartOfGroup(
-                    f"Person {order["person_id"]} gehört zu keiner der Gruppen von {user_id}"
+                raise ActionNotPossibleError(
+                    f"Mitarbeiter:in {order["person_id"]} gehört zu keiner der Gruppen von {user_id}"
                 )
 
             if not OrdersRepository.employee_in_location(
                 order["person_id"], order["location_id"]
             ):
-                raise PersonNotPartOfLocation(
+                raise ActionNotPossibleError(
                     f"Person {order["person_id"]} gehört nicht zum Standort {order["location_id"]}"
                 )
-            
-            if order["nothing"] == True and (order["main_dish"] or order["salad_option"]):
-                raise ValueError("Wenn 'nichts' ausgewählt ist, dürfen keine Essensoptionen ausgewählt werden.")
+
+            if order["nothing"] == True and (
+                order["main_dish"] or order["salad_option"]
+            ):
+                raise BadValueError(
+                    "Wenn 'nichts' ausgewählt ist, dürfen keine Essensoptionen ausgewählt werden."
+                )
 
             # Überprüfen, ob die Bestellung bereits existiert. Falls ja, aktualisiere oder lösche diese
             order_exists = OrdersRepository.preorder_already_exists(
@@ -166,31 +165,33 @@ class PreOrdersService:
         current_time = datetime.now(timezone).time()
 
         if OrdersRepository.preorder_already_exists(order["person_id"], order["date"]):
-            raise ValueError(
-                f"Bestellung für {order['person_id']} am {order['date']} existiert bereits."
+            raise AlreadyExistsError(
+                f"Bestellung für {order['person_id']} am {order['date']}"
             )
 
         if order["date"] < today:
-            raise ValueError(f"Das Datum {order['date']} liegt in der Vergangenheit.")
+            raise BadValueError(f"Das Datum {order['date']} liegt in der Vergangenheit.")
 
         if order["date"] > today + timedelta(days=14):
-            raise ValueError(
+            raise BadValueError(
                 f"Das Datum {order['date']} liegt mehr als 14 Tage in der Zukunft."
             )
 
         if order["date"] == today and current_time >= time(8, 0):
-                raise ValueError(f"Es ist nach 8 Uhr. Bestellungen sind nicht mehr möglich.")
+            raise BadValueError(
+                f"Es ist nach 8 Uhr. Bestellungen sind nicht mehr möglich."
+            )
 
         if order["date"].weekday() >= 5:  # 0 = Montag, 6 = Sonntag
-            raise ValueError(f"Das Datum {order['date']} ist kein Werktag.")
+            raise BadValueError(f"Das Datum {order['date']} ist kein Werktag.")
 
         if user_id != order["person_id"]:
-            raise WrongUserError(
-                f"Sie haben nicht die Befugnis für '{order['person_id']}' zu bestellen."
-            )
-        
+            raise AccessDeniedError(f"Person {order['person_id']}'")
+
         if order["nothing"] == True and (order["main_dish"] or order["salad_option"]):
-                raise ValueError("Wenn 'nichts' ausgewählt ist, dürfen keine Essensoptionen ausgewählt werden.")
+            raise BadValueError(
+                "Wenn 'nichts' ausgewählt ist, dürfen keine Essensoptionen ausgewählt werden."
+            )
 
         order = OrdersRepository.create_single_order(PreOrder(**order))
 
@@ -214,32 +215,36 @@ class PreOrdersService:
         current_time = datetime.now(timezone).time()
 
         if new_order["date"] < today:
-            raise ValueError(
+            raise BadValueError(
                 f"Das Datum {new_order['date']} liegt in der Vergangenheit."
             )
 
         if new_order["date"] > today + timedelta(days=14):
-            raise ValueError(
+            raise BadValueError(
                 f"Das Datum {new_order['date']} liegt mehr als 14 Tage in der Zukunft."
             )
 
         if new_order["date"].weekday() >= 5:
-            raise ValueError(f"Das Datum {new_order['date']} ist kein Werktag.")
-        
+            raise BadValueError(f"Das Datum {new_order['date']} ist kein Werktag.")
+
         if new_order["date"] == today and current_time >= time(8, 0):
-                raise ValueError(f"Es ist nach 8 Uhr. Bestellungen sind nicht mehr möglich.")
+            raise BadValueError(
+                f"Es ist nach 8 Uhr. Bestellungen sind nicht mehr möglich."
+            )
 
         if user_id != new_order["person_id"]:
-            raise WrongUserError(
-                f"Sie haben nicht die Befugnis für '{new_order['person_id']}' zu bestellen."
+            raise AccessDeniedError(f"Person'{new_order['person_id']}'")
+
+        if new_order["nothing"] == True and (
+            new_order["main_dish"] or new_order["salad_option"]
+        ):
+            raise BadValueError(
+                "Wenn 'nichts' ausgewählt ist, dürfen keine Essensoptionen ausgewählt werden."
             )
-        
-        if new_order["nothing"] == True and (new_order["main_dish"] or new_order["salad_option"]):
-                raise ValueError("Wenn 'nichts' ausgewählt ist, dürfen keine Essensoptionen ausgewählt werden.")
 
         old_order = OrdersRepository.get_pre_order_by_id(preorder_id)
         if not old_order:
-            raise NotFoundError("Bestellung nicht gefunden")
+            raise NotFoundError(f"Bestellung {preorder_id}")
 
         old_order.nothing = new_order["nothing"]
         old_order.date = new_order["date"]
@@ -259,9 +264,7 @@ class PreOrdersService:
         """
         preorder = OrdersRepository.get_pre_order_by_id(preorder_id)
         if not preorder:
-            raise NotFoundError(f"Bestellung {preorder_id} nicht gefunden")
+            raise NotFoundError(f"Bestellung {preorder_id}")
         if user_id != preorder.person_id:
-            raise WrongUserError(
-                f"Sie haben nicht die Befugnis für diese Person zu bestellen."
-            )
+            raise AccessDeniedError(f"Person {preorder.person_id}")
         OrdersRepository.delete_order(preorder)

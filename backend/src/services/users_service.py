@@ -2,24 +2,17 @@
 
 from typing import Optional
 from uuid import UUID
+from src.repositories.groups_repository import GroupsRepository
 from src.repositories.locations_repository import LocationsRepository
 from src.models.location import Location
 from src.services.auth_service import AuthService
 from src.models.user import User, UserGroup
 from src.repositories.users_repository import UsersRepository
 from src.utils.exceptions import (
-    LocationDoesNotExist,
-    UserAlreadyExistsError,
-    UserCannotBeDeletedError,
+    NotFoundError,
+    AlreadyExistsError,
+    ActionNotPossibleError,
 )
-
-# Services enthalten die Businesslogik der Anwendung.
-# Sie werden von den Routen aufgerufen und ziehen sich
-# die notwendigen Daten aus den Repositories.
-#
-# Hier würde so etwas reinkommen wie die Ertellung des QR-Codes
-# oder die Validierung, dass ein Nutzer die korrekten Anmeldedaten
-# eingegeben hat.
 
 
 class UsersService:
@@ -72,18 +65,17 @@ class UsersService:
 
         :return: A tuple containing the ID of the new user and the initial password
 
-        :raises UserAlreadyExistsError: If a user with the given username already exists
+        :raises AlreadyExistsError: If a user with the given username already exists
         """
 
         if UsersRepository.get_user_by_username(username):
-            raise UserAlreadyExistsError(
-                f"User with username {username} already exists"
-            )
+            raise AlreadyExistsError(ressource=f"Nutzer:in {username}")
+
+        if UsersRepository.get_hidden_user_by_username(username):
+            raise AlreadyExistsError(ressource=f"Nutzer:in {username} (gelöscht)")
 
         if location_id and LocationsRepository.get_location_by_id(location_id) is None:
-            raise LocationDoesNotExist(
-                f"Standort mit ID '{location_id}' existiert nicht"
-            )
+            raise NotFoundError(f"Standort mit ID {location_id}")
 
         if password is None:
             password = AuthService.generate_password()
@@ -123,13 +115,11 @@ class UsersService:
 
         :return: The updated user
 
-        :raises UserAlreadyExistsError: If a user with the given username already exists
+        :raises AlreadyExistsError: If a user with the given username already exists
         """
 
         if username != user.username and UsersRepository.get_user_by_username(username):
-            raise UserAlreadyExistsError(
-                f"User with username {username} already exists"
-            )
+            raise AlreadyExistsError(ressource=f"Nutzer:in {username}")
 
         user.first_name = first_name
         user.last_name = last_name
@@ -142,20 +132,44 @@ class UsersService:
         return user
 
     @staticmethod
+    def block_user(user: User):
+        """Block a user.
+
+        :param user: The user to block
+        """
+        user.blocked = True
+
+        UsersRepository.update_user(user)
+
+    @staticmethod
+    def unblock_user(user: User):
+        """Unblock a user.
+
+        :param user: The user to unblock
+        """
+        user.blocked = False
+
+        UsersRepository.update_user(user)
+
+    @staticmethod
     def delete_user(user: User):
         """Delete a user from the database.
 
         :param user: The user to delete
         """
-        leader_ids = {
-            leader.id for leader in UsersRepository.get_group_and_location_leaders()
-        }
 
-        if user.id in leader_ids:
-            raise UserCannotBeDeletedError(
-                f"The user {user.first_name} {user.last_name} is a group or location leader and cannot be deleted right now."
+        if user.user_group == UserGroup.gruppenleitung and (
+            user.leader_of_group or user.replacement_leader_of_groups
+        ):
+            raise ActionNotPossibleError(
+                f"{user.first_name} {user.last_name} leitet/vertritt eine Gruppe und kann nicht gelöscht werden."
+            )
+        if user.user_group == UserGroup.standortleitung and user.leader_of_location:
+            raise ActionNotPossibleError(
+                f"{user.first_name} {user.last_name} leitet einen Standort und kann nicht gelöscht werden."
             )
 
+        AuthService.invalidate_all_refresh_tokens(user.id)
         UsersRepository.delete_user(user)
 
     @staticmethod
@@ -181,10 +195,29 @@ class UsersService:
         return new_password
 
     @staticmethod
-    def get_group_leader() -> list[User]:
-        """Get all users with the user group 'gruppenleitung'"""
+    def get_group_leader(user_id: UUID) -> list[User]:
+        """Get all users with the user group 'gruppenleitung'
 
-        return UsersRepository.get_group_leader()
+        When the requesting user is standortleitung, only group leaders
+        with their or no location are returned.
+
+        :param user_id: The ID of the requesting user
+        """
+
+        user = UsersRepository.get_user_by_id(user_id)
+        if user is None:
+            raise NotFoundError(f"Nutzer:in mit ID {user_id}")
+
+        group_leaders = UsersRepository.get_group_leader()
+
+        if user.user_group == UserGroup.standortleitung:
+            group_leaders = [
+                leader
+                for leader in group_leaders
+                if leader.location_id in [None, user.location_id]
+            ]
+
+        return group_leaders
 
     @staticmethod
     def get_location_leader() -> list[User]:

@@ -17,8 +17,8 @@ class Environment(enum.Enum):
     MIGRATION = "migration"
     """Used for database migrations"""
 
-    UNIT_TESTING = "unit_testing"
-    """Used for unit testing"""
+    TESTING = "testing"
+    """Used for testing"""
 
 
 class Features(ABC):
@@ -59,7 +59,7 @@ class ProductionFeatures(Features):
     CORS = False
     SWAGGER = False
     INSERT_DEFAULT_DATA = True
-    INSERT_MOCK_DATA = True
+    INSERT_MOCK_DATA = False
     CRONJOBS = True
     LOGGING = LoggingMethod.LOKI
 
@@ -88,7 +88,7 @@ class MigrationFeatures(Features):
     LOGGING = LoggingMethod.CONSOLE
 
 
-class UnitTestingFeatures(Features):
+class TestingFeatures(Features):
     DATABASE = "in-memory"
     METRICS = False
     TESTING_MODE = True
@@ -108,7 +108,7 @@ def get_features(env: Environment) -> Features:
         return DevelopmentFeatures
     elif env == Environment.MIGRATION:
         return MigrationFeatures
-    elif env == Environment.UNIT_TESTING:
-        return UnitTestingFeatures
+    elif env == Environment.TESTING:
+        return TestingFeatures
     else:
         raise ValueError(f"Unknown environment: {env}")

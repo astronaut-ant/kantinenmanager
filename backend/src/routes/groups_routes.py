@@ -11,12 +11,7 @@ from src.schemas.group_schemas import (
 from src.services.groups_service import GroupsService
 from src.utils.auth_utils import login_required
 from src.utils.error import ErrMsg, abort_with_err
-from src.utils.exceptions import (
-    GroupAlreadyExists,
-    GroupDoesNotExistError,
-    LeaderDoesNotExist,
-    LocationDoesNotExist,
-)
+from src.utils.exceptions import AlreadyExistsError, NotFoundError, BadValueError
 
 groups_routes = Blueprint("groups_routes", __name__)
 
@@ -55,51 +50,41 @@ def create_group():
 
     try:
         body = GroupFullSchema().load(request.json)
+        group_id = GroupsService.create_group(**body)
+
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
-                title="Ungültige Anfrage",
-                description="Ungültige Anfrage.",
-                details=str(err),
+                title="Validierungsfehler",
+                description="Ungültige Daten wurden übergeben.",
+                details=err.messages,
             )
         )
-
-    try:
-        group_id = GroupsService.create_group(**body)
-    except GroupAlreadyExists as err:
+    except AlreadyExistsError as err:
         abort_with_err(
             ErrMsg(
-                status_code=400,
+                status_code=409,
                 title="Gruppe existiert bereits",
                 description="Eine Gruppe mit diesem Namen existiert bereits.",
                 details=str(err),
             )
         )
-    except LeaderDoesNotExist as err:
+    except NotFoundError as err:
         abort_with_err(
             ErrMsg(
-                status_code=400,
-                title="Gruppenleiter existiert nicht",
-                description="Der Gruppenleiter existiert nicht.",
+                status_code=404,
+                title="Gruppenleitung oder Standort existiert nicht",
+                description="Gruppenleitung oder Standort existiert nicht.",
                 details=str(err),
             )
         )
-    except ValueError as err:
+    except BadValueError as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
                 title="Ungültige Anfrage",
                 description="Ungültige Anfrage.",
-                details=str(err),
-            )
-        )
-    except LocationDoesNotExist as err:
-        abort_with_err(
-            ErrMsg(
-                status_code=400,
-                title="Standort existiert nicht",
-                description="Der Standort existiert nicht.",
                 details=str(err),
             )
         )
@@ -154,7 +139,7 @@ def update_group(group_id: UUID):
 
     try:
         GroupsService.update_group(group_id, **body)
-    except ValueError as err:
+    except BadValueError as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
@@ -163,12 +148,22 @@ def update_group(group_id: UUID):
                 details=str(err),
             )
         )
-    except GroupDoesNotExistError:
+    except NotFoundError as err:
         abort_with_err(
             ErrMsg(
                 status_code=404,
                 title="Gruppe nicht gefunden",
                 description=f"Die Gruppe mit der angegebenen ID {group_id} existiert nicht.",
+                details=str(err),
+            )
+        )
+    except AlreadyExistsError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=409,
+                title="Gruppe existiert bereits",
+                description="Eine Gruppe mit diesem Namen existiert bereits.",
+                details=str(err),
             )
         )
 
@@ -205,7 +200,7 @@ def delete_group(group_id: UUID):
 
     try:
         GroupsService.delete_group(group_id)
-    except GroupDoesNotExistError:
+    except NotFoundError:
         abort_with_err(
             ErrMsg(
                 status_code=404,
@@ -275,7 +270,7 @@ def get_group_by_id(group_id: UUID):
 
     try:
         group = GroupsService.get_group_by_id(group_id)
-    except GroupDoesNotExistError:
+    except NotFoundError:
         abort_with_err(
             ErrMsg(
                 status_code=404,
@@ -308,17 +303,7 @@ def get_group_by_id(group_id: UUID):
 def get_groups():
     """Get all groups for respective user."""
 
-    try:
-        groups = GroupsService.get_groups(g.user_id, g.user_group)
-    except ValueError as err:
-        abort_with_err(
-            ErrMsg(
-                status_code=400,
-                title="Ungültige Anfrage",
-                description="Ungültige Anfrage.",
-                details=str(err),
-            )
-        )
+    groups = GroupsService.get_groups(g.user_id, g.user_group)
 
     return GroupFullNestedSchema(many=True).dump(groups)
 
@@ -346,20 +331,7 @@ def get_groups_with_employees():
     ---
     """
 
-    user_id = g.user_id
-    user_group = g.user_group
-
-    try:
-        groups = GroupsService.get_groups(user_id, user_group)
-    except ValueError as err:
-        abort_with_err(
-            ErrMsg(
-                status_code=400,
-                title="Ungültige Anfrage",
-                description="Ungültige Anfrage.",
-                details=str(err),
-            )
-        )
+    groups = GroupsService.get_groups(g.user_id, g.user_group)
 
     return GroupFullWithEmployeesNestedSchema(many=True).dump(groups)
 
@@ -389,7 +361,7 @@ def remove_group_replacement(group_id: UUID):
 
     try:
         group = GroupsService.get_group_by_id(group_id)
-    except GroupDoesNotExistError:
+    except NotFoundError:
         abort_with_err(
             ErrMsg(
                 status_code=404,
@@ -409,13 +381,14 @@ def remove_group_replacement(group_id: UUID):
 
     try:
         group = GroupsService.update_group(
-            group_id,
-            group.group_name,
-            group.user_id_group_leader,
-            group.location_id,
+            group_id=group_id,
+            group_name=group.group_name,
+            group_number=group.group_number,
+            user_id_group_leader=group.user_id_group_leader,
+            location_id=group.location_id,
             user_id_replacement=None,
         )
-    except ValueError as err:
+    except BadValueError as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
@@ -424,5 +397,71 @@ def remove_group_replacement(group_id: UUID):
                 details=str(err),
             )
         )
+    except NotFoundError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Gruppe nicht gefunden",
+                description=f"Die Gruppe existiert nicht.",
+                details=str(err),
+            )
+        )
+    except AlreadyExistsError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=409,
+                title="Gruppe existiert bereits",
+                description=f"Eine Gruppe mit Nummer {group.group_number} existiert bereits.",
+                details=str(err),
+            )
+        )
 
     return GroupFullNestedSchema().dump(group)
+
+
+@groups_routes.get("/api/groups/create-qr/<uuid:group_id>")
+@login_required(groups=[UserGroup.verwaltung])
+@swag_from(
+    {
+        "tags": ["groups"],
+        "parameters": [
+            {
+                "in": "path",
+                "name": "group_id",
+                "required": True,
+                "schema": {"type": "string"},
+            }
+        ],
+        "responses": {
+            200: {
+                "description": "Successfully created QR code as a PDF for each person in the group",
+                "content": {
+                    "application/pdf": {
+                        "schema": {"type": "string", "format": "binary"}
+                    }
+                },
+            },
+            404: {
+                "description": "QR codes could not be created for the group",
+            },
+        },
+    }
+)
+def create_batch_qr_code(group_id: UUID):
+    """Create pdf with QR codes for each employee in a group
+
+    Authentication: required
+    Authorization: Verwaltung
+    ---
+    """
+    try:
+        return GroupsService.create_batch_qr_codes(group_id, g.user_id, g.user_group)
+    except NotFoundError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Es existieren keine Mitarbeiter:innen in der Gruppe",
+                description="Es existieren keine Mitarbeiter:innen in der Gruppe.",
+                details=str(err),
+            )
+        )

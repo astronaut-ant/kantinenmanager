@@ -4,11 +4,11 @@ from flask import Blueprint, jsonify, request, g
 from flasgger import swag_from
 from marshmallow import ValidationError
 
-from src.utils.exceptions import NotFoundError, AccessDeniedError
+from src.utils.exceptions import NotFoundError, AccessDeniedError, BadValueError
 from src.models.user import UserGroup
 from src.schemas.daily_orders_schema import DailyOrderFullSchema
 from src.schemas.reports_schemas import CountOrdersSchema
-from src.services.daily_orders_service import DailyOrdersService, WrongLocationError
+from src.services.daily_orders_service import DailyOrdersService
 from src.services.reports_service import ReportsService
 from src.utils.auth_utils import login_required
 from src.utils.error import ErrMsg, abort_with_err
@@ -45,12 +45,21 @@ def get_daily_orders():
         daily_orders = DailyOrdersService.get_daily_orders_filtered_by_user_scope(
             g.user_id
         )
-    except ValueError as err:  # TODO Specific exceptions
+    except NotFoundError as err:
         abort_with_err(
             ErrMsg(
                 status_code=404,
                 title="Fehler",
                 description="Ein Fehler ist aufgetreten.",
+                details=str(err),
+            )
+        )
+    except AccessDeniedError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=403,
+                title="Nicht autorisiert",
+                description="Sie haben keinen Zugriff auf diese Bestellungen.",
                 details=str(err),
             )
         )
@@ -86,13 +95,13 @@ def get_daily_orders_counted():
         orders_counted_by_location = ReportsService.get_daily_orders_count(
             g.user_group, g.user_id
         )
-    except ValueError:  # TODO Specific exceptions
+    except BadValueError as err:
         abort_with_err(
             ErrMsg(
-                status_code=404,
+                status_code=400,
                 title="Fehler",
                 description="Ein Fehler ist aufgetreten.",
-                details="Ein Fehler ist aufgetreten.",
+                details=str(err),
             )
         )
     except AccessDeniedError as err:
@@ -100,7 +109,7 @@ def get_daily_orders_counted():
             ErrMsg(
                 status_code=403,
                 title="Nicht autorisiert",
-                description=f"Nutzer:in mit ID {g.user_id} haben keinen Zugriff auf diese Bestellungen.",
+                description=f"Nutzer:in mit ID {g.user_id} auf eine Bestellung.",
                 details=str(err),
             )
         )
@@ -147,7 +156,7 @@ def get_daily_order(person_id: UUID):
                 details=str(err),
             )
         )
-    except WrongLocationError as err:
+    except AccessDeniedError as err:
         abort_with_err(
             ErrMsg(
                 status_code=403,
@@ -156,7 +165,7 @@ def get_daily_order(person_id: UUID):
                 details=str(err),
             )
         )
-    except ValueError as err:
+    except BadValueError as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
@@ -287,7 +296,7 @@ def update_daily_order(daily_order_id: int):
                 details=str(err),
             )
         )
-    except WrongLocationError as err:
+    except AccessDeniedError as err:
         abort_with_err(
             ErrMsg(
                 status_code=403,
