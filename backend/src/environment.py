@@ -59,7 +59,7 @@ class ProductionFeatures(Features):
     CORS = False
     SWAGGER = False
     INSERT_DEFAULT_DATA = True
-    INSERT_MOCK_DATA = True
+    INSERT_MOCK_DATA = False
     CRONJOBS = True
     LOGGING = LoggingMethod.LOKI
 
