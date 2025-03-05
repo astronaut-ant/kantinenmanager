@@ -38,7 +38,8 @@ class OldOrder(db.Model):
             name="fk_oldorder_location",
             onupdate="CASCADE",
             ondelete="SET NULL",
-        )
+        ),
+        nullable=False,
     )
     date: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     nothing: Mapped[bool] = mapped_column(

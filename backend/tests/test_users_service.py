@@ -1,6 +1,5 @@
 """Tests for the UsersService class."""
 
-from typing import Set
 import pytest
 from uuid import uuid4
 from src.models.user import UserGroup
@@ -361,10 +360,14 @@ def describe_delete_user():
 
     def it_deletes_user(mocker, user_verwaltung):
         mock_delete_user = mocker.patch.object(UsersRepository, "delete_user")
+        mock_invalidate_all_refresh_tokens = mocker.patch.object(
+            AuthService, "invalidate_all_refresh_tokens"
+        )
 
         UsersService.delete_user(user_verwaltung)
 
         mock_delete_user.assert_called_once_with(user_verwaltung)
+        mock_invalidate_all_refresh_tokens.assert_called_once_with(user_verwaltung.id)
 
 
 def describe_reset_password():

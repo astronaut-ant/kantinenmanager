@@ -84,7 +84,7 @@ class LocationsRepository:
             db.session.commit()
         except SQLAlchemyIntegrityError as e:
             raise IntegrityError(
-                "Es existieren noch Gruppen an diesem Standort. Bitte verlegen oder löschen Sie erst diese."
+                "Es existieren noch Gruppen oder Bestellungen, die diesem Standort zugeordnet sind. Bitte verlegen oder löschen Sie erst diese."
             ) from e
 
     @staticmethod
