@@ -131,6 +131,8 @@ class EmployeesRepository:
         """Retrieve an employee by their ID
 
         :param employee_id: The ID of the employee to retrieve
+        :param user_group: The user group of the user
+        :param user_id: The ID of the user
 
         :return: The employee with the given ID or None if no employee was found
         """
@@ -160,7 +162,7 @@ class EmployeesRepository:
             return db.session.scalars(
                 select(Employee)
                 .join(Group)
-                .filter(Group.user_id_groupleader == user_id)
+                .filter(Group.user_id_group_leader == user_id)
                 .where(
                     and_(
                         Employee.id == employee_id,

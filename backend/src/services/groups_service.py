@@ -172,4 +172,4 @@ class GroupsService:
         )
         if not employees:
             raise NotFoundError(f"Mitarbeiter:innen der Gruppe mit ID {group_id}")
-        return PDFCreationUtils.create_batch_qr_codes(group, employees)
+        return PDFCreationUtils.create_batch_qr_codes(employees=employees, group=group)

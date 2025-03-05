@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from flask import send_file, Response, make_response
 import qrcode
 from datetime import datetime
@@ -97,7 +97,7 @@ class PDFCreationUtils:
         c = canvas.Canvas(pdf_buffer, pagesize=A4)
 
         # Position für den QR-Code
-        qr_size = 200
+        qr_size = 150
         x_center = (page_width - qr_size) / 2
         y_position = (page_height / 2) + 180  # Position in der oberen Hälfte
 
@@ -107,7 +107,7 @@ class PDFCreationUtils:
 
         # Text unterhalb des QR-Codes hinzufügen
         text_y_position = y_position - 20
-        c.setFont("Helvetica", 12)
+        c.setFont("Helvetica", 10)
         c.drawCentredString(
             page_width / 2,
             text_y_position,
@@ -129,7 +129,7 @@ class PDFCreationUtils:
         return response
     
     @staticmethod
-    def create_batch_qr_codes(group: Group, employees: List[Employee]):
+    def create_batch_qr_codes(employees: List[Employee], group: Optional[Group] = None):
         """Create a PDF with QR codes for a list of employees.
 
         :param employees: List of employee objects to create QR codes for
@@ -187,12 +187,17 @@ class PDFCreationUtils:
         c.save()
         pdf_buffer.seek(0)
 
+        if group:
+            download_name = f"{group.group_name}_qr_codes.pdf"
+        else:
+            download_name = "batch_qr_codes.pdf"
+
         response = make_response(
             send_file(
                 pdf_buffer,
                 mimetype="application/pdf",
                 as_attachment=True,
-                download_name=f"{group.group_name}_qr_codes.pdf",
+                download_name=download_name,
             )
         )
         response.headers["Access-Control-Expose-Headers"] = "Content-Disposition"
