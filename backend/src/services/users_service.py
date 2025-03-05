@@ -169,6 +169,7 @@ class UsersService:
                 f"{user.first_name} {user.last_name} leitet einen Standort und kann nicht gelöscht werden."
             )
 
+        AuthService.invalidate_all_refresh_tokens(user.id)
         UsersRepository.delete_user(user)
 
     @staticmethod

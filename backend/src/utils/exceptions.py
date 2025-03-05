@@ -58,3 +58,9 @@ class RefreshTokenAlreadyUsedError(Exception):
     """Refresh token has already been used"""
 
     pass
+
+
+class IntegrityError(Exception):
+    """Integrity error"""
+
+    pass

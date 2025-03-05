@@ -340,19 +340,16 @@ def update_user(user_id: UUID):
 
     location = None
 
-    try:
-        if (location_id := body.get("location_id")) is not None:
-            location = LocationsService.get_location_by_id(location_id)
-            if location is None:
-                raise NotFoundError(f"Standort mit ID {location_id}")
-    except NotFoundError:
-        abort_with_err(
-            ErrMsg(
-                status_code=404,
-                title="Standort nicht gefunden",
-                description="Es wurde kein Standort mit dieser ID gefunden",
+    if (location_id := body.get("location_id")) is not None:
+        location = LocationsService.get_location_by_id(location_id)
+        if location is None:
+            abort_with_err(
+                ErrMsg(
+                    status_code=404,
+                    title="Standort nicht gefunden",
+                    description="Es wurde kein Standort mit dieser ID gefunden",
+                )
             )
-        )
 
     try:
         updated_user = UsersService.update_user(

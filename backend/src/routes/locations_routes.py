@@ -4,10 +4,10 @@ from src.schemas.locations_schemas import LocationFullNestedSchema, LocationFull
 from src.utils.auth_utils import login_required
 from src.utils.error import ErrMsg, abort_with_err
 from src.models.user import UserGroup
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app as app
 from flasgger import swag_from
 from src.services.locations_service import LocationsService
-from src.utils.exceptions import AlreadyExistsError, NotFoundError
+from src.utils.exceptions import AlreadyExistsError, IntegrityError, NotFoundError
 
 
 locations_routes = Blueprint("locations_routes", __name__)
@@ -242,24 +242,15 @@ def delete_location(location_id: UUID):
             )
         )
 
-    groups_of_location = LocationsService.get_groups_of_location(location_id)
-    if groups_of_location:
+    try:
+        LocationsService.delete_location(location)
+    except IntegrityError as e:
         abort_with_err(
             ErrMsg(
                 status_code=400,
                 title="Standort konnte nicht gelöscht werden",
-                description="Der Standort konnte nicht gelöscht werden, weil er noch Gruppen enthält",
+                description=str(e),
             )
         )
 
-    try:
-        LocationsService.delete_location(location)
-    except Exception:
-        abort_with_err(
-            ErrMsg(
-                status_code=500,
-                title="Standort konnte nicht gelöscht werden",
-                description="Der Standort konnte nicht gelöscht werden",
-            )
-        )
     return jsonify({"message": "Standort erfolgreich gelöscht"})

@@ -4,7 +4,7 @@ from src.models.group import Group
 from src.models.location import Location
 from src.repositories.locations_repository import LocationsRepository
 from src.repositories.users_repository import UsersRepository
-from src.utils.exceptions import AlreadyExistsError, NotFoundError
+from src.utils.exceptions import AlreadyExistsError, IntegrityError, NotFoundError
 
 
 class LocationsService:
@@ -100,9 +100,14 @@ class LocationsService:
         """Delete a location
 
         :param location: The location to delete
+
+        :raises IntegrityError: If the location is still referenced by other entities
         """
 
-        LocationsRepository.delete_location(location)
+        try:
+            LocationsRepository.delete_location(location)
+        except IntegrityError as e:
+            raise e
 
     @staticmethod
     def get_groups_of_location(location_id: UUID) -> Optional[List[Group]]:

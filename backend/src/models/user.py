@@ -1,7 +1,7 @@
 """Models related to storing user information."""
 
 import enum
-from typing import Set
+from typing import Optional, Set
 import sqlalchemy
 import uuid
 from datetime import datetime
@@ -58,7 +58,7 @@ class User(Person):
     user_group: Mapped[UserGroup] = mapped_column(
         sqlalchemy.Enum(UserGroup), nullable=False
     )
-    location_id: Mapped[uuid.UUID] = mapped_column(
+    location_id: Mapped[Optional[uuid.UUID]] = mapped_column(
         ForeignKey(
             "location.id",
             name="fk_user_location",
@@ -68,7 +68,7 @@ class User(Person):
         ),
         nullable=True,
     )
-    last_login: Mapped[datetime] = mapped_column(DateTime, nullable=True)
+    last_login: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     blocked: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     # Das sind die Beziehungen zu anderen Tabellen:

@@ -34,7 +34,7 @@ class Group(db.Model):
         ),
         nullable=False,
     )
-    user_id_replacement: Mapped[uuid.UUID] = mapped_column(
+    user_id_replacement: Mapped[Optional[uuid.UUID]] = mapped_column(
         ForeignKey(
             "user.id",
             name="fk_group_replacement",

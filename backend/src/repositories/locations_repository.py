@@ -1,6 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
-from src.models.user import User
+from sqlalchemy.exc import IntegrityError as SQLAlchemyIntegrityError
+from src.utils.exceptions import IntegrityError
 from src.database import db
 from uuid import UUID
 from src.models.location import Location
@@ -78,8 +79,13 @@ class LocationsRepository:
 
         :param location: The location to delete
         """
-        db.session.delete(location)
-        db.session.commit()
+        try:
+            db.session.delete(location)
+            db.session.commit()
+        except SQLAlchemyIntegrityError as e:
+            raise IntegrityError(
+                "Es existieren noch Gruppen an diesem Standort. Bitte verlegen oder löschen Sie erst diese."
+            ) from e
 
     @staticmethod
     def get_groups_of_location(location_id: UUID) -> List[Group]:
