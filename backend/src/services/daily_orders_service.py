@@ -92,7 +92,7 @@ class DailyOrdersService:
                 f"Zugriff verweigert. Gruppe {group_id} gehört nicht zu Nutzer {user_id}"
             )
 
-        return OrdersRepository.get_daily_orders_for_group(group_id, user_id)
+        return OrdersRepository.get_daily_orders_for_group(group_id)
 
     @staticmethod
     def create_daily_orders(
