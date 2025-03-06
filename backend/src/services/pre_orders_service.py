@@ -6,11 +6,20 @@ import pytz
 from src.repositories.employees_repository import EmployeesRepository
 from src.repositories.groups_repository import GroupsRepository
 from src.repositories.users_repository import UsersRepository
-from src.schemas.pre_orders_schemas import PreOrderFullSchema, PreOrdersByGroupLeaderSchema
+from src.schemas.pre_orders_schemas import (
+    PreOrderFullSchema,
+    PreOrdersByGroupLeaderSchema,
+)
 from src.models.preorder import PreOrder
 from src.models.user import UserGroup
 from src.repositories.orders_repository import OrdersFilters, OrdersRepository
-from src.utils.exceptions import NotFoundError, ActionNotPossibleError, AccessDeniedError, BadValueError, AlreadyExistsError
+from src.utils.exceptions import (
+    NotFoundError,
+    ActionNotPossibleError,
+    AccessDeniedError,
+    BadValueError,
+    AlreadyExistsError,
+)
 
 timezone = pytz.timezone("Europe/Berlin")
 
@@ -21,7 +30,9 @@ class PreOrdersService:
     """
 
     @staticmethod
-    def get_pre_order_by_id(id: int) -> Optional[PreOrderFullSchema]:
+    def get_pre_order_by_id(
+        id: int, user_id: UUID, user_group: UserGroup
+    ) -> PreOrderFullSchema:
         """
         Get pre order by id
         """
@@ -29,7 +40,14 @@ class PreOrdersService:
         preorder = OrdersRepository.get_pre_order_by_id(id)
 
         if not preorder:
-            return None
+            raise NotFoundError(f"Vorbestellung mit ID {id}")
+        if (
+            user_group == UserGroup.kuechenpersonal
+            or user_group == UserGroup.gruppenleitung
+        ):
+            user = UsersRepository.get_user_by_id(user_id)
+            if preorder.location_id is not (user.location):
+                raise AccessDeniedError(f"den Standort {user.location}")
 
         return PreOrderFullSchema().dump(preorder)
 
@@ -45,9 +63,6 @@ class PreOrdersService:
 
         if not group_leader:
             raise NotFoundError(f"Gruppenleitung mit ID {person_id}")
-
-        if group_leader.user_group != UserGroup.gruppenleitung:
-            raise AccessDeniedError("Gruppen, da keine Gruppenleitung")
 
         groups = GroupsRepository.get_groups_by_group_leader(person_id)
 
@@ -71,7 +86,9 @@ class PreOrdersService:
         return PreOrdersByGroupLeaderSchema().dump(group_leader)
 
     @staticmethod
-    def get_pre_orders(filters: OrdersFilters, user_id: UUID, user_group: UserGroup) -> List[PreOrderFullSchema]:
+    def get_pre_orders(
+        filters: OrdersFilters, user_id: UUID, user_group: UserGroup
+    ) -> List[PreOrderFullSchema]:
         """
         Get orders
         :param filters: Filters for orders
@@ -82,7 +99,7 @@ class PreOrdersService:
         return PreOrderFullSchema(many=True).dump(preorders)
 
     @staticmethod
-    def create_update_bulk_preorders(orders: List[dict], user_id: UUID):
+    def create_update_bulk_preorders(orders: List[dict], user_id: UUID) -> None:
         """
         Create orders for employees in bulk
 
@@ -100,7 +117,9 @@ class PreOrdersService:
 
         for order in orders:
             if order["date"] < today:
-                raise BadValueError(f"Datum {order['date']} liegt in der Vergangenheit.")
+                raise BadValueError(
+                    f"Datum {order['date']} liegt in der Vergangenheit."
+                )
 
             if order["date"] > today + timedelta(days=14):
                 raise BadValueError(
@@ -149,6 +168,7 @@ class PreOrdersService:
                 bulk_orders.append(PreOrder(**order))
 
         OrdersRepository.create_bulk_orders(bulk_orders)
+        return
 
     @staticmethod
     def create_preorder_user(order: dict, user_id: UUID) -> PreOrderFullSchema:
@@ -170,7 +190,9 @@ class PreOrdersService:
             )
 
         if order["date"] < today:
-            raise BadValueError(f"Das Datum {order['date']} liegt in der Vergangenheit.")
+            raise BadValueError(
+                f"Das Datum {order['date']} liegt in der Vergangenheit."
+            )
 
         if order["date"] > today + timedelta(days=14):
             raise BadValueError(
@@ -214,6 +236,10 @@ class PreOrdersService:
         today = datetime.now(timezone).date()
         current_time = datetime.now(timezone).time()
 
+        old_pre_order = OrdersRepository.get_pre_order_by_id(preorder_id)
+        if not old_pre_order:
+            raise NotFoundError(f"Bestellung {preorder_id}")
+
         if new_order["date"] < today:
             raise BadValueError(
                 f"Das Datum {new_order['date']} liegt in der Vergangenheit."
@@ -242,17 +268,14 @@ class PreOrdersService:
                 "Wenn 'nichts' ausgewählt ist, dürfen keine Essensoptionen ausgewählt werden."
             )
 
-        old_order = OrdersRepository.get_pre_order_by_id(preorder_id)
-        if not old_order:
-            raise NotFoundError(f"Bestellung {preorder_id}")
+        old_pre_order.nothing = new_order["nothing"]
+        old_pre_order.date = new_order["date"]
+        old_pre_order.main_dish = new_order["main_dish"]
+        old_pre_order.salad_option = new_order["salad_option"]
 
-        old_order.nothing = new_order["nothing"]
-        old_order.date = new_order["date"]
-        old_order.main_dish = new_order["main_dish"]
-        old_order.salad_option = new_order["salad_option"]
         OrdersRepository.update_order()
 
-        return PreOrderFullSchema().dump(old_order)
+        return PreOrderFullSchema().dump(old_pre_order)
 
     @staticmethod
     def delete_preorder_user(preorder_id: UUID, user_id: UUID):
@@ -266,5 +289,6 @@ class PreOrdersService:
         if not preorder:
             raise NotFoundError(f"Bestellung {preorder_id}")
         if user_id != preorder.person_id:
-            raise AccessDeniedError(f"Person {preorder.person_id}")
+            raise AccessDeniedError(f"die Preorder von Person {preorder.person_id}")
         OrdersRepository.delete_order(preorder)
+        return

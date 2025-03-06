@@ -114,7 +114,7 @@ class OrdersRepository:
         db.session.commit()
 
     @staticmethod
-    def delete_order(order):
+    def delete_order(order: PreOrder | DailyOrder | OldOrder):
         """
         Delete order
         """
