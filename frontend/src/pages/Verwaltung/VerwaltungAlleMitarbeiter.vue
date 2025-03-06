@@ -20,7 +20,7 @@
       <v-toolbar v-else-if="selected.length == 0 && items.length > 0" color="white" flat dark density="compact" rounded="lg">
         <p class="text-h6">Anzahl aller jetzigen Mitarbeiter: {{ employees.length }}</p>
         <v-spacer></v-spacer>
-        <v-btn icon="mdi-reload" @click="fetchData"></v-btn>
+        <v-btn prepend-icon="mdi-reload" @click="fetchData">Neuladen</v-btn>
       </v-toolbar>
       <v-toolbar v-else color="white" flat dark density="compact" rounded="lg">
       </v-toolbar>
