@@ -1,12 +1,19 @@
 <template>
   <NavbarVerwaltung />
+  <FilterBar
+    :viewSwitcherEnabled="false"
+    :filterList="['first_name', 'last_name', 'employee_number', 'group_name', 'location_name']"
+    :items="employees"
+    @searchresult="updateOverview"
+  />
   <v-container style="width: 70%;">
     <div>
       <v-toolbar color="white" flat dark>
-        <p class="text-h5 font-weight-black" >Übersicht Mitarbeiter</p>
+        <p class="text-h6" >Anzahl Mitarbeiter: {{ employees.length }}</p>
         <v-spacer></v-spacer>
         <v-btn icon="mdi-magnify" @click="toggleSearchField"></v-btn>
         <v-btn icon="mdi-reload" @click="fetchData"></v-btn>
+        <v-btn @click="console.log(selected)"> {{ selected.length }} ausgewählt</v-btn>
       </v-toolbar>
     </div>
     <div class="d-flex justify-center">
@@ -27,7 +34,7 @@
       </v-expand-transition>
     </div>
     <div>
-      <v-data-table :headers="headers"  :items="items" :search="search" :sort-by="sortBy" :loading="loading" :hover="true" item-value="employee_number">
+      <v-data-table v-model="selected" :headers="headers"  :items="items" :search="search" :sort-by="sortBy" :loading="loading" :hover="true" item-value="id" show-select>
       <template v-slot:[`item.actions`]="{ item }">
         <v-btn icon="mdi-qrcode" class="bg-green mr-2" @click="getQRCode(item)" size="small"></v-btn>
         <v-btn icon="mdi-lead-pencil" class="bg-primary mr-2" @click="openeditDialog(item)" size="small"></v-btn>
@@ -168,6 +175,8 @@
   const validation = ref(null);
   const form = ref(false);
 
+  const selected = ref([]);
+
   const toggleSearchField = () => {
     if (isSearchVisible.value) {
       search.value = "";
@@ -261,8 +270,7 @@
     axios
     .get(import.meta.env.VITE_API + "/api/employees", { withCredentials: true })
     .then((response) => {
-      employees.value = response.data;
-      items.value = employees.value.map((employee) => {
+      items.value = response.data.map((employee) => {
         return {
           id: employee.id,
           first_name: employee.first_name,
@@ -274,9 +282,14 @@
           location_name: employee.group.location.location_name || "Unbekannt",
         };
       });
+      employees.value = items.value;
       loading.value = false;
     })
     .catch((err) => console.error("Error fetching data", err));
+  };
+
+  const updateOverview = (list) => {
+    items.value = list;
   };
 
   onMounted(() => {
