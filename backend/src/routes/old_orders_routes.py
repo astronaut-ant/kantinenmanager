@@ -6,6 +6,7 @@ from flasgger import swag_from
 from src.services.old_orders_service import OrdersFilters, OldOrdersService
 from src.models.user import UserGroup
 from src.schemas.old_orders_schemas import OldOrderFilterSchema, OldOrderFullSchema
+from src.utils.exceptions import NotFoundError
 
 
 old_orders_routes = Blueprint("old_orders_routes", __name__)
@@ -13,7 +14,7 @@ old_orders_routes = Blueprint("old_orders_routes", __name__)
 
 # TODO: Test route
 @old_orders_routes.get("/api/old-orders")
-@login_required(groups=[UserGroup.verwaltung], disabled=True)
+@login_required(groups=[UserGroup.verwaltung])
 @swag_from(
     {
         "tags": ["old_orders"],
@@ -104,7 +105,15 @@ def get_old_orders():
                 details=err.messages,
             )
         )
-
-    orders = OldOrdersService.get_old_orders(filters)
-    print(orders)
+    try:
+        orders = OldOrdersService.get_old_orders(filters)
+    except NotFoundError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Nicht gefunden",
+                description="Es wurden keine passenden Bestellungen gefunden",
+                details=err.messages,
+            )
+        )
     return OldOrderFullSchema(many=True).dump(orders)

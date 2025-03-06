@@ -1,6 +1,7 @@
 from typing import List
 from src.models.oldorder import OldOrder
 from src.repositories.orders_repository import OrdersFilters, OrdersRepository
+from src.utils.exceptions import NotFoundError
 
 
 class OldOrdersService:
@@ -14,4 +15,8 @@ class OldOrdersService:
 
         :return: List of old orders
         """
-        return OrdersRepository.get_old_orders(filters)
+        old_orders = OrdersRepository.get_old_orders(filters)
+        if old_orders is None:
+            raise NotFoundError("No old orders found")
+        else:
+            return old_orders
