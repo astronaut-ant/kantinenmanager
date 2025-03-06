@@ -13,7 +13,7 @@
         <v-divider inset vertical></v-divider>
         <p class="ml-4 mr-2">{{ selected.length }} ausgewählt</p>
         <v-spacer></v-spacer>
-        <v-btn prepend-icon="mdi-qrcode" class="bg-green mr-2" @click="" size="small">QR Codes generieren</v-btn>
+        <v-btn prepend-icon="mdi-qrcode" class="bg-green mr-2" @click="getQRCodeGroup" size="small">QR Codes generieren</v-btn>
         <v-btn prepend-icon="mdi-trash-can-outline" class="bg-red mr-2" @click="" size="small">Ausgewählte Mitarbeiter löschen</v-btn>
       </v-toolbar>
 
@@ -207,6 +207,47 @@
         errorSnackbarText.value = `Fehler beim löschen von ${employeeToDelete.value}`;
         errorSnackbar.value = true;
       })
+  };
+
+  const getQRCodeGroup = () => {
+    axios
+      .post(`${import.meta.env.VITE_API}/api/employees/qr-codes-by-list`, 
+      {
+        employee_ids: selected.value
+      },
+      {
+        responseType: "blob",
+        withCredentials: true,
+      })
+      .then((response) => {
+        const blob = new Blob([response.data], { type: response.headers["content-type"] });
+        const url = window.URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = url;
+
+        const contentDisposition = response.headers["content-disposition"];
+        let filename = "download";
+        if (contentDisposition) {
+          const filenameMatch = contentDisposition.match(/filename\*?=(['"]?)(.+?)\1(;|$)/i);
+          if (filenameMatch) {
+            filename = decodeURIComponent(filenameMatch[2]);
+          }
+        }
+
+        link.download = filename;
+        link.click();
+        window.URL.revokeObjectURL(url);
+
+        snackbar.value = false;
+        snackbarText.value = "Die QR-Codes wurden erfolgreich generiert!";
+        snackbar.value = true;
+      })
+      .catch((err) => {
+        console.error("Error getting QR Code", err);
+        errorSnackbarText.value = "Fehler beim generieren des QR-Codes!"
+        errorSnackbar.value = true;
+      });
   };
 
   const getQRCode = (item) => {
