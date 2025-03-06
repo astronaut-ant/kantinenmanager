@@ -37,7 +37,6 @@ daily_orders_routes = Blueprint("daily_orders_routes", __name__)
                     "items": DailyOrderFullSchema,
                 },
             },
-            404: {"description": "Bad request"},
         },
     }
 )
@@ -46,19 +45,7 @@ def get_daily_orders():
     Get all daily orders filtered by location of the user
     """
 
-    try:
-        daily_orders = DailyOrdersService.get_daily_orders_filtered_by_user_scope(
-            g.user_id
-        )
-    except NotFoundError as err:
-        abort_with_err(
-            ErrMsg(
-                status_code=404,
-                title="Fehler",
-                description="Ein Fehler ist aufgetreten.",
-                details=str(err),
-            )
-        )
+    daily_orders = DailyOrdersService.get_daily_orders_filtered_by_user_scope(g.user_id)
 
     return DailyOrderFullSchema(many=True).dump(daily_orders)
 
@@ -77,7 +64,6 @@ def get_daily_orders():
                 },
             },
             403: {"description": "Access denied"},
-            404: {"description": "Bad request"},
             500: {"description": "Server Error"},
         },
     }
@@ -90,15 +76,6 @@ def get_daily_orders_counted():
     try:
         orders_counted_by_location = ReportsService.get_daily_orders_count(
             g.user_group, g.user_id
-        )
-    except BadValueError as err:
-        abort_with_err(
-            ErrMsg(
-                status_code=400,
-                title="Fehler",
-                description="Ein Fehler ist aufgetreten.",
-                details=str(err),
-            )
         )
     except AccessDeniedError as err:
         abort_with_err(
@@ -144,7 +121,6 @@ def get_daily_orders_counted():
             },
             404: {"description": "Not found"},
             403: {"description": "Access denied"},
-            400: {"description": "Bad request"},
         },
     }
 )
@@ -170,15 +146,6 @@ def get_daily_order(person_id: UUID):
                 status_code=403,
                 title="Nicht autorisiert",
                 description="Sie haben keinen Zugriff auf diese Bestellung.",
-                details=str(err),
-            )
-        )
-    except BadValueError as err:
-        abort_with_err(
-            ErrMsg(
-                status_code=400,
-                title="Fehler",
-                description="Ein Fehler ist aufgetreten.",
                 details=str(err),
             )
         )
