@@ -27,8 +27,7 @@ class DailyOrdersService:
 
         if order.location_id != user.location_id:
             raise AccessDeniedError(
-                resssource=f"Person {person_id}",
-                details=f" auf Standort {user.location_id}",
+                ressource=f"den Standort {order.location_id}",
             )
 
         return order
@@ -50,11 +49,10 @@ class DailyOrdersService:
 
         if order.location_id != user.location_id:
             raise AccessDeniedError(
-                ressource=f"Person {order.person_id}",
-                details=f" auf Standort {user.location_id}",
+                ressource=f"den Standort {order.location_id}",
             )
 
-        if order["nothing"] is True and (order["main_dish"] or order["salad_option"]):
+        if order.nothing is True and (order.main_dish or order.salad_option):
             raise BadValueError(
                 "Wenn 'nichts' ausgewählt ist, dürfen keine Essensoptionen ausgewählt werden."
             )
