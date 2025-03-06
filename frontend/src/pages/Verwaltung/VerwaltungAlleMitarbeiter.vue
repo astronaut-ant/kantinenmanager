@@ -9,9 +9,9 @@
   <v-container style="width: 70%;">
     <transition name="fade-toolbar" mode="out-in">
       <v-toolbar v-if="selected.length > 0" color="grey-lighten-2" flat dark density="compact" rounded="lg">
-        <v-btn class="ml-2 mr-1" icon="mdi-close" density="compact" @click="selected = []"></v-btn>
+        <v-btn class="ml-3 mr-3" icon="mdi-close" density="compact" @click="selected = []"></v-btn>
         <v-divider inset vertical></v-divider>
-        <p class="ml-2 mr-2">{{ selected.length }} ausgewählt</p>
+        <p class="ml-4 mr-2">{{ selected.length }} ausgewählt</p>
         <v-spacer></v-spacer>
         <v-btn prepend-icon="mdi-qrcode" class="bg-green mr-2" @click="" size="small">QR Codes generieren</v-btn>
         <v-btn prepend-icon="mdi-trash-can-outline" class="bg-red mr-2" @click="" size="small">Ausgewählte Mitarbeiter löschen</v-btn>
