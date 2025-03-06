@@ -7,38 +7,28 @@
     @searchresult="updateOverview"
   />
   <v-container style="width: 70%;">
-    <div>
-      <v-toolbar color="white" flat dark>
-        <p class="text-h6" >Anzahl Mitarbeiter: {{ employees.length }}</p>
+    <transition name="fade-toolbar" mode="out-in">
+      <v-toolbar v-if="selected.length > 0" color="grey-lighten-2" flat dark density="compact" rounded="lg">
+        <v-btn class="ml-2 mr-1" icon="mdi-close" density="compact" @click="selected = []"></v-btn>
+        <v-divider inset vertical></v-divider>
+        <p class="ml-2 mr-2">{{ selected.length }} ausgewählt</p>
         <v-spacer></v-spacer>
-        <v-btn icon="mdi-magnify" @click="toggleSearchField"></v-btn>
-        <v-btn icon="mdi-reload" @click="fetchData"></v-btn>
-        <v-btn @click="console.log(selected)"> {{ selected.length }} ausgewählt</v-btn>
+        <v-btn prepend-icon="mdi-qrcode" class="bg-green mr-2" @click="" size="small">QR Codes generieren</v-btn>
+        <v-btn prepend-icon="mdi-trash-can-outline" class="bg-red mr-2" @click="" size="small">Ausgewählte Mitarbeiter löschen</v-btn>
       </v-toolbar>
-    </div>
-    <div class="d-flex justify-center">
-      <v-expand-transition>
-        <v-text-field
-        v-if="isSearchVisible"
-        v-model="search"
-        density="compact"
-        label="Suche"
-        prepend-inner-icon="mdi-magnify"
-        variant="solo-filled"
-        flat
-        hide-details
-        single-line
-        clearable
-        rounded
-        ></v-text-field>
-      </v-expand-transition>
-    </div>
+
+      <v-toolbar v-else color="white" flat dark density="compact" rounded="lg">
+        <p class="text-h6">Anzahl Mitarbeiter: {{ employees.length }}</p>
+        <v-spacer></v-spacer>
+        <v-btn icon="mdi-reload" @click="fetchData"></v-btn>
+      </v-toolbar>
+    </transition>
     <div>
-      <v-data-table v-model="selected" :headers="headers"  :items="items" :search="search" :sort-by="sortBy" :loading="loading" :hover="true" item-value="id" show-select>
+      <v-data-table v-model="selected" :headers="headers"  :items="items" :sort-by="sortBy" :loading="loading" :hover="true" item-value="id" show-select>
       <template v-slot:[`item.actions`]="{ item }">
-        <v-btn icon="mdi-qrcode" class="bg-green mr-2" @click="getQRCode(item)" size="small"></v-btn>
-        <v-btn icon="mdi-lead-pencil" class="bg-primary mr-2" @click="openeditDialog(item)" size="small"></v-btn>
-        <v-btn icon="mdi-trash-can-outline" class="bg-red" @click="opendeleteDialog(item)" size="small"></v-btn>
+        <v-btn icon="mdi-qrcode" class="bg-green mr-2" @click="getQRCode(item)" size="small" :disabled="selected.length > 0"></v-btn>
+        <v-btn icon="mdi-lead-pencil" class="bg-primary mr-2" @click="openeditDialog(item)" size="small" :disabled="selected.length > 0"></v-btn>
+        <v-btn icon="mdi-trash-can-outline" class="bg-red" @click="opendeleteDialog(item)" size="small" :disabled="selected.length > 0"></v-btn>
       </template>
       </v-data-table>
     </div>
@@ -151,9 +141,7 @@
 
 <script setup>
   import axios from "axios";
-  const search = ref("");
   const loading = ref(true);
-  const isSearchVisible = ref(false);
   const deleteDialog = ref(false);
   const editDialog = ref(false);
   const employeeToDelete = ref("");
@@ -176,13 +164,6 @@
   const form = ref(false);
 
   const selected = ref([]);
-
-  const toggleSearchField = () => {
-    if (isSearchVisible.value) {
-      search.value = "";
-    }
-    isSearchVisible.value = !isSearchVisible.value;
-  };
 
   const opendeleteDialog = (item) => {
     employeeToDelete.value = item.first_name  + " " + item.last_name;
@@ -357,3 +338,21 @@
         });
   };
 </script>
+
+
+<style scoped>
+.fade-toolbar-enter-active,
+.fade-toolbar-leave-active {
+  transition: opacity 0.2s ease, transform 0.1s ease;
+}
+
+.fade-toolbar-enter-from {
+  opacity: 0;
+  transform: translateY(-5px);
+}
+
+.fade-toolbar-leave-to {
+  opacity: 0;
+  transform: translateY(5px);
+}
+</style>
