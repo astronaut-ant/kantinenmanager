@@ -8,7 +8,7 @@
   />
   <v-container style="width: 70%;">
     <transition name="fade-toolbar" mode="out-in">
-      <v-toolbar v-if="selected.length > 0" color="grey-lighten-2" flat dark density="compact" rounded="lg">
+      <v-toolbar v-if="selected.length > 0 && items.length > 0" color="grey-lighten-2" flat dark density="compact" rounded="lg">
         <v-btn class="ml-3 mr-3" icon="mdi-close" density="compact" @click="selected = []"></v-btn>
         <v-divider inset vertical></v-divider>
         <p class="ml-4 mr-2">{{ selected.length }} ausgewählt</p>
@@ -17,13 +17,15 @@
         <v-btn prepend-icon="mdi-trash-can-outline" class="bg-red mr-2" @click="" size="small">Ausgewählte Mitarbeiter löschen</v-btn>
       </v-toolbar>
 
-      <v-toolbar v-else color="white" flat dark density="compact" rounded="lg">
-        <p class="text-h6">Anzahl Mitarbeiter: {{ employees.length }}</p>
+      <v-toolbar v-else-if="selected.length == 0 && items.length > 0" color="white" flat dark density="compact" rounded="lg">
+        <p class="text-h6">Anzahl aller jetzigen Mitarbeiter: {{ employees.length }}</p>
         <v-spacer></v-spacer>
         <v-btn icon="mdi-reload" @click="fetchData"></v-btn>
       </v-toolbar>
+      <v-toolbar v-else color="white" flat dark density="compact" rounded="lg">
+      </v-toolbar>
     </transition>
-    <div>
+    <div v-if="items.length > 0">
       <v-data-table v-model="selected" :headers="headers"  :items="items" :sort-by="sortBy" :loading="loading" :hover="true" item-value="id" show-select>
       <template v-slot:[`item.actions`]="{ item }">
         <v-btn icon="mdi-qrcode" class="bg-green mr-2" @click="getQRCode(item)" size="small" :disabled="selected.length > 0"></v-btn>
@@ -32,6 +34,7 @@
       </template>
       </v-data-table>
     </div>
+    <NoResult v-else-if="items.length == 0" />
   </v-container>
   <v-dialog v-model="deleteDialog" persistent max-width="400">
     <v-card>
