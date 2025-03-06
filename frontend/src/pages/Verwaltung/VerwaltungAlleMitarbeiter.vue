@@ -13,7 +13,7 @@
         <v-divider inset vertical></v-divider>
         <p class="ml-4 mr-2">{{ selected.length }} ausgewählt</p>
         <v-spacer></v-spacer>
-        <v-btn prepend-icon="mdi-qrcode" class="bg-green mr-2" @click="getQRCodeGroup" size="small">QR Codes generieren</v-btn>
+        <v-btn prepend-icon="mdi-qrcode" class="bg-green mr-2" @click="getQRCodeSelected" size="small">QR Codes generieren</v-btn>
         <v-btn prepend-icon="mdi-trash-can-outline" class="bg-red mr-2" @click="" size="small">Ausgewählte Mitarbeiter löschen</v-btn>
       </v-toolbar>
 
@@ -209,7 +209,7 @@
       })
   };
 
-  const getQRCodeGroup = () => {
+  const getQRCodeSelected = () => {
     axios
       .post(`${import.meta.env.VITE_API}/api/employees/qr-codes-by-list`, 
       {
@@ -320,8 +320,8 @@
 
   const headers = [
      { title: "Nummer", key: "employee_number", nowrap: true},
-     { title: "Nachname", key: "last_name", nowrap: true },
      { title: "Vorname", key: "first_name", nowrap: true },
+     { title: "Nachname", key: "last_name", nowrap: true },
      { title: "Gruppe", key: "group_name", nowrap: true },
      { title: "Standort", key: "location_name", nowrap: true},
      { title: "", key: "actions", sortable: false, nowrap: true },];
