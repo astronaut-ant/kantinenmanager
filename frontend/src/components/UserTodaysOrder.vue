@@ -11,7 +11,7 @@
           <v-badge
             dot
             class="me-4"
-            :color="showDailyOrderReminder ? 'success' : 'transparent'"
+            :color="showDailyOrderReminder ? 'red' : 'transparent'"
           >
             <v-icon>mdi-calendar-today-outline</v-icon> </v-badge
           >Heutige Bestellung
@@ -58,7 +58,7 @@
           Status:
           <span
             class="font-weight-bold"
-            :class="dailyFoodObject.handed_out ? 'text-red' : 'text-success'"
+            :class="dailyFoodObject.handed_out ? 'text-success' : 'text-red'"
             >{{
               dailyFoodObject.handed_out ? "Ausgegeben" : "Ausstehend"
             }}</span
