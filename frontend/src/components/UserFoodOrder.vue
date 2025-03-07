@@ -7,20 +7,22 @@
           variant="text"
           v-bind="activatorProps"
           class="text-blue-grey"
-          ><v-icon class="me-4">mdi-calendar-edit-outline</v-icon>Meine
-          Bestellungen</v-btn
-        >
+          ><v-icon class="me-4">mdi-calendar-edit-outline</v-icon
+          ><span class="me-2">Meine Vorbestellungen</span
+          ><v-badge color="blue-grey" :content="preOrderCount" inline></v-badge
+        ></v-btn>
       </div>
     </template>
 
     <v-card max-height="800" class="mx-auto px-4" color="blue-grey-lighten-5">
       <v-card-text>
-        <h2 class="mt-4 mb-6 text-blue-grey font-weight-bold">
+        <h2 class="ms-n1 mt-4 mb-6 text-blue-grey font-weight-bold">
           <v-icon class="me-4 text-blue-grey">
             mdi-calendar-edit-outline</v-icon
           >
-          Meine Bestellungen
+          Meine Vorbestellungen
         </h2>
+
         <UserNewFoodOrder
           :person-id="props.personId"
           :location-items="locationItems"
@@ -31,6 +33,7 @@
         <div>
           <v-data-table-virtual
             v-model:sort-by="sortBy"
+            no-data-text="Keine Vorbestellungen vefügbar"
             :hover="true"
             :headers="headers"
             :items="items"
@@ -107,6 +110,7 @@
 import axios from "axios";
 import UserNewFoodOrder from "./UserNewFoodOrder.vue";
 import ConfirmDialogCreateUser from "./ConfirmDialogCreateUser.vue";
+import UserTodaysOrder from "./UserTodaysOrder.vue";
 
 const dialog = ref(false);
 const form = ref(false);
@@ -115,6 +119,7 @@ const locationItems = ref([]);
 const locationTable = {};
 const sortBy = ref([{ key: "date", order: "asc" }]);
 const openModal = ref([false, -1]);
+const preOrderCount = ref(0);
 
 const headers = ref([
   { title: "Datum", align: "start", key: "date" },
@@ -172,6 +177,8 @@ const getOrders = () => {
     )
     .then((response) => {
       orders.value = response.data;
+      preOrderCount.value = orders.value.length;
+      console.log("preOrderCount: ", preOrderCount.value);
       orders.value.forEach((order) => {
         order.location_name = locationTable[order.location_id];
         if (order.main_dish == "blau") {
@@ -207,8 +214,11 @@ const deleteOrder = (item) => {
         }),
         1
       );
+      preOrderCount.value = items.value.length;
+      console.log("preOrderCount: ", preOrderCount.value);
     })
 
     .catch((err) => console.log(err));
 };
+getData();
 </script>

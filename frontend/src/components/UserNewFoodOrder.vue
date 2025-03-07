@@ -7,7 +7,7 @@
         class="mt-2 mb-5"
         color="primary"
       >
-        <v-icon class="me-2">mdi-plus</v-icon>Neue Bestellung aufgeben
+        <v-icon class="me-2">mdi-plus</v-icon>Neue Vorbestellung aufgeben
       </v-btn>
     </template>
 

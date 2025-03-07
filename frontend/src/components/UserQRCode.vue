@@ -10,7 +10,7 @@
 
     <v-card class="mx-auto px-4" color="blue-grey-lighten-5">
       <v-card-text>
-        <h2 class="mt-2 mb-6 text-blue-grey font-weight-bold">
+        <h2 class="ms-n1 mt-2 mb-6 text-blue-grey font-weight-bold">
           <v-icon class="me-4 text-blue-grey"> mdi-qrcode</v-icon>
           Mein QR-Code
         </h2>

@@ -37,7 +37,12 @@
                 </p>
               </div>
               <v-divider color="text-blue-grey" class="my-3"></v-divider>
-              <UserFoodOrder :personId="appStore.userData.id" />
+              <div class>
+                <UserFoodOrder :personId="appStore.userData.id" />
+              </div>
+              <div>
+                <UserTodaysOrder />
+              </div>
               <div>
                 <UserQRCode :qr-value="appStore.userData.id" />
               </div>
@@ -66,6 +71,7 @@ import { useAppStore } from "@/stores/app";
 import PasswordChange from "./PasswordChange.vue";
 import UserFoodOrder from "./UserFoodOrder.vue";
 import UserQRCode from "./UserQRCode.vue";
+import UserTodaysOrder from "./UserTodaysOrder.vue";
 const appStore = useAppStore();
 const fullName =
   appStore.userData.first_name + " " + appStore.userData.last_name;

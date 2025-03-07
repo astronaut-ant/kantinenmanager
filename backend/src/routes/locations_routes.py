@@ -19,7 +19,7 @@ locations_routes = Blueprint("locations_routes", __name__)
 
 
 @locations_routes.get("/api/locations")
-@login_required(groups=[UserGroup.verwaltung])
+# @login_required(groups=[UserGroup.verwaltung])
 @swag_from(
     {
         "tags": ["locations"],
