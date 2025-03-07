@@ -26,7 +26,7 @@
       </v-toolbar>
     </transition>
     <div v-if="items.length > 0">
-      <v-data-table v-model="selected" :headers="headers"  :items="items" :sort-by="sortBy" :loading="loading" :hover="true" item-value="id" show-select>
+      <v-data-table v-model="selected" :headers="headers"  :items="items" :sort-by="sortBy" :loading="loading" :hover="true" item-value="id" show-select items-per-page="15" items-per-page-text="Einträge pro Seite" page-text="" show-current-page :items-per-page-options="itemsPerPage">
       <template v-slot:[`item.actions`]="{ item }">
         <v-btn icon="mdi-qrcode" class="bg-green mr-2" @click="getQRCode(item)" size="small" :disabled="selected.length > 0"></v-btn>
         <v-btn icon="mdi-lead-pencil" class="bg-primary mr-2" @click="openeditDialog(item)" size="small" :disabled="selected.length > 0"></v-btn>
@@ -157,6 +157,7 @@
   const items = ref([]);
   const employees = ref([]);
   const locations = ref([]);
+  const itemsPerPage = ref([{value: 15, title: '15'}, {value: 30, title: '30'},{value: 50, title: '50'}, {value: 100, title: '100'}, {value: -1, title: 'Alle Einträge'}]);
 
   const employee_number = ref('');
   const first_name = ref('');
@@ -247,8 +248,8 @@
         snackbar.value = true;
       })
       .catch((err) => {
-        console.error("Error getting QR Code", err);
-        errorSnackbarText.value = "Fehler beim generieren des QR-Codes!"
+        console.error("Error getting QR Codes", err);
+        errorSnackbarText.value = "Fehler beim generieren der QR-Codes!"
         errorSnackbar.value = true;
       });
   };
