@@ -185,7 +185,6 @@ class EmployeesService:
                                 firstname += " " + match.group(5)
                 lastname = match.group(6)
             else:
-                print("Zeile: ", row)
                 abort_with_err(
                     ErrMsg(
                         status_code=422,
