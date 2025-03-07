@@ -269,7 +269,7 @@ const finish = () => {
       console.log(response.data);
     })
     .catch((err) => {
-      console.log(err);
+      console.log(err); //TODO --> Display ErrorMessage for TimeExceeded
     });
 };
 
@@ -299,7 +299,7 @@ const updateOrder = (preOrderToEdit) => {
   //   });
 
   //temporal Workaround (with Delete -> Post)
-
+  //TODO --> Display ErrorMessage for TimeExceeded
   axios
     .delete(import.meta.env.VITE_API + `/api/pre-orders/${preOrderToEdit}`, {
       withCredentials: true,

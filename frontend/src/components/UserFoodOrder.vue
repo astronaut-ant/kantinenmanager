@@ -225,7 +225,7 @@ const filterOutOldOrders = () => {
   const actualDate = new Date();
   const DateString = actualDate.toISOString().split("T")[0];
   const actualHour = actualDate.getHours();
-  const after8 = actualHour > 7;
+  const after8 = actualHour >= 8;
   let filteredOrders = {};
   filteredOrders = orders.value.filter((order) => {
     if (after8) {

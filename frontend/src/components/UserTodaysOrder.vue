@@ -27,14 +27,17 @@
           >
           Heutige Bestellung
         </h2>
-        <p class="mb-2 text-blue-grey">
+        <h3 v-if="!dailyOrderExists" class="text-blue-grey">
+          Für das heutige Datum liegen keine Bestellungen vor!
+        </h3>
+        <p v-if="dailyOrderExists" class="mb-2 text-blue-grey">
           Datum:
           <span class="font-weight-bold">{{ dailyFoodObject.date }}</span>
         </p>
-        <p class="mb-2 text-blue-grey">
+        <p v-if="dailyOrderExists" class="mb-2 text-blue-grey">
           Standort: <span class="font-weight-bold">{{ locationName }}</span>
         </p>
-        <div class="mb-3 text-blue-grey">
+        <div v-if="dailyOrderExists" class="mb-3 text-blue-grey">
           <span>Menü: </span>
           <v-icon
             v-if="dailyFoodObject.main_dish == 'rot' || 'blau'"
@@ -47,8 +50,11 @@
             >mdi-circle</v-icon
           >
         </div>
-        <v-divider class="mb-3 text-blue-grey"></v-divider>
-        <p class="text-blue-grey">
+        <v-divider
+          v-if="dailyOrderExists"
+          class="mb-3 text-blue-grey"
+        ></v-divider>
+        <p v-if="dailyOrderExists" class="text-blue-grey">
           Status:
           <span
             class="font-weight-bold"
@@ -78,6 +84,7 @@ const close = () => {
   dialog.value = false;
 };
 const showDailyOrderReminder = ref(false);
+const dailyOrderExists = ref(false);
 const dailyFoodObject = ref({});
 const locationName = ref();
 
@@ -89,6 +96,7 @@ const getData = () => {
     })
     .then((response) => {
       dailyFoodObject.value = response.data;
+      dailyOrderExists.value = true;
       console.log("dailyFoodObject", dailyFoodObject.value);
       if (!dailyFoodObject.value.handed_out) {
         showDailyOrderReminder.value = true;
@@ -121,7 +129,6 @@ const getLocationName = () => {
 };
 
 getData();
-
 const polling = setInterval(getData, 10000);
 onUnmounted(() => clearInterval(polling));
 </script>
