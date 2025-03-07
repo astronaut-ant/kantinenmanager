@@ -448,9 +448,20 @@ def delete_employee(employee_id: UUID):
     }
 )
 def get_qr_code_for_all_employees_by_user_scope():
-    return EmployeesService.get_qr_code_for_all_employees_by_user_scope(
-        user_group=g.user_group, user_id=g.user_id
-    )
+    try:
+        qr_codes = EmployeesService.get_qr_code_for_all_employees_by_user_scope(
+            user_group=g.user_group, user_id=g.user_id
+        )
+    except NotFoundError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Mitarbeiter:innen nicht gefunden",
+                description="Es wurden keine Mitarbeiter:innen gefunden",
+                details=str(err),
+            )
+        )
+    return qr_codes
 
 
 @employees_routes.post("/api/employees/qr-codes-by-list")
