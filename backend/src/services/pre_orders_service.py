@@ -264,7 +264,7 @@ class PreOrdersService:
                 f"Es ist nach 8 Uhr. Bestellungen sind nicht mehr möglich."
             )
 
-        if user_id != new_order["person_id"]:
+        if user_id != new_order["person_id"] or user_id != old_pre_order.person_id:
             raise AccessDeniedError(f"Person'{new_order['person_id']}'")
 
         if new_order["nothing"] == True and (
@@ -272,6 +272,14 @@ class PreOrdersService:
         ):
             raise BadValueError(
                 "Wenn 'nichts' ausgewählt ist, dürfen keine Essensoptionen ausgewählt werden."
+            )
+        checkOrderExists = OrdersRepository.preorder_already_exists(
+            new_order["person_id"], new_order["date"]
+        )
+        if checkOrderExists != None:
+            raise AlreadyExistsError(
+                ressource=f"Bestellung für {new_order['person_id']} am {new_order['date']}",
+                details=". Für diese Person existiert an diesem Tag bereits die Bestellung {checkOrderExists.id}.",
             )
 
         old_pre_order.nothing = new_order["nothing"]

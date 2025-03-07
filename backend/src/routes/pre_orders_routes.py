@@ -465,6 +465,15 @@ def update_preorder_user(preorder_id: UUID):
                 details=str(err),
             )
         )
+    except AlreadyExistsError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=409,
+                title="Vorbestellung existiert bereits",
+                description="Eine Vorbestellung für diese Person an diesem Datum existiert bereits.",
+                details=str(err),
+            )
+        )
 
     return jsonify(order), 200
 
