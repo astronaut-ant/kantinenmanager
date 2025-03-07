@@ -14,7 +14,7 @@
         <p class="ml-4 mr-2">{{ selected.length }} ausgewählt</p>
         <v-spacer></v-spacer>
         <v-btn prepend-icon="mdi-qrcode" class="bg-green mr-2" @click="getQRCodeSelected" size="small">QR Codes generieren</v-btn>
-        <v-btn prepend-icon="mdi-trash-can-outline" class="bg-red mr-2" @click="" size="small">Ausgewählte Mitarbeiter löschen</v-btn>
+        <v-btn v-if="false" prepend-icon="mdi-trash-can-outline" class="bg-red mr-2" @click="" size="small">Ausgewählte Mitarbeiter löschen</v-btn>
       </v-toolbar>
 
       <v-toolbar v-else-if="selected.length == 0 && items.length > 0" color="white" flat dark density="compact" rounded="lg">
