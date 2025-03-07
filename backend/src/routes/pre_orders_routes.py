@@ -167,8 +167,8 @@ def get_pre_order(preorder_id: int):
         abort_with_err(
             ErrMsg(
                 status_code=404,
-                title="Vorestellung nicht gefunden",
-                description=f"Die gesuchte Vorestellung wurde nicht gefunden.",
+                title="Vorbestellung nicht gefunden",
+                description=f"Die gesuchte Vorbestellung wurde nicht gefunden.",
                 details=str(err),
             )
         )

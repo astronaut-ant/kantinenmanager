@@ -36,18 +36,24 @@ class PreOrdersService:
         """
         Get pre order by id
         """
-
         preorder = OrdersRepository.get_pre_order_by_id(id)
+        user = UsersRepository.get_user_by_id(user_id)
 
         if not preorder:
             raise NotFoundError(f"Vorbestellung mit ID {id}")
-        if (
-            user_group == UserGroup.kuechenpersonal
-            or user_group == UserGroup.gruppenleitung
-        ):
-            user = UsersRepository.get_user_by_id(user_id)
-            if preorder.location_id is not (user.location):
-                raise AccessDeniedError(f"den Standort {user.location}")
+        if preorder.person.type == "employee":
+            if user_group == UserGroup.kuechenpersonal:
+                if preorder.location_id is not (user.location):
+                    raise AccessDeniedError(f"den Standort {user.location}")
+            if user_group == UserGroup.gruppenleitung:
+                if preorder.person.group_id != user.leader_of_group.id:
+                    raise AccessDeniedError(f"die Gruppe {preorder.person.group_id}")
+
+        if preorder.person.type == "user":
+            if preorder.person.id != user_id:
+                raise AccessDeniedError(
+                    f"die Vorbestellung von Person {preorder.person.id}"
+                )
 
         return PreOrderFullSchema().dump(preorder)
 
@@ -74,7 +80,7 @@ class PreOrdersService:
                 group_id=group["id"],
             )
             group["orders"] = OrdersRepository.get_pre_orders(
-                OrdersFilters(group_id=group["id"])
+                OrdersFilters(group_id=group["id"]), request_user_id, request_user_group
             )
             return group
 
