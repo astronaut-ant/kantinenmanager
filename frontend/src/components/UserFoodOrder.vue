@@ -166,7 +166,7 @@ const getData = () => {
     .catch((err) => console.log(err));
 };
 
-//Backend Error --> old orders should not be existent!?
+//defensive programming: Backend Error --> old orders should not be existent!? use of function filterOutOldOrders() should be unnecessary
 const getOrders = () => {
   axios
     .get(
@@ -177,6 +177,7 @@ const getOrders = () => {
     )
     .then((response) => {
       orders.value = response.data;
+      filterOutOldOrders();
       preOrderCount.value = orders.value.length;
       console.log("preOrderCount: ", preOrderCount.value);
       orders.value.forEach((order) => {
@@ -219,6 +220,22 @@ const deleteOrder = (item) => {
     })
 
     .catch((err) => console.log(err));
+};
+const filterOutOldOrders = () => {
+  const actualDate = new Date();
+  const DateString = actualDate.toISOString().split("T")[0];
+  const actualHour = actualDate.getHours();
+  const after8 = actualHour > 7;
+  let filteredOrders = {};
+  filteredOrders = orders.value.filter((order) => {
+    if (after8) {
+      console.log("after 8");
+      return order.date > DateString;
+    }
+    console.log("before 8");
+    return order.date >= DateString;
+  });
+  orders.value = filteredOrders;
 };
 getData();
 </script>
