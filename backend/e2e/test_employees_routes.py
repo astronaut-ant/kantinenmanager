@@ -166,12 +166,12 @@ def describe_employees():
             client, user_gruppenleitung, group, other_group, location, db
         ):
             # Set up the original group with user_gruppenleitung as leader
-            group.user_id_group_leader = user_gruppenleitung.id
             other_group.location_id = location.id
-            other_group.user_id_replacement = user_gruppenleitung.id
+            other_group.user_id_replacement = group.user_id_group_leader
             db.session.add(user_gruppenleitung)
             db.session.add(location)
             db.session.add(group)
+            db.session.add(other_group)
 
             # Create employees for the first group
             group_employees = []
