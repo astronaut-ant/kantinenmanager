@@ -12,19 +12,6 @@ from src.utils.pdf_creator import PDFCreationUtils
 from .helper import *  # for fixtures # noqa: F403
 
 
-@pytest.fixture()
-def employee(group):
-    employee = Employee(
-        first_name="John",
-        last_name="Doe",
-        employee_number=12345,
-        group_id=group.id,
-    )
-    employee.id = uuid4()
-    employee.group = group
-    return employee
-
-
 def describe_get_employees():
     def it_returns_employees_by_user_scope(mocker, user_verwaltung, employee):
         mock_employees_by_user_scope = mocker.patch.object(
@@ -95,16 +82,17 @@ def describe_get_employee_by_id():
             employee.id, UserGroup.verwaltung, user_verwaltung.id
         )
 
-    def it_returns_none_if_employee_not_found(mocker, user_verwaltung):
+    def it_raises_not_found_error_if_employee_not_found(mocker, user_verwaltung):
         mocker.patch.object(
             EmployeesRepository, "get_employee_by_id_by_user_scope", return_value=None
         )
 
-        result = EmployeesService.get_employee_by_id(
-            uuid4(), UserGroup.verwaltung, user_verwaltung.id
-        )
+        with pytest.raises(NotFoundError) as exc_info:
+            EmployeesService.get_employee_by_id(
+                uuid4(), UserGroup.verwaltung, user_verwaltung.id
+            )
 
-        assert result is None
+        assert "Mitarbeiter:in mit ID" in str(exc_info.value)
 
 
 def describe_create_employee():

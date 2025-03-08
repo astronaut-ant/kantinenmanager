@@ -7,6 +7,7 @@ from src.models.location import Location
 from src import app as project_app
 from src.models.refresh_token_session import RefreshTokenSession
 from src.models.user import User, UserGroup
+from src.models.employee import Employee
 
 
 # * Fixtures bieten eine Möglichkeit, Code zu schreiben, der von mehreren Tests verwendet wird.
@@ -74,6 +75,19 @@ def user_kuechenpersonal():
     )
     user.id = uuid.uuid4()
     return user
+
+
+@pytest.fixture()
+def employee(group):
+    employee = Employee(
+        first_name="John",
+        last_name="Doe",
+        employee_number=12345,
+        group_id=group.id,
+    )
+    employee.id = uuid.uuid4()
+    employee.group = group
+    return employee
 
 
 @pytest.fixture()
