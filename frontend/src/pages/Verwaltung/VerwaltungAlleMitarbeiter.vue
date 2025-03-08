@@ -17,12 +17,10 @@
         <v-btn prepend-icon="mdi-trash-can-outline" class="bg-red mr-2" @click="opendeleteDialogSelected" size="small">Ausgewählte Mitarbeiter löschen</v-btn>
       </v-toolbar>
 
-      <v-toolbar v-else-if="selected.length == 0 && items.length > 0" color="white" flat dark density="compact" rounded="lg">
+      <v-toolbar v-else-if="selected.length == 0" color="white" flat dark density="compact" rounded="lg">
         <p class="text-h6">Anzahl aller jetzigen Mitarbeiter: {{ employees.length }}</p>
         <v-spacer></v-spacer>
         <v-btn prepend-icon="mdi-reload" @click="fetchData">Neuladen</v-btn>
-      </v-toolbar>
-      <v-toolbar v-else color="white" flat dark density="compact" rounded="lg">
       </v-toolbar>
     </transition>
     <div v-if="items.length > 0">
@@ -34,7 +32,7 @@
       </template>
       </v-data-table>
     </div>
-    <NoResult v-else-if="items.length == 0" />
+    <NoResult v-else-if="items.length == 0 && employees.length != 0" />
   </v-container>
   <v-dialog v-model="deleteDialog" persistent max-width="400">
     <v-card>
