@@ -117,6 +117,15 @@ def location(user_standortleitung):
     return location
 
 
+@pytest.fixture()
+def other_location():
+    location = Location(
+        location_name="Other Location", user_id_location_leader=uuid.uuid4()
+    )
+    location.id = uuid.uuid4()
+    return location
+
+
 def login(user: User, client):
     res = client.post(
         "/api/login",
@@ -146,6 +155,19 @@ def group(location, user_gruppenleitung):
         user_id_group_leader=user_gruppenleitung.id,
         user_id_replacement=None,
         group_number=123,
+    )
+    group.id = uuid.uuid4()
+    return group
+
+
+@pytest.fixture
+def other_group(other_location):
+    group = Group(
+        group_name="Other Group",
+        location_id=other_location.id,
+        user_id_group_leader=uuid.uuid4(),
+        user_id_replacement=None,
+        group_number=234,
     )
     group.id = uuid.uuid4()
     return group
