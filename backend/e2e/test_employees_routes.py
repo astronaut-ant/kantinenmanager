@@ -2,10 +2,8 @@
 
 import uuid
 from .helper import *  # for fixtures # noqa: F403
-from .helper import login, PASSWORD
-from src.models.user import UserGroup
+from .helper import login
 from src.models.employee import Employee
-from src.models.group import Group
 from io import BytesIO
 
 

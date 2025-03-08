@@ -217,17 +217,7 @@ def describe_delete_employee():
 
 
 def describe_bulk_create_employees():
-    # All tests in this section were removed because they require Flask request context:
-    # - it_creates_employees_from_utf8_csv
-    # - it_creates_employees_from_iso8859_csv
-    # - it_raises_error_for_missing_columns
-    # - it_raises_error_for_invalid_name_pattern
-    # - it_raises_error_for_name_too_long
-    # - it_raises_error_when_group_not_found
-    # - it_raises_error_when_employee_number_exists
-    #
     # These tests need to be run in an environment with Flask request context
-    # or need to be rewritten to not use abort_with_err
     pass
 
 
