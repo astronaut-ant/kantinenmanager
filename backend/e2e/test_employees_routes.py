@@ -133,11 +133,18 @@ def describe_employees():
             db.session.add_all(employees)
 
             # Create a different location, group, and employee
-            other_location = Location(location_name="Other Location")
+            other_location = Location(
+                location_name="Other Location", user_id_location_leader=uuid.uuid4()
+            )
             other_location.id = uuid.uuid4()
             db.session.add(other_location)
 
-            other_group = Group(group_name="Other Group", location_id=other_location.id)
+            other_group = Group(
+                group_name="Other Group",
+                location_id=other_location.id,
+                user_id_group_leader=uuid.uuid4(),
+                group_number=234,
+            )
             other_group.id = uuid.uuid4()
             db.session.add(other_group)
 
@@ -176,6 +183,8 @@ def describe_employees():
             other_group = Group(
                 group_name="Other Group",
                 location_id=location.id,
+                user_id_group_leader=uuid.uuid4(),
+                group_number=234,
             )
             other_group.id = uuid.uuid4()
             db.session.add(other_group)
@@ -201,6 +210,22 @@ def describe_employees():
             employee_ids = [emp["id"] for emp in res.json]
             assert str(other_employee.id) not in employee_ids
 
+        def it_returns_employees_for_kuechenpersonal_at_their_location(
+            client, user_kuechenpersonal, employees, group, location, db
+        ):
+            user_kuechenpersonal.location_id = location.id
+            db.session.add(user_kuechenpersonal)
+            db.session.add(location)
+            db.session.add(group)
+            db.session.add_all(employees)
+            db.session.commit()
+            login(user=user_kuechenpersonal, client=client)
+
+            res = client.get("/api/employees")
+
+            assert res.status_code == 200
+            assert len(res.json) == len(employees)
+
         def it_does_not_return_employees_from_different_location_for_kuechenpersonal(
             client, user_kuechenpersonal, employees, group, location, db
         ):
@@ -212,11 +237,18 @@ def describe_employees():
             db.session.add_all(employees)
 
             # Create a different location, group, and employee
-            other_location = Location(location_name="Other Location")
+            other_location = Location(
+                location_name="Other Location", user_id_location_leader=uuid.uuid4()
+            )
             other_location.id = uuid.uuid4()
             db.session.add(other_location)
 
-            other_group = Group(group_name="Other Group", location_id=other_location.id)
+            other_group = Group(
+                group_name="Other Group",
+                location_id=other_location.id,
+                user_id_group_leader=uuid.uuid4(),
+                group_number=234,
+            )
             other_group.id = uuid.uuid4()
             db.session.add(other_group)
 
@@ -238,22 +270,6 @@ def describe_employees():
             assert len(res.json) == len(employees)  # Only employees from their location
             employee_ids = [emp["id"] for emp in res.json]
             assert str(other_employee.id) not in employee_ids
-
-        def it_returns_employees_for_kuechenpersonal_at_their_location(
-            client, user_kuechenpersonal, employees, group, location, db
-        ):
-            user_kuechenpersonal.location_id = location.id
-            db.session.add(user_kuechenpersonal)
-            db.session.add(location)
-            db.session.add(group)
-            db.session.add_all(employees)
-            db.session.commit()
-            login(user=user_kuechenpersonal, client=client)
-
-            res = client.get("/api/employees")
-
-            assert res.status_code == 200
-            assert len(res.json) == len(employees)
 
         def it_blocks_unauthenticated_users(client):
             res = client.get("/api/employees")
@@ -366,7 +382,12 @@ def describe_employees():
             db.session.add_all(employees)
 
             # Create another group and employee
-            other_group = Group(group_name="Other Group", location_id=location.id)
+            other_group = Group(
+                group_name="Other Group",
+                location_id=location.id,
+                user_id_group_leader=uuid.uuid4(),
+                group_number=234,
+            )
             other_group.id = uuid.uuid4()
             db.session.add(other_group)
 
@@ -414,11 +435,18 @@ def describe_employees():
             db.session.add_all(employees)
 
             # Create another location, group and employee
-            other_location = Location(location_name="Other Location")
+            other_location = Location(
+                location_name="Other Location", user_id_location_leader=uuid.uuid4()
+            )
             other_location.id = uuid.uuid4()
             db.session.add(other_location)
 
-            other_group = Group(group_name="Other Group", location_id=other_location.id)
+            other_group = Group(
+                group_name="Other Group",
+                location_id=other_location.id,
+                user_id_group_leader=uuid.uuid4(),
+                group_number=234,
+            )
             other_group.id = uuid.uuid4()
             db.session.add(other_group)
 

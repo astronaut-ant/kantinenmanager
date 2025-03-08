@@ -369,7 +369,7 @@ def update_employee(employee_id: UUID):
                 details=str(err),
             )
         )
-    except AlreadyExistsError:
+    except AlreadyExistsError as err:
         abort_with_err(
             ErrMsg(
                 status_code=409,
@@ -482,7 +482,17 @@ def delete_list_of_employees():
             )
         )
 
-    employee_ids = [UUID(id_str) for id_str in data["employee_ids"]]
+    # Fix: Convert string UUID to UUID objects properly
+    try:
+        employee_ids = [UUID(id_str) for id_str in data["employee_ids"]]
+    except (ValueError, TypeError):
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Ungültige UUID",
+                description="Eine oder mehrere IDs sind keine gültigen UUIDs",
+            )
+        )
 
     for employee_id in employee_ids:
         try:
@@ -494,7 +504,16 @@ def delete_list_of_employees():
                 ErrMsg(
                     status_code=404,
                     title="Mitarbeiter:in nicht gefunden",
-                    description="Mitarbeiter:inn wurde",
+                    description="Ein oder mehrere Mitarbeiter wurden nicht gefunden",
+                    details=str(err),
+                )
+            )
+        except AccessDeniedError as err:
+            abort_with_err(
+                ErrMsg(
+                    status_code=403,
+                    title="Zugriff verweigert",
+                    description="Sie haben keine Berechtigung für diese Operation",
                     details=str(err),
                 )
             )

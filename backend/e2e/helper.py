@@ -144,6 +144,8 @@ def group(location, user_gruppenleitung):
         group_name="Test Group",
         location_id=location.id,
         user_id_group_leader=user_gruppenleitung.id,
+        user_id_replacement=None,
+        group_number=123,
     )
     group.id = uuid.uuid4()
     return group

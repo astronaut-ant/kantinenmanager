@@ -3,7 +3,7 @@
 from sqlalchemy import select, func, or_, and_
 from src.database import db
 from uuid import UUID
-from src.models.user import UserGroup, User
+from src.models.user import UserGroup
 from src.models.employee import Employee
 from src.models.group import Group
 from src.models.preorder import PreOrder
