@@ -74,7 +74,9 @@ class UsersService:
         if UsersRepository.get_hidden_user_by_username(username):
             raise AlreadyExistsError(ressource=f"Nutzer:in {username} (gelöscht)")
 
-        if location_id and LocationsRepository.get_location_by_id(location_id) is None:
+        if location_id and (
+            LocationsRepository.get_location_by_id(location_id) is None
+        ):
             raise NotFoundError(f"Standort mit ID {location_id}")
 
         if password is None:
