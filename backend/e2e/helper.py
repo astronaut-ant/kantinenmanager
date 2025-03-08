@@ -5,6 +5,8 @@ from src import app as project_app
 from src.database import create_initial_admin, db as project_db
 from src.models.user import User, UserGroup
 from src.utils.db_utils import insert_mock_data
+from src.models.group import Group
+from src.models.employee import Employee
 
 
 PASSWORD = "password"
@@ -134,3 +136,29 @@ def get_auth_token(headers):
 
 def get_refresh_token(headers):
     return join_headers(headers).split("refresh_token=")[1].split(";")[0]
+
+
+@pytest.fixture
+def group(location, user_gruppenleitung):
+    group = Group(
+        group_name="Test Group",
+        location_id=location.id,
+        user_id_group_leader=user_gruppenleitung.id,
+    )
+    group.id = uuid.uuid4()
+    return group
+
+
+@pytest.fixture
+def employees(group):
+    employees = []
+    for x in range(5):
+        employee = Employee(
+            first_name=f"FirstName{x}",
+            last_name=f"LastName{x}",
+            employee_number=1000 + x,
+            group_id=group.id,
+        )
+        employee.id = uuid.uuid4()
+        employees.append(employee)
+    return employees
