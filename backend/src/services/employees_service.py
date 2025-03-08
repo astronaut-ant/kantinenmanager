@@ -48,9 +48,12 @@ class EmployeesService:
         :return: The employee with the given ID or None if no employee was found
         """
 
-        return EmployeesRepository.get_employee_by_id_by_user_scope(
+        employee = EmployeesRepository.get_employee_by_id_by_user_scope(
             employee_id, user_group, user_id
         )
+        if not employee:
+            raise NotFoundError(f"Mitarbeiter:in mit ID {employee_id}")
+        return employee
 
     @staticmethod
     def create_employee(
@@ -231,7 +234,7 @@ class EmployeesService:
         EmployeesRepository.bulk_create_employees(employees)
 
         return {
-            "message": "Mitarbeiter erfolgreich erstellt",
+            "message": "Mitarbeiter:innen erfolgreich erstellt",
             "count": len(employees),
         }
 

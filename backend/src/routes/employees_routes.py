@@ -128,7 +128,7 @@ def get_employees():
                 "description": "Returns the employee with the given ID",
                 "schema": EmployeeFullNestedSchema,
             },
-            404: {"description": "User not found"},
+            404: {"description": "Employee not found"},
         },
     }
 )
@@ -140,16 +140,17 @@ def get_employee_by_id(employee_id: UUID):
     Authorization: Verwaltung, Standortleitung, Gruppenleitung, Kuechenpersonal
     ---
     """
-
-    user_group = g.user_group
-    user_id = g.user_id
-    employee = EmployeesService.get_employee_by_id(employee_id, user_group, user_id)
-    if employee is None:
+    try:
+        employee = EmployeesService.get_employee_by_id(
+            employee_id, g.user_group, g.user_id
+        )
+    except NotFoundError as err:
         abort_with_err(
             ErrMsg(
                 status_code=404,
                 title="Mitarbeiter nicht gefunden",
                 description="Es wurde kein Mitarbeiter mit dieser ID gefunden",
+                details=str(err),
             )
         )
 
@@ -345,33 +346,36 @@ def update_employee(employee_id: UUID):
 
     try:
         body = EmployeeChangeSchema().load(request.json)
+        employee = EmployeesService.get_employee_by_id(
+            employee_id, g.user_group, g.user_id
+        )
+        EmployeesService.update_employee(employee, **body)
+
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
                 title="Validierungsfehler",
                 description="Format der Daten im Request-Body nicht valide",
-                details=err.messages,
+                details=str(err),
             )
         )
-    employee = EmployeesService.get_employee_by_id(employee_id, g.user_group, g.user_id)
-    if employee is None:
+    except NotFoundError as err:
         abort_with_err(
             ErrMsg(
                 status_code=404,
                 title="Mitarbeiter:in nicht gefunden",
-                description="Es wurde kein:e Mitarbeiter:in mit dieser ID gefunden",
+                description="Es wurde kein Mitarbeiter:in mit dieser ID gefunden",
+                details=str(err),
             )
         )
-
-    try:
-        EmployeesService.update_employee(employee, **body)
     except AlreadyExistsError:
         abort_with_err(
             ErrMsg(
                 status_code=409,
                 title="Mitarbeiter:in-Nummer bereits vergeben",
                 description="Diese Mitarbeiter:in-Nummer ist bereits vergeben",
+                details=str(err),
             )
         )
 
@@ -411,18 +415,92 @@ def delete_employee(employee_id: UUID):
     Authorization: Verwaltung
     ---
     """
-    employee = EmployeesService.get_employee_by_id(employee_id, g.user_group, g.user_id)
-    if employee is None:
+    try:
+        employee = EmployeesService.get_employee_by_id(
+            employee_id, g.user_group, g.user_id
+        )
+    except NotFoundError as err:
         abort_with_err(
             ErrMsg(
                 status_code=404,
                 title="Mitarbeiter:in nicht gefunden",
-                description="Es wurde kein:e Mitarbeiter:in mit dieser ID gefunden",
+                description="Mitarbeiter:inn wurde",
+                details=str(err),
             )
         )
 
     EmployeesService.delete_employee(employee)
     return jsonify({"message": "Mitarbeiter:in erfolgreich gelöscht"})
+
+
+@employees_routes.delete("/api/employees/")
+@login_required(groups=[UserGroup.verwaltung])
+@swag_from(
+    {
+        "tags": ["employees"],
+        "parameters": [
+            {
+                "in": "body",
+                "name": "employee_ids",
+                "required": True,
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "employee_ids": {
+                            "type": "array",
+                            "items": {"type": "string", "format": "uuid"},
+                            "description": "List of employee IDs to generate QR codes for",
+                        }
+                    },
+                },
+            }
+        ],
+        "responses": {
+            200: {
+                "description": "Successfully deleted employees",
+                "schema": {
+                    "type": "object",
+                    "properties": {"message": {"type": "string"}},
+                },
+            },
+            404: {"description": "Employee not found"},
+        },
+    }
+)
+def delete_list_of_employees():
+    data = request.get_json()
+    if (
+        not data
+        or "employee_ids" not in data
+        or not isinstance(data["employee_ids"], list)
+    ):
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Ungültiges Format",
+                description="Die Anfrage muss eine Liste von UUIDs enthalten",
+            )
+        )
+
+    employee_ids = [UUID(id_str) for id_str in data["employee_ids"]]
+
+    for employee_id in employee_ids:
+        try:
+            employee = EmployeesService.get_employee_by_id(
+                employee_id, g.user_group, g.user_id
+            )
+        except NotFoundError as err:
+            abort_with_err(
+                ErrMsg(
+                    status_code=404,
+                    title="Mitarbeiter:in nicht gefunden",
+                    description="Mitarbeiter:inn wurde",
+                    details=str(err),
+                )
+            )
+        EmployeesService.delete_employee(employee)
+
+    return jsonify({"message": "Mitarbeiter:innen erfolgreich gelöscht"})
 
 
 @employees_routes.get("/api/employees/qr-codes")
