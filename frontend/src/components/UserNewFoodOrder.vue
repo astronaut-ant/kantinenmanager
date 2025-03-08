@@ -26,7 +26,6 @@
             <v-card-title class="ps-0 mt-n3 mb-2 ms-3"
               >Gewünschtes Datum</v-card-title
             >
-
             <v-container>
               <v-row justify="center">
                 <v-date-picker
@@ -540,5 +539,3 @@ const restore = (preOrderId) => {
   background: #1867c0 !important;
 }
 </style>
-
-<!-- Dummy -->
