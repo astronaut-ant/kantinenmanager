@@ -8,7 +8,7 @@ from src.models.employee import Employee
 from src.repositories.employees_repository import EmployeesRepository
 from src.utils.error import ErrMsg, abort_with_err
 from typing import Optional, List
-from src.utils.exceptions import AlreadyExistsError, NotFoundError
+from src.utils.exceptions import AlreadyExistsError, NotFoundError, BadValueError
 from src.utils.pdf_creator import PDFCreationUtils
 
 
@@ -164,13 +164,7 @@ class EmployeesService:
                 or not row.get("Gruppen-Name 1")
                 or not row.get("Gruppen-Name 2")
             ):
-                abort_with_err(
-                    ErrMsg(
-                        status_code=400,
-                        title="Falsche Daten oder unlesbares Format",
-                        description="Die Daten in der CSV entsprechen nicht der normalen Vorlage",
-                    )
-                )
+                raise BadValueError("Ein oder mehrere Felder fehlen")
 
             match = re.match(
                 r"([A-ZÄÖÜ][a-zäöüß0-9]+(?:[-][A-ZÄÖÜ][a-zäöüß0-9]+)*)([A-ZÄÖÜ][a-zäöüß0-9]+(?:[-][A-ZÄÖÜ][a-zäöüß0-9]+)*)?([A-ZÄÖÜ][a-zäöüß0-9]+(?:[-][A-ZÄÖÜ][a-zäöüß0-9]+)*)?([A-ZÄÖÜ][a-zäöüß0-9]+(?:[-][A-ZÄÖÜ][a-zäöüß0-9]+)*)?([A-ZÄÖÜ][a-zäöüß0-9]+(?:[-][A-ZÄÖÜ][a-zäöüß0-9]+)*)?((?:[A-Z][a-zäöüß0-9]+)(?:[-][A-Za-z0-9äöüß]+)*)",
@@ -188,12 +182,8 @@ class EmployeesService:
                                 firstname += " " + match.group(5)
                 lastname = match.group(6)
             else:
-                abort_with_err(
-                    ErrMsg(
-                        status_code=422,
-                        title="Vorname und Nachname nicht trennbar",
-                        description="Es konnte kein eindeutiger Vor- und Nachname erkannt werden",
-                    )
+                raise BadValueError(
+                    "Format unpassend. Es konnte kein eindeutiger Vor- und Nachname erkannt werden."
                 )
 
             if len(firstname) < 64 and len(lastname) < 64:
@@ -204,7 +194,7 @@ class EmployeesService:
                     )
                 ).group(1)
                 group = EmployeesRepository.get_group_by_name_and_location(
-                    group_name, row["Bereich"]
+                    group_name=group_name, location_name=row["Bereich"]
                 )
                 if group is None:
                     raise NotFoundError(f"Gruppe {row['Gruppen-Name 1']}")
@@ -222,12 +212,8 @@ class EmployeesService:
                 )
                 employees.append(employee)
             else:
-                abort_with_err(
-                    ErrMsg(
-                        status_code=422,
-                        title="Zu langer Name",
-                        description="Sowohl Vorname als auch Nachname dürfen nicht länger als 64 Zeichen sein",
-                    )
+                raise BadValueError(
+                    "Vorname und Nachname dürfen jeweils nicht länger als 64 Zeichen sein."
                 )
 
         EmployeesRepository.bulk_create_employees(employees)

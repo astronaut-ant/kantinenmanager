@@ -543,7 +543,7 @@ def describe_employees():
                 "Kunden-Nr.,Kürzel,Bereich,Gruppe-Nr.,Gruppen-Name 1,Gruppen-Name 2\n"
             )
             csv_content += (
-                f"9001,Mustermann,{location.location_name},1,{group.group_name},Test"
+                f"9001,MaxMustermann,{location.location_name},1,{group.group_name},Test"
             )
 
             res = client.post(
@@ -753,7 +753,7 @@ def describe_employees():
             db.session.commit()
             login(user=user_verwaltung, client=client)
 
-            employee_ids = [str(employees[0].id), str(employees[1].id)]
+            employee_ids = [employees[0].id, employees[1].id]
             res = client.delete("/api/employees/", json={"employee_ids": employee_ids})
 
             assert res.status_code == 200

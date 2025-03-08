@@ -186,7 +186,7 @@ def get_employee_by_id(employee_id: UUID):
         },
     }
 )
-def create_user():
+def create_employee():
     """Create a new employee
     Create a new employee
     ---
@@ -194,6 +194,7 @@ def create_user():
 
     try:
         body = EmployeeChangeSchema().load(request.json)
+        id = EmployeesService.create_employee(**body)
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
@@ -203,15 +204,21 @@ def create_user():
                 details=err.messages,
             )
         )
-
-    try:
-        id = EmployeesService.create_employee(**body)
     except AlreadyExistsError:
         abort_with_err(
             ErrMsg(
                 status_code=409,
                 title="Kunden-Nr. bereits vergeben",
                 description="Die Kunden-Nr. ist bereits vergeben",
+            )
+        )
+    except NotFoundError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Gruppe nicht gefunden",
+                description="Die Gruppe existiert nicht",
+                details=str(err),
             )
         )
 
