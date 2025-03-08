@@ -14,8 +14,7 @@
     <div class="d-flex justify-center">
       <v-stepper
         v-model="stepperValue"
-        prev-text="Zurück"
-        class="test"
+        class="bgOverride"
         :width="400"
         color="primary"
         elevation="24"
@@ -23,16 +22,19 @@
         :items="['Datum', 'Standort', 'Menü']"
       >
         <template v-slot:item.1>
-          <v-card class="test" color="#ECEFF1" flat>
-            <v-card-title class="ps-0 ms-3">Gewünschtes Datum</v-card-title>
+          <v-card class="bgOverride" color="#ECEFF1" flat>
+            <v-card-title class="ps-0 mt-n3 mb-2 ms-3"
+              >Gewünschtes Datum</v-card-title
+            >
 
             <v-container>
               <v-row justify="center">
                 <v-date-picker
+                  v-if="preOrderDatesAvailable"
                   @update:model-value="step1Valid = false"
                   v-model="dateSelection"
                   elevation="2"
-                  class="test"
+                  class="bgOverride"
                   height="350"
                   color="primary"
                   :first-day-of-week="1"
@@ -40,6 +42,14 @@
                   :hide-header="true"
                 >
                 </v-date-picker>
+                <div v-if="!preOrderDatesAvailable" class="px-2">
+                  <CustomAlert
+                    class="mt-n2"
+                    text="Keine weiteren Vorbestellungen möglich!"
+                    color="red"
+                    icon="$error"
+                  />
+                </div>
               </v-row>
             </v-container>
           </v-card>
@@ -47,7 +57,9 @@
 
         <template v-slot:item.2>
           <v-card color="#ECEFF1" class="text-blue-grey" flat>
-            <v-card-title class="ps-0">Gewünschter Standort</v-card-title>
+            <v-card-title class="ps-0 mt-n3 mb-2"
+              >Gewünschter Standort</v-card-title
+            >
             <v-select
               @update:model-value="step2Valid = false"
               v-model="locationSelection"
@@ -71,7 +83,9 @@
 
         <template v-slot:item.3>
           <v-card class="text-blue-grey" color="#ECEFF1" flat>
-            <v-card-title class="ps-0">Gewünschtes Menü</v-card-title>
+            <v-card-title class="ps-0 mt-n3 mb-2"
+              >Gewünschtes Menü</v-card-title
+            >
 
             <div class="d-flex">
               <v-select
@@ -89,7 +103,7 @@
               >
                 <template v-slot:selection="{ item }">
                   <v-chip
-                    class="ms-2"
+                    class="ms-0 me-2 mb-n2 mt-n2"
                     variant="elevated"
                     :color="decideColor(item.value)"
                   >
@@ -106,15 +120,11 @@
                 <template v-slot:item="{ props, item }">
                   <v-divider v-if="item.value === 3"></v-divider>
                   <v-list-item class="h-75" v-bind="props" title="">
-                    <div class="d-flex justify-space-between">
-                      <v-checkbox-btn
-                        :model-value="foodChoice.includes(item.value)"
-                        class="text-blue-grey"
-                        true-icon="mdi-circle"
-                        false-icon="mdi-circle"
-                        :color="decideColor(item.value)"
-                        :label="item.title"
-                      ></v-checkbox-btn>
+                    <div class="d-flex">
+                      <v-icon :color="decideColor(item.value)"
+                        >mdi-circle</v-icon
+                      >
+                      <span class="text-blue-grey ms-4">{{ item.title }}</span>
                     </div>
                   </v-list-item>
                 </template>
@@ -123,9 +133,20 @@
           </v-card>
         </template>
 
+        <template v-slot:prev>
+          <v-btn
+            v-if="stepperValue == 1"
+            :disabled="false"
+            @click="dialog = false"
+            >Zurück</v-btn
+          >
+          <v-btn v-if="stepperValue > 1" @click="decrementStep">Zurück</v-btn>
+        </template>
+
         <template v-slot:next>
           <v-btn
             @click="incrementStep"
+            class="me-3"
             :disabled="step1Valid"
             v-if="stepperValue === 1"
             variant="tonal"
@@ -159,6 +180,8 @@
     </div>
     <ConfirmUserOrder
       :show-confirm="showConfirmation"
+      :hasError="hasError"
+      :errorText="errorText"
       @close="(showConfirmation = false), (dialog = false)"
     />
   </v-dialog>
@@ -168,6 +191,7 @@
 import axios from "axios";
 import ConfirmUserOrder from "./ConfirmUserOrder.vue";
 import { useTemplateRef } from "vue";
+import CustomAlert from "./CustomAlert.vue";
 
 const stepperValue = ref();
 const dateSelection = ref();
@@ -183,6 +207,9 @@ const isOpen = ref(false);
 const showConfirmation = ref(false);
 const inEditMode = ref(false);
 const preOrderToEdit = ref();
+const hasError = ref(false);
+const errorText = ref("");
+const preOrderDatesAvailable = ref(true);
 
 const changeOpenState = () => {
   isOpen.value = !isOpen.value;
@@ -242,6 +269,9 @@ locationItems.value = props.locationItems;
 const incrementStep = () => {
   stepperValue.value += 1;
 };
+const decrementStep = () => {
+  stepperValue.value -= 1;
+};
 
 const decideColor = (itemValue) => {
   if (itemValue === 1) {
@@ -264,12 +294,16 @@ const finish = () => {
       withCredentials: true,
     })
     .then((response) => {
+      hasError.value = false;
       showConfirmation.value = true;
       emit("ordered");
       console.log(response.data);
     })
     .catch((err) => {
-      console.log(err); //TODO --> Display ErrorMessage for TimeExceeded
+      hasError.value = true;
+      errorText.value = err.response.data.description;
+      showConfirmation.value = true;
+      console.log(err);
     });
 };
 
@@ -280,27 +314,30 @@ const updateOrder = (preOrderToEdit) => {
   preOrderObject.person_id = props.personId;
   console.log("Test2", preOrderObject);
 
-  //actual BackendError
-  //TODO --> Display ErrorMessage for TimeExceeded
-  // axios
-  //   .put(
-  //     import.meta.env.VITE_API + `/api/pre-orders/${preOrderToEdit}`,
-  //     preOrderObject,
-  //     {
-  //       withCredentials: true,
-  //     }
-  //   )
-  //   .then((response) => {
-  //     showConfirmation.value = true;
-  //     emit("ordered");
-  //     console.log("Test3", response.data);
-  //   })
-  //   .catch((err) => {
-  //     console.log(err);
-  //   });
+  //actual BackendError --> locations should be variable
+  //   axios
+  //     .put(
+  //       import.meta.env.VITE_API + `/api/pre-orders/${preOrderToEdit}`,
+  //       preOrderObject,
+  //       {
+  //         withCredentials: true,
+  //       }
+  //     )
+  //     .then((response) => {
+  //       hasError.value = false;
+  //       showConfirmation.value = true;
+  //       emit("ordered");
+  //       console.log(response.data);
+  //     })
+  //     .catch((err) => {
+  //       hasError.value = true;
+  //       errorText.value = err.response.data.description;
+  //       showConfirmation.value = true;
+  //       console.log(err);
+  //     });
+  // };
 
   //temporal Workaround (with Delete -> Post)
-  //TODO --> Display ErrorMessage for TimeExceeded
   axios
     .delete(import.meta.env.VITE_API + `/api/pre-orders/${preOrderToEdit}`, {
       withCredentials: true,
@@ -393,6 +430,12 @@ const calcAllowedDates = () => {
         return !blockedDates.includes(date);
       });
       selectableDates.value = filteredDates;
+      if (filteredDates.length === 0) {
+        preOrderDatesAvailable.value = false;
+      } else {
+        preOrderDatesAvailable.value = true;
+      }
+      console.log("selectable", selectableDates.value);
     })
 
     .catch((err) => console.log(err));
@@ -436,6 +479,7 @@ const calcRestoredAllowedDates = (date) => {
       selectableDates.value.push(date);
       console.log("selectable Date", selectableDates.value);
       dateSelection.value = new Date(date);
+      preOrderDatesAvailable.value = true;
     })
 
     .catch((err) => console.log(err));
@@ -486,7 +530,7 @@ const restore = (preOrderId) => {
 };
 </script>
 <style scoped lang="scss">
-.test {
+.bgOverride {
   color: #607d8b !important;
 }
 </style>

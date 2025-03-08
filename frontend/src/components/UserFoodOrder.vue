@@ -1,5 +1,5 @@
 <template>
-  <v-dialog color="" v-model="dialog" max-width="800">
+  <v-dialog v-model="dialog" max-width="800">
     <template v-slot:activator="{ props: activatorProps }">
       <div class="text-start">
         <v-btn
@@ -14,9 +14,9 @@
       </div>
     </template>
 
-    <v-card max-height="800" class="mx-auto px-4" color="blue-grey-lighten-5">
+    <v-card class="mx-auto px-4" color="blue-grey-lighten-5">
       <v-card-text>
-        <h2 class="ms-n1 mt-4 mb-6 text-blue-grey font-weight-bold">
+        <h2 class="ms-n1 mt-4 mb-4 text-blue-grey font-weight-bold">
           <v-icon class="me-4 text-blue-grey">
             mdi-calendar-edit-outline</v-icon
           >
