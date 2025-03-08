@@ -14,15 +14,13 @@
         <p class="ml-4 mr-2">{{ selected.length }} ausgewählt</p>
         <v-spacer></v-spacer>
         <v-btn prepend-icon="mdi-qrcode" class="bg-green mr-2" @click="getQRCodeSelected" size="small">QR Codes generieren</v-btn>
-        <v-btn v-if="false" prepend-icon="mdi-trash-can-outline" class="bg-red mr-2" @click="" size="small">Ausgewählte Mitarbeiter löschen</v-btn>
+        <v-btn prepend-icon="mdi-trash-can-outline" class="bg-red mr-2" @click="opendeleteDialogSelected" size="small">Ausgewählte Mitarbeiter löschen</v-btn>
       </v-toolbar>
 
-      <v-toolbar v-else-if="selected.length == 0 && items.length > 0" color="white" flat dark density="compact" rounded="lg">
+      <v-toolbar v-else-if="selected.length == 0" color="white" flat dark density="compact" rounded="lg">
         <p class="text-h6">Anzahl aller jetzigen Mitarbeiter: {{ employees.length }}</p>
         <v-spacer></v-spacer>
         <v-btn prepend-icon="mdi-reload" @click="fetchData">Neuladen</v-btn>
-      </v-toolbar>
-      <v-toolbar v-else color="white" flat dark density="compact" rounded="lg">
       </v-toolbar>
     </transition>
     <div v-if="items.length > 0">
@@ -34,7 +32,7 @@
       </template>
       </v-data-table>
     </div>
-    <NoResult v-else-if="items.length == 0" />
+    <NoResult v-else-if="items.length == 0 && employees.length != 0" />
   </v-container>
   <v-dialog v-model="deleteDialog" persistent max-width="400">
     <v-card>
@@ -49,6 +47,24 @@
       <v-card-actions>
         <v-btn text @click="closedeleteDialog">Abbrechen</v-btn>
         <v-btn color="red" variant="elevated" @click="confirmDelete">Löschen</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+  <v-dialog v-model="deleteDialogSelected" persistent max-width="500">
+    <v-card>
+      <v-card-text>
+        <div class="d-flex justify-center text-red mb-7">
+          <p class="text-h5 font-weight-black" >Ausgewählte Mitarbeiter löschen</p>
+        </div>
+        <div class="text-medium-emphasis">
+          <p class="mb-2"> Sind Sie sicher, dass Sie folgende Mitarbeiter löschen möchten?</p>
+          <p />
+          <li v-for="employee in employeesToDelete" :key="employee.id"><strong> {{ employee.first_name }} {{ employee.last_name }} </strong> </li>
+        </div>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn text @click="closedeleteDialogSelected">Abbrechen</v-btn>
+        <v-btn color="red" variant="elevated" @click="confirmDeleteSelected">Löschen</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -147,9 +163,11 @@
   const loading = ref(true);
   const deleteDialog = ref(false);
   const editDialog = ref(false);
+  const deleteDialogSelected = ref(false);
   const employeeToDelete = ref("");
   const employeeToDeleteID = ref("");
   const employeeToEditID = ref("");
+  const employeesToDelete = ref([]);
   const snackbar = ref(false);
   const snackbarText = ref("");
   const errorSnackbar = ref(false);
@@ -179,6 +197,17 @@
     deleteDialog.value = false;
   };
 
+  const opendeleteDialogSelected = () => {
+    employeesToDelete.value = employees.value
+    .filter(emp => selected.value.includes(emp.id))
+    .map(emp => ({ id: emp.id, first_name: emp.first_name, last_name: emp.last_name }));
+    deleteDialogSelected.value = true;
+  };
+
+  const closedeleteDialogSelected = () => {
+    deleteDialogSelected.value = false;
+  };
+
   const openeditDialog = (item) => {
     fetchGroups();
     employeeToEditID.value = item.id;
@@ -199,12 +228,11 @@
     axios
       .delete(`${import.meta.env.VITE_API}/api/employees/${employeeToDeleteID.value}`, { withCredentials: true })
       .then(() => {
-        items.value = items.value.filter((item) => item.id !== employeeToDeleteID.value);
-
+        deleteDialog.value = false;
         snackbar.value = false;
         snackbarText.value = `${employeeToDelete.value} wurde erfolgreich gelöscht!`;
         snackbar.value = true;
-        deleteDialog.value = false;
+        fetchData();
       })
       .catch((err) => {
         console.error(err);
@@ -213,16 +241,28 @@
       })
   };
 
+  const confirmDeleteSelected = () => {
+    axios
+      .delete(`${import.meta.env.VITE_API}/api/employees/`, { data: { employee_ids: selected.value }, withCredentials: true })
+      .then(() => {
+        deleteDialogSelected.value = false;
+        snackbar.value = false;
+        snackbarText.value = "Die ausgewählten Mitarbeiter wurden erfolgreich gelöscht!";
+        snackbar.value = true;
+        selected.value = [];
+        fetchData();
+      })
+      .catch((err) => {
+        console.error(err);
+        errorSnackbarText.value = "Fehler beim löschen der ausgewählten Mitarbeiter!";
+        errorSnackbar.value = true;
+      });
+  }
+
   const getQRCodeSelected = () => {
     axios
       .post(`${import.meta.env.VITE_API}/api/employees/qr-codes-by-list`, 
-      {
-        employee_ids: selected.value
-      },
-      {
-        responseType: "blob",
-        withCredentials: true,
-      })
+      { employee_ids: selected.value }, { responseType: "blob", withCredentials: true })
       .then((response) => {
         const blob = new Blob([response.data], { type: response.headers["content-type"] });
         const url = window.URL.createObjectURL(blob);
