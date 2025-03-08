@@ -167,6 +167,7 @@ def describe_employees():
         ):
             # Set up the original group with user_gruppenleitung as leader
             group.user_id_group_leader = user_gruppenleitung.id
+            other_group.location_id = location.id
             other_group.user_id_replacement = user_gruppenleitung.id
             db.session.add(user_gruppenleitung)
             db.session.add(location)
