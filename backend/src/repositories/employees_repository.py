@@ -136,12 +136,26 @@ class EmployeesRepository:
 
         :return: The employee with the given ID or None if no employee was found
         """
-        if (
-            user_group == UserGroup.verwaltung
-            or user_group == UserGroup.kuechenpersonal
-        ):
+        if user_group == UserGroup.verwaltung:
             return db.session.scalars(
                 select(Employee).where(
+                    and_(
+                        Employee.id == employee_id,
+                        Employee.hidden == False,
+                    )
+                )
+            ).first()
+
+        elif user_group == UserGroup.kuechenpersonal:
+            user = UsersRepository.get_user_by_id(user_id)
+            if not user:
+                return None
+            return db.session.scalars(
+                select(Employee)
+                .join(Group)
+                .join(Location)
+                .where(Location.id == user.location_id)
+                .where(
                     and_(
                         Employee.id == employee_id,
                         Employee.hidden == False,

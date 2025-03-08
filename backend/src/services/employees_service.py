@@ -40,7 +40,7 @@ class EmployeesService:
     @staticmethod
     def get_employee_by_id(
         employee_id: UUID, user_group: UserGroup, user_id: UUID
-    ) -> Employee | None:
+    ) -> Employee:
         """Retrieve an employee by their ID
 
         :param employee_id: The ID of the employee to retrieve
