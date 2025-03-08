@@ -164,7 +164,7 @@ class EmployeesService:
                 or not row.get("Gruppen-Name 1")
                 or not row.get("Gruppen-Name 2")
             ):
-                raise BadValueError("Ein oder mehrere Felder fehlen")
+                raise BadValueError("Ein oder mehrere Felder in der CSV-Datei fehlen")
 
             match = re.match(
                 r"([A-ZÄÖÜ][a-zäöüß0-9]+(?:[-][A-ZÄÖÜ][a-zäöüß0-9]+)*)([A-ZÄÖÜ][a-zäöüß0-9]+(?:[-][A-ZÄÖÜ][a-zäöüß0-9]+)*)?([A-ZÄÖÜ][a-zäöüß0-9]+(?:[-][A-ZÄÖÜ][a-zäöüß0-9]+)*)?([A-ZÄÖÜ][a-zäöüß0-9]+(?:[-][A-ZÄÖÜ][a-zäöüß0-9]+)*)?([A-ZÄÖÜ][a-zäöüß0-9]+(?:[-][A-ZÄÖÜ][a-zäöüß0-9]+)*)?((?:[A-Z][a-zäöüß0-9]+)(?:[-][A-Za-z0-9äöüß]+)*)",

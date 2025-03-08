@@ -489,7 +489,6 @@ def delete_list_of_employees():
             )
         )
 
-    # Fix: Convert string UUID to UUID objects properly
     try:
         employee_ids = [UUID(id_str) for id_str in data["employee_ids"]]
     except (ValueError, TypeError):
@@ -628,7 +627,16 @@ def get_qr_code_for_employees_list():
                 )
             )
 
-        employee_ids = [UUID(id_str) for id_str in data["employee_ids"]]
+        try:
+            employee_ids = [UUID(id_str) for id_str in data["employee_ids"]]
+        except (ValueError, TypeError):
+            abort_with_err(
+                ErrMsg(
+                    status_code=400,
+                    title="Ungültige UUID",
+                    description="Eine oder mehrere IDs sind keine gültigen UUIDs",
+                )
+            )
 
         return EmployeesService.get_qr_code_for_employees_list(
             employee_ids=employee_ids, user_group=g.user_group, user_id=g.user_id
