@@ -6,7 +6,6 @@ from .helper import login, PASSWORD
 from src.models.user import UserGroup
 from src.models.employee import Employee
 from src.models.group import Group
-from src.models.location import Location
 from io import BytesIO
 
 
@@ -108,30 +107,8 @@ def describe_employees():
             assert res.status_code == 200
             assert len(res.json) == len(employees)
 
-        def it_returns_employees_for_gruppenleitung_of_their_group(
-            client, user_gruppenleitung, employees, group, location, db
-        ):
-            db.session.add(user_gruppenleitung)
-            db.session.add(location)
-            db.session.add(group)
-            db.session.add_all(employees)
-            db.session.commit()
-            login(user=user_gruppenleitung, client=client)
-
-            res = client.get("/api/employees")
-
-            assert res.status_code == 200
-            assert len(res.json) == len(employees)
-
         def it_does_not_return_employees_from_different_location_for_standortleitung(
-            client,
-            user_standortleitung,
-            employees,
-            group,
-            other_group,
-            location,
-            other_location,
-            db,
+            client, user_standortleitung, employees, group, location, db
         ):
             # Setup the original location and employees
             user_standortleitung.location_id = location.id
@@ -139,7 +116,14 @@ def describe_employees():
             db.session.add(location)
             db.session.add(group)
             db.session.add_all(employees)
+
+            # Create a different location, group, and employee
+            other_location = Location(location_name="Other Location")
+            other_location.id = uuid.uuid4()
             db.session.add(other_location)
+
+            other_group = Group(group_name="Other Group", location_id=other_location.id)
+            other_group.id = uuid.uuid4()
             db.session.add(other_group)
 
             other_employee = Employee(
@@ -163,8 +147,94 @@ def describe_employees():
             employee_ids = [emp["id"] for emp in res.json]
             assert str(other_employee.id) not in employee_ids
 
+        def it_returns_employees_for_gruppenleitung_of_their_group(
+            client, user_gruppenleitung, employees, group, location, db
+        ):
+            db.session.add(user_gruppenleitung)
+            db.session.add(location)
+            db.session.add(group)
+            db.session.add_all(employees)
+            db.session.commit()
+            login(user=user_gruppenleitung, client=client)
+
+            res = client.get("/api/employees")
+
+            assert res.status_code == 200
+            assert len(res.json) == len(employees)
+
+        def it_returns_employees_from_multiple_groups_for_gruppenleitung_as_leader_and_replacement(
+            client, user_gruppenleitung, group, other_group, location, db
+        ):
+            # Set up the original group with user_gruppenleitung as leader
+            group.user_id_group_leader = user_gruppenleitung.id
+            db.session.add(user_gruppenleitung)
+            db.session.add(location)
+            db.session.add(group)
+
+            # Create employees for the first group
+            group_employees = []
+            for x in range(3):
+                employee = Employee(
+                    first_name=f"GroupLeader{x}",
+                    last_name=f"Employee{x}",
+                    employee_number=100 + x,
+                    group_id=group.id,
+                )
+                employee.id = uuid.uuid4()
+                group_employees.append(employee)
+
+            db.session.add_all(group_employees)
+
+            # Create employees for the second group
+            replacement_employees = []
+            for x in range(2):
+                employee = Employee(
+                    first_name=f"Replacement{x}",
+                    last_name=f"Employee{x}",
+                    employee_number=2000 + x,
+                    group_id=other_group.id,
+                )
+                employee.id = uuid.uuid4()
+                replacement_employees.append(employee)
+
+            db.session.add_all(replacement_employees)
+            db.session.commit()
+
+            # Login as gruppenleitung
+            login(user=user_gruppenleitung, client=client)
+
+            # Get all employees
+            res = client.get("/api/employees")
+
+            # Verify response
+            assert res.status_code == 200
+
+            # Should see employees from both groups
+            assert len(res.json) == len(group_employees) + len(replacement_employees)
+
+            # Verify we can see employees from both groups by checking employee numbers
+            employee_numbers = [emp["employee_number"] for emp in res.json]
+
+            # Check if all employee numbers from both groups are in the result
+            for emp in group_employees:
+                assert emp.employee_number in employee_numbers
+
+            for emp in replacement_employees:
+                assert emp.employee_number in employee_numbers
+
+            # Check if we can filter by group name to get just one group's employees
+            res_group1 = client.get(f"/api/employees?group_name={group.group_name}")
+            assert res_group1.status_code == 200
+            assert len(res_group1.json) == len(group_employees)
+
+            res_group2 = client.get(
+                f"/api/employees?group_name={other_group.group_name}"
+            )
+            assert res_group2.status_code == 200
+            assert len(res_group2.json) == len(replacement_employees)
+
         def it_does_not_return_employees_from_different_group_for_gruppenleitung(
-            client, user_gruppenleitung, employees, group, other_group, location, db
+            client, user_gruppenleitung, employees, group, location, db
         ):
             # Setup the original group and employees
             group.user_id_group_leader = user_gruppenleitung.id
@@ -172,6 +242,13 @@ def describe_employees():
             db.session.add(location)
             db.session.add(group)
             db.session.add_all(employees)
+
+            # Create a different group with one employee
+            other_group = Group(
+                group_name="Other Group",
+                location_id=location.id,
+            )
+            other_group.id = uuid.uuid4()
             db.session.add(other_group)
 
             other_employee = Employee(
@@ -212,14 +289,7 @@ def describe_employees():
             assert len(res.json) == len(employees)
 
         def it_does_not_return_employees_from_different_location_for_kuechenpersonal(
-            client,
-            user_kuechenpersonal,
-            employees,
-            group,
-            other_group,
-            location,
-            other_location,
-            db,
+            client, user_kuechenpersonal, employees, group, location, db
         ):
             # Setup the original location and employees
             user_kuechenpersonal.location_id = location.id
@@ -227,7 +297,14 @@ def describe_employees():
             db.session.add(location)
             db.session.add(group)
             db.session.add_all(employees)
+
+            # Create a different location, group, and employee
+            other_location = Location(location_name="Other Location")
+            other_location.id = uuid.uuid4()
             db.session.add(other_location)
+
+            other_group = Group(group_name="Other Group", location_id=other_location.id)
+            other_group.id = uuid.uuid4()
             db.session.add(other_group)
 
             other_employee = Employee(
@@ -352,12 +429,16 @@ def describe_employees():
             assert res.json["last_name"] == employees[0].last_name
 
         def it_returns_404_for_employee_not_in_gruppenleitung_group(
-            client, user_gruppenleitung, employees, group, other_group, location, db
+            client, user_gruppenleitung, employees, group, location, db
         ):
             db.session.add(user_gruppenleitung)
             db.session.add(location)
             db.session.add(group)
             db.session.add_all(employees)
+
+            # Create another group and employee
+            other_group = Group(group_name="Other Group", location_id=location.id)
+            other_group.id = uuid.uuid4()
             db.session.add(other_group)
 
             other_employee = Employee(
@@ -395,21 +476,21 @@ def describe_employees():
             assert res.json["last_name"] == employees[0].last_name
 
         def it_returns_404_for_employee_not_in_kuechenpersonal_location(
-            client,
-            user_kuechenpersonal,
-            employees,
-            group,
-            other_group,
-            location,
-            other_location,
-            db,
+            client, user_kuechenpersonal, employees, group, location, db
         ):
             user_kuechenpersonal.location_id = location.id
             db.session.add(user_kuechenpersonal)
             db.session.add(location)
             db.session.add(group)
             db.session.add_all(employees)
+
+            # Create another location, group and employee
+            other_location = Location(location_name="Other Location")
+            other_location.id = uuid.uuid4()
             db.session.add(other_location)
+
+            other_group = Group(group_name="Other Group", location_id=other_location.id)
+            other_group.id = uuid.uuid4()
             db.session.add(other_group)
 
             other_employee = Employee(
@@ -543,7 +624,7 @@ def describe_employees():
                 "Kunden-Nr.,Kürzel,Bereich,Gruppe-Nr.,Gruppen-Name 1,Gruppen-Name 2\n"
             )
             csv_content += (
-                f"9001,MaxMustermann,{location.location_name},1,{group.group_name},Test"
+                f"9001,Mustermann,{location.location_name},1,{group.group_name},Test"
             )
 
             res = client.post(
@@ -753,7 +834,7 @@ def describe_employees():
             db.session.commit()
             login(user=user_verwaltung, client=client)
 
-            employee_ids = [employees[0].id, employees[1].id]
+            employee_ids = [str(employees[0].id), str(employees[1].id)]
             res = client.delete("/api/employees/", json={"employee_ids": employee_ids})
 
             assert res.status_code == 200
