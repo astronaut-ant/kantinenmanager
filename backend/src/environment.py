@@ -51,6 +51,9 @@ class Features(ABC):
     LOGGING: LoggingMethod
     """The logging method to use"""
 
+    ORDER_MIGRATION_STARTUP: bool
+    """Whether to migrate orders on startup"""
+
 
 class ProductionFeatures(Features):
     DATABASE = "real"
@@ -62,6 +65,7 @@ class ProductionFeatures(Features):
     INSERT_MOCK_DATA = False
     CRONJOBS = True
     LOGGING = LoggingMethod.LOKI
+    ORDER_MIGRATION_STARTUP = True
 
 
 class DevelopmentFeatures(Features):
@@ -74,6 +78,7 @@ class DevelopmentFeatures(Features):
     INSERT_MOCK_DATA = True
     CRONJOBS = True
     LOGGING = LoggingMethod.CONSOLE
+    ORDER_MIGRATION_STARTUP = False
 
 
 class MigrationFeatures(Features):
@@ -86,6 +91,7 @@ class MigrationFeatures(Features):
     INSERT_MOCK_DATA = False
     CRONJOBS = False
     LOGGING = LoggingMethod.CONSOLE
+    ORDER_MIGRATION_STARTUP = False
 
 
 class TestingFeatures(Features):
@@ -98,6 +104,7 @@ class TestingFeatures(Features):
     INSERT_MOCK_DATA = False
     CRONJOBS = False
     LOGGING = LoggingMethod.CONSOLE
+    ORDER_MIGRATION_STARTUP = False
 
 
 def get_features(env: Environment) -> Features:

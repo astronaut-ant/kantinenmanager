@@ -24,7 +24,6 @@ def register_cronjobs(app):
     scheduler.print_jobs()
 
 
-# TODO Error handling
 def push_orders_to_next_table(app):
     """Push orders from the pre-orders table to the daily orders table and from the daily orders table to the old orders table."""
 
@@ -34,6 +33,11 @@ def push_orders_to_next_table(app):
 
         app.logger.info("Running cronjob to push orders to the next table.")
 
-        OrdersRepository.push_dailyorders_to_oldorders(today)
-        OrdersRepository.push_preorders_to_dailyorders(today)
-        OrdersRepository.clean_preorders(today)
+        try:
+            OrdersRepository.push_dailyorders_to_oldorders(today)
+            OrdersRepository.push_preorders_to_dailyorders(today)
+            OrdersRepository.clean_preorders(today)
+            raise Exception("Test")
+        except Exception as e:
+            app.logger.error(f"Error while pushing orders to next table: {e}")
+            raise e

@@ -7,7 +7,7 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 
 from src.logging import LoggingMethod, init_logger
-from src.utils.cronjobs import register_cronjobs
+from src.utils.cronjobs import push_orders_to_next_table, register_cronjobs
 from src.utils.db_utils import insert_mock_data
 from src.environment import Environment, get_features
 from src.utils.error import register_error_handlers
@@ -126,6 +126,13 @@ def startup() -> None:
     app.logger.info(f"Application started in {app.config['ENV'].value} mode.")
 
     register_routes(app)
+
+    if features.ORDER_MIGRATION_STARTUP:
+        # after routes are registered, because error handlers are registered in routes
+        app.logger.info("--- Migrating orders on startup  ---")
+        push_orders_to_next_table(app)
+    else:
+        app.logger.info("--- Order migration on startup disabled")
 
 
 def configure(app: Flask) -> None:
