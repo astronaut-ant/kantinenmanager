@@ -232,7 +232,7 @@ def get_daily_orders_for_group(group_id: UUID):
 
 
 @daily_orders_routes.put("/api/daily-orders/<int:daily_order_id>")
-@login_required(groups=[UserGroup.kuechenpersonal], disabled=True)
+@login_required(groups=[UserGroup.verwaltung, UserGroup.kuechenpersonal])
 @swag_from(
     {
         "tags": ["daily_orders"],

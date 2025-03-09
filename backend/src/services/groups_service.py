@@ -21,10 +21,18 @@ class GroupsService:
         user_id_replacement: UUID = None,
     ) -> UUID:
 
+        location_exists = LocationsRepository.get_location_by_id(location_id)
+        if not location_exists:
+            raise NotFoundError(f"Standort mit ID {location_id}")
+
         if GroupsRepository.get_group_by_name_and_location(group_name, location_id):
             raise AlreadyExistsError(
                 ressource=f"Gruppe {group_name}", details="an diesem Standort."
             )
+
+        group_number_exists = GroupsRepository.get_group_by_number(group_number)
+        if group_number_exists:
+            raise AlreadyExistsError(ressource=f"Gruppe {group_number}")
 
         group_leader_exists = UsersRepository.get_user_by_id(user_id_group_leader)
         if not group_leader_exists:
@@ -49,14 +57,6 @@ class GroupsService:
                     f"Nutzer:in mit ID {user_id_replacement} ist keine Gruppenleitung."
                 )
 
-        location_exists = LocationsRepository.get_location_by_id(location_id)
-        if not location_exists:
-            raise NotFoundError(f"Standort mit ID {location_id}")
-
-        group_number_exists = GroupsRepository.get_group_by_number(group_number)
-        if group_number_exists:
-            raise AlreadyExistsError(ressource=f"Gruppe {group_number}")
-
         return GroupsRepository.create_group(
             group_name,
             group_number,
@@ -80,18 +80,16 @@ class GroupsService:
         locations = {}
         groups = GroupsRepository.get_groups_by_userscope(user_id, user_group)
 
-        for group in groups:
-            # seperate group name and location name by splitting at the first "-"
-            # match = re.match(r"^(.*?)\s*-\s*(.*)$", group.group_name)
-            # for tests use .group_name instead of match.group(1)
-            # group_name = match.group(1)
-            group_name = group.group_name
-            group_location = group.location.location_name
+        for g in groups:
+            group_name = g.group_name
+            location_name = LocationsRepository.get_location_by_id(
+                g.location_id
+            ).location_name
 
-            if group_location not in locations:
-                locations[group_location] = []
+            if location_name not in locations:
+                locations[location_name] = []
 
-            locations[group_location].append(group_name)
+            locations[location_name].append(group_name)
 
         return locations
 
@@ -118,6 +116,7 @@ class GroupsService:
         user_id_replacement: UUID = None,
     ) -> Group:
         """Updates a group."""
+
         group = GroupsRepository.get_group_by_id(group_id)
         if not group:
             raise NotFoundError(f"Gruppe mit ID {group_id}")

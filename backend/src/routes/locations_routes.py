@@ -62,13 +62,15 @@ def get_locations():
 def get_location_by_id(location_id: UUID):
     """Get a location by ID"""
 
-    location = LocationsService.get_location_by_id(location_id)
-    if location is None:
+    try:
+        location = LocationsService.get_location_by_id(location_id)
+    except NotFoundError as err:
         abort_with_err(
             ErrMsg(
                 status_code=404,
                 title="Standort nicht gefunden",
                 description="Es wurde kein Standort mit dieser ID gefunden",
+                details=str(err),
             )
         )
 
@@ -104,12 +106,13 @@ def create_location():
     """Create a new location"""
     try:
         body = LocationFullSchema().load(request.json)
-    except ValidationError:
+    except ValidationError as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
                 title="Ungültige Anfrage",
                 description="Die Anfrage ist ungültig",
+                details=str(err),
             )
         )
 
@@ -121,7 +124,7 @@ def create_location():
                 status_code=409,
                 title="Standort konnte nicht erstellt werden",
                 description="Der Standort konnte nicht erstellt werden",
-                detail=str(err),
+                details=str(err),
             )
         )
     except NotFoundError as err:
@@ -130,7 +133,7 @@ def create_location():
                 status_code=404,
                 title="Standort konnte nicht erstellt werden",
                 description="Der Standort konnte nicht erstellt werden",
-                detail=str(err),
+                details=str(err),
             )
         )
     return jsonify({"location_id": location_id}), 201
@@ -173,7 +176,7 @@ def update_location(location_id: UUID):
                 status_code=400,
                 title="Ungültige Anfrage",
                 description="Die Anfrage ist ungültig",
-                details=err.messages,
+                details=str(err),
             )
         )
 
@@ -187,17 +190,18 @@ def update_location(location_id: UUID):
         abort_with_err(
             ErrMsg(
                 status_code=404,
-                title=f"Standort nicht gefunden",
-                description=f"Der Standort mit ID {body['id']} konnte nicht gefunden werden.",
-                details=err,
+                title="Standort nicht gefunden",
+                description=f"Der Standort mit ID {location_id} konnte nicht gefunden werden.",
+                details=str(err),
             )
         )
-    except AlreadyExistsError:
+    except AlreadyExistsError as err:
         abort_with_err(
             ErrMsg(
                 status_code=409,
                 title="Standort konnte nicht aktualisiert werden",
-                description=f"Der Standort mit ID {body['id']} konnte nicht aktualisiert werden",
+                description=f"Der Standort mit ID {location_id} konnte nicht aktualisiert werden",
+                details=str(err),
             )
         )
 
@@ -232,18 +236,18 @@ def update_location(location_id: UUID):
 def delete_location(location_id: UUID):
     """Delete a location"""
 
-    location = LocationsService.get_location_by_id(location_id)
-    if location is None:
+    try:
+        location = LocationsService.get_location_by_id(location_id)
+        LocationsService.delete_location(location)
+    except NotFoundError as err:
         abort_with_err(
             ErrMsg(
                 status_code=404,
                 title="Standort nicht gefunden",
                 description="Es wurde kein Standort mit dieser ID gefunden",
+                details=str(err),
             )
         )
-
-    try:
-        LocationsService.delete_location(location)
     except IntegrityError as e:
         abort_with_err(
             ErrMsg(

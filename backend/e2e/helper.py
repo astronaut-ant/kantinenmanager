@@ -5,6 +5,8 @@ from src import app as project_app
 from src.database import create_initial_admin, db as project_db
 from src.models.user import User, UserGroup
 from src.utils.db_utils import insert_mock_data
+from src.models.group import Group
+from src.models.employee import Employee
 
 
 PASSWORD = "password"
@@ -115,6 +117,15 @@ def location(user_standortleitung):
     return location
 
 
+@pytest.fixture()
+def other_location():
+    location = Location(
+        location_name="Other Location", user_id_location_leader=uuid.uuid4()
+    )
+    location.id = uuid.uuid4()
+    return location
+
+
 def login(user: User, client):
     res = client.post(
         "/api/login",
@@ -134,3 +145,44 @@ def get_auth_token(headers):
 
 def get_refresh_token(headers):
     return join_headers(headers).split("refresh_token=")[1].split(";")[0]
+
+
+@pytest.fixture
+def group(location, user_gruppenleitung):
+    group = Group(
+        group_name="Test Group",
+        location_id=location.id,
+        user_id_group_leader=user_gruppenleitung.id,
+        user_id_replacement=None,
+        group_number=123,
+    )
+    group.id = uuid.uuid4()
+    return group
+
+
+@pytest.fixture
+def other_group(other_location):
+    group = Group(
+        group_name="Other Group",
+        location_id=other_location.id,
+        user_id_group_leader=uuid.uuid4(),
+        user_id_replacement=None,
+        group_number=234,
+    )
+    group.id = uuid.uuid4()
+    return group
+
+
+@pytest.fixture
+def employees(group):
+    employees = []
+    for x in range(5):
+        employee = Employee(
+            first_name=f"FirstName{x}",
+            last_name=f"LastName{x}",
+            employee_number=1000 + x,
+            group_id=group.id,
+        )
+        employee.id = uuid.uuid4()
+        employees.append(employee)
+    return employees

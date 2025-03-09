@@ -3,7 +3,7 @@
 from sqlalchemy import select, func, or_, and_
 from src.database import db
 from uuid import UUID
-from src.models.user import UserGroup, User
+from src.models.user import UserGroup
 from src.models.employee import Employee
 from src.models.group import Group
 from src.models.preorder import PreOrder
@@ -40,27 +40,21 @@ class EmployeesRepository:
             UserGroup.gruppenleitung,
             UserGroup.kuechenpersonal,
         ]:
-            query = select(Employee)
+            query = select(Employee).join(Group)
 
             if user_group == UserGroup.verwaltung:
                 query = query
             elif user_group == UserGroup.standortleitung:
-                query = (
-                    query.join(Group)
-                    .join(Location)
-                    .filter(Location.user_id_location_leader == user_id)
+                query = query.join(Location).filter(
+                    Location.user_id_location_leader == user_id
                 )
             elif user_group == UserGroup.kuechenpersonal:
                 user = UsersRepository.get_user_by_id(user_id)
                 if not user:
                     return []
-                query = (
-                    query.join(Group)
-                    .join(Location)
-                    .filter(Location.id == user.location_id)
-                )
+                query = query.join(Location).filter(Location.id == user.location_id)
             elif user_group == UserGroup.gruppenleitung:
-                query = query.join(Group).filter(
+                query = query.filter(
                     or_(
                         Group.user_id_group_leader == user_id,
                         Group.user_id_replacement == user_id,
@@ -76,9 +70,7 @@ class EmployeesRepository:
                     func.lower(Employee.last_name) == last_name.lower()
                 )
             if group_name:
-                query = query.join(Group).filter(
-                    func.lower(Group.group_name) == group_name.lower()
-                )
+                query = query.filter(func.lower(Group.group_name) == group_name.lower())
             if group_id:
                 query = query.filter(Employee.group_id == group_id)
             if employee_number:
@@ -136,12 +128,26 @@ class EmployeesRepository:
 
         :return: The employee with the given ID or None if no employee was found
         """
-        if (
-            user_group == UserGroup.verwaltung
-            or user_group == UserGroup.kuechenpersonal
-        ):
+        if user_group == UserGroup.verwaltung:
             return db.session.scalars(
                 select(Employee).where(
+                    and_(
+                        Employee.id == employee_id,
+                        Employee.hidden == False,
+                    )
+                )
+            ).first()
+
+        elif user_group == UserGroup.kuechenpersonal:
+            user = UsersRepository.get_user_by_id(user_id)
+            if not user:
+                return None
+            return db.session.scalars(
+                select(Employee)
+                .join(Group)
+                .join(Location)
+                .where(Location.id == user.location_id)
+                .where(
                     and_(
                         Employee.id == employee_id,
                         Employee.hidden == False,

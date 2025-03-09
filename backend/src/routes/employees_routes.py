@@ -186,7 +186,7 @@ def get_employee_by_id(employee_id: UUID):
         },
     }
 )
-def create_user():
+def create_employee():
     """Create a new employee
     Create a new employee
     ---
@@ -194,6 +194,7 @@ def create_user():
 
     try:
         body = EmployeeChangeSchema().load(request.json)
+        id = EmployeesService.create_employee(**body)
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
@@ -203,15 +204,21 @@ def create_user():
                 details=err.messages,
             )
         )
-
-    try:
-        id = EmployeesService.create_employee(**body)
     except AlreadyExistsError:
         abort_with_err(
             ErrMsg(
                 status_code=409,
                 title="Kunden-Nr. bereits vergeben",
                 description="Die Kunden-Nr. ist bereits vergeben",
+            )
+        )
+    except NotFoundError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Gruppe nicht gefunden",
+                description="Die Gruppe existiert nicht",
+                details=str(err),
             )
         )
 
@@ -369,7 +376,7 @@ def update_employee(employee_id: UUID):
                 details=str(err),
             )
         )
-    except AlreadyExistsError:
+    except AlreadyExistsError as err:
         abort_with_err(
             ErrMsg(
                 status_code=409,
@@ -482,7 +489,16 @@ def delete_list_of_employees():
             )
         )
 
-    employee_ids = [UUID(id_str) for id_str in data["employee_ids"]]
+    try:
+        employee_ids = [UUID(id_str) for id_str in data["employee_ids"]]
+    except (ValueError, TypeError):
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Ungültige UUID",
+                description="Eine oder mehrere IDs sind keine gültigen UUIDs",
+            )
+        )
 
     for employee_id in employee_ids:
         try:
@@ -494,7 +510,16 @@ def delete_list_of_employees():
                 ErrMsg(
                     status_code=404,
                     title="Mitarbeiter:in nicht gefunden",
-                    description="Mitarbeiter:inn wurde",
+                    description="Ein oder mehrere Mitarbeiter wurden nicht gefunden",
+                    details=str(err),
+                )
+            )
+        except AccessDeniedError as err:
+            abort_with_err(
+                ErrMsg(
+                    status_code=403,
+                    title="Zugriff verweigert",
+                    description="Sie haben keine Berechtigung für diese Operation",
                     details=str(err),
                 )
             )
@@ -602,7 +627,16 @@ def get_qr_code_for_employees_list():
                 )
             )
 
-        employee_ids = [UUID(id_str) for id_str in data["employee_ids"]]
+        try:
+            employee_ids = [UUID(id_str) for id_str in data["employee_ids"]]
+        except (ValueError, TypeError):
+            abort_with_err(
+                ErrMsg(
+                    status_code=400,
+                    title="Ungültige UUID",
+                    description="Eine oder mehrere IDs sind keine gültigen UUIDs",
+                )
+            )
 
         return EmployeesService.get_qr_code_for_employees_list(
             employee_ids=employee_ids, user_group=g.user_group, user_id=g.user_id
