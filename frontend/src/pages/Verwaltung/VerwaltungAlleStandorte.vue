@@ -1,18 +1,16 @@
 <template>
-    <NavbarVerwaltung />
-    <div
-      v-for="location in locationsWithGroups"
-      :key="location.id"
-    >
-      <LocationCard
-        :id="location.id"
-        :location_name="location.location_name"
-        :location_leader="location.location_leader"
-        :groups="location.groups"
-      />
-    </div>
+  <NavbarVerwaltung />
+  <GridContainer :items="locationsWithGroups">
+      <template #default="{ item }">
+          <LocationCard
+              :id="item.id"
+              :location_name="item.location_name"
+              :location_leader="item.location_leader"
+              :groups="item.groups"
+          />
+      </template>
+  </GridContainer>
 </template>
-
 
 <script setup>
 import axios from "axios";
