@@ -7,24 +7,20 @@
     @searchresult="updateOverview"
     @changeview="changeview"
   />
-  <div v-if="ansicht == 'cardview' && userlist.length != 0" class="grid-container">
-    <div
-      v-for="user in userlist"
-      :key="user.id"
-      class="grid-item"
-    >
+  <GridContainer v-if="ansicht == 'cardview' && userlist.length != 0" :items="userlist">
+    <template v-slot:default="{ item }">
       <UserCard
-        :id="user.id"
-        :username="user.username"
-        :role="user.user_group"
-        :firstName="user.first_name"
-        :lastName="user.last_name"
-        :location_id="user.location_id"
+        :id="item.id"
+        :username="item.username"
+        :role="item.user_group"
+        :firstName="item.first_name"
+        :lastName="item.last_name"
+        :location_id="item.location_id"
         @user-edited="fetchData"
         @user-removed="fetchData"
       />
-    </div>
-  </div>
+    </template>
+  </GridContainer>
   <div v-if="ansicht == 'tableview' && userlist.length != 0" class="d-flex justify-center">
     <UserTable
       :users="userlist"
