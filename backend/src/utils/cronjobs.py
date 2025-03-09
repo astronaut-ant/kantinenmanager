@@ -37,7 +37,6 @@ def push_orders_to_next_table(app):
             OrdersRepository.push_dailyorders_to_oldorders(today)
             OrdersRepository.push_preorders_to_dailyorders(today)
             OrdersRepository.clean_preorders(today)
-            raise Exception("Test")
         except Exception as e:
             app.logger.error(f"Error while pushing orders to next table: {e}")
             raise e
