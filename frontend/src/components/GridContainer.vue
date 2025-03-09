@@ -1,6 +1,6 @@
 <template>
     <div class="grid-container">
-      <div class="grid-item" v-for="(item, index) in items" :key="index">
+      <div class="grid-item" v-for="item in items" :key="item[setkey]">
         <slot :item="item"></slot>
       </div>
     </div>
@@ -13,6 +13,10 @@
     items: {
       type: Array,
       default: () => [],
+    },
+    setkey: {
+      type: String,
+      default: "id",
     },
   });
 </script>
