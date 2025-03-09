@@ -106,12 +106,13 @@ def create_location():
     """Create a new location"""
     try:
         body = LocationFullSchema().load(request.json)
-    except ValidationError:
+    except ValidationError as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
                 title="Ungültige Anfrage",
                 description="Die Anfrage ist ungültig",
+                details=str(err),
             )
         )
 
@@ -123,7 +124,7 @@ def create_location():
                 status_code=409,
                 title="Standort konnte nicht erstellt werden",
                 description="Der Standort konnte nicht erstellt werden",
-                detail=str(err),
+                details=str(err),
             )
         )
     except NotFoundError as err:
@@ -132,7 +133,7 @@ def create_location():
                 status_code=404,
                 title="Standort konnte nicht erstellt werden",
                 description="Der Standort konnte nicht erstellt werden",
-                detail=str(err),
+                details=str(err),
             )
         )
     return jsonify({"location_id": location_id}), 201
@@ -175,7 +176,7 @@ def update_location(location_id: UUID):
                 status_code=400,
                 title="Ungültige Anfrage",
                 description="Die Anfrage ist ungültig",
-                details=err.messages,
+                details=str(err),
             )
         )
 
@@ -190,16 +191,17 @@ def update_location(location_id: UUID):
             ErrMsg(
                 status_code=404,
                 title="Standort nicht gefunden",
-                description=f"Der Standort mit ID {body['id']} konnte nicht gefunden werden.",
+                description=f"Der Standort mit ID {location_id} konnte nicht gefunden werden.",
                 details=str(err),
             )
         )
-    except AlreadyExistsError:
+    except AlreadyExistsError as err:
         abort_with_err(
             ErrMsg(
                 status_code=409,
                 title="Standort konnte nicht aktualisiert werden",
-                description=f"Der Standort mit ID {body['id']} konnte nicht aktualisiert werden",
+                description=f"Der Standort mit ID {location_id} konnte nicht aktualisiert werden",
+                details=str(err),
             )
         )
 
