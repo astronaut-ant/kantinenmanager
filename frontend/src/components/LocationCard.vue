@@ -89,7 +89,7 @@
 <script setup>
 import axios from "axios";
 const props = defineProps(["id", "location_name", "location_leader", "groups" ]);
-const emit = defineEmits(["user-edited", "user-removed"]);
+const emit = defineEmits(["location-edited", "location-removed"]);
 
 const deleteDialog = ref(false);
 const secondDeleteDialog = ref(false);
@@ -116,11 +116,8 @@ const confirmDelete = () => {
         withCredentials: true,
       }
     )
-    .then((response) => {
-      console.log(response.data);
-      locations.value = locations.value.filter(
-        (location) => location.id !== locationToDelete.value.id
-      );
+    .then(() => {
+      emit("location-removed");
       closeDeleteDialog();
       snackbarText.value = "Der Standort wurde erfolgreich gelöscht!";
       snackbar.value = true;
@@ -136,7 +133,7 @@ const openEditDialog = () => {
 };
 
 const confirmEdit = () => {
-    emit("user-edited");
+    emit("location-edited");
     editDialog.value = false;
 }
 

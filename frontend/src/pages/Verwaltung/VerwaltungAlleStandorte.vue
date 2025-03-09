@@ -7,6 +7,8 @@
               :location_name="item.location_name"
               :location_leader="item.location_leader"
               :groups="item.groups"
+              @location-edited="fetchData"
+              @location-removed="fetchData"
           />
       </template>
   </GridContainer>
