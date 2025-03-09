@@ -39,7 +39,8 @@ def get_locations():
 
 
 @locations_routes.get("/api/locations/<uuid:location_id>")
-@login_required(groups=[UserGroup.verwaltung])
+# Must not be restricted, because of User Food order! (Frontend)
+# @login_required(groups=[UserGroup.verwaltung])
 @swag_from(
     {
         "tags": ["locations"],

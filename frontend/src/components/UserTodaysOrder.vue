@@ -40,13 +40,17 @@
         <div v-if="dailyOrderExists" class="mb-3 text-blue-grey">
           <span>Menü: </span>
           <v-icon
-            v-if="dailyFoodObject.main_dish == 'rot' || 'blau'"
+            class="me-n3"
+            v-if="
+              dailyFoodObject.main_dish === 'rot' ||
+              dailyFoodObject.main_dish === 'blau'
+            "
             :class="
               dailyFoodObject.main_dish == 'rot' ? 'text-red' : 'text-primary'
             "
             >mdi-circle</v-icon
           >
-          <v-icon v-if="dailyFoodObject.salad_option" class="text-success ms-n3"
+          <v-icon v-if="dailyFoodObject.salad_option" class="text-success"
             >mdi-circle</v-icon
           >
         </div>
@@ -96,6 +100,7 @@ const getData = () => {
     })
     .then((response) => {
       dailyFoodObject.value = response.data;
+      console.log("dfo", dailyFoodObject.value);
       dailyOrderExists.value = true;
       console.log("dailyFoodObject", dailyFoodObject.value);
       if (!dailyFoodObject.value.handed_out) {
