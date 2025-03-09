@@ -76,7 +76,7 @@ class EmployeesRepository:
             if employee_number:
                 query = query.filter(Employee.employee_number == employee_number)
 
-            return db.session.scalars(query.where(Employee.hidden == False)).all()
+            return db.session.scalars(query).all()
         return []
 
     @staticmethod
@@ -91,7 +91,6 @@ class EmployeesRepository:
             select(Employee).where(
                 and_(
                     Employee.employee_number == employee_number,
-                    Employee.hidden == False,
                 )
             )
         ).first()
@@ -133,7 +132,6 @@ class EmployeesRepository:
                 select(Employee).where(
                     and_(
                         Employee.id == employee_id,
-                        Employee.hidden == False,
                     )
                 )
             ).first()
@@ -150,7 +148,6 @@ class EmployeesRepository:
                 .where(
                     and_(
                         Employee.id == employee_id,
-                        Employee.hidden == False,
                     )
                 )
             ).first()
@@ -172,7 +169,6 @@ class EmployeesRepository:
                 .where(
                     and_(
                         Employee.id == employee_id,
-                        Employee.hidden == False,
                     )
                 )
             ).first()
@@ -200,7 +196,6 @@ class EmployeesRepository:
                     and_(
                         Employee.first_name == first_name,
                         Employee.last_name == last_name,
-                        Employee.hidden == False,
                     )
                 )
             ).first()
@@ -215,7 +210,6 @@ class EmployeesRepository:
                     and_(
                         Employee.first_name == first_name,
                         Employee.last_name == last_name,
-                        Employee.hidden == False,
                     )
                 )
             ).first()
@@ -229,7 +223,6 @@ class EmployeesRepository:
                     and_(
                         Employee.first_name == first_name,
                         Employee.last_name == last_name,
-                        Employee.hidden == False,
                     )
                 )
             ).first()
@@ -249,7 +242,6 @@ class EmployeesRepository:
             select(Employee).where(
                 and_(
                     Employee.employee_number == employee_number,
-                    Employee.hidden == False,
                 )
             )
         ).first()
@@ -273,14 +265,9 @@ class EmployeesRepository:
 
     @staticmethod
     def delete_employee(employee: Employee):
-        """Set the hidden flag for a user to True and delete all pre_orders belonging to that person"""
+        """Delete employee"""
 
-        persons_pre_orders = db.session.scalars(
-            select(PreOrder).where(PreOrder.person_id == employee.id)
-        ).all()
-        for pre_order in persons_pre_orders:
-            db.session.delete(pre_order)
-        employee.hidden = True
+        db.session.delete(employee)
         db.session.commit()
 
     @staticmethod

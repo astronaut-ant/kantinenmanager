@@ -124,7 +124,7 @@ class UsersRepository:
 
     @staticmethod
     def delete_user(user: User):
-        """Set the hidden flag for a user to True and delete all pre_orders belonging to that person"""
+        """Delete a user from the database"""
 
         db.session.delete(user)
         db.session.commit()
