@@ -132,7 +132,7 @@ def get_report():
 
 
 @reports_routes.get("/api/invoices")
-@login_required(groups=[UserGroup.verwaltung], disabled=True)
+@login_required(groups=[UserGroup.verwaltung])
 @swag_from(
     {
         "tags": ["reports"],
