@@ -174,8 +174,6 @@
           >
         </template>
       </v-stepper>
-      <!-- </v-card-text> -->
-      <!-- </v-card> -->
     </div>
     <ConfirmUserOrder
       :show-confirm="showConfirmation"
@@ -212,7 +210,6 @@ const preOrderDatesAvailable = ref(true);
 
 const changeOpenState = () => {
   isOpen.value = !isOpen.value;
-  console.log(isOpen.value);
 };
 
 const checkForOneMainDish = () => {
@@ -287,7 +284,6 @@ const finish = () => {
   addLocationToPreOrderObject();
   addDishesToPreOrderObject();
   preOrderObject.person_id = props.personId;
-  console.log(preOrderObject);
   axios
     .post(import.meta.env.VITE_API + "/api/pre-orders/users", preOrderObject, {
       withCredentials: true,
@@ -296,13 +292,11 @@ const finish = () => {
       hasError.value = false;
       showConfirmation.value = true;
       emit("ordered");
-      console.log(response.data);
     })
     .catch((err) => {
       hasError.value = true;
       errorText.value = err.response.data.description;
       showConfirmation.value = true;
-      console.log(err);
     });
 };
 
@@ -311,7 +305,6 @@ const updateOrder = (preOrderToEdit) => {
   addLocationToPreOrderObject();
   addDishesToPreOrderObject();
   preOrderObject.person_id = props.personId;
-  console.log("Test2", preOrderObject);
 
   //actual BackendError --> locations should be variable
   //   axios
@@ -354,7 +347,6 @@ const updateOrder = (preOrderToEdit) => {
         .then((response) => {
           showConfirmation.value = true;
           emit("ordered");
-          console.log(response.data);
         })
         .catch((err) => {
           console.log(err);
@@ -368,13 +360,11 @@ const addDateToPreOrderObject = () => {
     const clickedDate = new Date(dateSelection.value);
     clickedDate.setHours(1);
     preOrderObject.date = clickedDate.toISOString().split("T")[0];
-    console.log(preOrderObject);
   }
 };
 const addLocationToPreOrderObject = () => {
   if (locationSelection.value != undefined) {
     preOrderObject.location_id = locationSelection.value;
-    console.log("TEST", preOrderObject);
   }
 };
 
@@ -408,8 +398,6 @@ const calcAllowedDates = () => {
       response.data.forEach((data) => {
         blockedDates.push(data.date);
       });
-      console.log("blockedDates", blockedDates);
-
       const actualDate = new Date();
       // actualDate.setDate(actualDate.getDate() + 1);
       const preOrderTimeExceeded = actualDate.getHours() >= 8;
@@ -434,7 +422,6 @@ const calcAllowedDates = () => {
       } else {
         preOrderDatesAvailable.value = true;
       }
-      console.log("selectable", selectableDates.value);
     })
 
     .catch((err) => console.log(err));
@@ -454,7 +441,6 @@ const calcRestoredAllowedDates = (date) => {
       response.data.forEach((data) => {
         blockedDates.push(data.date);
       });
-      console.log("blockedDates", blockedDates);
 
       const actualDate = new Date();
       // actualDate.setDate(actualDate.getDate() + 1);
@@ -476,7 +462,6 @@ const calcRestoredAllowedDates = (date) => {
       });
       selectableDates.value = filteredDates;
       selectableDates.value.push(date);
-      console.log("selectable Date", selectableDates.value);
       dateSelection.value = new Date(date);
       preOrderDatesAvailable.value = true;
     })
@@ -505,7 +490,6 @@ const restore = (preOrderId) => {
     })
     .then((response) => {
       const preOrderObject = response.data;
-      console.log(preOrderObject);
       showConfirmation.value = false;
       calcRestoredAllowedDates(preOrderObject.date);
       step1Valid.value = false;

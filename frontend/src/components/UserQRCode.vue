@@ -43,7 +43,6 @@ const props = defineProps(["qrValue"]);
 const close = () => {
   dialog.value = false;
 };
-console.log(props.qrValue);
 </script>
 
 <!-- Dummy -->

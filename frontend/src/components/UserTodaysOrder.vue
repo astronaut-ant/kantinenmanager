@@ -100,9 +100,7 @@ const getData = () => {
     })
     .then((response) => {
       dailyFoodObject.value = response.data;
-      console.log("dfo", dailyFoodObject.value);
       dailyOrderExists.value = true;
-      console.log("dailyFoodObject", dailyFoodObject.value);
       if (!dailyFoodObject.value.handed_out) {
         showDailyOrderReminder.value = true;
       } else {

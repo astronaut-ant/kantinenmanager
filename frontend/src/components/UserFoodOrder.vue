@@ -71,11 +71,7 @@
             <template v-slot:item.actions="{ item }">
               <div class="d-flex justify-space-between ga-2 me-n4 mb-2">
                 <v-btn
-                  @click="
-                    console.log(openModal),
-                      (openModal = [!openModal[0], item.id]),
-                      console.log(openModal)
-                  "
+                  @click="openModal = [!openModal[0], item.id]"
                   variant="tonal"
                   color="primary"
                   class="mt-2"
@@ -160,7 +156,6 @@ const getData = () => {
         }),
           (locationTable[locationobject.id] = locationobject.location_name);
       });
-      console.log(locationItems.value);
       getOrders();
     })
     .catch((err) => console.log(err));
@@ -179,7 +174,6 @@ const getOrders = () => {
       orders.value = response.data;
       filterOutOldOrders();
       preOrderCount.value = orders.value.length;
-      console.log("preOrderCount: ", preOrderCount.value);
       orders.value.forEach((order) => {
         order.location_name = locationTable[order.location_id];
         if (order.main_dish == "blau") {
@@ -197,7 +191,6 @@ const getOrders = () => {
           id: order.id,
         });
       });
-      console.log("Orders", orders.value);
     })
     .catch((err) => console.log(err));
 };
@@ -208,7 +201,6 @@ const deleteOrder = (item) => {
       withCredentials: true,
     })
     .then((response) => {
-      console.log(response.data);
       items.value.splice(
         items.value.findIndex((order) => {
           return order.id === item.id;
@@ -216,7 +208,6 @@ const deleteOrder = (item) => {
         1
       );
       preOrderCount.value = items.value.length;
-      console.log("preOrderCount: ", preOrderCount.value);
     })
 
     .catch((err) => console.log(err));
@@ -229,10 +220,8 @@ const filterOutOldOrders = () => {
   let filteredOrders = {};
   filteredOrders = orders.value.filter((order) => {
     if (after8) {
-      console.log("after 8");
       return order.date > DateString;
     }
-    console.log("before 8");
     return order.date >= DateString;
   });
   orders.value = filteredOrders;
