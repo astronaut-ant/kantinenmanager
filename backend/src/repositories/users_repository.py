@@ -3,7 +3,6 @@
 from sqlalchemy import delete, select, or_, and_
 from src.models.user import User, UserGroup
 from src.models.group import Group
-from src.models.preorder import PreOrder
 from src.models.location import Location
 from src.database import db
 from uuid import UUID
@@ -25,12 +24,11 @@ class UsersRepository:
                 select(User).where(
                     and_(
                         User.user_group == user_group_filter,
-                        User.hidden == False,
                     )
                 )
             ).all()
 
-        return db.session.scalars(select(User).where(User.hidden == False)).all()
+        return db.session.scalars(select(User)).all()
 
     @staticmethod
     def get_user_by_id(user_id: UUID) -> User | None:
@@ -40,13 +38,11 @@ class UsersRepository:
 
         :return: The user with the given ID or None if no user was found
         """
-        # TODO: Test this method
 
         return db.session.scalars(
             select(User).where(
                 and_(
                     User.id == user_id,
-                    User.hidden == False,
                 )
             )
         ).first()
@@ -64,7 +60,6 @@ class UsersRepository:
             select(User).where(
                 and_(
                     User.username == username,
-                    User.hidden == False,
                 )
             )
         ).first()
@@ -81,7 +76,6 @@ class UsersRepository:
                 select(User).where(
                     and_(
                         User.user_group == group,
-                        User.hidden == False,
                     )
                 )
             ).all()
@@ -94,7 +88,6 @@ class UsersRepository:
             select(User).where(
                 and_(
                     User.user_group == UserGroup.gruppenleitung,
-                    User.hidden == False,
                 )
             )
         ).all()
@@ -106,29 +99,14 @@ class UsersRepository:
             select(User).where(
                 and_(
                     User.user_group == UserGroup.standortleitung,
-                    User.hidden == False,
                 )
             )
         ).all()
 
     @staticmethod
-    def get_hidden_users():
-        """Get all hidden users"""
-        return db.session.scalars(select(User).where(User.hidden == True)).all()
-
-    @staticmethod
     def get_hidden_user_by_id(user_id: UUID):
         """Get hidden users by id"""
-        return db.session.scalars(
-            select(User.id).where(User.hidden == True, User.id == user_id)
-        ).first()
-
-    @staticmethod
-    def get_hidden_user_by_username(username):
-        """Get hidden users by username"""
-        return db.session.scalars(
-            select(User.id).where(User.hidden == True, User.username == username)
-        ).first()
+        return db.session.scalars(select(User.id).where(User.id == user_id)).first()
 
     @staticmethod
     def create_user(user: User):
@@ -148,8 +126,7 @@ class UsersRepository:
     def delete_user(user: User):
         """Set the hidden flag for a user to True and delete all pre_orders belonging to that person"""
 
-        db.session.execute(delete(PreOrder).where(PreOrder.person_id == user.id))
-        user.hidden = True
+        db.session.delete(user)
         db.session.commit()
 
     @staticmethod
@@ -163,7 +140,6 @@ class UsersRepository:
                         User.id == Group.user_id_group_leader,
                         User.id == Location.user_id_location_leader,
                     ),
-                    User.hidden == False,
                 )
             )
             .join(Group, Group.user_id_group_leader == User.id)

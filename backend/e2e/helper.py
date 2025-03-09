@@ -1,5 +1,11 @@
 import uuid
+import datetime
 import pytest
+from sqlalchemy import text
+from src.models.oldorder import OldOrder
+from src.models.dailyorder import DailyOrder
+from src.models.maindish import MainDish
+from src.models.preorder import PreOrder
 from src.models.location import Location
 from src import app as project_app
 from src.database import create_initial_admin, db as project_db
@@ -30,6 +36,12 @@ def client(app):
 def db(app):
     with app.app_context():
         project_db.create_all()
+        # * Uncomment the following line to enable foreign key constraints
+        # * this is not enabled by default in SQLite.
+        # * Tried it but it is very flakey.
+        # project_db.session.execute(
+        #     text("PRAGMA foreign_keys = ON")
+        # )
         yield project_db
         project_db.drop_all()
 
@@ -186,3 +198,43 @@ def employees(group):
         employee.id = uuid.uuid4()
         employees.append(employee)
     return employees
+
+
+@pytest.fixture
+def pre_order(location):
+    pre_order = PreOrder(
+        person_id=uuid.uuid4(),
+        location_id=location.id,
+        date=(datetime.datetime.now() + datetime.timedelta(days=1)).date(),
+        nothing=False,
+        main_dish=MainDish.rot,
+        salad_option=True,
+    )
+    return pre_order
+
+
+@pytest.fixture
+def daily_order(location):
+    daily_order = DailyOrder(
+        person_id=uuid.uuid4(),
+        location_id=location.id,
+        date=datetime.datetime.now().date(),
+        nothing=False,
+        main_dish=MainDish.rot,
+        salad_option=True,
+    )
+    return daily_order
+
+
+@pytest.fixture
+def old_order(location):
+    old_order = OldOrder(
+        person_id=uuid.uuid4(),
+        location_id=location.id,
+        date=(datetime.datetime.now() - datetime.timedelta(days=1)).date(),
+        nothing=False,
+        main_dish=MainDish.rot,
+        handed_out=True,
+        salad_option=True,
+    )
+    return old_order
