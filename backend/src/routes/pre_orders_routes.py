@@ -292,9 +292,10 @@ def create_update_preorders_employees():
 
 
 @pre_orders_routes.post("/api/pre-orders/users")
-@login_required(
-    groups=[UserGroup.verwaltung, UserGroup.standortleitung, UserGroup.gruppenleitung]
-)
+# Must not be restricted for user food order! (Frontend)
+# @login_required(
+#     groups=[UserGroup.verwaltung, UserGroup.standortleitung, UserGroup.gruppenleitung]
+# )
 @swag_from(
     {
         "tags": ["pre_orders"],
