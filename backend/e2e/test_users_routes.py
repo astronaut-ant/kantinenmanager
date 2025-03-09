@@ -2,7 +2,7 @@
 
 import uuid
 from .helper import *  # for fixtures # noqa: F403
-from .helper import login, PASSWORD
+from .helper import login
 from src.models.user import UserGroup, User
 
 
