@@ -2,6 +2,7 @@ import uuid
 import datetime
 import pytest
 from sqlalchemy import text
+from src.models.dish_price import DishPrice
 from src.models.oldorder import OldOrder
 from src.models.dailyorder import DailyOrder
 from src.models.maindish import MainDish
@@ -36,12 +37,10 @@ def client(app):
 def db(app):
     with app.app_context():
         project_db.create_all()
-        # * Uncomment the following line to enable foreign key constraints
+        # * Set it to ON to enable foreign key constraints as
         # * this is not enabled by default in SQLite.
-        # * Tried it but it is very flakey.
-        # project_db.session.execute(
-        #     text("PRAGMA foreign_keys = ON")
-        # )
+        # * I tried to use ON as default but it was very flakey.
+        project_db.session.execute(text("PRAGMA foreign_keys = OFF"))
         yield project_db
         project_db.drop_all()
 
@@ -238,3 +237,28 @@ def old_order(location):
         salad_option=True,
     )
     return old_order
+
+
+@pytest.fixture()
+def today():
+    return datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+
+
+@pytest.fixture()
+def dish_price(today):
+    return DishPrice(
+        date=today,
+        main_dish_price=5.5,
+        salad_price=2.5,
+        prepayment=15.0,
+    )
+
+
+@pytest.fixture()
+def dish_price_alt(today):
+    return DishPrice(
+        date=today - datetime.timedelta(days=10),
+        main_dish_price=2.5,
+        salad_price=1.5,
+        prepayment=10.0,
+    )

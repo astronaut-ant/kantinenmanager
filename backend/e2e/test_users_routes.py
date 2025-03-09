@@ -2,7 +2,7 @@
 
 import uuid
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 from src.models.preorder import PreOrder
 from src.models.dailyorder import DailyOrder
 from src.models.oldorder import OldOrder
@@ -402,6 +402,9 @@ def describe_users():
             db,
             pre_order,
         ):
+            # enforce foreign key constraints just for this test
+            db.session.execute(text("PRAGMA foreign_keys = ON"))
+
             # user_gruppenleitung has a pre_order and will be deleted
             db.session.add(user_verwaltung)
             db.session.add(user_standortleitung)  # needed for location
@@ -444,6 +447,9 @@ def describe_users():
             db,
             daily_order,
         ):
+            # enforce foreign key constraints just for this test
+            db.session.execute(text("PRAGMA foreign_keys = ON"))
+
             # user_gruppenleitung has a pre_order and will be deleted
             db.session.add(user_verwaltung)
             db.session.add(user_standortleitung)  # needed for location
@@ -486,11 +492,16 @@ def describe_users():
             db,
             old_order,
         ):
+            # enforce foreign key constraints just for this test
+            db.session.execute(text("PRAGMA foreign_keys = ON"))
+
             # user_gruppenleitung has a pre_order and will be deleted
             db.session.add(user_verwaltung)
             db.session.add(user_standortleitung)  # needed for location
             db.session.add(user_gruppenleitung)
+            db.session.commit()  # needed
             db.session.add(location)  # needed for order
+
             old_order.person_id = user_gruppenleitung.id
             db.session.add(old_order)
             db.session.commit()
@@ -512,14 +523,13 @@ def describe_users():
                 db.session.execute(select(User).where(User.id == user_id)).scalar()
                 is None
             )
-            # It would be better to check if the person_id is None, but foreign keys are not enforced
-            # by default in SQLite. I tried to enable it, but it resulted in very flakey test runs.
             assert (
                 db.session.execute(
                     select(OldOrder).where(OldOrder.person_id == user_id)
                 ).all()
-                != []
+                == []
             )
+            assert old_order.person_id is None
 
 
 def describe_group_leaders():
