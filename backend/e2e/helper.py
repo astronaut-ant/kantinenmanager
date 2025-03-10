@@ -100,7 +100,7 @@ def user_kuechenpersonal():
         user_group=UserGroup.kuechenpersonal,
     )
     user.id = uuid.uuid4()
-    return
+    return user
 
 
 @pytest.fixture()
