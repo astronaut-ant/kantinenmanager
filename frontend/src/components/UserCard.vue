@@ -1,5 +1,10 @@
 <template>
-  <v-card class="mx-2 my-2" width="425" elevation="16">
+  <v-card
+    class="mx-2 my-2"
+    width="425"
+    elevation="16"
+    :class="isBlocked ? 'blockedBackground' : ''"
+  >
     <v-card-item>
       <div class="d-flex align-center">
         <div>
@@ -16,6 +21,7 @@
           <v-card-subtitle>
             <v-icon :color="color" icon="mdi-at" size="small"></v-icon>
             <span class="me-1 ml-1"> {{ props.username }} </span>
+            <span v-if="isBlocked" class="font-italic">(gesperrt)</span>
           </v-card-subtitle>
         </div>
       </div>
@@ -48,14 +54,6 @@
             size="default"
             density="comfortable"
             ><v-icon>mdi-trash-can-outline</v-icon></v-btn
-          >
-          <v-btn
-            class="bg-blue-grey"
-            @click="blocking"
-            variant="tonal"
-            size="default"
-            density="comfortable"
-            ><v-icon>mdi-block-helper</v-icon></v-btn
           >
         </div>
       </div>
@@ -147,6 +145,9 @@
             <v-btn @click="handlePasswordReset" class="bg-red" block
               >Passwort zurücksetzen</v-btn
             >
+            <v-btn class="bg-blue-grey w-100 mt-4" block @click="blocking">{{
+              isBlocked ? "Benutzer ensperren" : "Benutzer sperren"
+            }}</v-btn>
           </v-form>
         </div>
       </v-card-text>
@@ -291,3 +292,18 @@ const blocking = () => {
   console.log(isBlocked.value);
 };
 </script>
+<style scoped>
+.blockedBackground {
+  background-image: linear-gradient(
+    135deg,
+    #eceff1 25%,
+    #ffffff00 25%,
+    #ffffff00 50%,
+    #eceff1 50%,
+    #eceff1 75%,
+    #ffffff00 75%,
+    #ffffff00 100%
+  );
+  background-size: 56.57px 56.57px;
+}
+</style>
