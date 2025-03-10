@@ -1,7 +1,7 @@
 """Repository to handle database operations for order data."""
 
 from sqlalchemy import delete, insert, select, func, or_, and_, text
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, aliased
 from src.database import db
 from uuid import UUID
 from typing import List, Optional
@@ -194,6 +194,30 @@ class OrdersRepository:
         """
         # TODO: Filter by user scope
         query = select(PreOrder)
+
+        user = UsersRepository.get_user_by_id(user_id)
+        if user_group == UserGroup.verwaltung:
+            query = query
+        elif (
+            user_group == UserGroup.standortleitung
+            or user_group == UserGroup.kuechenpersonal
+        ):
+            query = query.filter(PreOrder.location_id == user.location_id)
+        elif user_group == UserGroup.gruppenleitung:
+            employee_alias = aliased(Employee)
+            query = (
+                query.join(PreOrder.person)
+                .outerjoin(employee_alias, PreOrder.person_id == employee_alias.id)
+                .filter(
+                    or_(
+                        user.leader_of_group.id == employee_alias.group_id,
+                        employee_alias.group_id.in_(
+                            [group.id for group in user.replacement_leader_of_groups]
+                        ),
+                        user.id == PreOrder.person_id,
+                    )
+                )
+            )
 
         if filters.person_id:
             query = query.filter(PreOrder.person_id == filters.person_id)
