@@ -18,7 +18,7 @@
               <h3 class="mt-2 text-blue-grey">
                 {{ fullName }}
               </h3>
-              <div class="w-75 mx-auto mt-2">
+              <div class="w-100 mt-4 mt-2 ps-4">
                 <p
                   class="text-caption mt-1 text-start text-no-wrap text-blue-grey"
                 >
@@ -37,14 +37,25 @@
                 </p>
               </div>
               <v-divider color="text-blue-grey" class="my-3"></v-divider>
-
+              <div class>
+                <UserFoodOrder :personId="appStore.userData.id" />
+              </div>
+              <div>
+                <UserTodaysOrder />
+              </div>
+              <div>
+                <UserQRCode :qr-value="appStore.userData.id" />
+              </div>
+              <v-divider color="text-blue-grey" class="my-3"></v-divider>
               <PasswordChange @succeeded="signOut" />
 
               <v-divider color="text-blue-grey" class="my-3"></v-divider>
-              <v-btn @click="signOut" variant="text" class="text-blue-grey">
-                <v-icon class="me-4">mdi-logout</v-icon>
-                Abmelden
-              </v-btn>
+              <div class="text-start">
+                <v-btn @click="signOut" variant="text" class="text-blue-grey">
+                  <v-icon class="me-4">mdi-logout</v-icon>
+                  Abmelden
+                </v-btn>
+              </div>
             </div>
           </v-card-text>
         </v-card>
@@ -58,6 +69,9 @@ import axios from "axios";
 import router from "@/router";
 import { useAppStore } from "@/stores/app";
 import PasswordChange from "./PasswordChange.vue";
+import UserFoodOrder from "./UserFoodOrder.vue";
+import UserQRCode from "./UserQRCode.vue";
+import UserTodaysOrder from "./UserTodaysOrder.vue";
 const appStore = useAppStore();
 const fullName =
   appStore.userData.first_name + " " + appStore.userData.last_name;

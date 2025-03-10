@@ -200,6 +200,7 @@ def create_user():
 
     try:
         body = UserFullSchema().load(request.json)
+        id, initial_password = UsersService.create_user(**body)
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
@@ -209,9 +210,6 @@ def create_user():
                 details=err.messages,
             )
         )
-
-    try:
-        id, initial_password = UsersService.create_user(**body)
     except AlreadyExistsError as e:
         abort_with_err(
             ErrMsg(
@@ -341,13 +339,14 @@ def update_user(user_id: UUID):
     location = None
 
     if (location_id := body.get("location_id")) is not None:
-        location = LocationsService.get_location_by_id(location_id)
-        if location is None:
+        try:
+            location = LocationsService.get_location_by_id(location_id)
+        except NotFoundError as err:
             abort_with_err(
                 ErrMsg(
                     status_code=404,
                     title="Standort nicht gefunden",
-                    description="Es wurde kein Standort mit dieser ID gefunden",
+                    description=str(err),
                 )
             )
 

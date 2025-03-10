@@ -12,7 +12,7 @@ manual_cronjobs_routes = Blueprint("manual_cronjobs_routes", __name__)
 
 
 @manual_cronjobs_routes.get("/api/batch/pre-to-daily-to-old-order")
-@login_required(groups=[UserGroup.kuechenpersonal], disabled=True)
+@login_required(groups=[UserGroup.verwaltung, UserGroup.kuechenpersonal])
 @swag_from(
     {
         "tags": ["manual_cronjobs"],

@@ -1,8 +1,13 @@
 """End-to-End tests for the users routes."""
 
 import uuid
+
+from sqlalchemy import select, text
+from src.models.preorder import PreOrder
+from src.models.dailyorder import DailyOrder
+from src.models.oldorder import OldOrder
 from .helper import *  # for fixtures # noqa: F403
-from .helper import login, PASSWORD
+from .helper import login
 from src.models.user import UserGroup, User
 
 
@@ -47,20 +52,6 @@ def describe_users():
 
             assert res.status_code == 403
 
-        def it_does_not_send_hidden_users(
-            client, user_verwaltung, user_standortleitung, db
-        ):
-            db.session.add(user_verwaltung)
-            user_standortleitung.hidden = True
-            db.session.add(user_standortleitung)
-            db.session.commit()
-            login(user=user_verwaltung, client=client)
-
-            res = client.get("/api/users")
-
-            assert res.status_code == 200
-            assert len(res.json) == 1
-
     def describe_get_by_id():
         def it_returns_user_by_id(client, user_verwaltung, db):
             db.session.add(user_verwaltung)
@@ -78,19 +69,6 @@ def describe_users():
             login(user=user_verwaltung, client=client)
 
             res = client.get(f"/api/users/{uuid.uuid4()}")
-
-            assert res.status_code == 404
-
-        def it_does_not_return_hidden_user(
-            client, user_verwaltung, user_standortleitung, db
-        ):
-            db.session.add(user_verwaltung)
-            user_standortleitung.hidden = True
-            db.session.add(user_standortleitung)
-            db.session.commit()
-            login(user=user_verwaltung, client=client)
-
-            res = client.get(f"/api/users/{user_standortleitung.id}")
 
             assert res.status_code == 404
 
@@ -180,7 +158,10 @@ def describe_users():
             assert "initial_password" in res.json
             assert "id" in res.json
 
-        def it_takes_location_for_user(client, user_verwaltung, db, location):
+        def it_takes_location_for_user(
+            client, user_verwaltung, db, location, user_standortleitung
+        ):
+            db.session.add(user_standortleitung)
             db.session.add(user_verwaltung)
             db.session.add(location)
             db.session.commit()
@@ -407,7 +388,148 @@ def describe_users():
             res = client.delete(f"/api/users/{user_id}")
 
             assert res.status_code == 200
-            assert user_standortleitung.hidden
+            assert (
+                db.session.execute(select(User).where(User.id == user_id)).scalar()
+                is None
+            )
+
+        def it_deletes_pre_orders_of_user(
+            client,
+            location,
+            user_verwaltung,
+            user_standortleitung,
+            user_gruppenleitung,
+            db,
+            pre_order,
+        ):
+            # enforce foreign key constraints just for this test
+            db.session.execute(text("PRAGMA foreign_keys = ON"))
+
+            # user_gruppenleitung has a pre_order and will be deleted
+            db.session.add(user_verwaltung)
+            db.session.add(user_standortleitung)  # needed for location
+            db.session.add(user_gruppenleitung)
+            db.session.add(location)  # needed for order
+            pre_order.person_id = user_gruppenleitung.id
+            db.session.add(pre_order)
+            db.session.commit()
+            login(user=user_verwaltung, client=client)
+
+            user_id = user_gruppenleitung.id
+
+            assert (
+                db.session.execute(
+                    select(PreOrder).where(PreOrder.person_id == user_id)
+                ).all()
+                != []
+            )
+
+            res = client.delete(f"/api/users/{user_id}")
+
+            assert res.status_code == 200
+            assert (
+                db.session.execute(select(User).where(User.id == user_id)).scalar()
+                is None
+            )
+            assert (
+                db.session.execute(
+                    select(PreOrder).where(PreOrder.person_id == user_id)
+                ).all()
+                == []
+            )
+
+        def it_deletes_daily_orders_of_user(
+            client,
+            location,
+            user_verwaltung,
+            user_standortleitung,
+            user_gruppenleitung,
+            db,
+            daily_order,
+        ):
+            # enforce foreign key constraints just for this test
+            db.session.execute(text("PRAGMA foreign_keys = ON"))
+
+            # user_gruppenleitung has a pre_order and will be deleted
+            db.session.add(user_verwaltung)
+            db.session.add(user_standortleitung)  # needed for location
+            db.session.add(user_gruppenleitung)
+            db.session.add(location)  # needed for order
+            daily_order.person_id = user_gruppenleitung.id
+            db.session.add(daily_order)
+            db.session.commit()
+            login(user=user_verwaltung, client=client)
+
+            user_id = user_gruppenleitung.id
+
+            assert (
+                db.session.execute(
+                    select(DailyOrder).where(DailyOrder.person_id == user_id)
+                ).all()
+                != []
+            )
+
+            res = client.delete(f"/api/users/{user_id}")
+
+            assert res.status_code == 200
+            assert (
+                db.session.execute(select(User).where(User.id == user_id)).scalar()
+                is None
+            )
+            assert (
+                db.session.execute(
+                    select(DailyOrder).where(DailyOrder.person_id == user_id)
+                ).all()
+                == []
+            )
+
+        def it_anonymizes_old_order(
+            client,
+            location,
+            user_verwaltung,
+            user_standortleitung,
+            user_gruppenleitung,
+            db,
+            old_order,
+        ):
+            # enforce foreign key constraints just for this test
+            db.session.execute(text("PRAGMA foreign_keys = ON"))
+
+            # user_gruppenleitung has a pre_order and will be deleted
+            db.session.add(user_verwaltung)
+            db.session.add(user_standortleitung)  # needed for location
+            db.session.add(user_gruppenleitung)
+            db.session.commit()  # needed
+            db.session.add(location)  # needed for order
+
+            old_order.person_id = user_gruppenleitung.id
+            db.session.add(old_order)
+            db.session.commit()
+            login(user=user_verwaltung, client=client)
+
+            user_id = user_gruppenleitung.id
+
+            assert (
+                db.session.execute(
+                    select(OldOrder).where(OldOrder.person_id == user_id)
+                ).all()
+                != []
+            )
+
+            res = client.delete(f"/api/users/{user_id}")
+
+            assert res.status_code == 200
+            assert (
+                db.session.execute(select(User).where(User.id == user_id)).scalar()
+                is None
+            )
+            assert (
+                db.session.execute(
+                    select(OldOrder).where(OldOrder.person_id == user_id)
+                ).all()
+                == []
+            )
+            assert old_order.person_id is None
 
 
 def describe_group_leaders():

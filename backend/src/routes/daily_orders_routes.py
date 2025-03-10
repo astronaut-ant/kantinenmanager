@@ -83,7 +83,7 @@ def get_daily_orders_counted():
                 details=str(err),
             )
         )
-    except NotFoundError as err:
+    except NotFoundError:
         # Handled as Server Error because logic would not allow this to happen.
         abort_with_err(
             ErrMsg(
@@ -95,6 +95,46 @@ def get_daily_orders_counted():
         )
 
     return jsonify(orders_counted_by_location), 200
+
+
+@daily_orders_routes.get("/api/daily-orders/own")
+@login_required(
+    groups=[
+        UserGroup.gruppenleitung,
+        UserGroup.kuechenpersonal,
+        UserGroup.verwaltung,
+        UserGroup.standortleitung,
+    ]
+)
+@swag_from(
+    {
+        "tags": ["daily_orders"],
+        "responses": {
+            200: {
+                "description": "Returns daily orders for a user",
+                "schema": DailyOrderFullSchema,
+            },
+            404: {"description": "Not found"},
+        },
+    }
+)
+def get_own_daily_order():
+    """
+    Get only our own Daily order as User.
+    """
+    try:
+        daily_order = DailyOrdersService.get_own_daily_order(g.user_id)
+    except NotFoundError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Nicht gefunden",
+                description="Keine Bestellung vorhanden.",
+                details=str(err),
+            )
+        )
+
+    return DailyOrderFullSchema().dump(daily_order), 200
 
 
 # QR-Code scannen
@@ -205,7 +245,7 @@ def get_daily_orders_for_group(group_id: UUID):
 
 
 @daily_orders_routes.put("/api/daily-orders/<int:daily_order_id>")
-@login_required(groups=[UserGroup.kuechenpersonal])
+@login_required(groups=[UserGroup.verwaltung, UserGroup.kuechenpersonal])
 @swag_from(
     {
         "tags": ["daily_orders"],

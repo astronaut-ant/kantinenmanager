@@ -21,7 +21,6 @@ class UserFullSchema(UserBaseSchema):
     created = fields.DateTime(format="timestamp", required=True, dump_only=True)
     last_login = fields.DateTime(format="timestamp", required=True, dump_only=True)
     blocked = fields.Boolean(required=True, dump_only=True)
-    hidden = fields.Boolean(required=True, dump_only=True)
 
 
 class GroupLeaderNestedSchema(UserBaseSchema):

@@ -1,9 +1,9 @@
-from datetime import datetime
+from datetime import datetime, time
 from flask import Blueprint, request
 from flasgger import swag_from
 from marshmallow import ValidationError
 
-from src.utils.exceptions import NotFoundError
+from src.utils.exceptions import BadValueError, NotFoundError
 from src.utils.error import ErrMsg, abort_with_err
 from src.services.dish_prices_service import DishPricesService
 from src.schemas.dish_prices_schemas import DishPriceBaseSchema, DishPriceFullSchema
@@ -68,17 +68,20 @@ def get_dish_price_by_date(date: datetime):
 
     try:
         parsed_date = DishPriceBaseSchema(only=("date",)).load({"date": date})
+        dt = datetime.combine(
+            parsed_date.get("date"), time(0, 0)
+        )  # convert date to datetime
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
                 title="Validierungsfehler",
-                description="Format des Datums nicht valide",
+                description="Ungültiges Datum",
                 details=err.messages,
             )
         )
 
-    price = DishPricesService.get_price_valid_at_date(parsed_date.get("date"))
+    price = DishPricesService.get_price_valid_at_date(dt)
 
     if price is None:
         abort_with_err(
@@ -162,9 +165,16 @@ def create_dish_price():
             )
         )
 
+    dt = datetime.combine(body.get("date"), time(0, 0))
+
     try:
-        price = DishPricesService.create_price(**body)
-    except ValueError as err:
+        price = DishPricesService.create_price(
+            date=dt,
+            main_dish_price=body.get("main_dish_price"),
+            salad_price=body.get("salad_price"),
+            prepayment=body.get("prepayment"),
+        )
+    except BadValueError as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
@@ -211,12 +221,15 @@ def update_dish_price(date: datetime):
 
     try:
         parsed_date = DishPriceBaseSchema(only=("date",)).load({"date": date})
+        dt = datetime.combine(
+            parsed_date.get("date"), time(0, 0)
+        )  # convert date to datetime
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
                 title="Validierungsfehler",
-                description="Format des Datums nicht valide",
+                description="Ungültiges Datum",
                 details=err.messages,
             )
         )
@@ -233,9 +246,17 @@ def update_dish_price(date: datetime):
             )
         )
 
+    new_dt = datetime.combine(body.get("date"), time(0, 0))
+
     try:
-        price = DishPricesService.update_price(old_date=parsed_date.get("date"), **body)
-    except ValueError as err:
+        price = DishPricesService.update_price(
+            old_date=dt,
+            date=new_dt,
+            main_dish_price=body.get("main_dish_price"),
+            salad_price=body.get("salad_price"),
+            prepayment=body.get("prepayment"),
+        )
+    except BadValueError as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
@@ -247,7 +268,7 @@ def update_dish_price(date: datetime):
         abort_with_err(
             ErrMsg(
                 status_code=404,
-                title="Fehler beim Löschen",
+                title="Preis existiert nicht",
                 description=str(err),
             )
         )
@@ -279,23 +300,26 @@ def delete_dish_price(date: datetime):
 
     try:
         parsed_date = DishPriceBaseSchema(only=("date",)).load({"date": date})
+        dt = datetime.combine(
+            parsed_date.get("date"), time(0, 0)
+        )  # convert date to datetime
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
                 title="Validierungsfehler",
-                description="Format des Datums nicht valide",
+                description="Ungültiges Datum",
                 details=err.messages,
             )
         )
 
     try:
-        DishPricesService.delete_price(parsed_date.get("date"))
+        DishPricesService.delete_price(dt)
     except NotFoundError as err:
         abort_with_err(
             ErrMsg(
                 status_code=404,
-                title="Fehler beim Löschen",
+                title="Preis existiert nicht",
                 description=str(err),
             )
         )

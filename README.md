@@ -98,9 +98,27 @@ docker compose -f docker-compose.debug.yml up --build # Start the application in
 
 **Hint:** The default backend port is `4200` and the frontend uses `3000`.
 
+## 🌐 Access the live system with a domain
+
+You can access the live system using the server's IP address. To simplify access, you can create custom internal domain mappings by adding entries to your local machine's hosts file:
+
+1. Locate and open the `hosts` file on your system ([instructions here](https://www.howtogeek.com/27350/beginner-geek-how-to-edit-your-hosts-file/)).
+2. Append the following lines to the file and save:
+
+   ```
+   172.26.92.165    sep.internal
+   172.26.92.165    grafana.sep.internal
+   ```
+
+You can now access the live application at `https://sep.internal` and connect via SSH using `ssh swtp@sep.internal`.
+
+**Note:** Use the domain names exactly as specified. The reverse proxies are configured to accept only these domains or the IPv4 address.
+
 ## 🙈 Grafana
 
-Access Grafana on `http://<server-ip>:30433`.
+For monitoring purposes, we deploy Grafana, Prometheus, and Loki on our server. To access the Grafana interface, follow the steps to edit the hosts file as described above. Then, navigate to `https://grafana.sep.internal`.
+
+<img src=".gitlab/assets/screenshot_grafana.png" />
 
 ## 🧪 Running Tests
 

@@ -1,40 +1,38 @@
 <template>
   <NavbarVerwaltung />
+  <FilterBar
+    :viewSwitcherEnabled="false"
+    :filterList="['first_name', 'last_name', 'employee_number', 'group_name', 'location_name']"
+    :items="employees"
+    @searchresult="updateOverview"
+  />
   <v-container style="width: 70%;">
-    <div>
-      <v-toolbar color="white" flat dark>
-        <p class="text-h5 font-weight-black" >Übersicht Mitarbeiter</p>
+    <transition name="fade-toolbar" mode="out-in">
+      <v-toolbar v-if="selected.length > 0 && items.length > 0" color="grey-lighten-2" flat dark density="compact" rounded="lg">
+        <v-btn class="ml-3 mr-3" icon="mdi-close" density="compact" @click="selected = []"></v-btn>
+        <v-divider inset vertical></v-divider>
+        <p class="ml-4 mr-2">{{ selected.length }} ausgewählt</p>
         <v-spacer></v-spacer>
-        <v-btn icon="mdi-magnify" @click="toggleSearchField"></v-btn>
-        <v-btn icon="mdi-reload" @click="fetchData"></v-btn>
+        <v-btn prepend-icon="mdi-qrcode" class="bg-green mr-2" @click="getQRCodeSelected" size="small">QR Codes generieren</v-btn>
+        <v-btn prepend-icon="mdi-trash-can-outline" class="bg-red mr-2" @click="opendeleteDialogSelected" size="small">Ausgewählte Mitarbeiter löschen</v-btn>
       </v-toolbar>
-    </div>
-    <div class="d-flex justify-center">
-      <v-expand-transition>
-        <v-text-field
-        v-if="isSearchVisible"
-        v-model="search"
-        density="compact"
-        label="Suche"
-        prepend-inner-icon="mdi-magnify"
-        variant="solo-filled"
-        flat
-        hide-details
-        single-line
-        clearable
-        rounded
-        ></v-text-field>
-      </v-expand-transition>
-    </div>
-    <div>
-      <v-data-table :headers="headers"  :items="items" :search="search" :sort-by="sortBy" :loading="loading" :hover="true" item-value="employee_number">
+
+      <v-toolbar v-else-if="selected.length == 0" color="white" flat dark density="compact" rounded="lg">
+        <p class="text-h6">Anzahl aller jetzigen Mitarbeiter: {{ employees.length }}</p>
+        <v-spacer></v-spacer>
+        <v-btn prepend-icon="mdi-reload" @click="fetchData">Neuladen</v-btn>
+      </v-toolbar>
+    </transition>
+    <div v-if="items.length > 0">
+      <v-data-table v-model="selected" :headers="headers"  :items="items" :sort-by="sortBy" :loading="loading" :hover="true" item-value="id" show-select items-per-page="15" items-per-page-text="Einträge pro Seite" page-text="" show-current-page :items-per-page-options="itemsPerPage">
       <template v-slot:[`item.actions`]="{ item }">
-        <v-btn icon="mdi-qrcode" class="bg-green mr-2" @click="getQRCode(item)" size="small"></v-btn>
-        <v-btn icon="mdi-lead-pencil" class="bg-primary mr-2" @click="openeditDialog(item)" size="small"></v-btn>
-        <v-btn icon="mdi-trash-can-outline" class="bg-red" @click="opendeleteDialog(item)" size="small"></v-btn>
+        <v-btn icon="mdi-qrcode" class="bg-green mr-2" @click="getQRCode(item)" size="small" :disabled="selected.length > 0"></v-btn>
+        <v-btn icon="mdi-lead-pencil" class="bg-primary mr-2" @click="openeditDialog(item)" size="small" :disabled="selected.length > 0"></v-btn>
+        <v-btn icon="mdi-trash-can-outline" class="bg-red" @click="opendeleteDialog(item)" size="small" :disabled="selected.length > 0"></v-btn>
       </template>
       </v-data-table>
     </div>
+    <NoResult v-else-if="items.length == 0 && employees.length != 0" />
   </v-container>
   <v-dialog v-model="deleteDialog" persistent max-width="400">
     <v-card>
@@ -49,6 +47,24 @@
       <v-card-actions>
         <v-btn text @click="closedeleteDialog">Abbrechen</v-btn>
         <v-btn color="red" variant="elevated" @click="confirmDelete">Löschen</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+  <v-dialog v-model="deleteDialogSelected" persistent max-width="500">
+    <v-card>
+      <v-card-text>
+        <div class="d-flex justify-center text-red mb-7">
+          <p class="text-h5 font-weight-black" >Ausgewählte Mitarbeiter löschen</p>
+        </div>
+        <div class="text-medium-emphasis">
+          <p class="mb-2"> Sind Sie sicher, dass Sie folgende Mitarbeiter löschen möchten?</p>
+          <p />
+          <li v-for="employee in employeesToDelete" :key="employee.id"><strong> {{ employee.first_name }} {{ employee.last_name }} </strong> </li>
+        </div>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn text @click="closedeleteDialogSelected">Abbrechen</v-btn>
+        <v-btn color="red" variant="elevated" @click="confirmDeleteSelected">Löschen</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -144,14 +160,14 @@
 
 <script setup>
   import axios from "axios";
-  const search = ref("");
   const loading = ref(true);
-  const isSearchVisible = ref(false);
   const deleteDialog = ref(false);
   const editDialog = ref(false);
+  const deleteDialogSelected = ref(false);
   const employeeToDelete = ref("");
   const employeeToDeleteID = ref("");
   const employeeToEditID = ref("");
+  const employeesToDelete = ref([]);
   const snackbar = ref(false);
   const snackbarText = ref("");
   const errorSnackbar = ref(false);
@@ -159,6 +175,7 @@
   const items = ref([]);
   const employees = ref([]);
   const locations = ref([]);
+  const itemsPerPage = ref([{value: 15, title: '15'}, {value: 30, title: '30'},{value: 50, title: '50'}, {value: 100, title: '100'}, {value: -1, title: 'Alle Einträge'}]);
 
   const employee_number = ref('');
   const first_name = ref('');
@@ -168,12 +185,7 @@
   const validation = ref(null);
   const form = ref(false);
 
-  const toggleSearchField = () => {
-    if (isSearchVisible.value) {
-      search.value = "";
-    }
-    isSearchVisible.value = !isSearchVisible.value;
-  };
+  const selected = ref([]);
 
   const opendeleteDialog = (item) => {
     employeeToDelete.value = item.first_name  + " " + item.last_name;
@@ -183,6 +195,17 @@
 
   const closedeleteDialog = () => {
     deleteDialog.value = false;
+  };
+
+  const opendeleteDialogSelected = () => {
+    employeesToDelete.value = employees.value
+    .filter(emp => selected.value.includes(emp.id))
+    .map(emp => ({ id: emp.id, first_name: emp.first_name, last_name: emp.last_name }));
+    deleteDialogSelected.value = true;
+  };
+
+  const closedeleteDialogSelected = () => {
+    deleteDialogSelected.value = false;
   };
 
   const openeditDialog = (item) => {
@@ -205,18 +228,70 @@
     axios
       .delete(`${import.meta.env.VITE_API}/api/employees/${employeeToDeleteID.value}`, { withCredentials: true })
       .then(() => {
-        items.value = items.value.filter((item) => item.id !== employeeToDeleteID.value);
-
+        deleteDialog.value = false;
         snackbar.value = false;
         snackbarText.value = `${employeeToDelete.value} wurde erfolgreich gelöscht!`;
         snackbar.value = true;
-        deleteDialog.value = false;
+        fetchData();
       })
       .catch((err) => {
         console.error(err);
         errorSnackbarText.value = `Fehler beim löschen von ${employeeToDelete.value}`;
         errorSnackbar.value = true;
       })
+  };
+
+  const confirmDeleteSelected = () => {
+    axios
+      .delete(`${import.meta.env.VITE_API}/api/employees/`, { data: { employee_ids: selected.value }, withCredentials: true })
+      .then(() => {
+        deleteDialogSelected.value = false;
+        snackbar.value = false;
+        snackbarText.value = "Die ausgewählten Mitarbeiter wurden erfolgreich gelöscht!";
+        snackbar.value = true;
+        selected.value = [];
+        fetchData();
+      })
+      .catch((err) => {
+        console.error(err);
+        errorSnackbarText.value = "Fehler beim löschen der ausgewählten Mitarbeiter!";
+        errorSnackbar.value = true;
+      });
+  }
+
+  const getQRCodeSelected = () => {
+    axios
+      .post(`${import.meta.env.VITE_API}/api/employees/qr-codes-by-list`, 
+      { employee_ids: selected.value }, { responseType: "blob", withCredentials: true })
+      .then((response) => {
+        const blob = new Blob([response.data], { type: response.headers["content-type"] });
+        const url = window.URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = url;
+
+        const contentDisposition = response.headers["content-disposition"];
+        let filename = "download";
+        if (contentDisposition) {
+          const filenameMatch = contentDisposition.match(/filename\*?=(['"]?)(.+?)\1(;|$)/i);
+          if (filenameMatch) {
+            filename = decodeURIComponent(filenameMatch[2]);
+          }
+        }
+
+        link.download = filename;
+        link.click();
+        window.URL.revokeObjectURL(url);
+
+        snackbar.value = false;
+        snackbarText.value = "Die QR-Codes wurden erfolgreich generiert!";
+        snackbar.value = true;
+      })
+      .catch((err) => {
+        console.error("Error getting QR Codes", err);
+        errorSnackbarText.value = "Fehler beim generieren der QR-Codes!"
+        errorSnackbar.value = true;
+      });
   };
 
   const getQRCode = (item) => {
@@ -261,8 +336,7 @@
     axios
     .get(import.meta.env.VITE_API + "/api/employees", { withCredentials: true })
     .then((response) => {
-      employees.value = response.data;
-      items.value = employees.value.map((employee) => {
+      items.value = response.data.map((employee) => {
         return {
           id: employee.id,
           first_name: employee.first_name,
@@ -274,9 +348,14 @@
           location_name: employee.group.location.location_name || "Unbekannt",
         };
       });
+      employees.value = items.value;
       loading.value = false;
     })
     .catch((err) => console.error("Error fetching data", err));
+  };
+
+  const updateOverview = (list) => {
+    items.value = list;
   };
 
   onMounted(() => {
@@ -285,8 +364,8 @@
 
   const headers = [
      { title: "Nummer", key: "employee_number", nowrap: true},
-     { title: "Nachname", key: "last_name", nowrap: true },
      { title: "Vorname", key: "first_name", nowrap: true },
+     { title: "Nachname", key: "last_name", nowrap: true },
      { title: "Gruppe", key: "group_name", nowrap: true },
      { title: "Standort", key: "location_name", nowrap: true},
      { title: "", key: "actions", sortable: false, nowrap: true },];
@@ -344,3 +423,21 @@
         });
   };
 </script>
+
+
+<style scoped>
+.fade-toolbar-enter-active,
+.fade-toolbar-leave-active {
+  transition: opacity 0.2s ease, transform 0.1s ease;
+}
+
+.fade-toolbar-enter-from {
+  opacity: 0;
+  transform: translateY(-5px);
+}
+
+.fade-toolbar-leave-to {
+  opacity: 0;
+  transform: translateY(5px);
+}
+</style>

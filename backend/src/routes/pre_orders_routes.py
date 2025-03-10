@@ -165,7 +165,7 @@ def get_pre_order(preorder_id: int):
             ErrMsg(
                 status_code=404,
                 title="Vorbestellung nicht gefunden",
-                description=f"Die gesuchte Vorbestellung wurde nicht gefunden.",
+                description="Die gesuchte Vorbestellung wurde nicht gefunden.",
                 details=str(err),
             )
         )
@@ -182,7 +182,7 @@ def get_pre_order(preorder_id: int):
     return jsonify(order), 200
 
 
-@pre_orders_routes.get("/api/pre-orders/by-group-leader/<uuid:person_id>")
+@pre_orders_routes.get("/api/pre-orders/by-group-leader/<uuid:user_id>")
 @login_required(groups=[UserGroup.gruppenleitung])
 @swag_from(
     {
@@ -190,7 +190,7 @@ def get_pre_order(preorder_id: int):
         "parameters": [
             {
                 "in": "path",
-                "name": "person_id",
+                "name": "user_id",
                 "required": True,
                 "schema": {"type": "string", "format": "uuid"},
             }
@@ -205,7 +205,7 @@ def get_pre_order(preorder_id: int):
         },
     }
 )
-def get_pre_orders_by_group_leader(person_id: UUID):
+def get_pre_orders_by_group_leader(user_id: UUID):
     """Get orders by group leader
     Retrieves all groups of the group leader along with the orders of the employees in these groups.
     ---
@@ -213,7 +213,7 @@ def get_pre_orders_by_group_leader(person_id: UUID):
 
     try:
         pre_orders = PreOrdersService.get_pre_orders_by_group_leader(
-            person_id, g.user_id, g.user_group
+            user_id, g.user_id, g.user_group
         )
     except NotFoundError as err:
         abort_with_err(
