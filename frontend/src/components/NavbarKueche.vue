@@ -3,7 +3,18 @@
     <v-toolbar class="bg-primary" flat app>
       <v-app-bar-nav-icon @click="showDrawer"></v-app-bar-nav-icon>
       <v-toolbar-title>
-        <span>Küchenpersonal</span>
+        <v-breadcrumbs density="comfortable" :items="[{ title: 'Küche' }, ...breadcrumbs || []]">
+          <template v-slot:prepend>
+            <v-img src="@/assets/logo.png" />
+          </template>
+          <template v-slot:item="{ item }">
+            <v-breadcrumbs-item>
+              <span :style="`color: white;`">
+                {{ item.title }}
+              </span>
+            </v-breadcrumbs-item>
+          </template>
+        </v-breadcrumbs>
       </v-toolbar-title>
       <Avatar />
     </v-toolbar>
@@ -41,4 +52,11 @@ const drawer = ref(false);
 const showDrawer = () => {
   drawer.value = !drawer.value;
 };
+
+const props = defineProps({
+  breadcrumbs: {
+    type: Array,
+    required: false
+  }
+});
 </script>

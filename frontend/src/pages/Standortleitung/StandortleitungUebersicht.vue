@@ -1,5 +1,5 @@
 <template>
-  <NavbarStandort></NavbarStandort>
+  <NavbarStandort :breadcrumbs = '[{"title": "Gruppenübersicht"}]'></NavbarStandort>
   <FilterBar 
     :viewSwitcherEnabled="false"
     :filterList="['group_name', 'group_number', 'group_leader.first_name', 'group_leader.last_name', 'group_leader.username']" 

@@ -115,18 +115,3 @@ const props = defineProps({
   }
 });
 </script>
-
-
-<style scoped>
-.v-breadcrumbs__item {
-  color: #FFFFFF; /* White, or any other color */
-}
-
-.v-breadcrumbs__item--active {
-  color: #FFFFFF !important; /* Same color for the last item */
-  opacity: 1;
-}
-
-
-
-</style>

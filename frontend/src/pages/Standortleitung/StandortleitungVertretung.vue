@@ -1,5 +1,5 @@
 <template>
-  <NavbarStandort></NavbarStandort>
+  <NavbarStandort :breadcrumbs = '[{"title": "Vertretung festlegen"}]'></NavbarStandort>
   <div class="ml-10 mr-10 mt-5">
     <v-row class="d-flex justify-start">
       <v-col
