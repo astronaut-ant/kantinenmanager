@@ -1,5 +1,5 @@
 <template>
-  <NavbarKueche />
+  <NavbarKueche :breadcrumbs = '[{"title": "Heutige Bestellungen"}]'/>
   <h1 class="text-center mt-5">Heutige Bestellungen</h1>
   <v-container class="pa-4">
     <v-row>

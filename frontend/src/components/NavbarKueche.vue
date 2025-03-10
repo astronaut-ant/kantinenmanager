@@ -3,7 +3,7 @@
     <v-toolbar class="bg-primary" flat app>
       <v-app-bar-nav-icon @click="showDrawer"></v-app-bar-nav-icon>
       <v-toolbar-title>
-        <v-breadcrumbs density="comfortable" :items="[{ title: 'Küche' }, ...breadcrumbs || []]">
+        <v-breadcrumbs density="comfortable" :items="[{ title: 'Küchenpersonal' }, ...breadcrumbs || []]">
           <template v-slot:prepend>
             <v-img src="@/assets/logo.png" />
           </template>
