@@ -337,7 +337,7 @@ def get_groups_with_employees():
 
 
 @groups_routes.delete("/api/groups/remove-replacement/<uuid:group_id>")
-@login_required(groups=[UserGroup.standortleitung], disabled=True)
+@login_required(groups=[UserGroup.standortleitung])
 @swag_from(
     {
         "tags": ["groups"],

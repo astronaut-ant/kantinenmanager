@@ -1,6 +1,6 @@
 """End-to-end tests for the auth middleware."""
 
-from datetime import datetime
+import datetime
 from flask import g
 from sqlalchemy import select
 from src.constants import AUTHENTICATION_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME
@@ -170,7 +170,7 @@ def describe_auth_middleware():
         assert len(refresh_token) > 0
 
         db.session.query(RefreshTokenSession).update(
-            {RefreshTokenSession.expires: datetime(2020, 1, 1)}
+            {RefreshTokenSession.expires: datetime.datetime(2020, 1, 1)}
         )
         db.session.commit()
 

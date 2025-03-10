@@ -7,18 +7,20 @@
     :no-click-animation="true"
   >
     <template v-slot:activator="{ props: activatorProps }">
-      <v-btn
-        @click="resetForm"
-        variant="text"
-        v-bind="activatorProps"
-        class="text-blue-grey"
-        ><v-icon class="me-4">mdi-key-variant</v-icon>Passwort ändern</v-btn
-      >
+      <div class="text-start">
+        <v-btn
+          @click="resetForm"
+          variant="text"
+          v-bind="activatorProps"
+          class="text-blue-grey"
+          ><v-icon class="me-4">mdi-key-variant</v-icon>Passwort ändern</v-btn
+        >
+      </div>
     </template>
 
     <v-card
-      :width="form ? '600' : '550'"
-      class="mx-auto px-10"
+      :width="form ? '400' : '500'"
+      class="mx-auto px-6"
       color="blue-grey-lighten-5"
     >
       <v-form
@@ -27,7 +29,7 @@
         validate-on="invalid-input"
       >
         <v-card-text>
-          <h2 class="mt-5 mb-6 text-blue-grey font-weight-bold">
+          <h2 class="ms-n1 mt-3 mb-6 text-blue-grey font-weight-bold">
             <v-icon class="me-4 text-blue-grey">
               {{ form ? "mdi-key-variant" : "mdi-swap-horizontal" }}</v-icon
             >
@@ -35,8 +37,8 @@
           </h2>
           <div class="d-flex justify-space-between w-100">
             <AnimatedCircle class="" v-if="!form" />
-            <div>
-              <h3 class="mt-7 text-blue-grey" v-if="!form">
+            <div class="me-n2">
+              <h3 class="mt-7 text-end text-blue-grey" v-if="!form">
                 (Automatische Abmeldung in 60 Sekunden)
               </h3>
             </div>
@@ -103,9 +105,14 @@
         </v-card-text>
         <v-divider></v-divider>
 
-        <v-card-actions class="mb-2 mt-2">
+        <v-card-actions class="mb-3 mt-2">
           <v-spacer></v-spacer>
-          <v-btn text="Abbrechen" variant="plain" @click="close"></v-btn>
+          <v-btn
+            :text="form ? 'Abbrechen' : 'zurück'"
+            color="blue-grey"
+            variant="plain"
+            @click="close"
+          ></v-btn>
           <v-btn
             v-if="form"
             type="submit"

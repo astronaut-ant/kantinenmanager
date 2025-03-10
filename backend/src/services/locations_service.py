@@ -27,7 +27,10 @@ class LocationsService:
         :return: The location with the given ID or None if no location was found
         """
 
-        return LocationsRepository.get_location_by_id(location_id)
+        location = LocationsRepository.get_location_by_id(location_id)
+        if location is None:
+            raise NotFoundError(f"Standort mit ID {location_id}")
+        return location
 
     @staticmethod
     def create_location(location_name: str, user_id_location_leader: UUID) -> UUID:
@@ -48,7 +51,7 @@ class LocationsService:
 
         if LocationsRepository.get_location_by_leader(location_leader.id):
             raise AlreadyExistsError(
-                ressource=f"User {location_leader.username}",
+                ressource=f"Nutzer:in {location_leader.username}",
                 details=" als Standortleiter",
             )
 
@@ -69,7 +72,7 @@ class LocationsService:
 
         :return: The updated location
         """
-        location = LocationsService.get_location_by_id(location_id)
+        location = LocationsRepository.get_location_by_id(location_id)
 
         if location is None:
             raise NotFoundError(f"Standort mit ID {location_id}")
@@ -116,5 +119,6 @@ class LocationsService:
         :param location_id: The ID of the location
         :return: The groups of the location
         """
-
+        if LocationsRepository.get_location_by_id(location_id) is None:
+            raise NotFoundError(f"Standort mit ID {location_id}")
         return LocationsRepository.get_groups_of_location(location_id)
