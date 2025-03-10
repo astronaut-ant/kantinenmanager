@@ -8,9 +8,10 @@
             </v-card-subtitle>
             <v-card-subtitle>
                 <v-icon color="primary" icon="mdi-account-group" size="small"></v-icon>
-                <span class="me-1 ml-2">Gruppen: </span>
+                <span class="me-1 ml-2">{{ props.groups.length }} {{ props.groups.length === 1 ? 'Gruppe' : 'Gruppen' }}</span>
             </v-card-subtitle>
-            <v-slide-group :mobile="false" show-arrows="always">
+            <v-sheet class="rounded-lg bg-white">
+              <v-slide-group class="flex-grow-1" :mobile="false" show-arrows="always">
                 <v-slide-group-item v-for="group in groups" >
                     <v-chip
                         color="primary"
@@ -21,18 +22,20 @@
                         {{ group }}
                     </v-chip>
                 </v-slide-group-item>
-                <v-slide-group-item v-if="groups.length == 0"> <v-chip color="orange" class="mr-2" size="small" label> Keine Gruppen vorhanden </v-chip> </v-slide-group-item>
-            </v-slide-group>
+                <v-slide-group-item>
+                    <v-chip color="grey-darken-1" class="mr-2" size="small" label append-icon="mdi-arrow-right-thin-circle-outline" :to="'/verwaltung/gruppen/neueGruppe'">
+                      Gruppe anlegen
+                  </v-chip>
+                </v-slide-group-item>
+              </v-slide-group>
+            </v-sheet>
         </v-card-item>
         <v-card-text>
             <v-divider></v-divider>
-            <div class="mt-3 d-flex justify-space-between align-center">
-                <v-chip prepend-icon="mdi-numeric" color="primary" label density="comfortable"> Gruppenanzahl: {{props.groups.length}} </v-chip>
-                <div class="d-flex ga-1 justify-end">
-                    <v-btn class="bg-primary mx-1" @click="openEditDialog" size="default" density="comfortable"><v-icon>mdi-lead-pencil</v-icon></v-btn>
-                    <v-btn class="bg-red" @click="openDeleteDialog" size="default" density="comfortable"><v-icon>mdi-trash-can-outline</v-icon></v-btn>
-                </div>
-            </div>
+              <div class="mt-3 d-flex ga-1 align-center justify-end">
+                  <v-btn class="bg-primary mx-1" @click="openEditDialog" size="default" density="comfortable"><v-icon>mdi-lead-pencil</v-icon></v-btn>
+                  <v-btn class="bg-red" @click="openDeleteDialog" size="default" density="comfortable"><v-icon>mdi-trash-can-outline</v-icon></v-btn>
+              </div>
         </v-card-text>
     </v-card>
 
@@ -168,5 +171,5 @@ const snackbarError = () => {
 </script>
 
 <style>
-.v-slide-group__prev, .v-slide-group__next { min-width: 35px;}
+.v-slide-group__prev, .v-slide-group__next { min-width: 30px; max-width: 30px;}
 </style>

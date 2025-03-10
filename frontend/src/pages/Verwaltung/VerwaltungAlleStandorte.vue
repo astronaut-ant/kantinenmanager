@@ -1,5 +1,11 @@
 <template>
   <NavbarVerwaltung />
+  <FilterBar
+    :viewSwitcherEnabled="false"
+    :filterList="['location_name', 'location_leader.first_name', 'location_leader.last_name']"
+    :items="filterlocationsWithGroups"
+    @searchresult="updateOverview"
+  />
   <GridContainer :items="locationsWithGroups">
       <template #default="{ item }">
           <LocationCard
@@ -15,10 +21,12 @@
 </template>
 
 <script setup>
+import FilterBar from "@/components/SearchComponents/FilterBar.vue";
 import axios from "axios";
 const locations = ref([]);
 const locationgroups = ref([]);
 const locationsWithGroups = ref([]);
+const filterlocationsWithGroups = ref([]);
 
 const fetchData = () => {
   axios
@@ -44,7 +52,7 @@ const fetchData = () => {
             };
           });
 
-          console.log("Locations with groups:", locationsWithGroups);
+          filterlocationsWithGroups.value = locationsWithGroups.value;
         })
         .catch((err) => {
           console.log("Error fetching groups:", err);
@@ -59,6 +67,9 @@ const fetchData = () => {
     });
 };
 
+const updateOverview = (items) => {
+  locationsWithGroups.value = items;
+};
 
 onMounted(() => {
   fetchData();
