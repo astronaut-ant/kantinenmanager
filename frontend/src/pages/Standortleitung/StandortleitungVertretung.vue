@@ -1,5 +1,11 @@
 <template>
   <NavbarStandort :breadcrumbs = '[{"title": "Vertretung festlegen"}]'></NavbarStandort>
+  <FilterBar     
+    :viewSwitcherEnabled="false"
+    :filterList="['first_name', 'last_name', 'own_group.group_name']"
+    :items="originalGroupLeaders"
+    @searchresult="updateOverview"
+    />
   <GridContainer :items="groupLeaders">
       <template #default="{ item }">
         <GroupLeaderCard
@@ -19,6 +25,7 @@
 <script setup>
   import axios from "axios";
   const groupLeaders = ref([]);
+  const originalGroupLeaders = ref([]);
   const availableLeaders = ref([]);
 
   const fetchData = () => {
@@ -26,7 +33,8 @@
       .get(import.meta.env.VITE_API + "/api/users/group-leaders", { withCredentials: true })
       .then((response) => {
         groupLeaders.value = response.data;
-        availableLeaders.value = getAvailableLeaders(groupLeaders.value);
+        originalGroupLeaders.value = response.data;
+        availableLeaders.value = getAvailableLeaders(response.data);
 
       })
       .catch((err) => console.error("Error fetching data", err));
@@ -34,12 +42,17 @@
 
   const getAvailableLeaders = (leaders) => {
     return leaders
-      .filter(leader => leader.own_group.user_id_replacement === null)
+      .filter(leader => leader.own_group === null || leader.own_group.user_id_replacement === null)
       .map(({ id, first_name, last_name }) => ({ id, first_name, last_name, full_name: `${first_name} ${last_name}` })); 
   };
 
   onMounted(() => {
     fetchData();
   });
+
+  const updateOverview = (list) => {
+    groupLeaders.value = list;
+    console.log(list);
+  };
 </script>
   

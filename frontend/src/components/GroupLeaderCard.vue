@@ -1,5 +1,5 @@
 <template>
-    <v-card class="mx-2 my-2" width="450" elevation="16">
+    <v-card class="mx-2 my-2" width="425" elevation="16">
         <v-card-item>
             <div class="mb-2 d-flex justify-center">
                 <v-chip
@@ -25,7 +25,7 @@
                                 label
                             >
                                 <v-icon icon="mdi-account-group" class="me-2"></v-icon>
-                                <span>Hauptgruppe: {{ props.own_group.group_name || "-" }}</span>
+                                <span>Hauptgruppe: {{ props.own_group?.group_name || "-" }}</span>
                             </v-chip>
                         </v-slide-group-item>
                         <v-slide-group-item v-for="replacement_group in replacement_groups" >
@@ -47,7 +47,7 @@
         <v-card-text>
             <v-divider></v-divider>
             <div class="mt-3 d-flex justify-end">
-                <v-btn v-if="props.available_group_leaders.some(leader => leader.id === props.id)" :disabled="props.replacement_groups.length > 0" color="red" @click="opensetGroupReplacementDialog" size="small" flat variant="outlined">Als Abwesend markieren</v-btn>
+                <v-btn v-if="props.available_group_leaders.some(leader => leader.id === props.id)" :disabled="props.replacement_groups.length > 0 || props.own_group === null" color="red" @click="opensetGroupReplacementDialog" size="small" flat variant="outlined">Als Abwesend markieren</v-btn>
                 <v-btn v-else color="primary" @click="openremoveGroupReplacementDialog" size="small" flat variant="outlined">Als Anwesend markieren</v-btn>
             </div>
         </v-card-text>
@@ -59,7 +59,7 @@
                 <p class="text-h5 font-weight-black" >Vertretung setzen</p>
                 </div>
                 <div class="text-medium-emphasis mb-7">
-                <p> Bitte wählen Sie einen neuen Gruppenleiter, der für die Gruppe <strong>{{ props.own_group.group_name }}</strong>  Essensbestellungen übernehmen kann. </p>
+                <p> Bitte wählen Sie einen neuen Gruppenleiter, der für die Gruppe <strong>{{ props.own_group?.group_name }}</strong>  Essensbestellungen übernehmen kann. </p>
                 </div>
                 <v-select
                     v-model="replacementGroupLeader"
@@ -89,7 +89,7 @@
                 <p class="text-h5 font-weight-black" >Vertretung löschen</p>
                 </div>
                 <div class="text-medium-emphasis">
-                <p> Durch das Entfernen der Vertretung kann <strong>{{ props.first_name }} {{ props.last_name }}</strong> wieder Essensbestellungen für die Gruppe <strong>{{ props.own_group.group_name }}</strong> übernehmen.</p>
+                <p> Durch das Entfernen der Vertretung kann <strong>{{ props.first_name }} {{ props.last_name }}</strong> wieder Essensbestellungen für die Gruppe <strong>{{ props.own_group?.group_name }}</strong> übernehmen.</p>
                 </div>
 
             </v-card-text>
@@ -122,7 +122,7 @@
 
     const removeGroupReplacement = () => {
         axios
-        .delete(`${import.meta.env.VITE_API}/api/groups/remove-replacement/${props.own_group.id}`, { withCredentials: true })
+        .delete(`${import.meta.env.VITE_API}/api/groups/remove-replacement/${props.own_group?.id}`, { withCredentials: true })
         .then(() => {
             emit("replacement-removed");
             closeremoveGroupReplacementDialog();
@@ -152,11 +152,11 @@
             return;
         }
         axios
-            .put(`${import.meta.env.VITE_API}/api/groups/${props.own_group.id}`, 
+            .put(`${import.meta.env.VITE_API}/api/groups/${props.own_group?.id}`, 
                 {   
-                    group_number: props.own_group.group_number,
-                    group_name: props.own_group.group_name,
-                    location_id: props.own_group.location_id,
+                    group_number: props.own_group?.group_number,
+                    group_name: props.own_group?.group_name,
+                    location_id: props.own_group?.location_id,
                     user_id_group_leader: props.id,
                     user_id_replacement: replacementGroupLeader.value
                 }, { withCredentials: true }
