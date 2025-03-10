@@ -200,9 +200,7 @@ class EmployeesService:
                     raise NotFoundError(f"Gruppe {row['Gruppen-Name 1']}")
 
                 if EmployeesRepository.get_employee_by_number(row["Kunden-Nr."]):
-                    raise AlreadyExistsError(
-                        ressource=f"Mitarbeiter:in {row['Kunden-Nr.']}"
-                    )
+                    continue
 
                 employee = Employee(
                     first_name=firstname,
