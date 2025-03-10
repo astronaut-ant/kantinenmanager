@@ -147,6 +147,7 @@
               >Passwort zurücksetzen</v-btn
             >
             <v-btn
+              v-if="props.id != appStore.userData.id"
               class="bg-blue-grey w-100 mt-4 mb-2"
               block
               @click="blocking"
@@ -187,6 +188,9 @@
 
 <script setup>
 import axios from "axios";
+import { useAppStore } from "@/stores/app";
+const appStore = useAppStore();
+
 const props = defineProps([
   "id",
   "blocked",
