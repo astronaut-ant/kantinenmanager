@@ -1,5 +1,12 @@
 import uuid
+import datetime
 import pytest
+from sqlalchemy import text
+from src.models.dish_price import DishPrice
+from src.models.oldorder import OldOrder
+from src.models.dailyorder import DailyOrder
+from src.models.maindish import MainDish
+from src.models.preorder import PreOrder
 from src.models.location import Location
 from src import app as project_app
 from src.database import create_initial_admin, db as project_db
@@ -30,6 +37,10 @@ def client(app):
 def db(app):
     with app.app_context():
         project_db.create_all()
+        # * Set it to ON to enable foreign key constraints as
+        # * this is not enabled by default in SQLite.
+        # * I tried to use ON as default but it was very flakey.
+        project_db.session.execute(text("PRAGMA foreign_keys = OFF"))
         yield project_db
         project_db.drop_all()
 
@@ -186,3 +197,68 @@ def employees(group):
         employee.id = uuid.uuid4()
         employees.append(employee)
     return employees
+
+
+@pytest.fixture
+def pre_order(location):
+    pre_order = PreOrder(
+        person_id=uuid.uuid4(),
+        location_id=location.id,
+        date=(datetime.datetime.now() + datetime.timedelta(days=1)).date(),
+        nothing=False,
+        main_dish=MainDish.rot,
+        salad_option=True,
+    )
+    return pre_order
+
+
+@pytest.fixture
+def daily_order(location):
+    daily_order = DailyOrder(
+        person_id=uuid.uuid4(),
+        location_id=location.id,
+        date=datetime.datetime.now().date(),
+        nothing=False,
+        main_dish=MainDish.rot,
+        salad_option=True,
+    )
+    return daily_order
+
+
+@pytest.fixture
+def old_order(location):
+    old_order = OldOrder(
+        person_id=uuid.uuid4(),
+        location_id=location.id,
+        date=(datetime.datetime.now() - datetime.timedelta(days=1)).date(),
+        nothing=False,
+        main_dish=MainDish.rot,
+        handed_out=True,
+        salad_option=True,
+    )
+    return old_order
+
+
+@pytest.fixture()
+def today():
+    return datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+
+
+@pytest.fixture()
+def dish_price(today):
+    return DishPrice(
+        date=today,
+        main_dish_price=5.5,
+        salad_price=2.5,
+        prepayment=15.0,
+    )
+
+
+@pytest.fixture()
+def dish_price_alt(today):
+    return DishPrice(
+        date=today - datetime.timedelta(days=10),
+        main_dish_price=2.5,
+        salad_price=1.5,
+        prepayment=10.0,
+    )

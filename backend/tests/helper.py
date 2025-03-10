@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 import uuid
 import pytest
 
+from src.models.dish_price import DishPrice
 from src.models.group import Group
 from src.models.location import Location
 from src import app as project_app
@@ -118,4 +119,14 @@ def session(user_verwaltung):
         refresh_token="token",
         user_id=user_verwaltung.id,
         expires=datetime.now() + timedelta(days=1),
+    )
+
+
+@pytest.fixture()
+def dish_price():
+    return DishPrice(
+        date=datetime.now(),
+        main_dish_price=5.5,
+        salad_price=2.5,
+        prepayment=15.0,
     )

@@ -85,26 +85,8 @@ def describe_create_user():
                 user_group=user_verwaltung.user_group,
             )
 
-    def it_does_not_create_deleted_user(mocker, user_verwaltung):
-        user_verwaltung.deleted = True
-        mocker.patch.object(UsersRepository, "get_user_by_username", return_value=None)
-        mocker.patch.object(
-            UsersRepository, "get_hidden_user_by_username", return_value=user_verwaltung
-        )
-
-        with pytest.raises(AlreadyExistsError):
-            UsersService.create_user(
-                first_name=user_verwaltung.first_name,
-                last_name=user_verwaltung.last_name,
-                username=user_verwaltung.username,
-                user_group=user_verwaltung.user_group,
-            )
-
     def it_checks_location_id(mocker, user_verwaltung):
         mocker.patch.object(UsersRepository, "get_user_by_username", return_value=None)
-        mocker.patch.object(
-            UsersRepository, "get_hidden_user_by_username", return_value=None
-        )
         mocker.patch.object(
             LocationsRepository, "get_location_by_id", return_value=None
         )
@@ -120,9 +102,6 @@ def describe_create_user():
 
     def it_generates_password_if_none_given(mocker, user_verwaltung):
         mocker.patch.object(UsersRepository, "get_user_by_username", return_value=None)
-        mocker.patch.object(
-            UsersRepository, "get_hidden_user_by_username", return_value=None
-        )
         mock_generate_pw = mocker.patch.object(
             AuthService, "generate_password", return_value="password"
         )
@@ -146,9 +125,6 @@ def describe_create_user():
 
     def it_uses_given_password(mocker, user_verwaltung):
         mocker.patch.object(UsersRepository, "get_user_by_username", return_value=None)
-        mocker.patch.object(
-            UsersRepository, "get_hidden_user_by_username", return_value=None
-        )
         mock_generate_pw = mocker.patch.object(AuthService, "generate_password")
         mock_hash_pw = mocker.patch.object(
             AuthService, "hash_password", return_value="hashed_password"
@@ -171,9 +147,6 @@ def describe_create_user():
 
     def it_uses_given_location(mocker, user_verwaltung, location):
         mocker.patch.object(UsersRepository, "get_user_by_username", return_value=None)
-        mocker.patch.object(
-            UsersRepository, "get_hidden_user_by_username", return_value=None
-        )
         mocker.patch.object(
             LocationsRepository, "get_location_by_id", return_value=location
         )

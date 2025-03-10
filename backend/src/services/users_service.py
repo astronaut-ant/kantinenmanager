@@ -2,7 +2,6 @@
 
 from typing import Optional
 from uuid import UUID
-from src.repositories.groups_repository import GroupsRepository
 from src.repositories.locations_repository import LocationsRepository
 from src.models.location import Location
 from src.services.auth_service import AuthService
@@ -70,9 +69,6 @@ class UsersService:
 
         if UsersRepository.get_user_by_username(username):
             raise AlreadyExistsError(ressource=f"Nutzer:in {username}")
-
-        if UsersRepository.get_hidden_user_by_username(username):
-            raise AlreadyExistsError(ressource=f"Nutzer:in {username} (gelöscht)")
 
         if location_id and (
             LocationsRepository.get_location_by_id(location_id) is None

@@ -324,25 +324,6 @@ def describe_employees():
 
             assert res.status_code == 401
 
-        def it_does_not_send_hidden_employees(
-            client, user_verwaltung, employees, group, location, db
-        ):
-            db.session.add(user_verwaltung)
-            db.session.add(location)
-            db.session.add(group)
-
-            # Make one employee hidden
-            employees[0].hidden = True
-
-            db.session.add_all(employees)
-            db.session.commit()
-            login(user=user_verwaltung, client=client)
-
-            res = client.get("/api/employees")
-
-            assert res.status_code == 200
-            assert len(res.json) == len(employees) - 1  # One employee is hidden
-
     def describe_get_by_id():
         def it_returns_employee_by_id_for_verwaltung(
             client, user_verwaltung, employees, group, location, db
@@ -367,24 +348,6 @@ def describe_employees():
             login(user=user_verwaltung, client=client)
 
             res = client.get(f"/api/employees/{uuid.uuid4()}")
-
-            assert res.status_code == 404
-
-        def it_does_not_return_hidden_employee(
-            client, user_verwaltung, employees, group, location, db
-        ):
-            db.session.add(user_verwaltung)
-            db.session.add(location)
-            db.session.add(group)
-
-            # Make one employee hidden
-            employees[0].hidden = True
-
-            db.session.add_all(employees)
-            db.session.commit()
-            login(user=user_verwaltung, client=client)
-
-            res = client.get(f"/api/employees/{employees[0].id}")
 
             assert res.status_code == 404
 
@@ -786,8 +749,8 @@ def describe_employees():
             assert res.status_code == 200
 
             # Verify employee is hidden (soft-deleted)
-            employee = db.session.query(Employee).filter_by(id=employees[0].id).first()
-            assert employee.hidden
+            db_employees = db.session.query(Employee).all()
+            assert len(db_employees) == len(employees) - 1
 
         def it_returns_404_if_employee_does_not_exist(client, user_verwaltung, db):
             db.session.add(user_verwaltung)
@@ -828,10 +791,8 @@ def describe_employees():
 
             assert res.status_code == 200
 
-            # Verify employees are hidden (soft-deleted)
-            for emp_id in employee_ids:
-                employee = db.session.query(Employee).filter_by(id=emp_id).first()
-                assert employee.hidden
+            db_employees = db.session.query(Employee).all()
+            assert len(db_employees) == len(employees) - 2
 
         def it_returns_400_for_invalid_request_format(client, user_verwaltung, db):
             db.session.add(user_verwaltung)

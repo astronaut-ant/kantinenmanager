@@ -1,7 +1,7 @@
 """Tests for the GroupsService class."""
 
 import pytest
-from uuid import uuid4, UUID
+from uuid import uuid4
 from src.models.user import UserGroup
 from src.models.group import Group
 from src.services.groups_service import GroupsService

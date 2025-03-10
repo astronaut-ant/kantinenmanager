@@ -36,18 +36,6 @@ def describe_login():
 
             assert res.status_code == 401
 
-        def it_returns_401_on_hidden_user(client, user_verwaltung, db):
-            user_verwaltung.hidden = True
-            db.session.add(user_verwaltung)
-            db.session.commit()
-
-            res = client.post(
-                "/api/login",
-                json={"username": user_verwaltung.username, "password": PASSWORD},
-            )
-
-            assert res.status_code == 401
-
         def it_removes_token_cookies_on_invalid_credentials(
             client, user_verwaltung, db
         ):
