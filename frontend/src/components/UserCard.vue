@@ -143,7 +143,7 @@
               ></v-text-field>
               <div></div>
             </div>
-            <v-btn @click="handlePasswordReset" class="bg-red" block
+            <v-btn @click="handlePasswordReset" class="bg-red mb-5" block
               >Passwort zurücksetzen</v-btn
             >
             <v-btn
@@ -182,7 +182,6 @@
   <ErrorSnackbar
     v-model="errorSnackbar"
     :text="errorSnackbarText"
-    @close="errorSnackbar = false"
   ></ErrorSnackbar>
 </template>
 
