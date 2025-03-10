@@ -7,14 +7,14 @@
     @searchresult="updateOverview"
     @changeview="changeview"
   />
-  <div v-if="ansicht == 'cardview' && userlist.length != 0" class="grid-container">
-    <div
-      v-for="user in userlist"
-      :key="user.id"
-      class="grid-item"
-    >
+  <div
+    v-if="ansicht == 'cardview' && userlist.length != 0"
+    class="grid-container"
+  >
+    <div v-for="user in userlist" :key="user.id" class="grid-item">
       <UserCard
         :id="user.id"
+        :blocked="user.blocked"
         :username="user.username"
         :role="user.user_group"
         :firstName="user.first_name"
@@ -25,7 +25,10 @@
       />
     </div>
   </div>
-  <div v-if="ansicht == 'tableview' && userlist.length != 0" class="d-flex justify-center">
+  <div
+    v-if="ansicht == 'tableview' && userlist.length != 0"
+    class="d-flex justify-center"
+  >
     <UserTable
       :users="userlist"
       @user-edited="fetchData"
@@ -50,7 +53,7 @@ const users = ref({});
 const userlist = ref([]);
 const ansicht = ref("cardview");
 const errorSnackbar = ref(false);
-const errorSnackbarText = ref ("");
+const errorSnackbarText = ref("");
 
 const allLocations = ref([]);
 
@@ -92,11 +95,9 @@ const updateOverview = (items) => {
 const changeview = (string) => {
   ansicht.value = string;
 };
-
 </script>
 
 <style scoped>
-
 .grid-container {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(425px, 1fr));
@@ -116,5 +117,4 @@ const changeview = (string) => {
   min-width: 400px;
   max-width: 425px;
 }
-
 </style>

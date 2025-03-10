@@ -135,6 +135,7 @@
             </div>
             <div block>
               <v-text-field
+                class="mb-2"
                 v-model="username"
                 :rules="[required]"
                 label="Benutzername"
@@ -145,9 +146,14 @@
             <v-btn @click="handlePasswordReset" class="bg-red" block
               >Passwort zurücksetzen</v-btn
             >
-            <v-btn class="bg-blue-grey w-100 mt-4" block @click="blocking">{{
-              isBlocked ? "Benutzer ensperren" : "Benutzer sperren"
-            }}</v-btn>
+            <v-btn
+              class="bg-blue-grey w-100 mt-4 mb-2"
+              block
+              @click="blocking"
+              >{{
+                isBlocked ? "Benutzer entsperren" : "Benutzer sperren"
+              }}</v-btn
+            >
           </v-form>
         </div>
       </v-card-text>
@@ -184,6 +190,7 @@
 import axios from "axios";
 const props = defineProps([
   "id",
+  "blocked",
   "username",
   "role",
   "firstName",
@@ -288,9 +295,49 @@ const confirmEdit = () => {
 };
 
 const blocking = () => {
-  isBlocked.value = !isBlocked.value;
-  console.log(isBlocked.value);
+  if (!isBlocked.value) {
+    axios
+      .put(
+        import.meta.env.VITE_API + `/api/users/${props.id}/block`,
+        {},
+        {
+          withCredentials: true,
+        }
+      )
+      .then((response) => {
+        console.log(response.data);
+        isBlocked.value = !isBlocked.value;
+        snackbarText.value = response.data.message + "!";
+        snackbar.value = true;
+      })
+      .catch((err) => {
+        errorSnackbarText.value = err.message;
+        errorSnackbar.value = true;
+      });
+  } else {
+    axios
+      .put(
+        import.meta.env.VITE_API + `/api/users/${props.id}/unblock`,
+        {},
+        {
+          withCredentials: true,
+        }
+      )
+      .then((response) => {
+        console.log(response.data);
+        isBlocked.value = !isBlocked.value;
+        snackbarText.value = response.data.message + "!";
+        snackbar.value = true;
+      })
+      .catch((err) => {
+        errorSnackbarText.value = err.message;
+        errorSnackbar.value = true;
+      });
+  }
 };
+if (props.blocked) {
+  isBlocked.value = true;
+}
 </script>
 <style scoped>
 .blockedBackground {
