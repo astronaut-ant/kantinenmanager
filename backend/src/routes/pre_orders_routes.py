@@ -23,9 +23,6 @@ from src.services.pre_orders_service import OrdersFilters, PreOrdersService
 pre_orders_routes = Blueprint("pre_orders_routes", __name__)
 
 
-# TODO: Test all routes
-
-
 @pre_orders_routes.get("/api/pre-orders")
 @login_required(
     [

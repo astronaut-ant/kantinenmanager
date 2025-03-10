@@ -19,9 +19,6 @@ from src.utils.error import ErrMsg, abort_with_err
 daily_orders_routes = Blueprint("daily_orders_routes", __name__)
 
 
-# TODO: Test all routes
-
-
 @daily_orders_routes.get("/api/daily-orders")
 @login_required(
     groups=[UserGroup.verwaltung, UserGroup.standortleitung, UserGroup.kuechenpersonal]
@@ -136,7 +133,7 @@ def get_daily_order(person_id: UUID):
             ErrMsg(
                 status_code=404,
                 title="Nicht gefunden",
-                description=f"Bestellung oder Person wurde nicht gefunden.",
+                description="Bestellung oder Person wurde nicht gefunden.",
                 details=str(err),
             )
         )
@@ -208,7 +205,7 @@ def get_daily_orders_for_group(group_id: UUID):
 
 
 @daily_orders_routes.put("/api/daily-orders/<int:daily_order_id>")
-@login_required(groups=[UserGroup.kuechenpersonal], disabled=True)
+@login_required(groups=[UserGroup.kuechenpersonal])
 @swag_from(
     {
         "tags": ["daily_orders"],
