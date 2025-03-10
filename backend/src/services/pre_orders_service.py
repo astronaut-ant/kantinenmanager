@@ -164,16 +164,24 @@ class PreOrdersService:
                 order["person_id"], order["date"]
             )
 
+            # Überprüfe, ob die Bestellung bereits hinzugefügt wird, wenn ja aktualisiere diese
+            for bulk_order in bulk_orders:
+                if (
+                    bulk_order.person_id == order["person_id"]
+                    and bulk_order.date == order["date"]
+                ):
+                    order_exists = bulk_order
+
             if order_exists:
                 order_exists.nothing = order["nothing"]
                 order_exists.main_dish = order["main_dish"]
                 order_exists.salad_option = order["salad_option"]
                 order_exists.location_id = order["location_id"]
-                OrdersRepository.update_order()
             else:
                 bulk_orders.append(PreOrder(**order))
 
         OrdersRepository.create_bulk_orders(bulk_orders)
+        OrdersRepository.update_order()
         return
 
     @staticmethod
@@ -273,9 +281,10 @@ class PreOrdersService:
             raise BadValueError(
                 "Wenn 'nichts' ausgewählt ist, dürfen keine Essensoptionen ausgewählt werden."
             )
-        checkOrderExists = OrdersRepository.preorder_already_exists(
-            new_order["person_id"], new_order["date"]
+        checkOrderExists = OrdersRepository.preorder_already_exists_different_id(
+            new_order["person_id"], new_order["date"], preorder_id
         )
+
         if checkOrderExists != None:
             raise AlreadyExistsError(
                 ressource=f"Bestellung für {new_order['person_id']} am {new_order['date']}",
@@ -286,6 +295,7 @@ class PreOrdersService:
         old_pre_order.date = new_order["date"]
         old_pre_order.main_dish = new_order["main_dish"]
         old_pre_order.salad_option = new_order["salad_option"]
+        old_pre_order.location_id = new_order["location_id"]
 
         OrdersRepository.update_order()
 

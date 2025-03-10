@@ -241,6 +241,25 @@ class OrdersRepository:
             )
         ).first()
 
+    @staticmethod
+    def preorder_already_exists_different_id(
+        person_id: UUID, date: date, id: int
+    ) -> Optional[PreOrder]:
+        """Check if another order already exists for the person and date
+        :param person_id: Person id
+        :param date: Date
+        :return: Preorder if it exists else None
+        """
+        return db.session.scalars(
+            select((PreOrder)).filter(
+                and_(
+                    (PreOrder.person_id == person_id),
+                    (PreOrder.date == date),
+                    (PreOrder.id != id),
+                )
+            )
+        ).first()
+
     ############################ DailyOrders ############################
     @staticmethod
     def get_daily_order_by_person_id(person_id: UUID) -> Optional[DailyOrder]:
