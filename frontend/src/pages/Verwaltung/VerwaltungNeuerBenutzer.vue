@@ -1,5 +1,5 @@
 <template>
-  <NavbarVerwaltung />
+  <NavbarVerwaltung :breadcrumbs = '[{"title": "Benutzer"}, {"title": "Neuer Benutzer"}]'/>
 
   <div class="d-flex justify-center mt-7">
     <div>

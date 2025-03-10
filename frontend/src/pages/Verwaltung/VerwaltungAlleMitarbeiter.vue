@@ -1,5 +1,5 @@
 <template>
-  <NavbarVerwaltung />
+  <NavbarVerwaltung :breadcrumbs = '[{"title": "Mitarbeiter"}, {"title": "Alle Mitarbeiter"}]' />
   <FilterBar
     :viewSwitcherEnabled="false"
     :filterList="['first_name', 'last_name', 'employee_number', 'group_name', 'location_name']"
