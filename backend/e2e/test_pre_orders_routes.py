@@ -191,7 +191,7 @@ def describe_pre_orders():
                 assert len(res.json) == 8
                 assert res.json["id"] == str(order.id)
 
-        def it_returns_pre_order_userscope(
+        def it_dosnt_return_pre_order_userscope(
             client,
             location,
             group,
