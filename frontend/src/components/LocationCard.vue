@@ -6,12 +6,28 @@
                 <v-icon color="primary" icon="mdi-account-circle" size="small"></v-icon>
                 <span class="me-1 ml-2">{{ props.location_leader.first_name }} {{ props.location_leader.last_name }}</span>
             </v-card-subtitle>
-            <li v-for="group in groups">{{ group }}</li>
+            <v-card-subtitle>
+                <v-icon color="primary" icon="mdi-account-group" size="small"></v-icon>
+                <span class="me-1 ml-2">Gruppen: </span>
+            </v-card-subtitle>
+            <v-slide-group :mobile="false" show-arrows="always">
+                <v-slide-group-item v-for="group in groups" >
+                    <v-chip
+                        color="primary"
+                        class="mr-2"
+                        size="small"
+                        label
+                        >   
+                        {{ group }}
+                    </v-chip>
+                </v-slide-group-item>
+                <v-slide-group-item v-if="groups.length == 0"> <v-chip color="orange" class="mr-2" size="small" label> Keine Gruppen vorhanden </v-chip> </v-slide-group-item>
+            </v-slide-group>
         </v-card-item>
         <v-card-text>
             <v-divider></v-divider>
             <div class="mt-3 d-flex justify-space-between align-center">
-                <v-chip prepend-icon="mdi-account-multiple" color="primary" label density="comfortable"> Gruppenanzahl: {{props.groups.length}} </v-chip>
+                <v-chip prepend-icon="mdi-numeric" color="primary" label density="comfortable"> Gruppenanzahl: {{props.groups.length}} </v-chip>
                 <div class="d-flex ga-1 justify-end">
                     <v-btn class="bg-primary mx-1" @click="openEditDialog" size="default" density="comfortable"><v-icon>mdi-lead-pencil</v-icon></v-btn>
                     <v-btn class="bg-red" @click="openDeleteDialog" size="default" density="comfortable"><v-icon>mdi-trash-can-outline</v-icon></v-btn>
@@ -149,7 +165,8 @@ const snackbarError = () => {
   errorSnackbarText.value = "Fehler beim aktualisieren des Standorts!"
   errorSnackbar.value = true;
 }
-
-
-
 </script>
+
+<style>
+.v-slide-group__prev, .v-slide-group__next { min-width: 35px;}
+</style>
