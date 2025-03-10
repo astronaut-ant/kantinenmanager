@@ -100,6 +100,20 @@ def user_kuechenpersonal():
         user_group=UserGroup.kuechenpersonal,
     )
     user.id = uuid.uuid4()
+    return
+
+
+@pytest.fixture()
+def user_kuechenpersonal_alt():
+    user = User(
+        first_name="Kuechen",
+        last_name="Personal",
+        username="kuechenpersonal_alt",
+        hashed_password="$argon2id$v=19$m=65536,t=3,p=4$3rfCHeNLgFGKSyeZU0tl5w$rpsECi3FkYbvf2DEyPrDwp5/lPD3RUecZARuaRSVrWQ",  # password: password
+        user_group=UserGroup.kuechenpersonal,
+        location_id=uuid.uuid4(),
+    )
+    user.id = uuid.uuid4()
     return user
 
 
@@ -210,6 +224,22 @@ def pre_order(location):
         salad_option=True,
     )
     return pre_order
+
+
+@pytest.fixture
+def pre_orders(employees, location):
+    pre_orders = []
+    for employee in employees:
+        pre_order = PreOrder(
+            person_id=employee.id,
+            location_id=location.id,
+            date=(datetime.datetime.now() + datetime.timedelta(days=1)).date(),
+            nothing=False,
+            main_dish=MainDish.rot,
+            salad_option=True,
+        )
+        pre_orders.append(pre_order)
+    return pre_orders
 
 
 @pytest.fixture
