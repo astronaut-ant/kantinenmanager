@@ -9,8 +9,8 @@
           v-if="noStandortleiter"
           class="mb-7"
           text="Es existieren keine vefügbaren Standortleiter "
-          color="blue-grey"
-          icon="mdi-information-outline"
+          color="red"
+          icon="$error"
         />
         <v-form ref="validation" v-model="form" @submit.prevent="handleSubmit">
           <v-text-field
