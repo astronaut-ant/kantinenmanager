@@ -62,6 +62,9 @@ const fetchData = () => {
     .get(import.meta.env.VITE_API + "/api/users", { withCredentials: true })
     .then((response) => {
       users.value = response.data;
+      users.value.sort((a, b) =>
+        a.username > b.username ? 1 : b.username > a.username ? -1 : 0
+      );
       userlist.value = Object.values(response.data);
       //console.log(users.value);
     })
