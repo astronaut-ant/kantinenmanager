@@ -129,7 +129,7 @@ def user_kuechenpersonal():
 
 
 @pytest.fixture()
-def user_gruppenleitung_alt():
+def user_gruppenleitung_alt(location):
     user = User(
         first_name="Gruppen",
         last_name="Leitung",
@@ -143,14 +143,14 @@ def user_gruppenleitung_alt():
 
 
 @pytest.fixture()
-def user_kuechenpersonal_alt():
+def user_kuechenpersonal_alt(location):
     user = User(
         first_name="Kuechen",
         last_name="Personal",
         username="kuechenpersonal_alt",
         hashed_password="$argon2id$v=19$m=65536,t=3,p=4$3rfCHeNLgFGKSyeZU0tl5w$rpsECi3FkYbvf2DEyPrDwp5/lPD3RUecZARuaRSVrWQ",  # password: password
         user_group=UserGroup.kuechenpersonal,
-        location_id=uuid.uuid4(),
+        location_id=location.id,
     )
     user.id = uuid.uuid4()
     return user
@@ -170,7 +170,7 @@ def user_standortleitung_alt_location():
 
 
 @pytest.fixture()
-def user_gruppenleitung_alt_location():
+def user_gruppenleitung_alt_location(location_alt):
     user = User(
         first_name="Gruppen",
         last_name="Leitung",
@@ -184,14 +184,14 @@ def user_gruppenleitung_alt_location():
 
 
 @pytest.fixture()
-def user_kuechenpersonal_alt_location():
+def user_kuechenpersonal_alt_location(location_alt):
     user = User(
         first_name="Kuechen",
         last_name="Personal",
         username="kuechenpersonal_alt_location",
         hashed_password="$argon2id$v=19$m=65536,t=3,p=4$3rfCHeNLgFGKSyeZU0tl5w$rpsECi3FkYbvf2DEyPrDwp5/lPD3RUecZARuaRSVrWQ",  # password: password
         user_group=UserGroup.kuechenpersonal,
-        location_id=uuid.uuid4(),
+        location_id=location_alt.id,
     )
     user.id = uuid.uuid4()
     return user
@@ -380,12 +380,12 @@ def pre_orders(employees, location):
 
 
 @pytest.fixture
-def pre_orders_alt(employees_alt_location, location_alt):
+def pre_orders_alt(employees_alt, location):
     pre_orders = []
-    for employee in employees_alt_location:
+    for employee in employees_alt:
         pre_order = PreOrder(
             person_id=employee.id,
-            location_id=location_alt.id,
+            location_id=location.id,
             date=(datetime.datetime.now() + datetime.timedelta(days=1)).date(),
             nothing=False,
             main_dish=MainDish.rot,

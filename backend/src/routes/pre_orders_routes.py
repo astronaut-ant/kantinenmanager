@@ -183,7 +183,7 @@ def get_pre_order(preorder_id: int):
 
 
 @pre_orders_routes.get("/api/pre-orders/by-group-leader/<uuid:user_id>")
-@login_required(groups=[UserGroup.gruppenleitung])
+@login_required([UserGroup.gruppenleitung])
 @swag_from(
     {
         "tags": ["pre_orders"],
@@ -200,8 +200,7 @@ def get_pre_order(preorder_id: int):
                 "description": "Returns a list of pre-orders",
                 "schema": PreOrdersByGroupLeaderSchema,
             },
-            401: {"description": "Unauthorized"},
-            403: {"description": "Forbidden"},
+            404: {"description": "Not found"},
         },
     }
 )

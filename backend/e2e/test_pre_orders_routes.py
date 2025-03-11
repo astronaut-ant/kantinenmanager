@@ -25,7 +25,7 @@ def describe_pre_orders():
             db,
         ):
             # enforce foreign key constraints just for this test
-            db.session.execute(text("PRAGMA foreign_keys = ON"))
+            db.session.execute(text("PRAGMA foreign_keys = ON"))    # noqa: F405
 
             db.session.add(user_verwaltung)
             db.session.add(user_standortleitung)  # needed for location
@@ -61,7 +61,7 @@ def describe_pre_orders():
             db,
         ):
             # enforce foreign key constraints just for this test
-            db.session.execute(text("PRAGMA foreign_keys = ON"))
+            db.session.execute(text("PRAGMA foreign_keys = ON"))  # noqa: F405
 
             db.session.add(user_verwaltung)
             db.session.add(user_standortleitung)  # needed for location
@@ -100,7 +100,7 @@ def describe_pre_orders():
             db,
         ):
             # enforce foreign key constraints just for this test
-            db.session.execute(text("PRAGMA foreign_keys = ON"))
+            db.session.execute(text("PRAGMA foreign_keys = ON"))    # noqa: F405
 
             db.session.add(user_verwaltung)
             db.session.add(user_standortleitung)  # needed for location
@@ -136,7 +136,7 @@ def describe_pre_orders():
             db,
         ):
             # enforce foreign key constraints just for this test
-            db.session.execute(text("PRAGMA foreign_keys = ON"))
+            db.session.execute(text("PRAGMA foreign_keys = ON"))    # noqa: F405
 
             db.session.add(user_verwaltung)
             db.session.add(user_standortleitung)  # needed for location
@@ -157,6 +157,10 @@ def describe_pre_orders():
             assert len(res.json) == 0
             assert db.session.query(PreOrder).count() != 0
 
+        def returns_not_authorized(client):
+            res = client.get("/api/pre-orders")
+            assert res.status_code == 401
+
     def describe_get_int():
         def it_returns_pre_order(
             client,
@@ -170,7 +174,7 @@ def describe_pre_orders():
             db,
         ):
             # enforce foreign key constraints just for this test
-            db.session.execute(text("PRAGMA foreign_keys = ON"))
+            db.session.execute(text("PRAGMA foreign_keys = ON"))    # noqa: F405
 
             db.session.add(user_verwaltung)
             db.session.add(user_standortleitung)  # needed for location
@@ -237,7 +241,7 @@ def describe_pre_orders():
             db,
         ):
             # enforce foreign key constraints just for this test
-            db.session.execute(text("PRAGMA foreign_keys = ON"))
+            db.session.execute(text("PRAGMA foreign_keys = ON"))    # noqa: F405
 
             db.session.add(user_verwaltung)
             db.session.add(user_standortleitung)  # needed for location
@@ -253,5 +257,204 @@ def describe_pre_orders():
 
             login(user=user_verwaltung, client=client)
 
-            res = client.get(f"/api/pre-orders/{uuid.uuid4()}")
+            res = client.get("/api/pre-orders/5000")
             assert res.status_code == 404
+
+        def returns_not_authorized(client, user_standortleitung, db):
+            res = client.get("/api/pre-orders/1")
+            assert res.status_code == 401
+
+            db.session.add(user_standortleitung)
+            db.session.commit()
+
+            login(user=user_standortleitung, client=client)
+
+            resp = client.get("/api/pre-orders/1")
+            assert resp.status_code == 403
+
+    def describe_get_groupleader():
+        def it_returns_pre_orders(
+            client,
+            location,
+            group,
+            employees,
+            user_verwaltung,
+            user_standortleitung,
+            user_gruppenleitung,
+            pre_orders,
+            pre_order,
+            db,
+        ):
+            # enforce foreign key constraints just for this test
+            db.session.execute(text("PRAGMA foreign_keys = ON"))    # noqa: F405
+
+            db.session.add(user_verwaltung)
+            db.session.add(user_standortleitung)  # needed for location
+            db.session.add(user_gruppenleitung)  # needed for group
+            db.session.commit()  # needed
+            db.session.add(location)  # needed for order
+            db.session.add(group)  # needed for employees
+            db.session.commit()  # needed to import employees
+            db.session.add_all(employees)  # needed for pre_orders
+            db.session.commit()  # needed to import pre_orders
+            db.session.add_all(pre_orders)
+            pre_order.person_id = user_gruppenleitung.id
+            db.session.add(pre_order)
+            db.session.commit()
+
+            login(user=user_gruppenleitung, client=client)
+            res = client.get(
+                f"/api/pre-orders/by-group-leader/{user_gruppenleitung.id}"
+            )
+            assert res.status_code == 200
+            assert len(res.json) == 5
+            assert db.session.query(PreOrder).count() == 6
+
+        def returns_not_found(client, user_gruppenleitung, db):
+            db.session.add(user_gruppenleitung)
+            db.session.commit()
+            login(user=user_gruppenleitung, client=client)
+
+            res = client.get(f"/api/pre-orders/by-group-leader/{uuid.uuid4()}")
+            assert res.status_code == 404
+
+        def returns_pre_orders_subsitute_group_leader(
+            client,
+            location,
+            group,
+            group_alt,
+            employees,
+            employees_alt,
+            user_verwaltung,
+            user_standortleitung,
+            user_gruppenleitung,
+            user_gruppenleitung_alt,
+            pre_orders,
+            pre_orders_alt,
+            pre_order,
+            db,
+        ):
+            # enforce foreign key constraints just for this test
+            db.session.execute(text("PRAGMA foreign_keys = ON"))    # noqa: F405
+
+            db.session.add(user_verwaltung)
+            db.session.add(user_standortleitung)
+            db.session.add(user_gruppenleitung)
+            db.session.commit()
+            db.session.add(location)
+            db.session.commit()
+            db.session.add(user_gruppenleitung_alt)
+            db.session.add(group)
+            group_alt.user_id_replacement = user_gruppenleitung.id
+            db.session.add(group_alt)
+            db.session.commit()
+            db.session.add_all(employees)
+            db.session.add_all(employees_alt)
+            db.session.commit()
+            db.session.add_all(pre_orders)
+            db.session.add_all(pre_orders_alt)
+            pre_order.person_id = user_gruppenleitung.id
+            db.session.add(pre_order)
+            db.session.commit()
+
+            login(user=user_gruppenleitung, client=client)
+            res = client.get(
+                f"/api/pre-orders/by-group-leader/{user_gruppenleitung.id}"
+            )
+            assert res.status_code == 200
+            main_dish_count = sum(
+                1
+                for group in res.json["groups"]
+                for order in group["orders"]
+                if "main_dish" in order
+            )
+            assert main_dish_count == 10
+            assert db.session.query(PreOrder).count() == 11
+
+            group_alt.user_id_replacement = None
+            db.session.commit()
+
+            res = client.get(
+                f"/api/pre-orders/by-group-leader/{user_gruppenleitung.id}"
+            )
+            assert res.status_code == 200
+            main_dish_count = sum(
+                1
+                for group in res.json["groups"]
+                for order in group["orders"]
+                if "main_dish" in order
+            )
+            assert main_dish_count == 5
+            assert db.session.query(PreOrder).count() == 11
+
+        def returns_not_authorized(client, user_verwaltung, user_gruppenleitung, db):
+            db.session.add(user_verwaltung)
+            db.session.add(user_gruppenleitung)
+            db.session.commit()
+
+            res = client.get(f"/api/pre-orders/by-group-leader/{uuid.uuid4()}")
+            assert res.status_code == 401
+
+            login(user=user_verwaltung, client=client)
+            res = client.get(
+                f"/api/pre-orders/by-group-leader/{user_gruppenleitung.id}"
+            )
+            assert res.status_code == 403
+
+    def describe_post_employees():
+        def it_creates_pre_orders(
+            client,
+            location,
+            group,
+            employees,
+            user_verwaltung,
+            user_standortleitung,
+            user_gruppenleitung,
+            pre_orders,
+            db,
+        ):
+            # enforce foreign key constraints just for this test
+            db.session.execute(text("PRAGMA foreign_keys = ON"))    # noqa: F405
+
+            db.session.add(user_verwaltung)
+            db.session.add(user_standortleitung)
+            db.session.add(user_gruppenleitung)
+            db.session.commit()
+            db.session.add(location)
+            db.session.add(group)
+            db.session.commit()
+            db.session.add_all(employees)
+            db.session.commit()
+
+            login(user=user_gruppenleitung, client=client)
+
+            inte = 0
+            employeesi = {}
+            for employee in employees:
+                employeesi[inte] = employee.id
+                inte += 1
+
+            forward = datetime.date.today().weekday()
+            if forward > 2 and forward < 5:  # weekend
+                forward = 4
+            elif forward == 1 or forward == 0:
+                forward = 2
+
+            body = [
+                {
+                    "date": (
+                        datetime.date.today() + datetime.timedelta(days=forward)
+                    ).isoformat(),
+                    "location_id": location.id,
+                    "main_dish": "rot",
+                    "nothing": False,
+                    "person_id": employeesi[i],
+                    "salad_option": True
+                }
+                for i in range(3)
+            ]
+
+            res = client.post("/api/pre-orders", json=body)
+            assert res.status_code == 201
+            assert db.session.query(PreOrder).count() == 3
+
