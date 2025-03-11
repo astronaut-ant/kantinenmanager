@@ -43,7 +43,7 @@
         <div class="d-flex ga-1 justify-end">
           <v-btn
             class="bg-primary"
-            @click="editDialog = true"
+            @click="(editDialog = true), (hasChanged = false)"
             size="default"
             density="comfortable"
             ><v-icon>mdi-lead-pencil</v-icon></v-btn
@@ -89,8 +89,10 @@
   <v-dialog v-model="editDialog" no-click-animation persistent max-width="500">
     <v-card>
       <v-card-text>
-        <div class="d-flex ga-2 ms-2 border">
-          <v-icon>mdi-account</v-icon>
+        <div class="d-flex ga-3 ms-2 mb-4 mt-1 text-blue-grey">
+          <div class="d-flex align-center">
+            <v-icon size="x-large">mdi-account-edit</v-icon>
+          </div>
           <h2>Benutzer bearbeiten</h2>
         </div>
 
@@ -98,6 +100,7 @@
           <v-form ref="validation" v-model="form">
             <v-radio-group
               v-model="user_group"
+              @update:model-value="hasChanged = true"
               :rules="[required]"
               color="primary"
             >
@@ -146,6 +149,7 @@
               <v-text-field
                 v-model="first_name"
                 :rules="[required]"
+                @update:model-value="hasChanged = true"
                 base-color="blue-grey"
                 color="primary"
                 variant="outlined"
@@ -155,6 +159,7 @@
               ></v-text-field>
               <v-text-field
                 v-model="last_name"
+                @update:model-value="hasChanged = true"
                 base-color="blue-grey"
                 color="primary"
                 variant="outlined"
@@ -167,6 +172,7 @@
             <div block>
               <v-text-field
                 base-color="blue-grey"
+                @update:model-value="hasChanged = true"
                 color="primary"
                 variant="outlined"
                 class="mb-2"
@@ -177,7 +183,7 @@
               ></v-text-field>
               <div></div>
             </div>
-            <v-btn @click="handlePasswordReset" class="bg-red mb-5" block
+            <v-btn @click="handlePasswordReset" class="bg-red mb-3 mt-4" block
               >Passwort zurücksetzen</v-btn
             >
             <v-btn
@@ -193,15 +199,17 @@
         </div>
       </v-card-text>
       <v-card-actions class="mb-2">
-        <v-btn text @click="editDialog = false">Abbrechen</v-btn>
+        <v-btn text @click="(editDialog = false), restore()">{{
+          hasChanged ? "Abbrechen" : "Zurück"
+        }}</v-btn>
         <v-btn
           color="primary"
           class="me-4"
-          :disabled="!form"
+          :disabled="!form || !hasChanged"
           type="submit"
           variant="elevated"
           @click="confirmEdit"
-          >Speichern</v-btn
+          >Übernehmen</v-btn
         >
       </v-card-actions>
     </v-card>
@@ -283,6 +291,7 @@ const snackbar = ref(false);
 const errorSnackbar = ref(false);
 const errorSnackbarText = ref(" ");
 const isBlocked = ref(false);
+const hasChanged = ref(false);
 
 const handlePasswordReset = () => {
   axios
@@ -376,6 +385,14 @@ const blocking = () => {
 if (props.blocked) {
   isBlocked.value = true;
 }
+const restore = () => {
+  setTimeout(() => {
+    first_name.value = props.firstName;
+    last_name.value = props.lastName;
+    username.value = props.username;
+    user_group.value = props.role;
+  }, 500);
+};
 </script>
 <style scoped>
 .blockedBackground {
