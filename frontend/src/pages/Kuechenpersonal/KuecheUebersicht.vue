@@ -1,38 +1,33 @@
 <template>
   <NavbarKueche />
   <h1 class="text-center mt-5">Heutige Bestellungen</h1>
-  <v-container class="pa-4">
-    <v-row>
-      <v-col cols="4">
-        <v-card class="text-center">
-          <v-card-title>Rotes Hauptgericht</v-card-title>
-          <v-card-text>
-            <v-icon color="red" size="36">mdi-circle</v-icon>
-            {{ orderCount.blau }}
-          </v-card-text>
-        </v-card>
-      </v-col>
-      <v-col cols="4">
-        <v-card class="text-center">
-          <v-card-title>Blaues Hauptgericht</v-card-title>
-          <v-card-text>
-            <v-icon color="primary" size="36">mdi-circle</v-icon>
-            {{ orderCount.rot }}
-          </v-card-text>
-        </v-card>
-      </v-col>
-      <v-col cols="4">
-        <v-card class="text-center">
-          <v-card-title>Salat</v-card-title>
-          <v-card-text>
-            <v-icon color="green" size="36">mdi-leaf</v-icon>
-            {{ orderCount.salad_option }}
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
+  <v-container class="py-10 d-flex ga-10 justify-space-between w-75">
+    <v-card class="ms-n4 text-center w-100">
+      <v-card-title>Blaues Hauptgericht</v-card-title>
+      <v-card-text>
+        <v-icon color="primary" size="36">mdi-circle</v-icon>
+        {{ orderCount.rot }}
+      </v-card-text>
+    </v-card>
+
+    <v-card class="text-center w-100">
+      <v-card-title>Rotes Hauptgericht</v-card-title>
+      <v-card-text>
+        <v-icon color="red" size="36">mdi-circle</v-icon>
+        {{ orderCount.blau }}
+      </v-card-text>
+    </v-card>
+
+    <v-card class="text-center w-100 me-n4">
+      <v-card-title>Salat</v-card-title>
+      <v-card-text>
+        <v-icon color="green" size="36">mdi-leaf</v-icon>
+        {{ orderCount.salad_option }}
+      </v-card-text>
+    </v-card>
   </v-container>
   <v-data-table-virtual
+    class="mx-auto w-75"
     :hover="true"
     :fixed-header="true"
     :height="tableHeight"
@@ -41,10 +36,15 @@
     :headers="headers"
     :sort-by="sortBy"
   >
-
     <template v-slot:item.main_dish="{ item }">
       <v-icon
-        :color="item.main_dish === 'rot' ? 'red' : item.main_dish === 'blau' ? 'primary' : 'grey'"
+        :color="
+          item.main_dish === 'rot'
+            ? 'red'
+            : item.main_dish === 'blau'
+            ? 'primary'
+            : 'grey'
+        "
         size="24"
       >
         mdi-circle
@@ -52,10 +52,7 @@
     </template>
 
     <template v-slot:item.salad_option="{ item }">
-      <v-icon
-        :color="item.salad_selected ? 'green' : 'grey'"
-        size="24"
-      >
+      <v-icon :color="item.salad_selected ? 'green' : 'grey'" size="24">
         mdi-circle
       </v-icon>
     </template>
@@ -76,8 +73,12 @@
         Möchten Sie den Status Ausgabe der Bestellung wirklich ändern?
       </v-card-text>
       <v-card-actions>
-        <v-btn color="red darken-1" text @click="closeConfirmDialog">Abbrechen</v-btn>
-        <v-btn color="green darken-1" text @click="confirmChange">Bestätigen</v-btn>
+        <v-btn color="red darken-1" text @click="closeConfirmDialog"
+          >Abbrechen</v-btn
+        >
+        <v-btn color="green darken-1" text @click="confirmChange"
+          >Bestätigen</v-btn
+        >
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -97,12 +98,12 @@ const orderCount = ref({
   salad_option: 0,
 });
 
-const sortBy = [{ key: 'group_name', order: 'asc' }]
+const sortBy = [{ key: "group_name", order: "asc" }];
 
 const tableHeight = computed(() => {
   const headerHeight = 80; // Höhe der Navbar
-  return window.innerHeight - headerHeight - 100 + 'px';
-})
+  return window.innerHeight - headerHeight - 100 + "px";
+});
 
 const headers = ref([
   { title: "Mitarbeiter", value: "full_name", key: "full_name" },
@@ -115,7 +116,9 @@ const headers = ref([
 // Daten laden und verbinden
 onMounted(() => {
   axios
-    .get(import.meta.env.VITE_API + "/api/daily-orders", { withCredentials: true })
+    .get(import.meta.env.VITE_API + "/api/daily-orders", {
+      withCredentials: true,
+    })
     .then((response) => {
       orders.value = response.data;
       console.log(orders.value);
@@ -133,9 +136,15 @@ onMounted(() => {
     .catch((err) => console.error(err));
 
   axios
-    .get(import.meta.env.VITE_API + "/api/daily-orders/counted", { withCredentials: true })
+    .get(import.meta.env.VITE_API + "/api/daily-orders/counted", {
+      withCredentials: true,
+    })
     .then((response) => {
-      orderCount.value = response.data[0] || { blau: 0, rot: 0, salad_option: 0 };
+      orderCount.value = response.data[0] || {
+        blau: 0,
+        rot: 0,
+        salad_option: 0,
+      };
       console.error(orderCount.value);
     })
     .catch((err) => console.error(err));
@@ -157,7 +166,7 @@ const updateTableData = () => {
       handed_out: order.handed_out,
     };
   });
-}
+};
 
 const openConfirmDialog = (item) => {
   itemToConfirm.value = item;
@@ -165,19 +174,21 @@ const openConfirmDialog = (item) => {
 };
 const confirmChange = () => {
   axios
-    .put(import.meta.env.VITE_API + `/api/daily-orders/${itemToConfirm.value.id}`,
-    {"handed_out": !itemToConfirm.value.handed_out},
-    { withCredentials: true })
+    .put(
+      import.meta.env.VITE_API + `/api/daily-orders/${itemToConfirm.value.id}`,
+      { handed_out: !itemToConfirm.value.handed_out },
+      { withCredentials: true }
+    )
     .then(() => {
       itemToConfirm.value.handed_out = !itemToConfirm.value.handed_out;
       closeConfirmDialog();
     })
     .catch((err) => {
-      console.log(err)
-    })
+      console.log(err);
+    });
 };
 const closeConfirmDialog = () => {
   itemToConfirm.value = null;
-  dialog.value = false
-}
+  dialog.value = false;
+};
 </script>
