@@ -30,25 +30,20 @@
         :hover="true"
         item-value="employee_number"
         density="comfortable"
-      >
-        <template v-slot:[`item.actions`]="{ item }">
-          <v-btn
-            icon="mdi-qrcode"
-            class="bg-green mr-2"
-            @click="getQRCode(item)"
-            size="small"
-          ></v-btn>
-        </template>
-      </v-data-table-virtual>
+      ></v-data-table-virtual>
     </div>
   </v-container>
 </template>
 
 <script setup>
+import { useAppStore } from "@/stores/app";
 import axios from "axios";
 import { ref } from "vue";
+const appStore = useAppStore();
+const id = appStore.userData.id;
+console.log("User ID:", id);
 
-const id = ref("");
+
 const employees = ref([]);
 const mygroup = ref([]);
 const othergroups = ref([]);
@@ -65,11 +60,7 @@ const headers = [
     loading.value = true;
 
     axios
-      .get(import.meta.env.VITE_API + "/api/is-logged-in", { withCredentials: true })
-      .then((response) => {
-        id.value = response.data.id;
-        return axios.get(import.meta.env.VITE_API + "/api/employees", { withCredentials: true });
-      })
+      .get(import.meta.env.VITE_API + "/api/employees", { withCredentials: true })
       .then((response) => {
         employees.value = response.data;
 
@@ -84,12 +75,13 @@ const headers = [
           return acc;
         }, {});
 
-        mygroup.value = groupedEmployees[id.value];
+        mygroup.value = groupedEmployees[id];
         othergroups.value = Object.keys(groupedEmployees)
-          .filter((key) => key !== id.value)
+          .filter((key) => key !== id)
           .map((key) => groupedEmployees[key]);
 
         loading.value = false;
+        console.log("Grouped Employees:", groupedEmployees);
       })
       .catch((err) => {
         console.error("Error fetching data", err);
