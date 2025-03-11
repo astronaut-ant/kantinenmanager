@@ -48,7 +48,7 @@ def get_daily_orders():
 
 
 @daily_orders_routes.get("/api/daily-orders/counted")
-@login_required(groups=[UserGroup.kuechenpersonal])
+@login_required(groups=[UserGroup.kuechenpersonal, UserGroup.verwaltung])
 @swag_from(
     {
         "tags": ["daily_orders"],
