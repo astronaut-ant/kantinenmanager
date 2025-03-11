@@ -173,5 +173,5 @@
 
 
 <style>
-.v-slide-group__prev, .v-slide-group__next { min-width: 35px;}
+.v-slide-group__prev, .v-slide-group__next { min-width: 30px; max-width: 30px;}
 </style>

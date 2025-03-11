@@ -8,7 +8,7 @@
             </v-card-subtitle>
             <v-card-subtitle>
                 <v-icon color="primary" icon="mdi-account-group" size="small"></v-icon>
-                <span class="me-1 ml-2">{{ props.groups.length }} {{ props.groups.length === 1 ? 'Gruppe' : 'Gruppen' }}</span>
+                <span class="me-1 ml-2">{{ props.groups.length }} {{ props.groups.length === 1 ? 'Gruppe' : 'Gruppen' }}:</span>
             </v-card-subtitle>
             <v-sheet class="rounded-lg bg-white">
               <v-slide-group class="flex-grow-1" :mobile="false" show-arrows="always">
