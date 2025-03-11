@@ -15,7 +15,7 @@
               </div>
             </div>
             <v-divider class="mb-3"></v-divider>
-            <v-card-subtitle class="mt-3">
+            <v-card-subtitle class="mb-2 mt-3">
                 <v-icon color="primary" icon="mdi-account-group" size="small"></v-icon>
                 <span class="me-1 ml-2">{{ props.groups.length }} {{ props.groups.length === 1 ? 'Gruppe' : 'Gruppen' }}:</span>
             </v-card-subtitle>
