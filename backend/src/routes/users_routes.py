@@ -25,7 +25,8 @@ users_routes = Blueprint("users_routes", __name__)
 
 
 @users_routes.get("/api/users")
-@login_required(groups=[UserGroup.verwaltung])
+# Added kuechenpersonal to login required, for displaying daily order overview correctly (Frontend)
+@login_required(groups=[UserGroup.verwaltung, UserGroup.kuechenpersonal])
 @swag_from(
     {
         "tags": ["users"],
@@ -99,7 +100,10 @@ def get_user_by_id(user_id: UUID):
 
 
 @users_routes.get("/api/users/group-leaders")
-@login_required(groups=[UserGroup.verwaltung, UserGroup.standortleitung])
+# Added kuechenpersonal to login required, for displaying daily order overview correctly (Frontend)
+@login_required(
+    groups=[UserGroup.verwaltung, UserGroup.standortleitung, UserGroup.kuechenpersonal]
+)
 @swag_from(
     {
         "tags": ["users"],
