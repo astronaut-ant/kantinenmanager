@@ -6,7 +6,7 @@
     :items="filterlocationsWithGroups"
     @searchresult="updateOverview"
   />
-  <GridContainer :items="locationsWithGroups">
+  <GridContainer v-if="locationsWithGroups.length !== 0" :items="locationsWithGroups">
       <template #default="{ item }">
           <LocationCard
               :id="item.id"
@@ -18,10 +18,12 @@
           />
       </template>
   </GridContainer>
+  <NoResult v-if="locationsWithGroups.length === 0 && filterlocationsWithGroups.length !== 0" />
 </template>
 
 <script setup>
 import FilterBar from "@/components/SearchComponents/FilterBar.vue";
+import NoResult from "@/components/SearchComponents/NoResult.vue";
 import axios from "axios";
 const locations = ref([]);
 const locationgroups = ref([]);

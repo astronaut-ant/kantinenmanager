@@ -3,18 +3,7 @@
     <v-toolbar class="bg-primary" flat app>
       <v-app-bar-nav-icon @click="showDrawer"></v-app-bar-nav-icon>
       <v-toolbar-title>
-        <v-breadcrumbs density="comfortable" :items="[{ title: 'Standortleitung' }, ...breadcrumbs || []]">
-          <template v-slot:prepend>
-            <v-img src="@/assets/logo.png" />
-          </template>
-          <template v-slot:item="{ item }">
-            <v-breadcrumbs-item>
-              <span :style="`color: white;`">
-                {{ item.title }}
-              </span>
-            </v-breadcrumbs-item>
-          </template>
-        </v-breadcrumbs>
+        <CustomBreadCrumbs :breadcrumbs="props.breadcrumbs" role="Standortleitung" />
       </v-toolbar-title>
       <Avatar />
     </v-toolbar>

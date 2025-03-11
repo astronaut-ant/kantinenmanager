@@ -7,7 +7,7 @@
     @searchresult="updateOverview"
     @changeview=""
   />
-  <div v-if="grouplist.length != 0" class="grid-container">
+  <div v-if="grouplist.length !== 0" class="grid-container">
     <div
       v-for="group in grouplist"
       :key="group.id"
@@ -23,7 +23,7 @@
     />
     </div>
   </div>
-  <NoResult v-if="grouplist.length == 0" />
+  <NoResult v-if="grouplist.length === 0 && groups.length !== 0" />
 </template>
 
 <script setup>

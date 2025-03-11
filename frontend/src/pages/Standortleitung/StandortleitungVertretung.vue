@@ -6,7 +6,7 @@
     :items="originalGroupLeaders"
     @searchresult="updateOverview"
     />
-  <GridContainer :items="groupLeaders">
+  <GridContainer v-if="groupLeaders.length !== 0" :items="groupLeaders">
       <template #default="{ item }">
         <GroupLeaderCard
           :id="item.id"
@@ -20,6 +20,7 @@
         ></GroupLeaderCard>
       </template>
   </GridContainer>
+  <NoResult v-if="groupLeaders.length === 0 && originalGroupLeaders.length !== 0" />
 </template>
   
 <script setup>

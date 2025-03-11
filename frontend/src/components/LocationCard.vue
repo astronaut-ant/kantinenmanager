@@ -65,18 +65,20 @@
 
   <v-dialog v-model="secondDeleteDialog" persistent max-width="500">
     <v-card>
-      <v-card-title class="text-red"
-        >Standort kann nicht gelöscht werden</v-card-title
-      >
       <v-card-text>
-        <p>
+        <div class="d-flex justify-center text-red mb-4">
+          <p class="text-h5 font-weight-black">Standort kann nicht gelöscht werden</p>
+        </div>
+        <div class="text-medium-emphasis">
+          <p v-if="groups.length > 0">
           Der Standort
-          <strong>{{ props.location_name }}</strong> enthält noch folgende Gruppen:
-          <li class="mt-2 mb-2" v-for="group in groups">{{ group }}</li>
-        </p>
-        <p>
-          Bitte löschen Sie zuerst alle Gruppen, um den Standort zu löschen.
-        </p>
+            <strong>{{ props.location_name }}</strong> enthält noch folgende Gruppen:
+            <li class="mt-2 mb-2" v-for="group in groups">{{ group }}</li>
+          </p>
+          <p>
+            Bitte löschen Sie zuerst alle Gruppen und Bestellungen, um den Standort zu löschen.
+          </p>
+        </div>
       </v-card-text>
       <v-card-actions>
         <v-btn text @click="closeDeleteDialog">Schließen</v-btn>
@@ -144,6 +146,7 @@ const confirmDelete = () => {
     })
     .catch((err) => {
       console.log(err);
+      deleteDialog.value = false;
       secondDeleteDialog.value = true;
     });
 };

@@ -35,7 +35,7 @@
       </template>
       </v-data-table>
     </div>
-    <NoResult v-else-if="items.length == 0 && employees.length != 0" />
+    <NoResult v-else-if="items.length === 0 && employees.length !== 0" />
   </v-container>
   <v-dialog v-model="deleteDialog" persistent max-width="400">
     <v-card>
