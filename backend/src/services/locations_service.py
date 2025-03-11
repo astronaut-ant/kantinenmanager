@@ -4,7 +4,12 @@ from src.models.group import Group
 from src.models.location import Location
 from src.repositories.locations_repository import LocationsRepository
 from src.repositories.users_repository import UsersRepository
-from src.utils.exceptions import AlreadyExistsError, IntegrityError, NotFoundError
+from src.utils.exceptions import (
+    AlreadyExistsError,
+    BadValueError,
+    IntegrityError,
+    NotFoundError,
+)
 
 
 class LocationsService:
@@ -83,13 +88,23 @@ class LocationsService:
         ):
             raise AlreadyExistsError(ressource=f"Standort {location_name}")
 
+        new_leader = UsersRepository.get_user_by_id(user_id_location_leader)
+
+        if new_leader is None:
+            raise NotFoundError(
+                f"Nutzer mit ID {user_id_location_leader} konnte nicht gefunden werden."
+            )
+
         if (
             user_id_location_leader != location.user_id_location_leader
             and LocationsRepository.get_location_by_leader(user_id_location_leader)
         ):
-            raise AlreadyExistsError(
-                ressource="Nutzer:in", details="als Standortleiter"
+            raise BadValueError(
+                f"{new_leader.first_name} {new_leader.last_name} leitet bereits einen Standort"
             )
+
+        new_leader.location_id = location_id
+        UsersRepository.update_user(new_leader)
 
         location.location_name = location_name
         location.user_id_location_leader = user_id_location_leader

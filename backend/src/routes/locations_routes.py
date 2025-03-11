@@ -7,7 +7,12 @@ from src.models.user import UserGroup
 from flask import Blueprint, jsonify, request, current_app as app
 from flasgger import swag_from
 from src.services.locations_service import LocationsService
-from src.utils.exceptions import AlreadyExistsError, IntegrityError, NotFoundError
+from src.utils.exceptions import (
+    AlreadyExistsError,
+    BadValueError,
+    IntegrityError,
+    NotFoundError,
+)
 
 
 locations_routes = Blueprint("locations_routes", __name__)
@@ -204,6 +209,14 @@ def update_location(location_id: UUID):
                 title="Standort konnte nicht aktualisiert werden",
                 description=f"Der Standort mit ID {location_id} konnte nicht aktualisiert werden",
                 details=str(err),
+            )
+        )
+    except BadValueError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Standort konnte nicht aktualisiert werden",
+                description=str(err),
             )
         )
 

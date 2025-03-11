@@ -142,6 +142,8 @@ def describe_locations():
             db.session.commit()
             login(user=user_verwaltung, client=client)
 
+            assert user_standortleitung.location_id is None
+
             body = {
                 "location_name": "Updated Location",
                 "user_id_location_leader": str(user_standortleitung.id),
@@ -152,6 +154,7 @@ def describe_locations():
             assert res.status_code == 200
             assert location.location_name == "Updated Location"
             assert location.user_id_location_leader == user_standortleitung.id
+            assert user_standortleitung.location_id == location.id
 
         def it_returns_404_if_location_does_not_exist(client, user_verwaltung, db):
             db.session.add(user_verwaltung)
@@ -164,6 +167,23 @@ def describe_locations():
             }
 
             res = client.put(f"/api/locations/{uuid.uuid4()}", json=body)
+
+            assert res.status_code == 404
+
+        def it_returns_404_if_user_does_not_exist(
+            client, user_verwaltung, location, db
+        ):
+            db.session.add(user_verwaltung)
+            db.session.add(location)
+            db.session.commit()
+            login(user=user_verwaltung, client=client)
+
+            body = {
+                "location_name": "Updated Location",
+                "user_id_location_leader": str(uuid.uuid4()),
+            }
+
+            res = client.put(f"/api/locations/{location.id}", json=body)
 
             assert res.status_code == 404
 
