@@ -15,7 +15,7 @@ locations_routes = Blueprint("locations_routes", __name__)
 
 @locations_routes.get("/api/locations")
 # Must not be restricted, because of User Food order! (Frontend)
-# @login_required(groups=[UserGroup.verwaltung])
+@login_required()
 @swag_from(
     {
         "tags": ["locations"],
@@ -40,7 +40,7 @@ def get_locations():
 
 @locations_routes.get("/api/locations/<uuid:location_id>")
 # Must not be restricted, because of User Food order! (Frontend)
-# @login_required(groups=[UserGroup.verwaltung])
+@login_required()
 @swag_from(
     {
         "tags": ["locations"],
