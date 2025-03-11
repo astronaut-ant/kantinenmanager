@@ -1,23 +1,31 @@
 <template>
     <v-card class="mx-2 my-2" width="425" elevation="16">
         <v-card-item>
-            <v-card-title>{{ location_name }}</v-card-title>
-            <v-card-subtitle>
-                <v-icon color="primary" icon="mdi-account-circle" size="small"></v-icon>
-                <span class="me-1 ml-2">{{ props.location_leader.first_name }} {{ props.location_leader.last_name }}</span>
-            </v-card-subtitle>
-            <v-card-subtitle>
+            <div class="d-flex mb-2 justify-space-between align-center">
+              <div>
+                <v-card-title>{{ location_name }}</v-card-title>
+                <v-card-subtitle>
+                  <v-icon color="primary" icon="mdi-account-circle" size="small"></v-icon>
+                  <span class="me-1 ml-2">{{ props.location_leader.first_name }} {{ props.location_leader.last_name }}</span>
+                </v-card-subtitle>
+              </div>
+              <div class="d-flex align-center justify-end">
+                  <v-btn class="bg-primary mx-1" @click="openEditDialog" size="default" density="comfortable"><v-icon>mdi-lead-pencil</v-icon></v-btn>
+                  <v-btn class="bg-red" @click="openDeleteDialog" size="default" density="comfortable"><v-icon>mdi-trash-can-outline</v-icon></v-btn>
+              </div>
+            </div>
+            <v-divider class="mb-3"></v-divider>
+            <v-card-subtitle class="mt-3">
                 <v-icon color="primary" icon="mdi-account-group" size="small"></v-icon>
                 <span class="me-1 ml-2">{{ props.groups.length }} {{ props.groups.length === 1 ? 'Gruppe' : 'Gruppen' }}:</span>
             </v-card-subtitle>
-            <v-sheet class="rounded-lg bg-white">
+            <v-sheet class="rounded-lg bg-white mt-1 mb-1">
               <v-slide-group class="flex-grow-1" :mobile="false" show-arrows="always">
                 <v-slide-group-item v-for="group in groups" >
                     <v-chip
                         color="primary"
                         class="mr-2"
                         size="small"
-                        label
                         >   
                         {{ group }}
                     </v-chip>
@@ -30,13 +38,6 @@
               </v-slide-group>
             </v-sheet>
         </v-card-item>
-        <v-card-text>
-            <v-divider></v-divider>
-              <div class="mt-3 d-flex ga-1 align-center justify-end">
-                  <v-btn class="bg-primary mx-1" @click="openEditDialog" size="default" density="comfortable"><v-icon>mdi-lead-pencil</v-icon></v-btn>
-                  <v-btn class="bg-red" @click="openDeleteDialog" size="default" density="comfortable"><v-icon>mdi-trash-can-outline</v-icon></v-btn>
-              </div>
-        </v-card-text>
     </v-card>
 
     <v-dialog v-model="deleteDialog" persistent max-width="500">
