@@ -1,33 +1,44 @@
 <template>
   <NavbarKueche />
-  <h1 class="text-center mt-5">Heutige Bestellungen</h1>
-  <v-container class="py-10 d-flex ga-10 justify-space-between w-75">
-    <v-card class="ms-n4 text-center w-100">
+  <h1 class="text-center text-blue-grey mt-5">Heutige Bestellungen</h1>
+  <v-container class="py-10 d-flex ga-15 justify-space-between w-75">
+    <v-card
+      elevation="5"
+      class="ms-n4 text-center w-100 text-blue-grey custom-card"
+    >
       <v-card-title>Blaues Hauptgericht</v-card-title>
       <v-card-text>
-        <v-icon color="primary" size="36">mdi-circle</v-icon>
-        {{ orderCount.rot }}
+        <div class="d-flex h-100 align-center justify-center ga-2">
+          <v-icon color="primary" size="36">mdi-circle</v-icon>
+          <h3>{{ orderCount.rot }}</h3>
+        </div>
       </v-card-text>
     </v-card>
 
-    <v-card class="text-center w-100">
+    <v-card elevation="5" class="text-center w-100 text-blue-grey custom-card">
       <v-card-title>Rotes Hauptgericht</v-card-title>
       <v-card-text>
-        <v-icon color="red" size="36">mdi-circle</v-icon>
-        {{ orderCount.blau }}
+        <div class="d-flex h-100 align-center justify-center ga-2">
+          <v-icon color="red" size="36">mdi-circle</v-icon>
+          <h3>{{ orderCount.blau }}</h3>
+        </div>
       </v-card-text>
     </v-card>
-
-    <v-card class="text-center w-100 me-n4">
+    <v-card
+      elevation="5"
+      class="text-center w-100 text-blue-grey custom-card me-n4"
+    >
       <v-card-title>Salat</v-card-title>
       <v-card-text>
-        <v-icon color="green" size="36">mdi-leaf</v-icon>
-        {{ orderCount.salad_option }}
+        <div class="d-flex h-100 align-center justify-center ga-2">
+          <v-icon color="green" size="36">mdi-leaf</v-icon>
+          <h3>{{ orderCount.salad_option }}</h3>
+        </div>
       </v-card-text>
     </v-card>
   </v-container>
   <v-data-table-virtual
-    class="mx-auto w-75"
+    class="mx-auto w-75 text-blue-grey-darken-1"
     :hover="true"
     :fixed-header="true"
     :height="tableHeight"
@@ -36,33 +47,41 @@
     :headers="headers"
     :sort-by="sortBy"
   >
-    <template v-slot:item.main_dish="{ item }">
-      <v-icon
-        :color="
-          item.main_dish === 'rot'
-            ? 'red'
-            : item.main_dish === 'blau'
-            ? 'primary'
-            : 'grey'
-        "
-        size="24"
-      >
-        mdi-circle
-      </v-icon>
-    </template>
-
-    <template v-slot:item.salad_option="{ item }">
-      <v-icon :color="item.salad_selected ? 'green' : 'grey'" size="24">
-        mdi-circle
-      </v-icon>
-    </template>
-
-    <template v-slot:item.handed_out="{ item }">
-      <v-btn
-        :icon="item.handed_out ? 'mdi-check' : 'mdi-close'"
-        density="compact"
-        @click="openConfirmDialog(item)"
-      ></v-btn>
+    <template v-slot:item="{ item }">
+      <tr class="hover-row">
+        <td>
+          {{ item.full_name }}
+        </td>
+        <td>
+          {{ item.group_name }}
+        </td>
+        <td>
+          <v-icon
+            :color="
+              item.main_dish === 'rot'
+                ? 'red'
+                : item.main_dish === 'blau'
+                ? 'primary'
+                : 'grey'
+            "
+            size="24"
+          >
+            mdi-circle
+          </v-icon>
+        </td>
+        <td>
+          <v-icon :color="item.salad_selected ? 'green' : 'grey'" size="24">
+            mdi-circle
+          </v-icon>
+        </td>
+        <td>
+          <v-btn
+            :icon="item.handed_out ? 'mdi-check' : 'mdi-close'"
+            density="compact"
+            @click="openConfirmDialog(item)"
+          ></v-btn>
+        </td>
+      </tr>
     </template>
   </v-data-table-virtual>
 
@@ -89,6 +108,10 @@ import axios from "axios";
 
 const orders = ref([]);
 const employees = ref([]);
+const locations = ref([]);
+const allLocationLeadersIds = ref([]);
+const groupleaders = ref([]);
+const users = ref([]);
 const tableData = ref([]);
 const dialog = ref(false);
 const itemToConfirm = ref(null);
@@ -98,7 +121,7 @@ const orderCount = ref({
   salad_option: 0,
 });
 
-const sortBy = [{ key: "group_name", order: "asc" }];
+const sortBy = [{ key: "full_name", order: "asc" }];
 
 const tableHeight = computed(() => {
   const headerHeight = 80; // Höhe der Navbar
@@ -106,35 +129,28 @@ const tableHeight = computed(() => {
 });
 
 const headers = ref([
-  { title: "Mitarbeiter", value: "full_name", key: "full_name" },
-  { title: "Gruppe", value: "group_name" },
-  { title: "Hauptgericht", value: "main_dish" },
-  { title: "Salat", value: "salad_option" },
-  { title: "Ausgehändigt", value: "handed_out" },
+  {
+    title: "Name",
+    value: "full_name",
+    key: "full_name",
+    sortable: true,
+  },
+  { title: "Bereich", value: "group_name", sortable: "true" },
+  { title: "Hauptgericht", value: "main_dish", sortable: "true" },
+  {
+    title: "Salat",
+    value: "salad_selected",
+    sortable: "true",
+  },
+  {
+    title: "Ausgehändigt",
+    value: "handed_out",
+    sortable: "true",
+  },
 ]);
 
 // Daten laden und verbinden
-onMounted(() => {
-  axios
-    .get(import.meta.env.VITE_API + "/api/daily-orders", {
-      withCredentials: true,
-    })
-    .then((response) => {
-      orders.value = response.data;
-      console.log(orders.value);
-      updateTableData();
-    })
-    .catch((err) => console.error(err));
-
-  axios
-    .get(import.meta.env.VITE_API + "/api/employees", { withCredentials: true })
-    .then((response) => {
-      employees.value = response.data;
-      console.log(employees.value);
-      updateTableData();
-    })
-    .catch((err) => console.error(err));
-
+const getCount = () => {
   axios
     .get(import.meta.env.VITE_API + "/api/daily-orders/counted", {
       withCredentials: true,
@@ -145,27 +161,133 @@ onMounted(() => {
         rot: 0,
         salad_option: 0,
       };
-      console.error(orderCount.value);
+      console.log("Count: ", orderCount.value);
     })
     .catch((err) => console.error(err));
-});
+};
+
+const fillTable = () => {
+  getOrders();
+};
+
+const getOrders = () => {
+  axios
+    .get(import.meta.env.VITE_API + "/api/daily-orders", {
+      withCredentials: true,
+    })
+    .then((response) => {
+      orders.value = response.data;
+      console.log("Daily Orders: ", orders.value);
+      getEmployees();
+    })
+    .catch((err) => console.error(err));
+};
+
+const getEmployees = () => {
+  axios
+    .get(import.meta.env.VITE_API + "/api/employees", {
+      withCredentials: true,
+    })
+    .then((response) => {
+      employees.value = response.data;
+      console.log("All Emplyees: ", employees.value);
+      getUsers();
+    })
+    .catch((err) => console.error(err));
+};
+
+const getUsers = () => {
+  axios
+    .get(import.meta.env.VITE_API + "/api/users", { withCredentials: true })
+    .then((response) => {
+      users.value = response.data;
+      console.log("All Users: ", users.value);
+      getLocations();
+    })
+    .catch((err) => console.error(err));
+};
+const getLocations = () => {
+  axios
+    .get(import.meta.env.VITE_API + "/api/locations", { withCredentials: true })
+    .then((response) => {
+      locations.value = response.data;
+      locations.value.forEach((location) =>
+        allLocationLeadersIds.value.push(location.location_leader.id)
+      );
+      console.log("All Locations: ", locations.value);
+      console.log("allLocationLeadsIds: ", allLocationLeadersIds.value);
+      getGroupLeaders();
+    })
+    .catch((err) => console.error(err));
+};
+const getGroupLeaders = () => {
+  axios
+    .get(import.meta.env.VITE_API + "/api/users/group-leaders", {
+      withCredentials: true,
+    })
+    .then((response) => {
+      groupleaders.value = response.data;
+      groupleaders.value.forEach((groupleader) => {
+        if (groupleader.own_group === null) {
+          groupleader.own_group = { group_name: "Ohne Gruppe" };
+        }
+      });
+      console.log("All GroupLeaders: ", groupleaders.value);
+      updateTableData();
+    })
+    .catch((err) => console.error(err));
+};
 
 // Daten zusammenführen
-const updateTableData = () => {
-  if (orders.value.length === 0 || employees.value.length === 0) return;
 
+const updateTableData = () => {
+  if (orders.value.length === 0) return;
+  const persons = joinEmployeesAndUsers();
+  console.log(persons);
   tableData.value = orders.value.map((order) => {
-    const employee = employees.value.find((emp) => emp.id === order.person_id);
+    const person = persons.find((person) => person.id === order.person_id);
+    let role;
+    if (person.employee_number !== undefined) {
+      role = `Mitarbeiter (${person.group.group_name})`;
+    } else if (
+      person.user_group === "standortleitung" ||
+      person.user_group === "kuechenpersonal"
+    ) {
+      if (allLocationLeadersIds.value.includes(person.id)) {
+        role = `${formatted(person.user_group)} (${formatted(
+          locations.value.find((location) => location.id === person.location_id)
+            .location_name
+        )})`;
+      } else {
+        role = `${formatted(person.user_group)} (Ohne Standort)`;
+      }
+    } else if (person.user_group === "gruppenleitung") {
+      console.log(person.id);
+      role = `${formatted(person.user_group)} (${formatted(
+        groupleaders.value.find((groupleader) => groupleader.id == person.id)
+          .own_group.group_name
+      )})`;
+    } else {
+      role = formatted(person.user_group);
+    }
+
     return {
       id: order.id,
-      full_name: `${employee?.first_name || ""} ${employee?.last_name || ""}`,
-      group_name: employee?.group?.group_name || "Keine Gruppe",
+      full_name: `${person.first_name} ${person.last_name}`,
+      group_name: role,
       main_dish: order.main_dish || "Keine Angabe",
       main_dish_selected: order.main_dish === "rot",
       salad_selected: order.salad_option,
       handed_out: order.handed_out,
     };
   });
+};
+const joinEmployeesAndUsers = () => {
+  return employees.value.concat(users.value);
+};
+const formatted = (role) => {
+  let capitalized = role.charAt(0).toUpperCase() + role.slice(1);
+  return capitalized.replace("ue", "ü");
 };
 
 const openConfirmDialog = (item) => {
@@ -191,4 +313,15 @@ const closeConfirmDialog = () => {
   itemToConfirm.value = null;
   dialog.value = false;
 };
+getCount();
+fillTable();
 </script>
+<style scoped>
+.hover-row:hover {
+  background-color: #eceff1; /* Choose your desired color */
+  color: #37474f;
+}
+.custom-card {
+  border: 1px solid #607d8b; /* Set your desired border color */
+}
+</style>
