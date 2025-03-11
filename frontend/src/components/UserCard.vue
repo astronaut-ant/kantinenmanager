@@ -201,7 +201,7 @@
           </v-form>
         </div>
       </v-card-text>
-      <v-card-actions class="mb-2" :class="!hasChanged ? 'me-2' : ''">
+      <v-card-actions class="mb-2" :class="!hasChanged ? 'me-4' : ''">
         <v-btn text @click="(editDialog = false), restore()">{{
           hasChanged ? "Verwerfen" : "Zurück"
         }}</v-btn>
