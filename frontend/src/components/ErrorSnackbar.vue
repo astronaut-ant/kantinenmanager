@@ -3,7 +3,7 @@
     v-model="localsnackbar"
     transition="fade-transition"
     :timeout="2500"
-    color="error"
+    color="red"
     variant="elevated"
   >
     <h4 class="text-center align-center">
