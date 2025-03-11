@@ -6,11 +6,20 @@ import pytz
 from src.repositories.employees_repository import EmployeesRepository
 from src.repositories.groups_repository import GroupsRepository
 from src.repositories.users_repository import UsersRepository
-from src.schemas.pre_orders_schemas import PreOrderFullSchema, PreOrdersByGroupLeaderSchema
+from src.schemas.pre_orders_schemas import (
+    PreOrderFullSchema,
+    PreOrdersByGroupLeaderSchema,
+)
 from src.models.preorder import PreOrder
 from src.models.user import UserGroup
 from src.repositories.orders_repository import OrdersFilters, OrdersRepository
-from src.utils.exceptions import NotFoundError, ActionNotPossibleError, AccessDeniedError, BadValueError, AlreadyExistsError
+from src.utils.exceptions import (
+    NotFoundError,
+    ActionNotPossibleError,
+    AccessDeniedError,
+    BadValueError,
+    AlreadyExistsError,
+)
 
 timezone = pytz.timezone("Europe/Berlin")
 
@@ -46,9 +55,6 @@ class PreOrdersService:
         if not group_leader:
             raise NotFoundError(f"Gruppenleitung mit ID {person_id}")
 
-        if group_leader.user_group != UserGroup.gruppenleitung:
-            raise AccessDeniedError("Gruppen, da keine Gruppenleitung")
-
         groups = GroupsRepository.get_groups_by_group_leader(person_id)
 
         def add_orders_to_group(group):
@@ -59,7 +65,7 @@ class PreOrdersService:
                 group_id=group["id"],
             )
             group["orders"] = OrdersRepository.get_pre_orders(
-                OrdersFilters(group_id=group["id"])
+                OrdersFilters(group_id=group["id"]), request_user_id, request_user_group
             )
             return group
 
@@ -71,7 +77,9 @@ class PreOrdersService:
         return PreOrdersByGroupLeaderSchema().dump(group_leader)
 
     @staticmethod
-    def get_pre_orders(filters: OrdersFilters, user_id: UUID, user_group: UserGroup) -> List[PreOrderFullSchema]:
+    def get_pre_orders(
+        filters: OrdersFilters, user_id: UUID, user_group: UserGroup
+    ) -> List[PreOrderFullSchema]:
         """
         Get orders
         :param filters: Filters for orders
@@ -100,7 +108,9 @@ class PreOrdersService:
 
         for order in orders:
             if order["date"] < today:
-                raise BadValueError(f"Datum {order['date']} liegt in der Vergangenheit.")
+                raise BadValueError(
+                    f"Datum {order['date']} liegt in der Vergangenheit."
+                )
 
             if order["date"] > today + timedelta(days=14):
                 raise BadValueError(
@@ -170,7 +180,9 @@ class PreOrdersService:
             )
 
         if order["date"] < today:
-            raise BadValueError(f"Das Datum {order['date']} liegt in der Vergangenheit.")
+            raise BadValueError(
+                f"Das Datum {order['date']} liegt in der Vergangenheit."
+            )
 
         if order["date"] > today + timedelta(days=14):
             raise BadValueError(

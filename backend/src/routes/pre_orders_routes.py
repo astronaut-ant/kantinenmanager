@@ -161,7 +161,7 @@ def get_pre_order(preorder_id: int):
 
 
 @pre_orders_routes.get("/api/pre-orders/by-group-leader/<uuid:user_id>")
-@login_required(groups=[UserGroup.gruppenleitung])
+@login_required([UserGroup.gruppenleitung])
 @swag_from(
     {
         "tags": ["pre_orders"],
@@ -178,8 +178,7 @@ def get_pre_order(preorder_id: int):
                 "description": "Returns a list of pre-orders",
                 "schema": PreOrdersByGroupLeaderSchema,
             },
-            401: {"description": "Unauthorized"},
-            403: {"description": "Forbidden"},
+            404: {"description": "Not found"},
         },
     }
 )
@@ -192,15 +191,6 @@ def get_pre_orders_by_group_leader(user_id: UUID):
     try:
         pre_orders = PreOrdersService.get_pre_orders_by_group_leader(
             user_id, g.user_id, g.user_group
-        )
-    except AccessDeniedError as err:
-        abort_with_err(
-            ErrMsg(
-                status_code=403,
-                title="Keine Gruppenleitung",
-                description="Person ist keine Gruppenleitung",
-                details=str(err),
-            )
         )
     except NotFoundError as err:
         abort_with_err(

@@ -7,10 +7,11 @@
     @searchresult="updateOverview"
     @changeview="changeview"
   />
-  <GridContainer v-if="ansicht == 'cardview' && users.length !== 0 " :items="userlist">
+  <GridContainer v-if="ansicht == 'cardview' && userlist.length !== 0" :items="userlist">
       <template #default="{ item }">
           <UserCard
           :id="item.id"
+          :blocked="item.blocked"
           :username="item.username"
           :role="item.user_group"
           :firstName="item.first_name"
@@ -21,7 +22,7 @@
         />
       </template>
   </GridContainer>
-  <div v-if="ansicht == 'tableview' && users.length !== 0" class="d-flex justify-center">
+  <div v-if="ansicht == 'tableview' && userlist.length !== 0" class="d-flex justify-center">
     <UserTable
       :users="userlist"
       @user-edited="fetchData"
@@ -47,7 +48,7 @@ const users = ref({});
 const userlist = ref([]);
 const ansicht = ref("cardview");
 const errorSnackbar = ref(false);
-const errorSnackbarText = ref ("");
+const errorSnackbarText = ref("");
 
 const allLocations = ref([]);
 
@@ -56,6 +57,9 @@ const fetchData = () => {
     .get(import.meta.env.VITE_API + "/api/users", { withCredentials: true })
     .then((response) => {
       users.value = response.data;
+      users.value.sort((a, b) =>
+        a.username > b.username ? 1 : b.username > a.username ? -1 : 0
+      );
       userlist.value = Object.values(response.data);
       //console.log(users.value);
     })
@@ -89,11 +93,9 @@ const updateOverview = (items) => {
 const changeview = (string) => {
   ansicht.value = string;
 };
-
 </script>
 
 <style scoped>
-
 .grid-container {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(425px, 1fr));
@@ -113,5 +115,4 @@ const changeview = (string) => {
   min-width: 400px;
   max-width: 425px;
 }
-
 </style>
