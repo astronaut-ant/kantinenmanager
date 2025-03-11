@@ -1,5 +1,5 @@
 <template>
-  <NavbarGruppenleitung />
+  <NavbarGruppenleitung :breadcrumbs = '[{"title": "Meine Gruppen"}]'/>
   <v-container max-width="800">
     <div>
       <v-toolbar color="white" flat dark >

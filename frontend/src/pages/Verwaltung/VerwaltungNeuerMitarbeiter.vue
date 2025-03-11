@@ -1,5 +1,5 @@
 <template>
-  <NavbarVerwaltung />
+  <NavbarVerwaltung :breadcrumbs = '[{"title": "Mitarbeiter"}, {"title": "Neuer Mitarbeiter"}]'/>
   <v-container max-width="800">
     <div class="mb-4">
       <h3 class="title">Manuelles Hinzufügen eines Mitarbeiters</h3>

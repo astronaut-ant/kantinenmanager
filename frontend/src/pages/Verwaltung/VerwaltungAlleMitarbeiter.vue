@@ -1,28 +1,31 @@
 <template>
-  <NavbarVerwaltung />
+  <NavbarVerwaltung :breadcrumbs = '[{"title": "Mitarbeiter"}, {"title": "Alle Mitarbeiter"}]' />
   <FilterBar
     :viewSwitcherEnabled="false"
     :filterList="['first_name', 'last_name', 'employee_number', 'group_name', 'location_name']"
     :items="employees"
     @searchresult="updateOverview"
-  />
-  <v-container style="width: 70%;">
-    <transition name="fade-toolbar" mode="out-in">
-      <v-toolbar v-if="selected.length > 0 && items.length > 0" color="grey-lighten-2" flat dark density="compact" rounded="lg">
-        <v-btn class="ml-3 mr-3" icon="mdi-close" density="compact" @click="selected = []"></v-btn>
-        <v-divider inset vertical></v-divider>
-        <p class="ml-4 mr-2">{{ selected.length }} ausgewählt</p>
-        <v-spacer></v-spacer>
-        <v-btn prepend-icon="mdi-qrcode" class="bg-green mr-2" @click="getQRCodeSelected" size="small">QR Codes generieren</v-btn>
-        <v-btn prepend-icon="mdi-trash-can-outline" class="bg-red mr-2" @click="opendeleteDialogSelected" size="small">Ausgewählte Mitarbeiter löschen</v-btn>
-      </v-toolbar>
+  >
+    <template #outside>
+      <transition name="fade-toolbar" mode="out-in" style="width: 70%;">
+        <v-toolbar v-if="selected.length > 0 && items.length > 0" color="grey-lighten-2" flat dark density="compact" rounded="lg">
+          <v-btn class="ml-3 mr-3" icon="mdi-close" density="compact" @click="selected = []"></v-btn>
+          <v-divider inset vertical></v-divider>
+          <p class="ml-4 mr-2">{{ selected.length }} ausgewählt</p>
+          <v-spacer></v-spacer>
+          <v-btn prepend-icon="mdi-qrcode" class="bg-green mr-2" @click="getQRCodeSelected" size="small">QR Codes generieren</v-btn>
+          <v-btn prepend-icon="mdi-trash-can-outline" class="bg-red mr-2" @click="opendeleteDialogSelected" size="small">Ausgewählte Mitarbeiter löschen</v-btn>
+        </v-toolbar>
 
-      <v-toolbar v-else-if="selected.length == 0" color="white" flat dark density="compact" rounded="lg">
-        <p class="text-h6">Anzahl aller jetzigen Mitarbeiter: {{ employees.length }}</p>
-        <v-spacer></v-spacer>
-        <v-btn prepend-icon="mdi-reload" @click="fetchData">Neuladen</v-btn>
-      </v-toolbar>
-    </transition>
+        <v-toolbar v-else-if="selected.length == 0" color="white" flat dark density="compact" rounded="lg">
+          <p class="text-h6">Anzahl aller jetzigen Mitarbeiter: {{ employees.length }}</p>
+          <v-spacer></v-spacer>
+          <v-btn prepend-icon="mdi-reload" @click="fetchData">Neuladen</v-btn>
+        </v-toolbar>
+      </transition>
+    </template>
+  </FilterBar>
+  <v-container style="width: 70%;">
     <div v-if="items.length > 0">
       <v-data-table v-model="selected" :headers="headers"  :items="items" :sort-by="sortBy" :loading="loading" :hover="true" item-value="id" show-select items-per-page="15" items-per-page-text="Einträge pro Seite" page-text="" show-current-page :items-per-page-options="itemsPerPage">
       <template v-slot:[`item.actions`]="{ item }">
@@ -32,7 +35,7 @@
       </template>
       </v-data-table>
     </div>
-    <NoResult v-else-if="items.length == 0 && employees.length != 0" />
+    <NoResult v-else-if="items.length === 0 && employees.length !== 0" />
   </v-container>
   <v-dialog v-model="deleteDialog" persistent max-width="400">
     <v-card>

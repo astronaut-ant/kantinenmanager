@@ -1,114 +1,59 @@
 <template>
-  <NavbarStandort></NavbarStandort>
-  <div class="ml-10 mr-10 mt-5">
-    <v-row class="d-flex justify-start">
-      <v-col
-        v-if="loading"
-        v-for="n in 6"
-        :key="n"
-        cols="12" sm="12" md="6" lg="4" xl="3" xxl = "2"
-        class="d-flex justify-center"
-      >
-        <v-skeleton-loader
-          class="mx-auto"
-          width="450"
-          max-height="200"
-          type="heading, subtitle, divider, chip"
-        />
-      </v-col>
-
-      <v-col
-        v-else
-        v-for="groupLeader in groupLeaders"
-        :key="groupLeader.id"
-        cols="12" sm="12" md="6" lg="4" xl="3" xxl = "2"
-        class="d-flex justify-center"
-      >
-      <GroupLeaderCard
-        :group_number="groupLeader.group_number"
-        :group_id="groupLeader.id"
-        :group_name="groupLeader.group_name"
-        :location="groupLeader.location"
-        :group_leader="groupLeader.group_leader"
-        :group_leader_replacement="groupLeader.group_leader_replacement"
-        :replacing_groups="groupLeader.replacing_group"
-        :available="groupLeader.available"
-        :available_group_leaders="groupLeader.available_group_leaders"
-        @replacement-set="fetchData"
-        @replacement-removed="fetchData"
-      ></GroupLeaderCard>
-      </v-col>
-    </v-row>
-  </div>
+  <NavbarStandort :breadcrumbs = '[{"title": "Vertretung festlegen"}]'></NavbarStandort>
+  <FilterBar     
+    :viewSwitcherEnabled="false"
+    :filterList="['first_name', 'last_name', 'own_group.group_name']"
+    :items="originalGroupLeaders"
+    @searchresult="updateOverview"
+    />
+  <GridContainer v-if="groupLeaders.length !== 0" :items="groupLeaders">
+      <template #default="{ item }">
+        <GroupLeaderCard
+          :id="item.id"
+          :first_name="item.first_name"
+          :last_name="item.last_name"
+          :own_group="item.own_group"
+          :replacement_groups="item.replacement_groups"
+          :available_group_leaders="availableLeaders"
+          @replacement-set="fetchData"
+          @replacement-removed="fetchData"
+        ></GroupLeaderCard>
+      </template>
+  </GridContainer>
+  <NoResult v-if="groupLeaders.length === 0 && originalGroupLeaders.length !== 0" />
 </template>
   
 <script setup>
   import axios from "axios";
   const groupLeaders = ref([]);
-  const loading = ref(true);
+  const originalGroupLeaders = ref([]);
+  const availableLeaders = ref([]);
 
   const fetchData = () => {
-    loading.value=true;
-    groupLeaders.value=[];
     axios
-      .get(import.meta.env.VITE_API + "/api/groups", { withCredentials: true })
+      .get(import.meta.env.VITE_API + "/api/users/group-leaders", { withCredentials: true })
       .then((response) => {
-        const groups = response.data;  
-        let availableLeaders = []; 
+        groupLeaders.value = response.data;
+        originalGroupLeaders.value = response.data;
+        availableLeaders.value = getAvailableLeaders(response.data);
 
-        groups.forEach((group) => {
-          if (!group.group_leader_replacement) {
-            availableLeaders.push({
-              id: group.group_leader.id,
-              name: `${group.group_leader.first_name} ${group.group_leader.last_name}`,
-              group_number: group.group_number,
-              group: {
-                id: group.id,
-                name: group.group_name,
-                location: group.location,
-              },
-            });
-          }
-      });
-
-
-        availableLeaders = availableLeaders.filter(
-          (leader, index, self) =>
-            index === self.findIndex((l) => l.id === leader.id)
-        );
-
-
-        groups.forEach((group) => {
-          const replacingGroups = groups.filter(
-            (g) => g.group_leader_replacement?.id === group.group_leader.id
-          );
-
-          groupLeaders.value.push({
-            ...group,
-            available: !group.group_leader_replacement, 
-            replacing_group: replacingGroups.map((replacingGroup) => ({
-              id: replacingGroup.id,
-              name: replacingGroup.group_name,
-              location: replacingGroup.location,
-            })),
-            available_group_leaders: availableLeaders,
-          });
-        });
-
-        groupLeaders.value.sort((a, b) => {
-          if (!a.available && b.available) return -1;
-          if (a.available && !b.available) return 1;
-
-          return a.group_name.localeCompare(b.group_name);
-        });
-        
-        loading.value = false;
       })
       .catch((err) => console.error("Error fetching data", err));
+  };
+
+  const getAvailableLeaders = (leaders) => {
+    return leaders
+      .filter(leader => leader.own_group === null || leader.own_group.user_id_replacement === null)
+      .map(({ id, first_name, last_name }) => ({ id, first_name, last_name, full_name: `${first_name} ${last_name}` })); 
   };
 
   onMounted(() => {
     fetchData();
   });
+
+  const updateOverview = (list) => {
+    groupLeaders.value = list;
+    console.log(list);
+  };
 </script>
   
