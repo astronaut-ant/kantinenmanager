@@ -25,7 +25,7 @@ def describe_pre_orders():
             db,
         ):
             # enforce foreign key constraints just for this test
-            db.session.execute(text("PRAGMA foreign_keys = ON"))    # noqa: F405
+            db.session.execute(text("PRAGMA foreign_keys = ON"))  # noqa: F405
 
             db.session.add(user_verwaltung)
             db.session.add(user_standortleitung)  # needed for location
@@ -100,7 +100,7 @@ def describe_pre_orders():
             db,
         ):
             # enforce foreign key constraints just for this test
-            db.session.execute(text("PRAGMA foreign_keys = ON"))    # noqa: F405
+            db.session.execute(text("PRAGMA foreign_keys = ON"))  # noqa: F405
 
             db.session.add(user_verwaltung)
             db.session.add(user_standortleitung)  # needed for location
@@ -136,7 +136,7 @@ def describe_pre_orders():
             db,
         ):
             # enforce foreign key constraints just for this test
-            db.session.execute(text("PRAGMA foreign_keys = ON"))    # noqa: F405
+            db.session.execute(text("PRAGMA foreign_keys = ON"))  # noqa: F405
 
             db.session.add(user_verwaltung)
             db.session.add(user_standortleitung)  # needed for location
@@ -174,7 +174,7 @@ def describe_pre_orders():
             db,
         ):
             # enforce foreign key constraints just for this test
-            db.session.execute(text("PRAGMA foreign_keys = ON"))    # noqa: F405
+            db.session.execute(text("PRAGMA foreign_keys = ON"))  # noqa: F405
 
             db.session.add(user_verwaltung)
             db.session.add(user_standortleitung)  # needed for location
@@ -241,7 +241,7 @@ def describe_pre_orders():
             db,
         ):
             # enforce foreign key constraints just for this test
-            db.session.execute(text("PRAGMA foreign_keys = ON"))    # noqa: F405
+            db.session.execute(text("PRAGMA foreign_keys = ON"))  # noqa: F405
 
             db.session.add(user_verwaltung)
             db.session.add(user_standortleitung)  # needed for location
@@ -286,7 +286,7 @@ def describe_pre_orders():
             db,
         ):
             # enforce foreign key constraints just for this test
-            db.session.execute(text("PRAGMA foreign_keys = ON"))    # noqa: F405
+            db.session.execute(text("PRAGMA foreign_keys = ON"))  # noqa: F405
 
             db.session.add(user_verwaltung)
             db.session.add(user_standortleitung)  # needed for location
@@ -335,7 +335,7 @@ def describe_pre_orders():
             db,
         ):
             # enforce foreign key constraints just for this test
-            db.session.execute(text("PRAGMA foreign_keys = ON"))    # noqa: F405
+            db.session.execute(text("PRAGMA foreign_keys = ON"))  # noqa: F405
 
             db.session.add(user_verwaltung)
             db.session.add(user_standortleitung)
@@ -410,11 +410,10 @@ def describe_pre_orders():
             user_verwaltung,
             user_standortleitung,
             user_gruppenleitung,
-            pre_orders,
             db,
         ):
             # enforce foreign key constraints just for this test
-            db.session.execute(text("PRAGMA foreign_keys = ON"))    # noqa: F405
+            db.session.execute(text("PRAGMA foreign_keys = ON"))  # noqa: F405
 
             db.session.add(user_verwaltung)
             db.session.add(user_standortleitung)
@@ -449,7 +448,7 @@ def describe_pre_orders():
                     "main_dish": "rot",
                     "nothing": False,
                     "person_id": employeesi[i],
-                    "salad_option": True
+                    "salad_option": True,
                 }
                 for i in range(3)
             ]
@@ -458,3 +457,192 @@ def describe_pre_orders():
             assert res.status_code == 201
             assert db.session.query(PreOrder).count() == 3
 
+        def it_does_not_create_based_on_userscope(
+            client,
+            location,
+            group,
+            employees,
+            user_verwaltung,
+            user_standortleitung,
+            user_gruppenleitung,
+            user_gruppenleitung_alt,
+            db,
+        ):
+            # enforce foreign key constraints just for this test
+            db.session.execute(text("PRAGMA foreign_keys = ON"))  # noqa: F405
+
+            db.session.add(user_verwaltung)
+            db.session.add(user_standortleitung)
+            db.session.add(user_gruppenleitung)
+            db.session.commit()
+            db.session.add(location)
+            db.session.add(group)
+            db.session.commit()
+            db.session.add(user_gruppenleitung_alt)
+            db.session.add_all(employees)
+            db.session.commit()
+
+            login(user=user_gruppenleitung_alt, client=client)
+
+            inte = 0
+            employeesi = {}
+            for employee in employees:
+                employeesi[inte] = employee.id
+                inte += 1
+
+            forward = datetime.date.today().weekday()
+            if forward > 2 and forward < 5:  # weekend
+                forward = 4
+            elif forward == 1 or forward == 0:
+                forward = 2
+
+            body = [
+                {
+                    "date": (
+                        datetime.date.today() + datetime.timedelta(days=forward)
+                    ).isoformat(),
+                    "location_id": location.id,
+                    "main_dish": "rot",
+                    "nothing": False,
+                    "person_id": employeesi[i],
+                    "salad_option": True,
+                }
+                for i in range(3)
+            ]
+
+            res = client.post("/api/pre-orders", json=body)
+            assert res.status_code == 409
+            assert db.session.query(PreOrder).count() == 0
+
+        def does_not_create_two_for_same_day(
+            client,
+            location,
+            group,
+            employees,
+            user_verwaltung,
+            user_standortleitung,
+            user_gruppenleitung,
+            db,
+        ):
+            # enforce foreign key constraints just for this test
+            db.session.execute(text("PRAGMA foreign_keys = ON"))  # noqa: F405
+
+            db.session.add(user_verwaltung)
+            db.session.add(user_standortleitung)
+            db.session.add(user_gruppenleitung)
+            db.session.commit()
+            db.session.add(location)
+            db.session.add(group)
+            db.session.commit()
+            db.session.add_all(employees)
+            db.session.commit()
+
+            login(user=user_gruppenleitung, client=client)
+
+            inte = 0
+            employeesi = {}
+            for employee in employees:
+                employeesi[inte] = employee.id
+                inte += 1
+
+            forward = datetime.date.today().weekday()
+            if forward > 2 and forward < 5:  # weekend
+                forward = 4
+            elif forward == 1 or forward == 0:
+                forward = 2
+
+            body = [
+                {
+                    "date": (
+                        datetime.date.today() + datetime.timedelta(days=forward)
+                    ).isoformat(),
+                    "location_id": location.id,
+                    "main_dish": "rot",
+                    "nothing": False,
+                    "person_id": employeesi[0],
+                    "salad_option": True,
+                }
+                for i in range(2)
+            ]
+
+            res = client.post("/api/pre-orders", json=body)
+            assert res.status_code == 201
+            assert db.session.query(PreOrder).count() == 1
+
+        def correctly_adjusts_pre_orders(
+            client,
+            location,
+            group,
+            employees,
+            user_verwaltung,
+            user_standortleitung,
+            user_gruppenleitung,
+            pre_orders,
+            db,
+        ):
+            # enforce foreign key constraints just for this test
+            db.session.execute(text("PRAGMA foreign_keys = ON"))  # noqa: F405
+
+            db.session.add(user_verwaltung)
+            db.session.add(user_standortleitung)
+            db.session.add(user_gruppenleitung)
+            db.session.commit()
+            db.session.add(location)
+            db.session.add(group)
+            db.session.commit()
+            db.session.add_all(employees)
+            db.session.commit()
+
+            login(user=user_gruppenleitung, client=client)
+
+            forward = datetime.date.today().weekday()
+            if forward > 2 and forward < 5:  # weekend
+                forward = 4
+            else:
+                forward = 2
+
+
+            body = [
+                {
+                    "date": (datetime.date.today()+datetime.timedelta(days=forward)).isoformat(),
+                    "location_id": preorder.location_id,
+                    "main_dish": "blau",  # noqa: F405
+                    "nothing": False,
+                    "person_id": preorder.person_id,
+                    "salad_option": True,
+                }
+                for preorder in pre_orders
+            ]
+
+            client.post("/api/pre-orders", json=body)
+
+            assert (
+                db.session.query(PreOrder).filter(PreOrder.nothing == False).count()
+                == 5
+            )
+
+
+            body = [
+                {
+                    "date": (datetime.date.today()+datetime.timedelta(days=forward)).isoformat(),
+                    "location_id": preorder.location_id,
+                    "main_dish": None,  # noqa: F405
+                    "nothing": True,
+                    "person_id": preorder.person_id,
+                    "salad_option": False,
+                }
+                for preorder in pre_orders
+            ]
+
+            res = client.post("/api/pre-orders", json=body)
+            assert res.status_code == 201
+            amount = db.session.query(PreOrder).all()
+            assert len(amount) == 5
+            assert (
+                db.session.query(PreOrder).filter(PreOrder.nothing == True).count() == 5
+            )
+            assert (
+                db.session.query(PreOrder).filter(PreOrder.nothing == False).count()
+                == 0
+            )
+            

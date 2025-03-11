@@ -365,14 +365,20 @@ def pre_order(location):
 
 @pytest.fixture
 def pre_orders(employees, location):
+    forward = datetime.date.today().weekday()
+    if forward > 2 and forward < 5:  # weekend
+        forward = 4
+    else:
+        forward = 2
+
     pre_orders = []
     for employee in employees:
         pre_order = PreOrder(
             person_id=employee.id,
             location_id=location.id,
-            date=(datetime.datetime.now() + datetime.timedelta(days=1)).date(),
+            date=(datetime.datetime.now() + datetime.timedelta(days=forward)).date(),
             nothing=False,
-            main_dish=MainDish.rot,
+            main_dish="rot",
             salad_option=True,
         )
         pre_orders.append(pre_order)
@@ -381,12 +387,18 @@ def pre_orders(employees, location):
 
 @pytest.fixture
 def pre_orders_alt(employees_alt, location):
+    forward = datetime.date.today().weekday()
+    if forward > 2 and forward < 5:  # weekend
+        forward = 4
+    else:
+        forward = 2
+
     pre_orders = []
     for employee in employees_alt:
         pre_order = PreOrder(
             person_id=employee.id,
             location_id=location.id,
-            date=(datetime.datetime.now() + datetime.timedelta(days=1)).date(),
+            date=(datetime.datetime.now() + datetime.timedelta(days=forward)).date(),
             nothing=False,
             main_dish=MainDish.rot,
             salad_option=True,
@@ -397,12 +409,18 @@ def pre_orders_alt(employees_alt, location):
 
 @pytest.fixture
 def pre_orders_alt_location(employees_alt_location, location_alt):
+    forward = datetime.date.today().weekday()
+    if forward > 2 and forward < 5:  # weekend
+        forward = 4
+    else:
+        forward = 2
+
     pre_orders = []
     for employee in employees_alt_location:
         pre_order = PreOrder(
             person_id=employee.id,
             location_id=location_alt.id,
-            date=(datetime.datetime.now() + datetime.timedelta(days=1)).date(),
+            date=(datetime.datetime.now() + datetime.timedelta(days=forward)).date(),
             nothing=False,
             main_dish=MainDish.rot,
             salad_option=True,
