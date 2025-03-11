@@ -32,7 +32,7 @@
       <v-btn
         icon="mdi-lead-pencil"
         class="bg-primary mr-2"
-        @click="openeditDialog(item)"
+        @click="openeditDialog(item), (hasChanged = false)"
         size="small"
       ></v-btn>
       <v-btn
@@ -74,44 +74,80 @@
   <v-dialog v-model="editDialog" no-click-animation persistent max-width="500">
     <v-card>
       <v-card-text>
-        <div class="d-flex justify-center align-center text-primary mb-7">
-          <p class="text-h5 font-weight-black">Benutzer bearbeiten</p>
+        <div class="d-flex ga-3 ms-2 mb-5 mt-2 text-primary">
+          <div class="d-flex align-center">
+            <v-icon size="x-large">mdi-account-edit</v-icon>
+          </div>
+          <h2>Benutzer bearbeiten</h2>
         </div>
+
         <div>
           <v-form ref="validation" v-model="form">
             <v-radio-group
               v-model="user_group"
+              @update:model-value="hasChanged = true"
               :rules="[required]"
               color="primary"
             >
               <div class="d-flex">
-                <v-radio label="Verwaltung" value="verwaltung"></v-radio>
                 <v-radio
+                  base-color="blue-grey"
+                  label="Verwaltung"
+                  value="verwaltung"
+                >
+                  <template v-slot:label="{ label }">
+                    <span class="text-blue-grey-darken-4">{{ label }} </span>
+                  </template>
+                </v-radio>
+                <v-radio
+                  base-color="blue-grey"
                   label="Standortleitung"
                   value="standortleitung"
-                ></v-radio>
+                >
+                  <template v-slot:label="{ label }">
+                    <span class="text-blue-grey-darken-4">{{ label }} </span>
+                  </template></v-radio
+                >
               </div>
               <div class="d-flex">
                 <v-radio
+                  base-color="blue-grey"
                   label="Gruppenleitung"
                   value="gruppenleitung"
-                ></v-radio>
+                >
+                  <template v-slot:label="{ label }">
+                    <span class="text-blue-grey-darken-4">{{ label }} </span>
+                  </template></v-radio
+                >
                 <v-radio
+                  base-color="blue-grey"
                   label="Küchenpersonal"
                   value="kuechenpersonal"
-                ></v-radio>
+                >
+                  <template v-slot:label="{ label }">
+                    <span class="text-blue-grey-darken-4">{{ label }} </span>
+                  </template></v-radio
+                >
               </div>
             </v-radio-group>
             <div class="d-flex ga-5">
               <v-text-field
                 v-model="first_name"
                 :rules="[required]"
+                @update:model-value="hasChanged = true"
+                base-color="blue-grey"
+                color="primary"
+                variant="outlined"
                 class="mb-2"
                 label="Vorname"
                 clearable
               ></v-text-field>
               <v-text-field
                 v-model="last_name"
+                @update:model-value="hasChanged = true"
+                base-color="blue-grey"
+                color="primary"
+                variant="outlined"
                 :rules="[required]"
                 class="mb-2"
                 label="Nachname"
@@ -120,6 +156,10 @@
             </div>
             <div block>
               <v-text-field
+                base-color="blue-grey"
+                @update:model-value="hasChanged = true"
+                color="primary"
+                variant="outlined"
                 class="mb-2"
                 v-model="username"
                 :rules="[required]"
@@ -128,10 +168,14 @@
               ></v-text-field>
               <div></div>
             </div>
-            <v-btn @click="handlePasswordReset" class="bg-red mb-5" block
+            <v-btn
+              @click="handlePasswordReset"
+              class="bg-primary mb-3 mt-4"
+              block
               >Passwort zurücksetzen</v-btn
             >
             <v-btn
+              v-if="userToEditID != appStore.userData.id"
               class="bg-blue-grey w-100 mt-4 mb-2"
               block
               @click="blocking(userToEditID)"
@@ -142,15 +186,19 @@
           </v-form>
         </div>
       </v-card-text>
-      <v-card-actions>
-        <v-btn text @click="editDialog = false">Abbrechen</v-btn>
+      <v-card-actions class="mb-2" :class="!hasChanged ? 'me-2' : ''">
+        <v-btn text @click="editDialog = false">{{
+          hasChanged ? "Verwerfen" : "Zurück"
+        }}</v-btn>
         <v-btn
+          v-if="hasChanged"
           color="primary"
+          class="me-4"
           :disabled="!form"
           type="submit"
           variant="elevated"
           @click="confirmEdit"
-          >Speichern</v-btn
+          >Übernehmen</v-btn
         >
       </v-card-actions>
     </v-card>
@@ -172,6 +220,9 @@
 
 <script setup>
 import axios from "axios";
+import { useAppStore } from "@/stores/app";
+const appStore = useAppStore();
+
 const props = defineProps(["users"]);
 const emit = defineEmits(["user-removed", "user-edited"]);
 
@@ -240,6 +291,7 @@ const snackbar = ref(false);
 const errorSnackbar = ref(false);
 const errorSnackbarText = ref(" ");
 const isBlocked = ref(false);
+const hasChanged = ref(false);
 
 const handlePasswordReset = () => {
   axios

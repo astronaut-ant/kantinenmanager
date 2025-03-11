@@ -201,14 +201,15 @@
           </v-form>
         </div>
       </v-card-text>
-      <v-card-actions class="mb-2">
+      <v-card-actions class="mb-2" :class="!hasChanged ? 'me-2' : ''">
         <v-btn text @click="(editDialog = false), restore()">{{
-          hasChanged ? "Abbrechen" : "Zurück"
+          hasChanged ? "Verwerfen" : "Zurück"
         }}</v-btn>
         <v-btn
+          v-if="hasChanged"
           color="primary"
           class="me-4"
-          :disabled="!form || !hasChanged"
+          :disabled="!form"
           type="submit"
           variant="elevated"
           @click="confirmEdit"
