@@ -494,6 +494,55 @@ def old_order(location):
     return old_order
 
 
+@pytest.fixture
+def old_orders(employees, location):
+    old_orders = []
+    forward = datetime.date.today().weekday()
+    if forward > 0 and forward < 6:  # weekend
+        forward = 1
+    else:
+        forward = 3
+
+    for employee in employees:
+        old_order = OldOrder(
+            person_id=employee.id,
+            location_id=location.id,
+            date=(datetime.datetime.now() - datetime.timedelta(days=forward)).date(),
+            nothing=False,
+            main_dish=MainDish.rot,
+            handed_out=True,
+            salad_option=True,
+        )
+        old_orders.append(old_order)
+    return old_orders
+
+
+@pytest.fixture
+def old_orders_alt(employees_alt, location):
+    old_orders = []
+    forward = datetime.date.today().weekday()
+    if forward > 0 and forward < 6:
+        forward = 1
+    else:
+        forward = 3
+
+    for employee in employees_alt:
+        old_order = OldOrder(
+            person_id=employee.id,
+            location_id=location.id,
+            date=(datetime.datetime.now() - datetime.timedelta(days=forward)).date(),
+            nothing=False,
+            main_dish=MainDish.blau,
+            handed_out=True,
+            salad_option=True,
+        )
+        old_orders.append(old_order)
+    return old_orders
+
+
+#################### OTHER THINGS ####################
+
+
 @pytest.fixture()
 def today():
     return datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)

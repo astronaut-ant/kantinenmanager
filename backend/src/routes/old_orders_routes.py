@@ -12,7 +12,6 @@ from src.utils.exceptions import NotFoundError
 old_orders_routes = Blueprint("old_orders_routes", __name__)
 
 
-# TODO: Test route
 @old_orders_routes.get("/api/old-orders")
 @login_required(groups=[UserGroup.verwaltung])
 @swag_from(
@@ -82,8 +81,8 @@ old_orders_routes = Blueprint("old_orders_routes", __name__)
                     "items": OldOrderFullSchema,
                 },
             },
-            401: {"description": "Unauthorized"},
-            403: {"description": "Forbidden"},
+            404: {"description": "Unauthorized"},
+            400: {"description": "Bad Request"},
         },
     }
 )
@@ -113,7 +112,7 @@ def get_old_orders():
                 status_code=404,
                 title="Nicht gefunden",
                 description="Es wurden keine passenden Bestellungen gefunden",
-                details=err.messages,
+                details=str(err),
             )
         )
     return OldOrderFullSchema(many=True).dump(orders)

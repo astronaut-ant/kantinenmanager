@@ -16,7 +16,7 @@ class OldOrdersService:
         :return: List of old orders
         """
         old_orders = OrdersRepository.get_old_orders(filters)
-        if old_orders is None:
+        if old_orders == []:
             raise NotFoundError("No old orders found")
         else:
             return old_orders

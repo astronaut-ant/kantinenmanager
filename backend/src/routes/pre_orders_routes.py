@@ -428,7 +428,7 @@ def update_preorder_user(preorder_id: UUID):
                 status_code=400,
                 title="Validierungsfehler",
                 description="Format der Daten im Request-Body nicht valide",
-                details=err.messages,
+                details=str(err),
             )
         )
 
