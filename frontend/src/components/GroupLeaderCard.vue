@@ -1,21 +1,21 @@
 <template>
-    <v-card class="mx-2 my-2" width="450" elevation="16">
+    <v-card class="mx-2 my-2" width="425" elevation="16">
         <v-card-item>
             <div class="mb-2 d-flex justify-center">
                 <v-chip
-                    :color="available ? 'green' : 'red'"
+                    :color="props.available_group_leaders.some(leader => leader.id === props.id) ? 'green' : 'red'"
                     class="text-uppercase d-flex justify-center flex-grow-1" 
                     size="small"
                     label
                 >
-                    <v-icon class="me-2" v-if="available">mdi-calendar-check-outline</v-icon>
+                    <v-icon class="me-2" v-if="props.available_group_leaders.some(leader => leader.id === props.id)">mdi-calendar-check-outline</v-icon>
                     <v-icon class="me-2" v-else>mdi-calendar-remove-outline</v-icon>
-                    {{ available ? 'verfügbar' : 'abwesend' }}
+                    {{ props.available_group_leaders.some(leader => leader.id === props.id) ? 'verfügbar' : 'abwesend' }}
                 </v-chip>
             </div>
             <div>
                 <div>
-                    <v-card-title>{{ props.group_leader.first_name }} {{ props.group_leader.last_name }}</v-card-title>
+                    <v-card-title class="mb-2">Gruppenleiter: {{ props.first_name }} {{ props.last_name }}</v-card-title>
                     <v-slide-group :mobile="false">
                         <v-slide-group-item>
                             <v-chip
@@ -25,10 +25,10 @@
                                 label
                             >
                                 <v-icon icon="mdi-account-group" class="me-2"></v-icon>
-                                <span>Hauptgruppe: {{ props.group_name }}</span>
+                                <span>Hauptgruppe: {{ props.own_group?.group_name || "-" }}</span>
                             </v-chip>
                         </v-slide-group-item>
-                        <v-slide-group-item v-for="replacing_group in replacing_groups" >
+                        <v-slide-group-item v-for="replacement_group in replacement_groups" >
                             <v-chip
                                 color="orange"
                                 class="mr-2"
@@ -36,7 +36,7 @@
                                 label
                                 >   
                                 <v-icon class="me-2">mdi-calendar-clock-outline</v-icon>
-                                Vertretung für {{ replacing_group.name }}
+                                Vertretung für {{ replacement_group.group_name }}
                             </v-chip>
                         </v-slide-group-item>
                     </v-slide-group>
@@ -47,7 +47,7 @@
         <v-card-text>
             <v-divider></v-divider>
             <div class="mt-3 d-flex justify-end">
-                <v-btn v-if="available" :disabled="props.replacing_groups && props.replacing_groups.length > 0" color="red" @click="opensetGroupReplacementDialog" size="small" flat variant="outlined">Als Abwesend markieren</v-btn>
+                <v-btn v-if="props.available_group_leaders.some(leader => leader.id === props.id)" :disabled="props.replacement_groups.length > 0 || props.own_group === null" color="red" @click="opensetGroupReplacementDialog" size="small" flat variant="outlined">Als Abwesend markieren</v-btn>
                 <v-btn v-else color="primary" @click="openremoveGroupReplacementDialog" size="small" flat variant="outlined">Als Anwesend markieren</v-btn>
             </div>
         </v-card-text>
@@ -59,12 +59,12 @@
                 <p class="text-h5 font-weight-black" >Vertretung setzen</p>
                 </div>
                 <div class="text-medium-emphasis mb-7">
-                <p> Bitte wählen Sie einen neuen Gruppenleiter, der für die Gruppe <strong>{{ props.group_name }}</strong>  Essensbestellungen übernehmen kann. </p>
+                <p> Bitte wählen Sie einen neuen Gruppenleiter, der für die Gruppe <strong>{{ props.own_group?.group_name }}</strong>  Essensbestellungen übernehmen kann. </p>
                 </div>
                 <v-select
                     v-model="replacementGroupLeader"
                     :items="trueavailable_group_leaders.value"
-                    item-title="name"
+                    item-title="full_name"
                     item-value="id"
                     label="Gruppenleiter"
                 ></v-select>
@@ -89,7 +89,7 @@
                 <p class="text-h5 font-weight-black" >Vertretung löschen</p>
                 </div>
                 <div class="text-medium-emphasis">
-                <p> Durch das Entfernen der Vertretung kann <strong>{{ props.group_leader.first_name }} {{ props.group_leader.last_name }}</strong> wieder Essensbestellungen für die Gruppe <strong>{{ props.group_name }}</strong> übernehmen.</p>
+                <p> Durch das Entfernen der Vertretung kann <strong>{{ props.first_name }} {{ props.last_name }}</strong> wieder Essensbestellungen für die Gruppe <strong>{{ props.own_group?.group_name }}</strong> übernehmen.</p>
                 </div>
 
             </v-card-text>
@@ -108,21 +108,21 @@
     const setGroupReplacementDialog = ref(false);
     const removeGroupReplacementDialog = ref(false);
     const trueavailable_group_leaders = ref([]);
-    const props = defineProps(["group_number","group_id", "group_name", "location" , "group_leader", "group_leader_replacement", "replacing_groups", "available", "available_group_leaders"]);
+    const props = defineProps(["id", "first_name", "last_name", "own_group", "replacement_groups", "available_group_leaders"]);
     const emit = defineEmits(["replacement-set", "replacement-removed"]);
 
     import axios from "axios";
 
     trueavailable_group_leaders.value = computed(() => {
         return props.available_group_leaders.filter(
-            (leader) => leader.id !== props.group_leader.id
+            (leader) => leader.id !== props.id
         );
     });
 
 
     const removeGroupReplacement = () => {
         axios
-        .delete(`${import.meta.env.VITE_API}/api/groups/remove-replacement/${props.group_id}`, { withCredentials: true })
+        .delete(`${import.meta.env.VITE_API}/api/groups/remove-replacement/${props.own_group?.id}`, { withCredentials: true })
         .then(() => {
             emit("replacement-removed");
             closeremoveGroupReplacementDialog();
@@ -152,12 +152,12 @@
             return;
         }
         axios
-            .put(`${import.meta.env.VITE_API}/api/groups/${props.group_id}`, 
+            .put(`${import.meta.env.VITE_API}/api/groups/${props.own_group?.id}`, 
                 {   
-                    group_number: props.group_number,
-                    group_name: props.group_name,
-                    location_id: props.location.id,
-                    user_id_group_leader: props.group_leader.id,
+                    group_number: props.own_group?.group_number,
+                    group_name: props.own_group?.group_name,
+                    location_id: props.own_group?.location_id,
+                    user_id_group_leader: props.id,
                     user_id_replacement: replacementGroupLeader.value
                 }, { withCredentials: true }
             )
@@ -173,5 +173,5 @@
 
 
 <style>
-.v-slide-group__prev, .v-slide-group__next { min-width: 35px;}
+.v-slide-group__prev, .v-slide-group__next { min-width: 30px; max-width: 30px;}
 </style>

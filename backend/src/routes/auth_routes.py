@@ -225,12 +225,13 @@ def change_password():
         AuthService.change_password(
             g.user_id, body.get("old_password"), body.get("new_password")
         )
-    except NotFoundError:
+    except NotFoundError as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
                 title="Passwort ändern fehlgeschlagen",
-                description="Nutzer nicht gefunden",
+                description="Nutzer:in nicht gefunden",
+                details=str(err),
             )
         )
     except InvalidCredentialsException:

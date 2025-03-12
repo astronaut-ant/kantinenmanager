@@ -160,15 +160,15 @@ def get_pre_order(preorder_id: int):
     return jsonify(order), 200
 
 
-@pre_orders_routes.get("/api/pre-orders/by-group-leader/<uuid:person_id>")
-@login_required(groups=[UserGroup.gruppenleitung], disabled=True)
+@pre_orders_routes.get("/api/pre-orders/by-group-leader/<uuid:user_id>")
+@login_required([UserGroup.gruppenleitung])
 @swag_from(
     {
         "tags": ["pre_orders"],
         "parameters": [
             {
                 "in": "path",
-                "name": "person_id",
+                "name": "user_id",
                 "required": True,
                 "schema": {"type": "string", "format": "uuid"},
             }
@@ -178,12 +178,11 @@ def get_pre_order(preorder_id: int):
                 "description": "Returns a list of pre-orders",
                 "schema": PreOrdersByGroupLeaderSchema,
             },
-            401: {"description": "Unauthorized"},
-            403: {"description": "Forbidden"},
+            404: {"description": "Not found"},
         },
     }
 )
-def get_pre_orders_by_group_leader(person_id: UUID):
+def get_pre_orders_by_group_leader(user_id: UUID):
     """Get orders by group leader
     Retrieves all groups of the group leader along with the orders of the employees in these groups.
     ---
@@ -191,16 +190,7 @@ def get_pre_orders_by_group_leader(person_id: UUID):
 
     try:
         pre_orders = PreOrdersService.get_pre_orders_by_group_leader(
-            person_id, g.user_id, g.user_group
-        )
-    except AccessDeniedError as err:
-        abort_with_err(
-            ErrMsg(
-                status_code=403,
-                title="Keine Gruppenleitung",
-                description="Person ist keine Gruppenleitung",
-                details=str(err),
-            )
+            user_id, g.user_id, g.user_group
         )
     except NotFoundError as err:
         abort_with_err(
@@ -216,7 +206,7 @@ def get_pre_orders_by_group_leader(person_id: UUID):
 
 
 @pre_orders_routes.post("/api/pre-orders")
-@login_required(groups=[UserGroup.gruppenleitung], disabled=True)
+@login_required(groups=[UserGroup.gruppenleitung])
 @swag_from(
     {
         "tags": ["pre_orders"],
@@ -289,9 +279,8 @@ def create_update_preorders_employees():
 
 
 @pre_orders_routes.post("/api/pre-orders/users")
-@login_required(
-    groups=[UserGroup.verwaltung, UserGroup.standortleitung, UserGroup.gruppenleitung]
-)
+# Must not be restricted for user food order! (Frontend)
+@login_required()
 @swag_from(
     {
         "tags": ["pre_orders"],

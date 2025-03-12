@@ -1,5 +1,5 @@
 <template>
-  <NavbarGruppenleitung />
+  <NavbarGruppenleitung :breadcrumbs = '[{"title": "Vorbestellungen"}]'/>
   <h1 class="text-center mt-5 mb-7">Vorbestellungen</h1>
   <div class="mx-auto w-75">
     <FullCalendar :options="calendarOptions" />

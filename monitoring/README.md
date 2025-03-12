@@ -29,3 +29,26 @@ cd
 6. The default credentials are: `admin/prom-operator` (user/password)
 
 In Grafana, edit the Loki integration by setting this header: `X-Scope-OrgID - sep`
+
+# Install Nosferatu
+
+Create these accounts: `nosferatu` (verwaltung), `nosferatu_standort` (standortleitung) and `nosferatu_kueche` (kuechenleitung).
+Let them have the same password and save it as a secret:
+
+```bash
+kubectl create secret generic nosferatu --from-literal=PASSWORD=supersecret
+```
+
+Create a secret with the target URL:
+
+```bash
+kubectl create secret generic nosferatu-base-url --from-literal=BASE_URL="https://<ip-address>/"
+```
+
+Do not forget the trailing slash!
+
+Then deploy the pod. This is just the backend pod but it will run the script instead of the application:
+
+```bash
+kubectl apply -f monitoring/nosferatu.yml
+```

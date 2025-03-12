@@ -4,7 +4,12 @@ from src.models.group import Group
 from src.models.location import Location
 from src.repositories.locations_repository import LocationsRepository
 from src.repositories.users_repository import UsersRepository
-from src.utils.exceptions import AlreadyExistsError, IntegrityError, NotFoundError
+from src.utils.exceptions import (
+    AlreadyExistsError,
+    BadValueError,
+    IntegrityError,
+    NotFoundError,
+)
 
 
 class LocationsService:
@@ -27,7 +32,10 @@ class LocationsService:
         :return: The location with the given ID or None if no location was found
         """
 
-        return LocationsRepository.get_location_by_id(location_id)
+        location = LocationsRepository.get_location_by_id(location_id)
+        if location is None:
+            raise NotFoundError(f"Standort mit ID {location_id}")
+        return location
 
     @staticmethod
     def create_location(location_name: str, user_id_location_leader: UUID) -> UUID:
@@ -48,7 +56,7 @@ class LocationsService:
 
         if LocationsRepository.get_location_by_leader(location_leader.id):
             raise AlreadyExistsError(
-                ressource=f"User {location_leader.username}",
+                ressource=f"Nutzer:in {location_leader.username}",
                 details=" als Standortleiter",
             )
 
@@ -69,7 +77,7 @@ class LocationsService:
 
         :return: The updated location
         """
-        location = LocationsService.get_location_by_id(location_id)
+        location = LocationsRepository.get_location_by_id(location_id)
 
         if location is None:
             raise NotFoundError(f"Standort mit ID {location_id}")
@@ -80,13 +88,23 @@ class LocationsService:
         ):
             raise AlreadyExistsError(ressource=f"Standort {location_name}")
 
+        new_leader = UsersRepository.get_user_by_id(user_id_location_leader)
+
+        if new_leader is None:
+            raise NotFoundError(
+                f"Nutzer mit ID {user_id_location_leader} konnte nicht gefunden werden."
+            )
+
         if (
             user_id_location_leader != location.user_id_location_leader
             and LocationsRepository.get_location_by_leader(user_id_location_leader)
         ):
-            raise AlreadyExistsError(
-                ressource="Nutzer:in", details="als Standortleiter"
+            raise BadValueError(
+                f"{new_leader.first_name} {new_leader.last_name} leitet bereits einen Standort"
             )
+
+        new_leader.location_id = location_id
+        UsersRepository.update_user(new_leader)
 
         location.location_name = location_name
         location.user_id_location_leader = user_id_location_leader
@@ -116,5 +134,6 @@ class LocationsService:
         :param location_id: The ID of the location
         :return: The groups of the location
         """
-
+        if LocationsRepository.get_location_by_id(location_id) is None:
+            raise NotFoundError(f"Standort mit ID {location_id}")
         return LocationsRepository.get_groups_of_location(location_id)

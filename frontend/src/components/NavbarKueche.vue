@@ -3,7 +3,7 @@
     <v-toolbar class="bg-primary" flat app>
       <v-app-bar-nav-icon @click="showDrawer"></v-app-bar-nav-icon>
       <v-toolbar-title>
-        <span>Küchenpersonal</span>
+        <CustomBreadCrumbs :breadcrumbs="props.breadcrumbs" role="Küchenpersonal" />
       </v-toolbar-title>
       <Avatar />
     </v-toolbar>
@@ -41,4 +41,11 @@ const drawer = ref(false);
 const showDrawer = () => {
   drawer.value = !drawer.value;
 };
+
+const props = defineProps({
+  breadcrumbs: {
+    type: Array,
+    required: false
+  }
+});
 </script>

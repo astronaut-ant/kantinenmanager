@@ -1,5 +1,5 @@
 <template>
-  <NavbarVerwaltung />
+  <NavbarVerwaltung :breadcrumbs = '[{"title": "Mitarbeiter"}, {"title": "Neuer Mitarbeiter"}]'/>
   <v-container class="py-5">
     <div class="d-flex justify-center">
       <h1 class="text-center">Import CSV Dateien</h1>

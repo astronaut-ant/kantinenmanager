@@ -1,5 +1,5 @@
 <template>
-  <NavbarVerwaltung @click="emptyForm" />
+  <NavbarVerwaltung @click="emptyForm" :breadcrumbs = '[{"title": "Mitarbeiter"}, {"title": "Neuer Mitarbeiter"}]'/>
   <div class="mt-7 d-flex justify-center" @click="emptyForm">
     <div>
       <v-card class="elevation-7 px-6 py-4 w-100">
