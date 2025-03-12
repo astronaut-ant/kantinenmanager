@@ -34,7 +34,10 @@ spec:
               memory: 128Mi
           env:
             - name: BASE_URL
-              value: "http://backend-service.default.svc.cluster.local:4200/"
+              valueFrom:
+                secretKeyRef:
+                  name: nosferatu-base-url
+                  key: BASE_URL
             - name: VERWALTUNG_USERNAME
               value: nosferatu
             - name: VERWALTUNG_PASSWORD

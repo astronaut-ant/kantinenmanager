@@ -598,33 +598,34 @@ def get_qr_code_for_employees_list():
     Authorization: Verwaltung, Standortleitung, Gruppenleitung
     ---
     """
+
+    data = request.get_json()
+    if (
+        not data
+        or "employee_ids" not in data
+        or not isinstance(data["employee_ids"], list)
+    ):
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Ungültiges Format",
+                description="Die Anfrage muss eine Liste von UUIDs enthalten",
+            )
+        )
+
     try:
-        data = request.get_json()
-        if (
-            not data
-            or "employee_ids" not in data
-            or not isinstance(data["employee_ids"], list)
-        ):
-            abort_with_err(
-                ErrMsg(
-                    status_code=400,
-                    title="Ungültiges Format",
-                    description="Die Anfrage muss eine Liste von UUIDs enthalten",
-                )
+        employee_ids = [UUID(id_str) for id_str in data["employee_ids"]]
+    except (ValueError, TypeError):
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Ungültige UUID",
+                description="Eine oder mehrere IDs sind keine gültigen UUIDs",
             )
+        )
 
-        try:
-            employee_ids = [UUID(id_str) for id_str in data["employee_ids"]]
-        except (ValueError, TypeError):
-            abort_with_err(
-                ErrMsg(
-                    status_code=400,
-                    title="Ungültige UUID",
-                    description="Eine oder mehrere IDs sind keine gültigen UUIDs",
-                )
-            )
-
-        return EmployeesService.get_qr_code_for_employees_list(
+    try:
+        qr_codes = EmployeesService.get_qr_code_for_employees_list(
             employee_ids=employee_ids, user_group=g.user_group, user_id=g.user_id
         )
     except NotFoundError as err:
@@ -636,3 +637,5 @@ def get_qr_code_for_employees_list():
                 details=str(err),
             )
         )
+
+    return qr_codes

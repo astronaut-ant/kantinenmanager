@@ -26,7 +26,9 @@ import os
 import random
 from time import sleep
 import requests
+import urllib3
 
+urllib3.disable_warnings()
 
 BASE_URL = os.getenv("BASE_URL") or "http://localhost:4200/"
 VERWALTUNG_USERNAME, VERWALTUNG_PASSWORD = (
@@ -47,37 +49,39 @@ class User:
     def __init__(self, username, password):
         self.username = username
         self.password = password
-        self.cookies = None
+        self.session = requests.Session()
+        self.session.verify = False
 
     def login(self):
-        res = requests.post(
+        res = self.session.post(
             BASE_URL + "api/login",
             json={"username": self.username, "password": self.password},
         )
         if res.status_code != 200:
             print(res.json())
             assert False
-        self.cookies = res.cookies
         print(f"{self.username}: Logged in with status code {res.status_code}")
 
     def is_logged_in(self):
-        if not self.cookies:
+        if not self.session.cookies:
             self.login()
-        res = requests.get(BASE_URL + "api/is-logged-in", cookies=self.cookies)
+        res = self.session.get(
+            BASE_URL + "api/is-logged-in",
+            cookies=self.session.cookies,
+        )
         if res.status_code != 200:
             print(res.json())
             assert False
         print(f"{self.username}: Is logged in with status code {res.status_code}")
 
     def logout(self):
-        if not self.cookies:
+        if not self.session.cookies:
             self.login()
-        res = requests.post(BASE_URL + "api/logout", cookies=self.cookies)
+        res = self.session.post(BASE_URL + "api/logout")
         if res.status_code != 204:
             print(res.json())
             assert False
         print(f"{self.username}: Logged out with status code {res.status_code}")
-        self.cookies = None
 
 
 class Verwaltung(User):
@@ -85,9 +89,9 @@ class Verwaltung(User):
         super().__init__(VERWALTUNG_USERNAME, VERWALTUNG_PASSWORD)
 
     def get_users(self):
-        if not self.cookies:
+        if not self.session.cookies:
             self.login()
-        res = requests.get(BASE_URL + "api/users", cookies=self.cookies)
+        res = self.session.get(BASE_URL + "api/users")
         if res.status_code != 200:
             print(res.json())
             assert False
@@ -95,30 +99,28 @@ class Verwaltung(User):
         return res.json()
 
     def get_group_leaders(self):
-        if not self.cookies:
+        if not self.session.cookies:
             self.login()
-        res = requests.get(BASE_URL + "api/users/group-leaders", cookies=self.cookies)
+        res = self.session.get(BASE_URL + "api/users/group-leaders")
         if res.status_code != 200:
             print(res.json())
             assert False
         print(f"{self.username}: Got {len(res.json())} group leaders")
 
     def get_location_leaders(self):
-        if not self.cookies:
+        if not self.session.cookies:
             self.login()
-        res = requests.get(
-            BASE_URL + "api/users/location-leaders", cookies=self.cookies
-        )
+        res = self.session.get(BASE_URL + "api/users/location-leaders")
         if res.status_code != 200:
             print(res.json())
             assert False
         print(f"{self.username}: Got {len(res.json())} location leaders")
 
     def create_user(self):
-        if not self.cookies:
+        if not self.session.cookies:
             self.login()
-        username = f"nosferatu{random.randint(0, 100)}"
-        res = requests.post(
+        username = f"nosferatu{random.randint(0, 9)}"
+        res = self.session.post(
             BASE_URL + "api/users",
             json={
                 "first_name": username.capitalize(),
@@ -126,7 +128,7 @@ class Verwaltung(User):
                 "username": username,
                 "user_group": "kuechenpersonal",
             },
-            cookies=self.cookies,
+            cookies=self.session.cookies,
         )
         if res.status_code == 200:
             # user may already exist
@@ -134,39 +136,39 @@ class Verwaltung(User):
         return username
 
     def delete_user(self):
-        if not self.cookies:
+        if not self.session.cookies:
             self.login()
         username = self.create_user()
 
         users = self.get_users()
         user = next(u for u in users if u["username"] == username)
 
-        requests.delete(
+        self.session.delete(
             BASE_URL + f"api/users/{user['id']}",
-            cookies=self.cookies,
+            cookies=self.session.cookies,
         )
         print(f"{self.username}: Deleted user {user['username']}")
 
     def block_and_unblock_user(self):
-        if not self.cookies:
+        if not self.session.cookies:
             self.login()
         username = self.create_user()
 
         users = self.get_users()
         user = next(u for u in users if u["username"] == username)
 
-        res = requests.put(
+        res = self.session.put(
             BASE_URL + f"api/users/{user['id']}/block",
-            cookies=self.cookies,
+            cookies=self.session.cookies,
         )
         print(f"{self.username}: Blocked user {user['username']}")
         if res.status_code != 200:
             print(res.json())
             assert False
 
-        res = requests.put(
+        res = self.session.put(
             BASE_URL + f"api/users/{user['id']}/unblock",
-            cookies=self.cookies,
+            cookies=self.session.cookies,
         )
         print(f"{self.username}: Unblocked user {user['username']}")
         if res.status_code != 200:
@@ -174,9 +176,9 @@ class Verwaltung(User):
             assert False
 
     def get_locations(self):
-        if not self.cookies:
+        if not self.session.cookies:
             self.login()
-        res = requests.get(BASE_URL + "api/locations", cookies=self.cookies)
+        res = self.session.get(BASE_URL + "api/locations")
         if res.status_code != 200:
             print(res.json())
             assert False
@@ -184,7 +186,7 @@ class Verwaltung(User):
         return res.json()
 
     def create_location(self, name: str):
-        if not self.cookies:
+        if not self.session.cookies:
             self.login()
         locations = self.get_locations()
         loc = next((l for l in locations if l["location_name"] == name), None)
@@ -195,13 +197,13 @@ class Verwaltung(User):
         location_leader = next(
             (u for u in users if u["username"] == STANDORT_USERNAME), None
         )
-        res = requests.post(
+        res = self.session.post(
             BASE_URL + "api/locations",
             json={
                 "location_name": name,
                 "user_id_location_leader": location_leader["id"],
             },
-            cookies=self.cookies,
+            cookies=self.session.cookies,
         )
         if res.status_code != 201:
             print(res.json())
@@ -210,9 +212,9 @@ class Verwaltung(User):
         return res.json().get("id")
 
     def get_groups(self):
-        if not self.cookies:
+        if not self.session.cookies:
             self.login()
-        res = requests.get(BASE_URL + "api/groups", cookies=self.cookies)
+        res = self.session.get(BASE_URL + "api/groups")
         if res.status_code != 200:
             print(res.json())
             assert False
@@ -220,9 +222,9 @@ class Verwaltung(User):
         return res.json()
 
     def get_groups_with_location(self):
-        if not self.cookies:
+        if not self.session.cookies:
             self.login()
-        res = requests.get(BASE_URL + "api/groups/with-locations", cookies=self.cookies)
+        res = self.session.get(BASE_URL + "api/groups/with-locations")
         if res.status_code != 200:
             print(res.json())
             assert False
@@ -230,63 +232,64 @@ class Verwaltung(User):
         return res.json()
 
     def get_dish_prices(self):
-        if not self.cookies:
+        if not self.session.cookies:
             self.login()
-        res = requests.get(BASE_URL + "api/dish_prices", cookies=self.cookies)
+        res = self.session.get(BASE_URL + "api/dish_prices")
         if res.status_code != 200:
             print(res.json())
             assert False
         print(f"{self.username}: Got {len(res.json())} dish prices")
 
     def get_employees(self):
-        if not self.cookies:
+        if not self.session.cookies:
             self.login()
-        res = requests.get(BASE_URL + "api/employees", cookies=self.cookies)
+        res = self.session.get(BASE_URL + "api/employees")
         if res.status_code != 200:
             print(res.json())
             assert False
         print(f"{self.username}: Got {len(res.json())} employees")
 
     def get_employee_qr_codes(self):
-        if not self.cookies:
+        if not self.session.cookies:
             self.login()
-        res = requests.get(BASE_URL + "api/employees/qr-codes", cookies=self.cookies)
-        if res.status_code != 200:
+        res = self.session.get(BASE_URL + "api/employees/qr-codes")
+        if res.status_code != 200 and res.status_code != 404:
+            print(res.json())
             assert False
         assert res.headers["Content-Type"] == "application/pdf"
         print(f"{self.username}: Got employee qr codes")
 
     def get_health(self):
-        if not self.cookies:
+        if not self.session.cookies:
             self.login()
-        res = requests.get(BASE_URL + "api/health", cookies=self.cookies)
+        res = self.session.get(BASE_URL + "api/health")
         if res.status_code != 200:
             print(res.json())
             assert False
         print(f"{self.username}: Got health")
 
     def get_preorders(self):
-        if not self.cookies:
+        if not self.session.cookies:
             self.login()
-        res = requests.get(BASE_URL + "api/pre-orders", cookies=self.cookies)
+        res = self.session.get(BASE_URL + "api/pre-orders")
         if res.status_code != 200:
             print(res.json())
             assert False
         print(f"{self.username}: Got {len(res.json())} preorders")
 
     def get_daily_orders(self):
-        if not self.cookies:
+        if not self.session.cookies:
             self.login()
-        res = requests.get(BASE_URL + "api/daily-orders", cookies=self.cookies)
+        res = self.session.get(BASE_URL + "api/daily-orders")
         if res.status_code != 200:
             print(res.json())
             assert False
         print(f"{self.username}: Got {len(res.json())} daily orders")
 
     def get_old_orders(self):
-        if not self.cookies:
+        if not self.session.cookies:
             self.login()
-        res = requests.get(BASE_URL + "api/old-orders", cookies=self.cookies)
+        res = self.session.get(BASE_URL + "api/old-orders")
         if res.status_code != 200:
             print(res.json())
             assert False
@@ -298,18 +301,18 @@ class Standortleitung(User):
         super().__init__(STANDORT_USERNAME, STANDORT_PASSWORD)
 
     def get_preorders(self):
-        if not self.cookies:
+        if not self.session.cookies:
             self.login()
-        res = requests.get(BASE_URL + "api/pre-orders", cookies=self.cookies)
+        res = self.session.get(BASE_URL + "api/pre-orders")
         if res.status_code != 200:
             print(res.json())
             assert False
         print(f"{self.username}: Got {len(res.json())} preorders")
 
     def get_daily_orders(self):
-        if not self.cookies:
+        if not self.session.cookies:
             self.login()
-        res = requests.get(BASE_URL + "api/daily-orders", cookies=self.cookies)
+        res = self.session.get(BASE_URL + "api/daily-orders")
         if res.status_code != 200:
             print(res.json())
             assert False
@@ -321,18 +324,18 @@ class Kuechenpersonal(User):
         super().__init__(KUECHENPERSONAL_USERNAME, KUECHENPERSONAL_PASSWORD)
 
     def get_daily_orders(self):
-        if not self.cookies:
+        if not self.session.cookies:
             self.login()
-        res = requests.get(BASE_URL + "api/daily-orders", cookies=self.cookies)
+        res = self.session.get(BASE_URL + "api/daily-orders")
         if res.status_code != 200:
             print(res.json())
             assert False
         print(f"{self.username}: Got {len(res.json())} daily orders")
 
     def get_daily_orders_counted(self):
-        if not self.cookies:
+        if not self.session.cookies:
             self.login()
-        res = requests.get(BASE_URL + "api/daily-orders/counted", cookies=self.cookies)
+        res = self.session.get(BASE_URL + "api/daily-orders/counted")
         if res.status_code != 200:
             print(res.json())
             assert False
@@ -340,9 +343,12 @@ class Kuechenpersonal(User):
 
 
 v = Verwaltung()
+v.is_logged_in()
+
 v.create_location("Transsylvanien")
 s = Standortleitung()
 k = Kuechenpersonal()
+
 
 # call a random method on v
 while True:
