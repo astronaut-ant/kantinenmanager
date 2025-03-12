@@ -37,12 +37,10 @@ STANDORT_USERNAME, STANDORT_PASSWORD = (
     os.getenv("STANDORTLEITUNG_USERNAME") or "standortleitung",
     os.getenv("STANDORTLEITUNG_PASSWORD") or "password",
 )
-GRUPPENLEITUNG_USERNAME, GRUPPENLEITUNG_PASSWORD = os.getenv(
-    "GRUPPENLEITUNG_USERNAME"
-), os.getenv("GRUPPENLEITUNG_PASSWORD")
-KUECHENPERSONAL_USERNAME, KUECHENPERSONAL_PASSWORD = os.getenv(
-    "KUECHENPERSONAL_USERNAME"
-), os.getenv("KUECHENPERSONAL_PASSWORD")
+KUECHENPERSONAL_USERNAME, KUECHENPERSONAL_PASSWORD = (
+    os.getenv("KUECHENPERSONAL_USERNAME") or "küchenpersonal",
+    os.getenv("KUECHENPERSONAL_PASSWORD") or "password",
+)
 
 
 class User:
@@ -231,42 +229,127 @@ class Verwaltung(User):
         print(f"{self.username}: Got {len(res.json())} groups with location")
         return res.json()
 
-    def create_group(self, name: str, leader: str):
+    def get_dish_prices(self):
         if not self.cookies:
             self.login()
-        groups = self.get_groups()
-        group = next((g for g in groups if g["group_name"] == name), None)
-        if group:
-            print(f"{self.username}: Group {name} already exists")
-            return group.get("id")
-        location_id = self.create_location("Transsylvanien")
-        users = self.get_users()
-        leader = next(u for u in users if u["username"] == leader)
-        res = requests.post(
-            BASE_URL + "api/groups",
-            json={
-                "group_name": name,
-                "group_number": random.randint(1000, 10000),
-                "location_id": location_id,
-                "user_id_group_leader": leader["id"],
-            },
-            cookies=self.cookies,
-        )
-        if res.status_code != 201:
+        res = requests.get(BASE_URL + "api/dish_prices", cookies=self.cookies)
+        if res.status_code != 200:
             print(res.json())
             assert False
-        print(f"{self.username}: Created group {name}")
-        return res.json().get("id")
+        print(f"{self.username}: Got {len(res.json())} dish prices")
+
+    def get_employees(self):
+        if not self.cookies:
+            self.login()
+        res = requests.get(BASE_URL + "api/employees", cookies=self.cookies)
+        if res.status_code != 200:
+            print(res.json())
+            assert False
+        print(f"{self.username}: Got {len(res.json())} employees")
+
+    def get_employee_qr_codes(self):
+        if not self.cookies:
+            self.login()
+        res = requests.get(BASE_URL + "api/employees/qr-codes", cookies=self.cookies)
+        if res.status_code != 200:
+            assert False
+        assert res.headers["Content-Type"] == "application/pdf"
+        print(f"{self.username}: Got employee qr codes")
+
+    def get_health(self):
+        if not self.cookies:
+            self.login()
+        res = requests.get(BASE_URL + "api/health", cookies=self.cookies)
+        if res.status_code != 200:
+            print(res.json())
+            assert False
+        print(f"{self.username}: Got health")
+
+    def get_preorders(self):
+        if not self.cookies:
+            self.login()
+        res = requests.get(BASE_URL + "api/pre-orders", cookies=self.cookies)
+        if res.status_code != 200:
+            print(res.json())
+            assert False
+        print(f"{self.username}: Got {len(res.json())} preorders")
+
+    def get_daily_orders(self):
+        if not self.cookies:
+            self.login()
+        res = requests.get(BASE_URL + "api/daily-orders", cookies=self.cookies)
+        if res.status_code != 200:
+            print(res.json())
+            assert False
+        print(f"{self.username}: Got {len(res.json())} daily orders")
+
+    def get_old_orders(self):
+        if not self.cookies:
+            self.login()
+        res = requests.get(BASE_URL + "api/old-orders", cookies=self.cookies)
+        if res.status_code != 200:
+            print(res.json())
+            assert False
+        print(f"{self.username}: Got {len(res.json())} old orders")
+
+
+class Standortleitung(User):
+    def __init__(self):
+        super().__init__(STANDORT_USERNAME, STANDORT_PASSWORD)
+
+    def get_preorders(self):
+        if not self.cookies:
+            self.login()
+        res = requests.get(BASE_URL + "api/pre-orders", cookies=self.cookies)
+        if res.status_code != 200:
+            print(res.json())
+            assert False
+        print(f"{self.username}: Got {len(res.json())} preorders")
+
+    def get_daily_orders(self):
+        if not self.cookies:
+            self.login()
+        res = requests.get(BASE_URL + "api/daily-orders", cookies=self.cookies)
+        if res.status_code != 200:
+            print(res.json())
+            assert False
+        print(f"{self.username}: Got {len(res.json())} daily orders")
+
+
+class Kuechenpersonal(User):
+    def __init__(self):
+        super().__init__(KUECHENPERSONAL_USERNAME, KUECHENPERSONAL_PASSWORD)
+
+    def get_daily_orders(self):
+        if not self.cookies:
+            self.login()
+        res = requests.get(BASE_URL + "api/daily-orders", cookies=self.cookies)
+        if res.status_code != 200:
+            print(res.json())
+            assert False
+        print(f"{self.username}: Got {len(res.json())} daily orders")
+
+    def get_daily_orders_counted(self):
+        if not self.cookies:
+            self.login()
+        res = requests.get(BASE_URL + "api/daily-orders/counted", cookies=self.cookies)
+        if res.status_code != 200:
+            print(res.json())
+            assert False
+        print(f"{self.username}: Got {len(res.json())} daily orders counted")
 
 
 v = Verwaltung()
 v.create_location("Transsylvanien")
-v.create_group("Nosferatus Gruppe", "gruppenleitung")
+s = Standortleitung()
+k = Kuechenpersonal()
 
 # call a random method on v
 while True:
     random.choice(
         [
+            v.is_logged_in,
+            v.logout,
             v.get_users,
             v.get_group_leaders,
             v.get_location_leaders,
@@ -276,6 +359,21 @@ while True:
             v.get_locations,
             v.get_groups,
             v.get_groups_with_location,
+            v.get_dish_prices,
+            v.get_employees,
+            v.get_employee_qr_codes,
+            v.get_health,
+            v.get_preorders,
+            v.get_daily_orders,
+            v.get_old_orders,
+            s.is_logged_in,
+            s.logout,
+            s.get_preorders,
+            s.get_daily_orders,
+            k.is_logged_in,
+            k.logout,
+            k.get_daily_orders,
+            k.get_daily_orders_counted,
         ]
     )()
     sleep(0.1)

@@ -1,0 +1,60 @@
+# NOSFERATU
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nosferatu-deployment
+  labels:
+    app: nosferatu-deployment
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: nosferatu-deployment
+  template:
+    metadata:
+      labels:
+        app: nosferatu-deployment
+    spec:
+      containers:
+        - name: nosferatu-deployment
+          image: swpgruppe16/backend:latest
+          command: ["python", "-O", "scripts/nosferatu.py"]
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 100m
+              memory: 128Mi
+          env:
+            - name: BASE_URL
+              value: "http://backend-service.default.svc.cluster.local:4200/"
+            - name: VERWALTUNG_USERNAME
+              value: nosferatu
+            - name: VERWALTUNG_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: nosferatu
+                  key: PASSWORD
+            - name: STANDORTLEITUNG_USERNAME
+              value: nosferatu_standort
+            - name: STANDORTLEITUNG_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: nosferatu
+                  key: PASSWORD
+            - name: KUECHENPERSONAL_USERNAME
+              value: nosferatu_kueche
+            - name: KUECHENPERSONAL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: nosferatu
+                  key: PASSWORD
+      imagePullSecrets:
+        - name: regcred
