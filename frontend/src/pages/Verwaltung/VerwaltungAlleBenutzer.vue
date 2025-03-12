@@ -1,5 +1,8 @@
 <template>
-  <NavbarVerwaltung :breadcrumbs = '[{"title": "Benutzer"}, {"title": "Alle Benutzer"}]' />
+  <NavbarVerwaltung
+    :key="forcer"
+    :breadcrumbs="[{ title: 'Benutzer' }, { title: 'Alle Benutzer' }]"
+  />
   <FilterBar
     :viewSwitcherEnabled="true"
     :filterList="['username', 'first_name', 'last_name', 'user_group']"
@@ -7,22 +10,29 @@
     @searchresult="updateOverview"
     @changeview="changeview"
   />
-  <GridContainer v-if="ansicht == 'cardview' && userlist.length !== 0" :items="userlist">
-      <template #default="{ item }">
-          <UserCard
-          :id="item.id"
-          :blocked="item.blocked"
-          :username="item.username"
-          :role="item.user_group"
-          :firstName="item.first_name"
-          :lastName="item.last_name"
-          :location_id="item.location_id"
-          @user-edited="fetchData"
-          @user-removed="fetchData"
-        />
-      </template>
+  <GridContainer
+    v-if="ansicht == 'cardview' && userlist.length !== 0"
+    :items="userlist"
+  >
+    <template #default="{ item }">
+      <UserCard
+        :id="item.id"
+        :blocked="item.blocked"
+        :username="item.username"
+        :role="item.user_group"
+        :firstName="item.first_name"
+        :lastName="item.last_name"
+        :location_id="item.location_id"
+        @user-edited="fetchData"
+        @user-removed="fetchData"
+        @avatar-changed="reset"
+      />
+    </template>
   </GridContainer>
-  <div v-if="ansicht == 'tableview' && userlist.length !== 0" class="d-flex justify-center">
+  <div
+    v-if="ansicht == 'tableview' && userlist.length !== 0"
+    class="d-flex justify-center"
+  >
     <UserTable
       :users="userlist"
       @user-edited="fetchData"
@@ -30,7 +40,7 @@
     >
     </UserTable>
   </div>
-  <NoResult v-if="userlist.length === 0 && users.length !== 0 " />
+  <NoResult v-if="userlist.length === 0 && users.length !== 0" />
   <ErrorSnackbar
     v-model="errorSnackbar"
     :text="errorSnackbarText"
@@ -49,6 +59,7 @@ const userlist = ref([]);
 const ansicht = ref("cardview");
 const errorSnackbar = ref(false);
 const errorSnackbarText = ref("");
+const forcer = ref(1);
 
 const allLocations = ref([]);
 
@@ -92,5 +103,10 @@ const updateOverview = (items) => {
 
 const changeview = (string) => {
   ansicht.value = string;
+};
+
+const reset = () => {
+  forcer.value += 1;
+  forcer.value %= 2;
 };
 </script>

@@ -7,8 +7,8 @@
     <div>
       <v-card class="elevation-7 px-8 py-4 w-100" min-width="700">
         <v-card-text class="mb-2 text-h6">
-          <div class="d-flex ga-4 ms-2 ms-n4 text-primary">
-            <div class="d-flex align-center">
+          <div class="d-flex ga-4 mt-n3 ms-2 ms-n4 text-primary">
+            <div class="d-flex align-center mt-n2">
               <v-icon :size="40">mdi-account-plus</v-icon>
             </div>
             <h2>Neues Benutzerkonto anlegen</h2>
@@ -63,7 +63,7 @@
               >
             </div>
           </v-radio-group>
-          <div class="d-flex ga-5 mt-3">
+          <div class="d-flex ga-5 mt-2 mb-2">
             <v-text-field
               :active="true"
               v-model="first_name"
@@ -72,7 +72,7 @@
               base-color="blue-grey"
               color="primary"
               variant="outlined"
-              class="mb-2"
+              class="mb-2 w-100"
               label="Vorname"
               placeholder="Vornamen eingeben"
               clearable
@@ -85,7 +85,7 @@
               color="primary"
               variant="outlined"
               :rules="[required]"
-              class="mb-2"
+              class="mb-2 w-100"
               label="Nachname"
               placeholder="Nachnamen eingeben"
               clearable
@@ -98,7 +98,7 @@
               @update:model-value="hasChanged = true"
               color="primary"
               variant="outlined"
-              class="mb-4 mt-2"
+              class="mb-5 mt-2"
               v-model="username"
               :rules="[required]"
               label="Benutzername"
@@ -152,7 +152,6 @@ const first_name = ref("");
 const last_name = ref("");
 const username = ref("");
 const user_group = ref("");
-const user_location = ref();
 const allLocations = ref([]);
 const notSuccessful = ref(false);
 const errorMessage = ref();

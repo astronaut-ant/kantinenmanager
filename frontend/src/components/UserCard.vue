@@ -30,11 +30,7 @@
       <v-divider></v-divider>
       <div class="mt-3 d-flex justify-space-between align-center">
         <v-chip
-          :prepend-icon="
-            props.role === 'verwaltung'
-              ? 'mdi-shield-account'
-              : 'mdi-badge-account'
-          "
+          :prepend-icon="isOwnCard ? 'mdi-shield-account' : 'mdi-badge-account'"
           :color="color"
           density="comfortable"
         >
@@ -51,6 +47,7 @@
           <v-btn
             class="bg-red"
             @click="deleteDialog = true"
+            :disabled="isOwnCard"
             size="default"
             density="comfortable"
             ><v-icon>mdi-trash-can-outline</v-icon></v-btn
@@ -99,6 +96,7 @@
         <div>
           <v-form ref="validation" v-model="form">
             <v-radio-group
+              :disabled="isOwnCard"
               v-model="user_group"
               @update:model-value="hasChanged = true"
               :rules="[required]"
@@ -192,8 +190,8 @@
               >Passwort zurücksetzen</v-btn
             >
             <v-btn
-              v-if="props.id != appStore.userData.id"
               class="bg-blue-grey w-100 mt-4 mb-2"
+              :disabled="isOwnCard"
               block
               @click="blocking"
               >{{
@@ -252,15 +250,8 @@ const props = defineProps([
   "lastName",
   "location_id",
 ]);
-const emit = defineEmits(["user-removed", "user-edited"]);
-const color = computed(() => {
-  switch (props.role) {
-    case "verwaltung":
-      return "red";
-    default:
-      return "primary";
-  }
-});
+const emit = defineEmits(["user-removed", "user-edited", "avatar-changed"]);
+const color = ref("primary");
 const deleteDialog = ref(false);
 const editDialog = ref(false);
 
@@ -301,7 +292,7 @@ const errorSnackbar = ref(false);
 const errorSnackbarText = ref(" ");
 const isBlocked = ref(false);
 const hasChanged = ref(false);
-
+const isOwnCard = ref(false);
 const handlePasswordReset = () => {
   axios
     .put(
@@ -330,9 +321,9 @@ const confirmEdit = () => {
     last_name: last_name.value,
     username: username.value,
     user_group: user_group.value,
-    location_id: props.location_id,
   };
 
+  console.log(updatedUser);
   axios
     .put(import.meta.env.VITE_API + `/api/users/${props.id}`, updatedUser, {
       withCredentials: true,
@@ -342,6 +333,12 @@ const confirmEdit = () => {
       editDialog.value = false;
       snackbarText.value = "Der Benutzer wurde erfolgreich aktualisiert!";
       snackbar.value = true;
+      if (isOwnCard.value) {
+        appStore.userData.first_name = first_name.value;
+        appStore.userData.last_name = last_name.value;
+        appStore.userData.username = username.value;
+        emit("avatar-changed");
+      }
     })
     .catch((err) => {
       console.error("Error updating user:", err);
@@ -402,6 +399,11 @@ const restore = () => {
     user_group.value = props.role;
   }, 500);
 };
+
+if (appStore.userData.id === props.id) {
+  isOwnCard.value = true;
+  color.value = "red";
+}
 </script>
 <style scoped>
 .blockedBackground {
