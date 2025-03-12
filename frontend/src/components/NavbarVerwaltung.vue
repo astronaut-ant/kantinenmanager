@@ -27,7 +27,7 @@
             },
             {
               title: 'Neuer Benutzer',
-              icon: 'mdi-pencil-plus-outline',
+              icon: 'mdi-plus',
               link: '/verwaltung/benutzer/neuerBenutzer',
             },
           ]"
@@ -44,7 +44,7 @@
             },
             {
               title: 'Neuer Standort',
-              icon: 'mdi-pencil-plus-outline',
+              icon: 'mdi-plus',
               link: '/verwaltung/standorte/neuerStandort',
             },
           ]"
@@ -61,7 +61,7 @@
             },
             {
               title: 'Neue Gruppe',
-              icon: 'mdi-pencil-plus-outline',
+              icon: 'mdi-plus',
               link: '/verwaltung/gruppen/neueGruppe',
             },
           ]"
@@ -78,7 +78,7 @@
             },
             {
               title: 'Neuer Mitarbeiter',
-              icon: 'mdi-pencil-plus-outline',
+              icon: 'mdi-plus',
               link: '/verwaltung/mitarbeiter/neuerMitarbeiter',
             },
           ]"
@@ -101,7 +101,7 @@ const showDrawer = () => {
 const props = defineProps({
   breadcrumbs: {
     type: Array,
-    required: false
-  }
+    required: false,
+  },
 });
 </script>

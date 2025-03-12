@@ -89,7 +89,7 @@
   <v-dialog v-model="editDialog" no-click-animation persistent max-width="500">
     <v-card>
       <v-card-text>
-        <div class="d-flex ga-3 ms-2 mb-5 mt-2 text-primary">
+        <div class="d-flex ga-3 mb-5 mt-2 text-primary">
           <div class="d-flex align-center">
             <v-icon size="x-large">mdi-account-edit</v-icon>
           </div>
@@ -106,6 +106,7 @@
             >
               <div class="d-flex">
                 <v-radio
+                  class="ms-n2"
                   base-color="blue-grey"
                   label="Verwaltung"
                   value="verwaltung"
@@ -126,6 +127,7 @@
               </div>
               <div class="d-flex">
                 <v-radio
+                  class="ms-n2"
                   base-color="blue-grey"
                   label="Gruppenleitung"
                   value="gruppenleitung"
@@ -202,9 +204,12 @@
         </div>
       </v-card-text>
       <v-card-actions class="mb-2" :class="!hasChanged ? 'me-4' : ''">
-        <v-btn text @click="(editDialog = false), restore()">{{
-          hasChanged ? "Verwerfen" : "Zurück"
-        }}</v-btn>
+        <v-btn
+          text
+          color="blue-grey"
+          @click="(editDialog = false), restore()"
+          >{{ hasChanged ? "Verwerfen" : "Zurück" }}</v-btn
+        >
         <v-btn
           v-if="hasChanged"
           color="primary"

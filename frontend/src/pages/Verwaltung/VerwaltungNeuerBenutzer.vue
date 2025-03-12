@@ -1,11 +1,18 @@
 <template>
-  <NavbarVerwaltung :breadcrumbs = '[{"title": "Benutzer"}, {"title": "Neuer Benutzer"}]'/>
+  <NavbarVerwaltung
+    :breadcrumbs="[{ title: 'Benutzer' }, { title: 'Neuer Benutzer' }]"
+  />
 
-  <div class="d-flex justify-center mt-7">
+  <div class="d-flex justify-center pa-15">
     <div>
-      <v-card class="elevation-7 px-6 py-4 w-100">
-        <v-card-text class="mb-2 text-h5">
-          Neues Benutzerkonto anlegen
+      <v-card class="elevation-7 mt-7 px-8 py-4 w-100" min-width="700">
+        <v-card-text class="mb-2 text-h6">
+          <div class="d-flex ga-4 ms-2 ms-n4 text-primary">
+            <div class="d-flex align-center">
+              <v-icon :size="40">mdi-account-plus</v-icon>
+            </div>
+            <h2>Neues Benutzerkonto anlegen</h2>
+          </div>
         </v-card-text>
         <v-form ref="validation" v-model="form" @submit.prevent="handleSubmit">
           <v-radio-group
@@ -14,38 +21,91 @@
             color="primary"
           >
             <div class="d-flex">
-              <v-radio label="Verwaltung" value="verwaltung"></v-radio>
               <v-radio
+                base-color="blue-grey"
+                class="ms-n2"
+                label="Verwaltung"
+                value="verwaltung"
+              >
+                <template v-slot:label="{ label }">
+                  <span class="text-blue-grey-darken-4">{{ label }} </span>
+                </template></v-radio
+              >
+              <v-radio
+                base-color="blue-grey"
                 label="Standortleitung"
                 value="standortleitung"
-              ></v-radio>
+              >
+                <template v-slot:label="{ label }">
+                  <span class="text-blue-grey-darken-4">{{ label }} </span>
+                </template>
+              </v-radio>
             </div>
             <div class="d-flex">
-              <v-radio label="Gruppenleitung" value="gruppenleitung"></v-radio>
-              <v-radio label="Küchenpersonal" value="kuechenpersonal"></v-radio>
+              <v-radio
+                base-color="blue-grey"
+                class="ms-n2"
+                label="Gruppenleitung"
+                value="gruppenleitung"
+              >
+                <template v-slot:label="{ label }">
+                  <span class="text-blue-grey-darken-4">{{ label }} </span>
+                </template></v-radio
+              >
+              <v-radio
+                base-color="blue-grey"
+                label="Küchenpersonal"
+                value="kuechenpersonal"
+              >
+                <template v-slot:label="{ label }">
+                  <span class="text-blue-grey-darken-4">{{ label }} </span>
+                </template></v-radio
+              >
             </div>
           </v-radio-group>
-          <v-text-field
-            v-model="first_name"
-            :rules="[required]"
-            class="mb-2"
-            label="Vorname"
-            clearable
-          ></v-text-field>
-          <v-text-field
-            v-model="last_name"
-            :rules="[required]"
-            class="mb-2"
-            label="Nachname"
-            clearable
-          ></v-text-field>
-          <v-text-field
-            v-model="username"
-            :rules="[required]"
-            class="mb-2"
-            label="Benutzername"
-            clearable
-          ></v-text-field>
+          <div class="d-flex ga-5 mt-3">
+            <v-text-field
+              :active="true"
+              v-model="first_name"
+              :rules="[required]"
+              @update:model-value="hasChanged = true"
+              base-color="blue-grey"
+              color="primary"
+              variant="outlined"
+              class="mb-2"
+              label="Vorname"
+              placeholder="Vornamen eingeben"
+              clearable
+            ></v-text-field>
+            <v-text-field
+              :active="true"
+              v-model="last_name"
+              @update:model-value="hasChanged = true"
+              base-color="blue-grey"
+              color="primary"
+              variant="outlined"
+              :rules="[required]"
+              class="mb-2"
+              label="Nachname"
+              placeholder="Nachnamen eingeben"
+              clearable
+            ></v-text-field>
+          </div>
+          <div block>
+            <v-text-field
+              :active="true"
+              base-color="blue-grey"
+              @update:model-value="hasChanged = true"
+              color="primary"
+              variant="outlined"
+              class="mb-4 mt-2"
+              v-model="username"
+              :rules="[required]"
+              label="Benutzername"
+              placeholder="Eindeutigen Benutzernamen vergeben"
+              clearable
+            ></v-text-field>
+          </div>
           <CustomAlert
             v-if="notSuccessful"
             class="mb-7"
@@ -53,17 +113,19 @@
             color="red"
             icon="$error"
           />
-          <v-btn
-            class="mt-2"
-            :disabled="!form"
-            color="primary"
-            size="large"
-            type="submit"
-            variant="elevated"
-            block
-          >
-            anlegen
-          </v-btn>
+          <v-card-actions class="justify-end me-n2">
+            <v-btn @click="emptyForm" color="blue-grey" variant="text">
+              Verwerfen
+            </v-btn>
+            <v-btn
+              :disabled="!form"
+              color="primary"
+              type="submit"
+              variant="elevated"
+            >
+              anlegen
+            </v-btn>
+          </v-card-actions>
         </v-form>
       </v-card>
     </div>
