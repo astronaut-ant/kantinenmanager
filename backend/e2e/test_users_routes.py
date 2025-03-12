@@ -1,5 +1,6 @@
 """End-to-End tests for the users routes."""
 
+from time import sleep
 import uuid
 
 from sqlalchemy import select, text
@@ -426,6 +427,8 @@ def describe_users():
 
             res = client.delete(f"/api/users/{user_id}")
 
+            sleep(0.05)
+
             assert res.status_code == 200
             assert (
                 db.session.execute(select(User).where(User.id == user_id)).scalar()
@@ -471,6 +474,8 @@ def describe_users():
             )
 
             res = client.delete(f"/api/users/{user_id}")
+
+            sleep(0.05)
 
             assert res.status_code == 200
             assert (
@@ -518,6 +523,8 @@ def describe_users():
             )
 
             res = client.delete(f"/api/users/{user_id}")
+
+            sleep(0.05)
 
             assert res.status_code == 200
             assert (

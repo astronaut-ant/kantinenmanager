@@ -1,5 +1,5 @@
 <template>
-  <NavbarVerwaltung />
+  <NavbarVerwaltung :breadcrumbs = '[{"title": "Gruppen"}, {"title": "Neue Gruppe"}]'/>
   <div class="mt-7 d-flex justify-center">
     <div>
       <v-card class="elevation-7 px-6 py-4 w-100">

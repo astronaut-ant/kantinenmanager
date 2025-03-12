@@ -21,14 +21,7 @@ employees_routes = Blueprint("employees_routes", __name__)
 
 # Bei jedem GET Request (siehe HTTP) auf /api/users wird die get_employees Funktion aufgerufen und alle Emplyoees, die Scope des Nutzers sind zurückgegeben
 @employees_routes.get("/api/employees")
-@login_required(
-    groups=[
-        UserGroup.verwaltung,
-        UserGroup.standortleitung,
-        UserGroup.gruppenleitung,
-        UserGroup.kuechenpersonal,
-    ]
-)
+@login_required()
 @swag_from(
     {
         "tags": ["employees"],
@@ -104,14 +97,7 @@ def get_employees():
 
 
 @employees_routes.get("/api/employees/<uuid:employee_id>")
-@login_required(
-    groups=[
-        UserGroup.verwaltung,
-        UserGroup.standortleitung,
-        UserGroup.gruppenleitung,
-        UserGroup.kuechenpersonal,
-    ]
-)
+@login_required()
 @swag_from(
     {
         "tags": ["employees"],

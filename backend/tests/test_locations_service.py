@@ -8,7 +8,7 @@ from src.services.locations_service import LocationsService
 from src.repositories.locations_repository import LocationsRepository
 from src.repositories.users_repository import UsersRepository
 from src.models.user import UserGroup
-from src.utils.exceptions import AlreadyExistsError, NotFoundError
+from src.utils.exceptions import AlreadyExistsError, BadValueError, NotFoundError
 from src.utils.pdf_creator import PDFCreationUtils
 
 
@@ -139,7 +139,7 @@ def describe_create_location():
 
 
 def describe_update_location():
-    def it_updates_location_successfully(mocker, location):
+    def it_updates_location_successfully(mocker, location, user_standortleitung):
         mocker.patch.object(
             LocationsRepository,
             "get_location_by_id",
@@ -151,20 +151,30 @@ def describe_update_location():
             return_value=None,
         )
         mocker.patch.object(
+            UsersRepository,
+            "get_user_by_id",
+            return_value=user_standortleitung,
+        )
+        mocker.patch.object(
             LocationsRepository,
             "get_location_by_leader",
             return_value=None,
         )
-        update_mock = mocker.patch.object(
+        mock_update_user = mocker.patch.object(UsersRepository, "update_user")
+        mock_update_location = mocker.patch.object(
             LocationsRepository,
             "update_location",
             return_value=True,
         )
 
-        new_id = uuid.uuid4()
+        new_id = user_standortleitung.id
+
+        assert user_standortleitung.location_id is None
+
         LocationsService.update_location(location, "New Location Name", new_id)
 
-        update_mock.assert_called_once()
+        mock_update_location.assert_called_once()
+        mock_update_user.assert_called_once_with(user_standortleitung)
         assert location.location_name == "New Location Name"
         assert location.user_id_location_leader == new_id
 
@@ -217,17 +227,22 @@ def describe_update_location():
             return_value=None,
         )
         mocker.patch.object(
+            UsersRepository,
+            "get_user_by_id",
+            return_value=user_standortleitung,
+        )
+        mocker.patch.object(
             LocationsRepository,
             "get_location_by_leader",
             return_value=other_location,
         )
 
         with app.app_context():
-            with pytest.raises(AlreadyExistsError) as e:
+            with pytest.raises(BadValueError) as e:
                 LocationsService.update_location(
                     location.id, "New Name", user_standortleitung.id
                 )
-            assert "Nutzer:in" in str(e)
+            assert "leitet bereits einen Standort" in str(e)
 
 
 def describe_delete_location():

@@ -3,7 +3,7 @@
     <v-toolbar class="bg-primary" flat app>
       <v-app-bar-nav-icon @click="showDrawer"></v-app-bar-nav-icon>
       <v-toolbar-title>
-        <span>Verwaltung</span>
+        <CustomBreadCrumbs :breadcrumbs="props.breadcrumbs" role="Verwaltung" />
       </v-toolbar-title>
       <Avatar />
     </v-toolbar>
@@ -90,10 +90,18 @@
 
 <script setup>
 import Avatar from "./Avatar.vue";
+import CustomBreadCrumbs from "./CustomBreadCrumbs.vue";
 import Dropdown from "./Dropdown.vue";
 
 const drawer = ref(false);
 const showDrawer = () => {
   drawer.value = !drawer.value;
 };
+
+const props = defineProps({
+  breadcrumbs: {
+    type: Array,
+    required: false
+  }
+});
 </script>

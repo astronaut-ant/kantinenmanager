@@ -1,5 +1,5 @@
 <template>
-  <NavbarVerwaltung />
+  <NavbarVerwaltung :breadcrumbs = '[{"title": "Standorte"}, {"title": "Neuer Standort"}]'/>
   <LocationCreation :key="forcer" @close="reset" />
   <SuccessSnackbar
     v-model="snackbar"
