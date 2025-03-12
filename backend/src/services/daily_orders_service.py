@@ -62,9 +62,9 @@ class DailyOrdersService:
                 ressource=f"den Standort {order.location_id}",
             )
 
-        if order.nothing is True and (order.main_dish or order.salad_option):
+        if order.handed_out == handed_out:
             raise BadValueError(
-                "Wenn 'nichts' ausgewählt ist, dürfen keine Essensoptionen ausgewählt werden."
+                f"Bestellung {daily_order_id} wurde bereits als {handed_out} markiert"
             )
 
         order.handed_out = handed_out

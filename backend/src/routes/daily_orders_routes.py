@@ -281,7 +281,7 @@ def update_daily_order(daily_order_id: int):
     """
 
     try:
-        order = DailyOrderHandedOutSchema.load(request.json)
+        order = DailyOrderHandedOutSchema().load(request.json)
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
@@ -294,7 +294,7 @@ def update_daily_order(daily_order_id: int):
 
     try:
         order = DailyOrdersService.update_daily_order(
-            daily_order_id, order.handed_out, g.user_id
+            daily_order_id, order["handed_out"], g.user_id
         )
     except NotFoundError as err:
         abort_with_err(
