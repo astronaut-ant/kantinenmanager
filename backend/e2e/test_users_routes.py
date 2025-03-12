@@ -454,6 +454,7 @@ def describe_users():
             db.session.add(user_verwaltung)
             db.session.add(user_standortleitung)  # needed for location
             db.session.add(user_gruppenleitung)
+            db.session.commit()  # needed for location
             db.session.add(location)  # needed for order
             daily_order.person_id = user_gruppenleitung.id
             db.session.add(daily_order)
