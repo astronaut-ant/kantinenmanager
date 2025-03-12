@@ -237,7 +237,7 @@ def other_location():
 @pytest.fixture()
 def location_alt(user_standortleitung_alt_location):
     location = Location(
-        location_name="Test Location",
+        location_name="Another Test Location",
         user_id_location_leader=user_standortleitung_alt_location.id,
     )
     location.id = uuid.uuid4()
@@ -352,10 +352,16 @@ def employees_alt_location(group_alt_location):
 
 @pytest.fixture
 def pre_order(location):
+    forward = datetime.date.today().weekday()
+    if forward > 2 and forward < 5:  # weekend
+        forward = 4
+    else:
+        forward = 2
+
     pre_order = PreOrder(
         person_id=uuid.uuid4(),
         location_id=location.id,
-        date=(datetime.datetime.now() + datetime.timedelta(days=1)).date(),
+        date=(datetime.datetime.now() + datetime.timedelta(days=forward)).date(),
         nothing=False,
         main_dish=MainDish.rot,
         salad_option=True,
@@ -378,7 +384,7 @@ def pre_orders(employees, location):
             location_id=location.id,
             date=(datetime.datetime.now() + datetime.timedelta(days=forward)).date(),
             nothing=False,
-            main_dish="rot",
+            main_dish=MainDish.rot,
             salad_option=True,
         )
         pre_orders.append(pre_order)
@@ -421,6 +427,54 @@ def daily_order(location):
         salad_option=True,
     )
     return daily_order
+
+
+@pytest.fixture
+def daily_orders(employees, location):
+    daily_orders = []
+    for employee in employees:
+        daily_order = DailyOrder(
+            person_id=employee.id,
+            location_id=location.id,
+            date=datetime.datetime.now().date(),
+            nothing=False,
+            main_dish=MainDish.rot,
+            salad_option=True,
+        )
+        daily_orders.append(daily_order)
+    return daily_orders
+
+
+@pytest.fixture
+def daily_orders_alt(employees_alt, location):
+    daily_orders = []
+    for employee in employees_alt:
+        daily_order = DailyOrder(
+            person_id=employee.id,
+            location_id=location.id,
+            date=datetime.datetime.now().date(),
+            nothing=False,
+            main_dish=MainDish.blau,
+            salad_option=True,
+        )
+        daily_orders.append(daily_order)
+    return daily_orders
+
+
+@pytest.fixture
+def daily_orders_alt_location(employees_alt_location, location_alt):
+    daily_orders = []
+    for employee in employees_alt_location:
+        daily_order = DailyOrder(
+            person_id=employee.id,
+            location_id=location_alt.id,
+            date=datetime.datetime.now().date(),
+            nothing=False,
+            main_dish=MainDish.rot,
+            salad_option=True,
+        )
+        daily_orders.append(daily_order)
+    return daily_orders
 
 
 #################### OLD ORDERS ####################
