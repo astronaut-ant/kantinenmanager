@@ -83,6 +83,23 @@
             },
           ]"
         />
+
+        <Dropdown
+          menuName="Abrechnung"
+          menuIcon="mdi-file-document-outline"
+          :items="[
+            {
+              title: 'Abrechnung erstellen',
+              icon: 'mdi-file-plus-outline',
+              link: '/verwaltung/abrechnung/neueAbrechnung',
+            },
+            {
+              title: 'Preise Anpassen',
+              icon: 'mdi-silverware',
+              link: '/verwaltung/abrechnung/essensPreise',
+            },
+          ]"
+        />
       </div>
     </v-navigation-drawer>
   </nav>
