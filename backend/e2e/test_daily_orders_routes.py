@@ -263,6 +263,9 @@ def describe_daily_orders():
             daily_order,
             db,
         ):
+            # enforce foreign key constraints just for this test
+            db.session.execute(text("PRAGMA foreign_keys = OFF"))  # noqa: F405
+
             db.session.add(user_verwaltung)
             daily_order.user_id = user_verwaltung.id
             db.session.add(daily_order)
@@ -312,6 +315,9 @@ def describe_daily_orders():
             daily_order,
             db,
         ):
+            # enforce foreign key constraints just for this test
+            db.session.execute(text("PRAGMA foreign_keys = OFF"))  # noqa: F405
+
             db.session.add(user_verwaltung)
             db.session.add(user_kuechenpersonal)
             daily_order.user_id = user_verwaltung.id

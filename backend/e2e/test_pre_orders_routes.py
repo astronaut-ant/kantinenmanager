@@ -922,7 +922,7 @@ def describe_pre_orders():
 
             preorderid = db.session.query(PreOrder).first().id
 
-            res = client.put(f"/api/pre-orders/users/{preorderid}", json=body)
+            res = client.put(f"/api/pre-orders/{preorderid}", json=body)
             assert res.status_code == 200
             assert db.session.query(PreOrder).count() == 1
 
@@ -966,7 +966,7 @@ def describe_pre_orders():
 
             assert db.session.query(PreOrder).count() == 1
 
-            res = client.delete(f"/api/pre-orders/users/{preorderid}")
+            res = client.delete(f"/api/pre-orders/{preorderid}")
             assert res.status_code == 204
             assert db.session.query(PreOrder).count() == 0
 
