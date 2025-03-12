@@ -2,7 +2,8 @@
 
 import functools
 
-from flask import Response, g, request
+from flask import Response, g, request, current_app as app
+from src.environment import Environment
 from src.utils.error import ErrMsg, abort_with_err
 from src.constants import (
     AUTHENTICATION_TOKEN_COOKIE_NAME,
@@ -22,13 +23,16 @@ def set_token_cookies(resp: Response, new_auth_token: str, new_refresh_token: st
     :param new_refresh_token: The new refresh token
     """
 
+    secure = app.config["ENV"] == Environment.PRODUCTION
+    samesite = "Strict" if app.config["ENV"] == Environment.PRODUCTION else None
+
     resp.set_cookie(
         AUTHENTICATION_TOKEN_COOKIE_NAME,
         new_auth_token,
         max_age=round(AUTHENTICATION_TOKEN_DURATION.total_seconds()),
         httponly=True,
-        # secure=True,  # TODO: Enable in production
-        # samesite="Strict",  # TODO: Enable in production
+        secure=secure,
+        samesite=samesite,
     )
 
     resp.set_cookie(
@@ -36,8 +40,8 @@ def set_token_cookies(resp: Response, new_auth_token: str, new_refresh_token: st
         new_refresh_token,
         max_age=round(REFRESH_TOKEN_DURATION.total_seconds()),
         httponly=True,
-        # secure=True,  # TODO: Enable in production
-        # samesite="Strict",  # TODO: Enable in production
+        secure=secure,
+        samesite=samesite,
     )
 
 

@@ -1,5 +1,5 @@
 <template>
-  <NavbarVerwaltung />
+  <NavbarVerwaltung :breadcrumbs = '[{"title": "Gruppen"}, {"title": "Alle Gruppen"}]'/>
   <FilterBar
     :viewSwitcherEnabled="false"
     :filterList="['group_name', 'group_number', 'group_leader.first_name', 'group_leader.last_name', 'location.location_name']"
@@ -232,7 +232,7 @@
     :text="errorSnackbarText"
     @close="errorSnackbar = false"
   ></ErrorSnackbar>
-  <NoResult v-if="grouplist.length == 0" />
+  <NoResult v-if="grouplist.length === 0 && groups.length !== 0" />
 </template>
 
 <script setup>
@@ -243,7 +243,7 @@ const snackbarText = ref(" ");
 const snackbar = ref(false);
 const errorSnackbar = ref(false);
 const errorSnackbarText = ref("");
-const groups = ref(null);
+const groups = ref([]);
 const grouplist = ref([]);
 const employees = ref(null);
 const employeesToDelete = ref([]);

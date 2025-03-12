@@ -3,7 +3,7 @@
     <v-toolbar class="bg-primary" flat app>
       <v-app-bar-nav-icon @click="showDrawer"></v-app-bar-nav-icon>
       <v-toolbar-title>
-        <span>Verwaltung</span>
+        <CustomBreadCrumbs :breadcrumbs="props.breadcrumbs" role="Verwaltung" />
       </v-toolbar-title>
       <Avatar />
     </v-toolbar>
@@ -27,7 +27,7 @@
             },
             {
               title: 'Neuer Benutzer',
-              icon: 'mdi-pencil-plus-outline',
+              icon: 'mdi-plus',
               link: '/verwaltung/benutzer/neuerBenutzer',
             },
           ]"
@@ -44,7 +44,7 @@
             },
             {
               title: 'Neuer Standort',
-              icon: 'mdi-pencil-plus-outline',
+              icon: 'mdi-plus',
               link: '/verwaltung/standorte/neuerStandort',
             },
           ]"
@@ -61,7 +61,7 @@
             },
             {
               title: 'Neue Gruppe',
-              icon: 'mdi-pencil-plus-outline',
+              icon: 'mdi-plus',
               link: '/verwaltung/gruppen/neueGruppe',
             },
           ]"
@@ -78,7 +78,7 @@
             },
             {
               title: 'Neuer Mitarbeiter',
-              icon: 'mdi-pencil-plus-outline',
+              icon: 'mdi-plus',
               link: '/verwaltung/mitarbeiter/neuerMitarbeiter',
             },
           ]"
@@ -107,10 +107,18 @@
 
 <script setup>
 import Avatar from "./Avatar.vue";
+import CustomBreadCrumbs from "./CustomBreadCrumbs.vue";
 import Dropdown from "./Dropdown.vue";
 
 const drawer = ref(false);
 const showDrawer = () => {
   drawer.value = !drawer.value;
 };
+
+const props = defineProps({
+  breadcrumbs: {
+    type: Array,
+    required: false,
+  },
+});
 </script>

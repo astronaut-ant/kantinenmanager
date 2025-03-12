@@ -75,17 +75,18 @@ test-backend:
   variables:
     PYTHONDONTWRITEBYTECODE: 1
     PYTHONUNBUFFERED: 1
-    FLASK_ENV: unit_testing
+    FLASK_ENV: testing
   script:
     - echo "Reading environment variables..."
     - python scripts/init.py # Generate .env
     - set -a # auto export all further variables
     - source .env # read env variables from .env
     - set +a
-    - FLASK_ENV=unit_testing # Override environment
+    - FLASK_ENV=testing # Override environment
     - echo "Installing requirements..."
     - python -m pip install -r backend/requirements.txt
     - pytest --cov=backend backend/
+  coverage: /TOTAL.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/
 
 push-frontend:
   stage: push

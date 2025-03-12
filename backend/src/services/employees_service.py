@@ -7,8 +7,9 @@ from src.models.user import UserGroup
 from src.models.employee import Employee
 from src.repositories.employees_repository import EmployeesRepository
 from src.utils.error import ErrMsg, abort_with_err
-from typing import Optional
-from src.utils.exceptions import AlreadyExistsError, NotFoundError
+from typing import Optional, List
+from src.utils.exceptions import AlreadyExistsError, NotFoundError, BadValueError
+from src.utils.pdf_creator import PDFCreationUtils
 
 
 class EmployeesService:
@@ -39,7 +40,7 @@ class EmployeesService:
     @staticmethod
     def get_employee_by_id(
         employee_id: UUID, user_group: UserGroup, user_id: UUID
-    ) -> Employee | None:
+    ) -> Employee:
         """Retrieve an employee by their ID
 
         :param employee_id: The ID of the employee to retrieve
@@ -47,9 +48,12 @@ class EmployeesService:
         :return: The employee with the given ID or None if no employee was found
         """
 
-        return EmployeesRepository.get_employee_by_id_by_user_scope(
+        employee = EmployeesRepository.get_employee_by_id_by_user_scope(
             employee_id, user_group, user_id
         )
+        if not employee:
+            raise NotFoundError(f"Mitarbeiter:in mit ID {employee_id}")
+        return employee
 
     @staticmethod
     def create_employee(
@@ -160,13 +164,7 @@ class EmployeesService:
                 or not row.get("Gruppen-Name 1")
                 or not row.get("Gruppen-Name 2")
             ):
-                abort_with_err(
-                    ErrMsg(
-                        status_code=400,
-                        title="Falsche Daten oder unlesbares Format",
-                        description="Die Daten in der CSV entsprechen nicht der normalen Vorlage",
-                    )
-                )
+                raise BadValueError("Ein oder mehrere Felder in der CSV-Datei fehlen")
 
             match = re.match(
                 r"([A-ZÄÖÜ][a-zäöüß0-9]+(?:[-][A-ZÄÖÜ][a-zäöüß0-9]+)*)([A-ZÄÖÜ][a-zäöüß0-9]+(?:[-][A-ZÄÖÜ][a-zäöüß0-9]+)*)?([A-ZÄÖÜ][a-zäöüß0-9]+(?:[-][A-ZÄÖÜ][a-zäöüß0-9]+)*)?([A-ZÄÖÜ][a-zäöüß0-9]+(?:[-][A-ZÄÖÜ][a-zäöüß0-9]+)*)?([A-ZÄÖÜ][a-zäöüß0-9]+(?:[-][A-ZÄÖÜ][a-zäöüß0-9]+)*)?((?:[A-Z][a-zäöüß0-9]+)(?:[-][A-Za-z0-9äöüß]+)*)",
@@ -184,13 +182,8 @@ class EmployeesService:
                                 firstname += " " + match.group(5)
                 lastname = match.group(6)
             else:
-                print("Zeile: ", row)
-                abort_with_err(
-                    ErrMsg(
-                        status_code=422,
-                        title="Vorname und Nachname nicht trennbar",
-                        description="Es konnte kein eindeutiger Vor- und Nachname erkannt werden",
-                    )
+                raise BadValueError(
+                    "Format unpassend. Es konnte kein eindeutiger Vor- und Nachname erkannt werden."
                 )
 
             if len(firstname) < 64 and len(lastname) < 64:
@@ -201,15 +194,13 @@ class EmployeesService:
                     )
                 ).group(1)
                 group = EmployeesRepository.get_group_by_name_and_location(
-                    group_name, row["Bereich"]
+                    group_name=group_name, location_name=row["Bereich"]
                 )
                 if group is None:
                     raise NotFoundError(f"Gruppe {row['Gruppen-Name 1']}")
 
                 if EmployeesRepository.get_employee_by_number(row["Kunden-Nr."]):
-                    raise AlreadyExistsError(
-                        ressource=f"Mitarbeiter:in {row['Kunden-Nr.']}"
-                    )
+                    continue
 
                 employee = Employee(
                     first_name=firstname,
@@ -219,17 +210,42 @@ class EmployeesService:
                 )
                 employees.append(employee)
             else:
-                abort_with_err(
-                    ErrMsg(
-                        status_code=422,
-                        title="Zu langer Name",
-                        description="Sowohl Vorname als auch Nachname dürfen nicht länger als 64 Zeichen sein",
-                    )
+                raise BadValueError(
+                    "Vorname und Nachname dürfen jeweils nicht länger als 64 Zeichen sein."
                 )
 
         EmployeesRepository.bulk_create_employees(employees)
 
         return {
-            "message": "Mitarbeiter erfolgreich erstellt",
+            "message": "Mitarbeiter:innen erfolgreich erstellt",
             "count": len(employees),
         }
+
+    @staticmethod
+    def get_qr_code_for_all_employees_by_user_scope(
+        user_group: UserGroup, user_id: UUID
+    ):
+        employees = EmployeesRepository.get_employees_by_user_scope(
+            user_group=user_group, user_id=user_id
+        )
+        if not employees:
+            raise NotFoundError("Mitarbeiter:innen")
+        return PDFCreationUtils.create_batch_qr_codes(employees=employees)
+
+    @staticmethod
+    def get_qr_code_for_employees_list(
+        employee_ids: List[UUID], user_group: UserGroup, user_id: UUID
+    ):
+        employees: List[Employee] = []
+
+        for id in employee_ids:
+            employee = EmployeesRepository.get_employee_by_id_by_user_scope(
+                employee_id=id, user_group=user_group, user_id=user_id
+            )
+            if not employee:
+                raise NotFoundError(f"Mitarbeiter:in mit ID {id}")
+            employees.append(employee)
+
+        if not employees:
+            raise NotFoundError("Leere List oder Mitarbeiter:innen")
+        return PDFCreationUtils.create_batch_qr_codes(employees=employees)

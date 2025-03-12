@@ -34,6 +34,16 @@ class DailyOrdersService:
         return order
 
     @staticmethod
+    def get_own_daily_order(user_id: UUID) -> DailyOrder:
+        """Get own daily order for the user"""
+
+        order = OrdersRepository.get_daily_order_by_person_id(user_id)
+        if not order:
+            raise NotFoundError(f"Bestellung für Person '{user_id}'")
+
+        return order
+
+    @staticmethod
     def update_daily_order(
         daily_order_id: UUID, handed_out: bool, user_id: UUID
     ) -> DailyOrder:
@@ -54,7 +64,7 @@ class DailyOrdersService:
                 details=f" auf Standort {user.location_id}",
             )
 
-        if order["nothing"] is True and (order["main_dish"] or order["salad_option"]):
+        if order.nothing is True and (order.main_dish or order.salad_option):
             raise BadValueError(
                 "Wenn 'nichts' ausgewählt ist, dürfen keine Essensoptionen ausgewählt werden."
             )

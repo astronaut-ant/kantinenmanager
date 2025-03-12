@@ -4,17 +4,23 @@ from src.schemas.locations_schemas import LocationFullNestedSchema, LocationFull
 from src.utils.auth_utils import login_required
 from src.utils.error import ErrMsg, abort_with_err
 from src.models.user import UserGroup
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, current_app as app
 from flasgger import swag_from
 from src.services.locations_service import LocationsService
-from src.utils.exceptions import AlreadyExistsError, NotFoundError
+from src.utils.exceptions import (
+    AlreadyExistsError,
+    BadValueError,
+    IntegrityError,
+    NotFoundError,
+)
 
 
 locations_routes = Blueprint("locations_routes", __name__)
 
 
 @locations_routes.get("/api/locations")
-@login_required(groups=[UserGroup.verwaltung])
+# Must not be restricted, because of User Food order! (Frontend)
+@login_required()
 @swag_from(
     {
         "tags": ["locations"],
@@ -38,7 +44,8 @@ def get_locations():
 
 
 @locations_routes.get("/api/locations/<uuid:location_id>")
-@login_required(groups=[UserGroup.verwaltung])
+# Must not be restricted, because of User Food order! (Frontend)
+@login_required()
 @swag_from(
     {
         "tags": ["locations"],
@@ -62,13 +69,15 @@ def get_locations():
 def get_location_by_id(location_id: UUID):
     """Get a location by ID"""
 
-    location = LocationsService.get_location_by_id(location_id)
-    if location is None:
+    try:
+        location = LocationsService.get_location_by_id(location_id)
+    except NotFoundError as err:
         abort_with_err(
             ErrMsg(
                 status_code=404,
                 title="Standort nicht gefunden",
                 description="Es wurde kein Standort mit dieser ID gefunden",
+                details=str(err),
             )
         )
 
@@ -104,12 +113,13 @@ def create_location():
     """Create a new location"""
     try:
         body = LocationFullSchema().load(request.json)
-    except ValidationError:
+    except ValidationError as err:
         abort_with_err(
             ErrMsg(
                 status_code=400,
                 title="Ungültige Anfrage",
                 description="Die Anfrage ist ungültig",
+                details=str(err),
             )
         )
 
@@ -121,7 +131,7 @@ def create_location():
                 status_code=409,
                 title="Standort konnte nicht erstellt werden",
                 description="Der Standort konnte nicht erstellt werden",
-                detail=str(err),
+                details=str(err),
             )
         )
     except NotFoundError as err:
@@ -130,7 +140,7 @@ def create_location():
                 status_code=404,
                 title="Standort konnte nicht erstellt werden",
                 description="Der Standort konnte nicht erstellt werden",
-                detail=str(err),
+                details=str(err),
             )
         )
     return jsonify({"location_id": location_id}), 201
@@ -173,7 +183,7 @@ def update_location(location_id: UUID):
                 status_code=400,
                 title="Ungültige Anfrage",
                 description="Die Anfrage ist ungültig",
-                details=err.messages,
+                details=str(err),
             )
         )
 
@@ -187,17 +197,26 @@ def update_location(location_id: UUID):
         abort_with_err(
             ErrMsg(
                 status_code=404,
-                title=f"Standort nicht gefunden",
-                description=f"Der Standort mit ID {body['id']} konnte nicht gefunden werden.",
-                details=err,
+                title="Standort nicht gefunden",
+                description=f"Der Standort mit ID {location_id} konnte nicht gefunden werden.",
+                details=str(err),
             )
         )
-    except AlreadyExistsError:
+    except AlreadyExistsError as err:
         abort_with_err(
             ErrMsg(
                 status_code=409,
                 title="Standort konnte nicht aktualisiert werden",
-                description=f"Der Standort mit ID {body['id']} konnte nicht aktualisiert werden",
+                description=f"Der Standort mit ID {location_id} konnte nicht aktualisiert werden",
+                details=str(err),
+            )
+        )
+    except BadValueError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Standort konnte nicht aktualisiert werden",
+                description=str(err),
             )
         )
 
@@ -232,34 +251,25 @@ def update_location(location_id: UUID):
 def delete_location(location_id: UUID):
     """Delete a location"""
 
-    location = LocationsService.get_location_by_id(location_id)
-    if location is None:
+    try:
+        location = LocationsService.get_location_by_id(location_id)
+        LocationsService.delete_location(location)
+    except NotFoundError as err:
         abort_with_err(
             ErrMsg(
                 status_code=404,
                 title="Standort nicht gefunden",
                 description="Es wurde kein Standort mit dieser ID gefunden",
+                details=str(err),
             )
         )
-
-    groups_of_location = LocationsService.get_groups_of_location(location_id)
-    if groups_of_location:
+    except IntegrityError as e:
         abort_with_err(
             ErrMsg(
                 status_code=400,
                 title="Standort konnte nicht gelöscht werden",
-                description="Der Standort konnte nicht gelöscht werden, weil er noch Gruppen enthält",
+                description=str(e),
             )
         )
 
-    try:
-        LocationsService.delete_location(location)
-    except Exception:
-        abort_with_err(
-            ErrMsg(
-                status_code=500,
-                title="Standort konnte nicht gelöscht werden",
-                description="Der Standort konnte nicht gelöscht werden",
-            )
-        )
     return jsonify({"message": "Standort erfolgreich gelöscht"})

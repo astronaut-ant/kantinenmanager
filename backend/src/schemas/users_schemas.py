@@ -26,6 +26,7 @@ class UserFullSchema(UserBaseSchema):
 class GroupLeaderNestedSchema(UserBaseSchema):
     """Schema representing a group leader with resolved nested fields"""
 
+    location_id = fields.UUID(required=False)
     own_group = fields.Nested(
         "GroupFullSchema", required=False, dump_only=True, attribute="leader_of_group"
     )

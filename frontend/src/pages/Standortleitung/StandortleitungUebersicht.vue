@@ -1,5 +1,5 @@
 <template>
-  <NavbarStandort></NavbarStandort>
+  <NavbarStandort :breadcrumbs = '[{"title": "Gruppenübersicht"}]'></NavbarStandort>
   <FilterBar 
     :viewSwitcherEnabled="false"
     :filterList="['group_name', 'group_number', 'group_leader.first_name', 'group_leader.last_name', 'group_leader.username']" 
@@ -7,23 +7,20 @@
     @searchresult="updateOverview"
     @changeview=""
   />
-  <div v-if="grouplist.length != 0" class="grid-container">
-    <div
-      v-for="group in grouplist"
-      :key="group.id"
-      class="grid-item"
-    >
-    <GroupCard
-      :group_number="group.group_number"
-      :id="group.id"
-      :name="group.group_name"
-      :group_leader="group.group_leader"
-      :group_leader_replacement="group.group_leader_replacement"
-      :employees="group.employees"
-    />
-    </div>
-  </div>
-  <NoResult v-if="grouplist.length == 0" />
+
+  <GridContainer v-if="grouplist.length !== 0" :items="grouplist">
+      <template #default="{ item }">
+        <GroupCard
+          :group_number="item.group_number"
+          :id="item.id"
+          :name="item.group_name"
+          :group_leader="item.group_leader"
+          :group_leader_replacement="item.group_leader_replacement"
+          :employees="item.employees"
+        />
+      </template>
+  </GridContainer>
+  <NoResult v-if="grouplist.length === 0 && groups.length !== 0" />
 </template>
 
 <script setup>

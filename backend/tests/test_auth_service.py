@@ -2,94 +2,400 @@
 
 import base64
 from datetime import datetime, timedelta
+from math import floor
 import uuid
-import pytest
+
 import jwt
-from src import app as project_app
-from src.models.refresh_token_session import RefreshTokenSession
-from src.models.user import User, UserGroup
+import pytest
+from argon2 import PasswordHasher
+
+from .helper import *  # for fixtures # noqa: F403
+from .helper import PASSWORD, JWT_SECRET
+from src.constants import AUTHENTICATION_TOKEN_AUDIENCE
+from src.repositories.refresh_token_session_repository import (
+    RefreshTokenSessionRepository,
+)
+from src.repositories.users_repository import UsersRepository
 from src.services.auth_service import AuthService
 from src.utils.exceptions import (
     InvalidCredentialsException,
-    UnauthenticatedException,
     NotFoundError,
+    UnauthenticatedException,
+    UserBlockedError,
 )
 
-# * Fixtures bieten eine Möglichkeit, Code zu schreiben, der von mehreren Tests verwendet wird.
-# * Die unteren Fixtures erzeugen ein Objekt, das automatisch an die Tests übergeben wird,
-# * wenn sie als Argument in der Testfunktion definiert sind.
 
-
-@pytest.fixture()
-def app():
-    project_app.config["JWT_SECRET"] = "super_secret"
-    project_app.config["TESTING"] = True
-    yield project_app
-
-
-@pytest.fixture()
-def user():
-    user = User(
-        first_name="Jane",
-        last_name="Doe",
-        username="janedoe",
-        hashed_password="hashed_password",
-        user_group=UserGroup.verwaltung,
-    )
-    user.id = uuid.uuid4()
-    return user
-
-
-@pytest.fixture()
-def session(user):
-    return RefreshTokenSession(
-        refresh_token="token",
-        user_id=user.id,
-        expires=datetime.now() + timedelta(days=1),
-    )
-
-
-# * Mit Unterstrich beginnen Hilfsfunktionen, die nicht als Testfälle ausgeführt werden.
-
-
-def _helper_mock_users_repo_with_attrs(mocker, attrs):
-    # Hier wird ein Mock, also ein "Platzhalter" für das UsersRepository erstellt.
-    # Wir wollen uns nur auf den Service konzentrieren und nicht auf die Datenbank.
-    # Außerdem vermeiden wir, dass die Tests von der Datenbank abhängig sind.
-
-    mockRepo = mocker.Mock()
-    mockRepo.configure_mock(**attrs)
-    mocker.patch(
-        "src.services.auth_service.UsersRepository",
-        mockRepo,
-    )  # patch ersetzt das UsersRepository im AuthService durch den Mock.
-    return mockRepo
-
-
-def _helper_mock_refresh_token_session_repo_with_attrs(mocker, attrs):
-    mockRepo = mocker.Mock()
-    mockRepo.configure_mock(**attrs)
-    mocker.patch(
-        "src.services.auth_service.RefreshTokenSessionRepository",
-        mockRepo,
-    )
-    return mockRepo
-
-
-# * Mit describe() können wir die Tests in Gruppen einteilen und so die Ausgabe strukturieren.
-# * Hier wird ein describe-Block für jede Methode in AuthService erstellt.
-
-
-def describe_generate_password():
+def describe_login():
     # * Darin werden die Testfälle definiert. Jede Funktion ist ein eigener Testfall.
     # * Tests folgen generell dem Schema: Arrange, Act, Assert, (Cleanup).
     # * Arrange: Vorbereitung der Testumgebung
     # * Act: Ausführung des zu testenden Codes
     # * Assert: Überprüfung des erwarteten Ergebnisses
     # * https://docs.pytest.org/en/stable/explanation/anatomy.html
+
+    def it_throws_error_on_non_exising_username(mocker):
+        mocker.patch.object(UsersRepository, "get_user_by_username", return_value=None)
+
+        with pytest.raises(NotFoundError):
+            AuthService.login("johndoe", "password")
+
+    def it_throws_error_on_invalid_password(mocker, user_verwaltung):
+        mocker.patch.object(
+            UsersRepository, "get_user_by_username", return_value=user_verwaltung
+        )
+
+        with pytest.raises(InvalidCredentialsException):
+            AuthService.login(user_verwaltung.username, "wrong_password")
+
+    def it_rehashes_password_if_needed(mocker, user_verwaltung, app):
+        def update_user_side_effect(user):
+            # Check that UsersRepository.update_user was called with the updated hash
+            assert user.hashed_password == "new_hashed_password"
+
+        with app.app_context():
+            mocker.patch.object(
+                UsersRepository, "get_user_by_username", return_value=user_verwaltung
+            )
+            mocker.patch.object(
+                AuthService, "_AuthService__needs_rehash", return_value=True
+            )
+            mock_hash_password = mocker.patch.object(
+                AuthService, "hash_password", return_value="new_hashed_password"
+            )
+            mock_update_user = mocker.patch.object(
+                UsersRepository, "update_user", side_effect=update_user_side_effect
+            )  # side_effets werden ausgeführt, wenn der Mock aufgerufen wird
+            mocker.patch.object(
+                AuthService, "_AuthService__make_refresh_token", return_value="token"
+            )
+
+            AuthService.login(user_verwaltung.username, PASSWORD)
+
+            mock_hash_password.assert_called_once()
+            mock_update_user.assert_called_once()
+
+    def it_updates_last_login(app, user_verwaltung, mocker):
+        with app.app_context():
+            # fmt: off
+            mocker.patch.object(UsersRepository, "get_user_by_username", return_value=user_verwaltung)
+            mocker.patch.object(AuthService, "_AuthService__needs_rehash", return_value=False)
+            mocker.patch.object(AuthService, "_AuthService__make_refresh_token", return_value="token")
+            mock_update_user = mocker.patch.object(UsersRepository, "update_user")
+            # fmt: on
+
+            AuthService.login(user_verwaltung.username, PASSWORD)
+
+            assert user_verwaltung.last_login is not None
+            mock_update_user.assert_called_once()
+
+    def it_throws_error_if_user_blocked(app, user_verwaltung, mocker):
+        with app.app_context():
+            # fmt: off
+            user_verwaltung.blocked = True
+            mocker.patch.object(UsersRepository, "get_user_by_username", return_value=user_verwaltung)
+            mocker.patch.object(AuthService, "_AuthService__needs_rehash", return_value=False)
+            mocker.patch.object(UsersRepository, "update_user")
+            # fmt: on
+
+            with pytest.raises(UserBlockedError):
+                AuthService.login(user_verwaltung.username, PASSWORD)
+
+    def it_throws_error_if_jwt_secret_not_set(app, user_verwaltung, mocker):
+        with app.app_context():
+            # fmt: off
+            mocker.patch.object(UsersRepository, "get_user_by_username", return_value=user_verwaltung)
+            mocker.patch.object(AuthService, "_AuthService__needs_rehash", return_value=False)
+            mocker.patch.object(UsersRepository, "update_user")
+            app.config["JWT_SECRET"] = None
+            # fmt: on
+
+            with pytest.raises(ValueError):
+                AuthService.login(user_verwaltung.username, PASSWORD)
+
+    def it_returns_user_for_valid_login(app, user_verwaltung, mocker):
+        with app.app_context():
+            # fmt: off
+            mocker.patch.object(UsersRepository, "get_user_by_username", return_value=user_verwaltung)
+            mocker.patch.object(AuthService, "_AuthService__needs_rehash", return_value=False)
+            mocker.patch.object(UsersRepository, "update_user")
+            mocker.patch.object(AuthService, "_AuthService__make_refresh_token", return_value="token")
+            # fmt: on
+
+            user_verwaltung, _, _ = AuthService.login(
+                user_verwaltung.username, PASSWORD
+            )
+
+            assert user_verwaltung == user_verwaltung
+
+    def it_returns_tokens_for_valid_login(app, user_verwaltung, mocker):
+        with app.app_context():
+            # fmt: off
+            mocker.patch.object(UsersRepository, "get_user_by_username", return_value=user_verwaltung)
+            mocker.patch.object(AuthService, "_AuthService__needs_rehash", return_value=False)
+            mocker.patch.object(UsersRepository, "update_user")
+            mocker.patch.object(AuthService, "_AuthService__make_auth_token", return_value="auth_token")
+            mocker.patch.object(AuthService, "_AuthService__make_refresh_token", return_value="refresh_token")
+            # fmt: on
+
+            _, auth_token, refresh_token = AuthService.login(
+                user_verwaltung.username, PASSWORD
+            )
+
+            assert auth_token == "auth_token"
+            assert refresh_token == "refresh_token"
+
+
+def describe_authenticate():
+    def it_raises_error_on_missing_jwt_secret(app, mocker):
+        with app.app_context():
+            app.config["JWT_SECRET"] = None
+
+            with pytest.raises(ValueError):
+                AuthService.authenticate("auth_token", "refresh_token")
+
+    def it_accepts_valid_auth_token(app, user_verwaltung, mocker):
+        with app.app_context():
+            auth_token = AuthService._AuthService__make_auth_token(
+                user_verwaltung, JWT_SECRET
+            )
+
+            user_info, new_auth_token, new_refresh_token = AuthService.authenticate(
+                auth_token, None
+            )
+
+            assert str(user_info["id"]) == str(user_verwaltung.id)
+            assert user_info["username"] == user_verwaltung.username
+            assert user_info["group"].value == user_verwaltung.user_group.value
+            assert user_info["first_name"] == user_verwaltung.first_name
+            assert user_info["last_name"] == user_verwaltung.last_name
+            assert new_auth_token is None
+            assert new_refresh_token is None
+
+    def it_throws_error_on_invalid_auth_token_and_no_refresh_token(app):
+        with app.app_context():
+            with pytest.raises(UnauthenticatedException):
+                AuthService.authenticate("invalid_auth_token", None)
+
+    def it_throws_error_on_both_tokens_none(app):
+        with app.app_context():
+            with pytest.raises(UnauthenticatedException):
+                AuthService.authenticate(None, None)
+
+    def it_requests_refresh_token_on_invalid_auth_token(app, mocker):
+        with app.app_context():
+            mock_get_token = mocker.patch.object(
+                RefreshTokenSessionRepository, "get_token", return_value=None
+            )
+
+            with pytest.raises(UnauthenticatedException):
+                AuthService.authenticate("invalid_auth_token", "invalid_refresh_token")
+                mock_get_token.assert_called_once_with("invalid_refresh_token")
+
+    def it_throws_error_on_expired_refresh_token(app, mocker, session):
+        with app.app_context():
+            session.expires = datetime.now() - timedelta(days=1)
+            mocker.patch.object(
+                RefreshTokenSessionRepository, "get_token", return_value=session
+            )
+
+            try:
+                AuthService.authenticate("invalid_auth_token", session.refresh_token)
+                assert False  # Should throw an exception
+            except UnauthenticatedException as e:
+                assert "Refresh token expired" in str(
+                    e
+                )  # Should throw the right exception
+
+    def it_throws_error_when_refresh_token_has_been_used(
+        app, mocker, session, user_verwaltung
+    ):
+        with app.app_context():
+            session.last_used = datetime.now() - timedelta(days=1)
+            mocker.patch.object(
+                RefreshTokenSessionRepository, "get_token", return_value=session
+            )
+            mocker.patch.object(
+                UsersRepository, "get_user_by_id", return_value=user_verwaltung
+            )
+            mocker.patch.object(UsersRepository, "update_user")
+
+            try:
+                AuthService.authenticate("invalid_auth_token", session.refresh_token)
+                assert False  # Should throw an exception
+            except UserBlockedError as e:
+                assert "Refresh Token wurde bereits verwendet." in str(e)
+
+    def it_blocks_user_when_refresh_token_already_used(
+        app, mocker, session, user_verwaltung
+    ):
+        with app.app_context():
+            session.last_used = datetime.now() - timedelta(days=1)
+            mocker.patch.object(
+                RefreshTokenSessionRepository, "get_token", return_value=session
+            )
+            mocker.patch.object(
+                UsersRepository, "get_user_by_id", return_value=user_verwaltung
+            )
+            mock_update_user = mocker.patch.object(UsersRepository, "update_user")
+
+            try:
+                AuthService.authenticate("invalid_auth_token", session.refresh_token)
+                assert False  # Should throw an exception
+            except UserBlockedError:
+                pass
+
+            assert user_verwaltung.blocked
+            mock_update_user.assert_called_once()
+
+    def it_throws_when_user_not_found(app, mocker, session):
+        with app.app_context():
+            mocker.patch.object(
+                RefreshTokenSessionRepository, "get_token", return_value=session
+            )
+            mocker.patch.object(UsersRepository, "get_user_by_id", return_value=None)
+
+            try:
+                AuthService.authenticate("invalid_auth_token", session.refresh_token)
+                assert False  # Should throw an exception
+            except UnauthenticatedException as e:
+                assert "Nutzer nicht gefunden." in str(e)
+
+    def it_throws_when_user_is_blocked(app, mocker, session, user_verwaltung):
+        with app.app_context():
+            user_verwaltung.blocked = True
+            mocker.patch.object(
+                RefreshTokenSessionRepository, "get_token", return_value=session
+            )
+            mocker.patch.object(
+                UsersRepository, "get_user_by_id", return_value=user_verwaltung
+            )
+
+            with pytest.raises(UserBlockedError):
+                AuthService.authenticate("invalid_auth_token", session.refresh_token)
+
+    def it_generates_new_tokens_on_success(app, mocker, session, user_verwaltung):
+        with app.app_context():
+            mocker.patch.object(
+                RefreshTokenSessionRepository, "get_token", return_value=session
+            )
+            mocker.patch.object(
+                UsersRepository, "get_user_by_id", return_value=user_verwaltung
+            )
+            mock_make_auth_token = mocker.patch.object(
+                AuthService,
+                "_AuthService__make_auth_token",
+                return_value="new_auth_token",
+            )
+            mock_make_refresh_token = mocker.patch.object(
+                AuthService,
+                "_AuthService__make_refresh_token",
+                return_value="new_refresh_token",
+            )
+            mocker.patch.object(RefreshTokenSessionRepository, "update_token")
+
+            user_info, new_auth_token, new_refresh_token = AuthService.authenticate(
+                "invalid_auth_token", session.refresh_token
+            )
+
+            assert str(user_info["id"]) == str(user_verwaltung.id)
+            assert user_info["username"] == user_verwaltung.username
+            assert user_info["group"].value == user_verwaltung.user_group.value
+            assert user_info["first_name"] == user_verwaltung.first_name
+            assert user_info["last_name"] == user_verwaltung.last_name
+            assert new_auth_token == "new_auth_token"
+            assert new_refresh_token == "new_refresh_token"
+            assert session.last_used is not None
+            mock_make_auth_token.assert_called_once()
+            mock_make_refresh_token.assert_called_once()
+
+
+def describe_logout():
+    def it_deletes_refresh_token(app, mocker, session):
+        with app.app_context():
+            mocker.patch.object(
+                RefreshTokenSessionRepository, "get_token", return_value=session
+            )
+            mock_delete_user_tokens = mocker.patch.object(
+                RefreshTokenSessionRepository, "delete_token"
+            )
+
+            AuthService.logout("token")
+
+            mock_delete_user_tokens.assert_called_once_with(session)
+
+
+def describe_change_password():
+    def it_throws_error_on_non_existing_user(app, mocker):
+        with app.app_context():
+            mocker.patch.object(UsersRepository, "get_user_by_id", return_value=None)
+
+            with pytest.raises(NotFoundError):
+                AuthService.change_password(uuid.uuid4(), "password", "new_password")
+
+    def it_throws_error_on_invalid_current_password(app, mocker, user_verwaltung):
+        with app.app_context():
+            mocker.patch.object(
+                UsersRepository, "get_user_by_id", return_value=user_verwaltung
+            )
+
+            with pytest.raises(InvalidCredentialsException):
+                AuthService.change_password(
+                    user_verwaltung.id, "wrong_password", "new_password"
+                )
+
+    def it_updates_password(app, mocker, user_verwaltung):
+        def update_user_side_effect(user):
+            assert user.hashed_password == "new_hashed_password"
+
+        with app.app_context():
+            mocker.patch.object(
+                UsersRepository, "get_user_by_id", return_value=user_verwaltung
+            )
+            mocker.patch.object(
+                AuthService, "hash_password", return_value="new_hashed_password"
+            )
+            mocker.patch.object(
+                UsersRepository, "update_user", side_effect=update_user_side_effect
+            )
+            mocker.patch.object(RefreshTokenSessionRepository, "delete_user_tokens")
+
+            AuthService.change_password(user_verwaltung.id, PASSWORD, "new_password")
+
+    def it_invalidates_all_refresh_tokens_on_password_change(
+        app, mocker, user_verwaltung
+    ):
+        with app.app_context():
+            mocker.patch.object(
+                UsersRepository, "get_user_by_id", return_value=user_verwaltung
+            )
+            mocker.patch.object(UsersRepository, "update_user")
+            mock_invalidate_all_refresh_tokens = mocker.patch.object(
+                AuthService, "invalidate_all_refresh_tokens"
+            )
+
+            AuthService.change_password(user_verwaltung.id, PASSWORD, "new_password")
+
+            mock_invalidate_all_refresh_tokens.assert_called_once_with(
+                user_verwaltung.id
+            )
+
+
+def describe_invalidate_all_refresh_tokens():
+    def it_invalidates_all_tokens(mocker, user_verwaltung):
+        mock_delete_user_tokens = mocker.patch.object(
+            RefreshTokenSessionRepository, "delete_user_tokens"
+        )
+
+        AuthService.invalidate_all_refresh_tokens(user_verwaltung.id)
+
+        mock_delete_user_tokens.assert_called_once_with(user_verwaltung.id)
+
+
+def describe_generate_password():
     def it_generates_a_password():
         password = AuthService.generate_password()
-        assert password  # * assert prüft, ob der Ausdruck wahr ist, wenn nicht wird ein Fehler geworfen und der Test schlägt fehl.
+
+        assert password
         assert len(password) >= 8
 
 
@@ -97,6 +403,7 @@ def describe_hash_password():
     def it_hashes_a_password():
         password = "password"
         hashed_password = AuthService.hash_password(password)
+
         assert hashed_password
         assert password != hashed_password
 
@@ -112,52 +419,122 @@ def describe_check_password():
     def it_checks_non_matching_password():
         password = "password"
         hashed_password = AuthService.hash_password(password)
+
         assert not AuthService._AuthService__check_password(
             "wrong_password", hashed_password
         )
 
+    def it_checks_empty_password():
+        password = ""
+        hashed_password = AuthService.hash_password(password)
+
+        assert AuthService._AuthService__check_password(password, hashed_password)
+
+    def it_checks_empty_hashed_password():
+        password = "password"
+        hashed_password = ""
+
+        assert not AuthService._AuthService__check_password(password, hashed_password)
+
+
+def describe__needs_rehash():
+    def it_returns_true_for_old_hash():
+        # Rehashing is needed when the hashing parameters change
+        ph = PasswordHasher(hash_len=9)  # Different settings than the default
+        password = "password"
+        hashed_password = ph.hash(password)
+
+        assert AuthService._AuthService__needs_rehash(hashed_password)
+
+    def it_returns_false_for_new_hash():
+        password = "password"
+        hashed_password = AuthService.hash_password(password)
+
+        assert not AuthService._AuthService__needs_rehash(hashed_password)
+
 
 def describe_make_auth_token():
-    def it_generates_a_token(user, app):
-        # * Hier brauchen wir Zugriff auf die Flask-App, um auf die Konfiguration zuzugreifen.
-        # * Dafür bietet Flask die app_context()-Methode, die den Kontext der App in einem Block zur Verfügung stellt.
-        # * https://flask.palletsprojects.com/en/stable/testing/
+    def it_generates_a_token(user_verwaltung, app):
         with app.app_context():
             token = AuthService._AuthService__make_auth_token(
-                user, app.config["JWT_SECRET"]
+                user_verwaltung, JWT_SECRET
             )
+
             assert token
             assert len(token) > 0
             assert (
                 len(token.split(".")) == 3
             )  # JWT token consists of 3 parts separated by a dot
 
-
-def describe_verify_auth_token():
-    def it_verifies_valid_token(user, app):
+    def it_contains_correct_payload(user_verwaltung, app):
         with app.app_context():
             token = AuthService._AuthService__make_auth_token(
-                user, app.config["JWT_SECRET"]
+                user_verwaltung, JWT_SECRET
             )
-            payload = AuthService._AuthService__verify_auth_token(
-                token, app.config["JWT_SECRET"]
+            payload = jwt.decode(
+                token,
+                JWT_SECRET,
+                algorithms=["HS256"],
+                audience=AUTHENTICATION_TOKEN_AUDIENCE,
             )
-            assert payload
-            assert uuid.UUID(payload["sub"]) == user.id
+
+            assert payload["sub"] == str(user_verwaltung.id)
+            assert payload["app-username"] == user_verwaltung.username
+            assert payload["app-group"] == user_verwaltung.user_group.value
+            assert payload["app-first-name"] == user_verwaltung.first_name
+            assert payload["app-last-name"] == user_verwaltung.last_name
+            assert payload["aud"] == AUTHENTICATION_TOKEN_AUDIENCE
+
+    def it_sets_correct_expiration(user_verwaltung, app, mocker):
+        with app.app_context():
+            # Mock datetime.now to return a fixed date
+            mocked_datetime = mocker.patch("src.services.auth_service.datetime")
+            mocked_datetime.now.return_value = datetime.now()
+
+            # Mock AUTHENTICATION_TOKEN_DURATION to 1 day
+            mocker.patch(
+                "src.services.auth_service.AUTHENTICATION_TOKEN_DURATION",
+                timedelta(days=1),
+            )
+
+            token = AuthService._AuthService__make_auth_token(
+                user_verwaltung, JWT_SECRET
+            )
+            payload = jwt.decode(
+                token,
+                JWT_SECRET,
+                algorithms=["HS256"],
+                audience=AUTHENTICATION_TOKEN_AUDIENCE,
+            )
+
+            assert payload["exp"] == floor(
+                (datetime.now() + timedelta(days=1)).timestamp()
+            )
+
+
+def describe_verify_auth_token():
+    def it_verifies_valid_token(user_verwaltung, app):
+        with app.app_context():
+            token = AuthService._AuthService__make_auth_token(
+                user_verwaltung, JWT_SECRET
+            )
+
+            user_info = AuthService._AuthService__verify_auth_token(token, JWT_SECRET)
+
+            assert user_info["sub"] == str(user_verwaltung.id)
+            assert user_info["app-username"] == user_verwaltung.username
+            assert user_info["app-group"] == user_verwaltung.user_group.value
+            assert user_info["app-first-name"] == user_verwaltung.first_name
+            assert user_info["app-last-name"] == user_verwaltung.last_name
 
     def it_throws_error_on_invalid_token(app):
         with app.app_context():
             with pytest.raises(jwt.PyJWTError):
-                AuthService._AuthService__verify_auth_token(
-                    "invalid_token", app.config["JWT_SECRET"]
-                )
+                AuthService._AuthService__verify_auth_token("invalid_token", JWT_SECRET)
 
-    def it_throws_error_on_expired_token(mocker, user, app):
-        # Mock datetime.now to return a fixed date
+    def it_throws_error_on_expired_token(mocker, user_verwaltung, app):
         mocked_datetime = mocker.patch("src.services.auth_service.datetime")
-        mocked_datetime.now.return_value = datetime(2021, 1, 1, 0, 0, 0)
-
-        # Mock AUTHENTICATION_TOKEN_DURATION to 1 day
+        mocked_datetime.now.return_value = datetime(2025, 1, 1, 0, 0, 0)
         mocker.patch(
             "src.services.auth_service.AUTHENTICATION_TOKEN_DURATION",
             timedelta(weeks=1),
@@ -165,7 +542,7 @@ def describe_verify_auth_token():
 
         with app.app_context():
             token = AuthService._AuthService__make_auth_token(
-                user, app.config["JWT_SECRET"]
+                user_verwaltung, JWT_SECRET
             )
 
             print("Token:", token)
@@ -174,18 +551,16 @@ def describe_verify_auth_token():
             )  # Decode the payload for debugging
 
             with pytest.raises(jwt.ExpiredSignatureError):
-                AuthService._AuthService__verify_auth_token(
-                    token, app.config["JWT_SECRET"]
-                )
+                AuthService._AuthService__verify_auth_token(token, JWT_SECRET)
 
-    def it_throws_error_on_invalid_audience(mocker, user, app):
+    def it_throws_error_on_invalid_audience(mocker, user_verwaltung, app):
         with app.app_context():
             mocker.patch(
                 "src.services.auth_service.AUTHENTICATION_TOKEN_AUDIENCE",
                 "valid_audience",
             )
             token = AuthService._AuthService__make_auth_token(
-                user, app.config["JWT_SECRET"]
+                user_verwaltung, JWT_SECRET
             )
 
             mocker.patch(
@@ -194,23 +569,21 @@ def describe_verify_auth_token():
             )
 
             with pytest.raises(jwt.InvalidAudienceError):
-                AuthService._AuthService__verify_auth_token(
-                    token, app.config["JWT_SECRET"]
-                )
+                AuthService._AuthService__verify_auth_token(token, JWT_SECRET)
 
-    def it_throws_error_on_wrong_secret(user, app):
+    def it_throws_error_on_wrong_secret(user_verwaltung, app):
         with app.app_context():
             token = AuthService._AuthService__make_auth_token(
-                user, app.config["JWT_SECRET"]
+                user_verwaltung, JWT_SECRET
             )
 
             with pytest.raises(jwt.InvalidSignatureError):
                 AuthService._AuthService__verify_auth_token(token, "invalid_secret")
 
-    def it_throws_error_on_invalid_signature(user, app):
+    def it_throws_error_on_invalid_signature(user_verwaltung, app):
         with app.app_context():
             token = AuthService._AuthService__make_auth_token(
-                user, app.config["JWT_SECRET"]
+                user_verwaltung, JWT_SECRET
             )
 
             split_token = token.split(".")
@@ -222,160 +595,34 @@ def describe_verify_auth_token():
             assert token != invalid_token
 
             with pytest.raises(jwt.InvalidTokenError):
-                AuthService._AuthService__verify_auth_token(
-                    invalid_token, app.config["JWT_SECRET"]
-                )
+                AuthService._AuthService__verify_auth_token(invalid_token, JWT_SECRET)
 
 
 def describe_make_refresh_token():
-    def it_generates_a_token(mocker, user):
-        mockRepo = mocker.Mock()
-        attrs = {"get_token.return_value": None, "create_token.return_value": None}
-        mockRepo.configure_mock(**attrs)
-        mocker.patch(
-            "src.services.auth_service.RefreshTokenSessionRepository",
-            mockRepo,
+    def it_generates_a_token(mocker, user_verwaltung):
+        mocker.patch.object(
+            RefreshTokenSessionRepository,
+            "get_token",
+            return_value=None,
+        )
+        mock_create_token = mocker.patch.object(
+            RefreshTokenSessionRepository, "create_token"
         )
 
-        token = AuthService._AuthService__make_refresh_token(user)
+        token = AuthService._AuthService__make_refresh_token(user_verwaltung)
 
         assert len(token) > 0
-        mockRepo.create_token.assert_called_once()
+        mock_create_token.assert_called_once()
 
+    def it_generates_a_new_token_on_existing_token(mocker, user_verwaltung, session):
+        mock_get_token = mocker.patch.object(
+            RefreshTokenSessionRepository,
+            "get_token",
+            side_effect=[session, None],
+        )
+        mocker.patch.object(RefreshTokenSessionRepository, "create_token")
 
-# def describe_verify_refresh_token():
+        token = AuthService._AuthService__make_refresh_token(user_verwaltung)
 
-#     def it_verifies_valid_refresh_token(mocker, session):
-#         mockRepo = _helper_mock_refresh_token_session_repo_with_attrs(
-#             mocker, {"get_token.return_value": session}
-#         )
-
-#         verified_session = AuthService._AuthService__verify_refresh_token(
-#             session.refresh_token
-#         )
-
-#         assert verified_session == session
-#         mockRepo.get_token.assert_called_once_with(session.refresh_token)
-
-#     def it_throws_error_on_invalid_refresh_token(mocker):
-#         token = "invalid_token"
-
-#         _helper_mock_refresh_token_session_repo_with_attrs(
-#             mocker, {"get_token.return_value": None}
-#         )
-
-#         with pytest.raises(UnauthenticatedException):
-#             AuthService._AuthService__verify_refresh_token(token)
-
-#     def it_throws_error_on_expired_refresh_token(mocker, session):
-#         session.expires = datetime.now() - timedelta(days=1)
-
-#         _helper_mock_refresh_token_session_repo_with_attrs(
-#             mocker, {"get_token.return_value": session}
-#         )
-
-#         with pytest.raises(UnauthenticatedException):
-#             AuthService._AuthService__verify_refresh_token(session.refresh_token)
-
-#     def it_throws_error_when_already_used(mocker, session):
-#         session.last_used = datetime.now()
-
-#         _helper_mock_refresh_token_session_repo_with_attrs(
-#             mocker, {"get_token.return_value": session}
-#         )
-
-#         with pytest.raises(UnauthenticatedException):
-#             AuthService._AuthService__verify_refresh_token(session.refresh_token)
-
-
-def describe_login():
-
-    def it_throws_error_on_non_exising_username(mocker):
-        attrs = {"get_user_by_username.return_value": None}
-        _helper_mock_users_repo_with_attrs(mocker, attrs)
-
-        with pytest.raises(NotFoundError):
-            AuthService.login("johndoe", "password")
-
-    def it_throws_error_on_invalid_password(mocker, user):
-        attrs = {"get_user_by_username.return_value": user}
-        _helper_mock_users_repo_with_attrs(mocker, attrs)
-
-        with pytest.raises(InvalidCredentialsException):
-            AuthService.login(user.username, "wrong_password")
-
-    def it_returns_tokens_on_valid_credentials(mocker, user, app):
-        password = "password123"
-        hashed_password = AuthService.hash_password(password)
-        user.hashed_password = hashed_password
-
-        attrs = {"get_user_by_username.return_value": user}
-        _helper_mock_users_repo_with_attrs(mocker, attrs)
-
-        with app.app_context():
-            user, auth_token, refresh_token = AuthService.login(user.username, password)
-
-        assert user == user
-        assert len(auth_token) > 0
-        assert len(refresh_token) > 0
-
-
-def describe_authenticate():
-    def it_accepts_valid_auth_token(mocker, user, app):
-        with app.app_context():
-            # Generate a valid auth token
-            auth_token = AuthService._AuthService__make_auth_token(
-                user, app.config["JWT_SECRET"]
-            )
-
-            user_info, new_auth_token, new_refresh_token = AuthService.authenticate(
-                auth_token=auth_token, refresh_token=None
-            )
-
-            assert user_info["id"] == user.id
-            assert new_auth_token is None
-            assert new_refresh_token is None
-
-    def it_throws_error_on_invalid_auth_and_no_refresh_token(mocker, app):
-        with app.app_context():
-            with pytest.raises(UnauthenticatedException):
-                AuthService.authenticate(auth_token="invalid", refresh_token=None)
-
-    def it_throws_error_on_invalid_auth_and_invalid_refresh_token(mocker, app):
-        with app.app_context():
-            _helper_mock_refresh_token_session_repo_with_attrs(
-                mocker, {"get_token.return_value": None}
-            )
-            with pytest.raises(UnauthenticatedException):
-                AuthService.authenticate(auth_token="invalid", refresh_token="invalid")
-
-    def it_generates_new_tokens_on_valid_refresh_token(mocker, app, session, user):
-        with app.app_context():
-            refresh_token = session.refresh_token
-
-            # Mock the RefreshTokenSessionRepository to return the session
-            mockSessionRepo = _helper_mock_refresh_token_session_repo_with_attrs(
-                mocker,
-                {
-                    "get_token": lambda token: (
-                        session if token == session.refresh_token else None
-                    ),
-                    "create_token.return_value": None,
-                    "update_token.return_value": None,
-                },
-            )
-            _helper_mock_users_repo_with_attrs(
-                mocker, {"get_user_by_id.return_value": user}
-            )
-
-            # Authenticate with the valid refresh token
-            user_info, new_auth_token, new_refresh_token = AuthService.authenticate(
-                auth_token="invalid", refresh_token=refresh_token
-            )
-
-            assert user_info["id"] == user.id
-            assert len(new_auth_token) > 0
-            assert len(new_refresh_token) > 0
-            mockSessionRepo.create_token.assert_called_once()
-
-    # TODO: Add test for blocked user
+        assert mock_get_token.call_count == 2
+        assert len(token) > 0

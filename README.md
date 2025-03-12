@@ -1,6 +1,8 @@
-# group-16
+# Kantinenmanager (group-16)
 
-## Requirements
+<img src=".gitlab/assets/screenshot1.png" />
+
+## 📋 Requirements
 
 Make sure you have the following installed:
 
@@ -10,15 +12,15 @@ Make sure you have the following installed:
 
 If you open this project in VS Code you should get a list of recommended extensions.
 
-## Getting started
+## 🚀 Getting started
 
-### Create .env file
+### 📝 Create .env file
 
 Project configuration is done via a `.env` file. To create `.env` files with default values, run `python scripts/init.py` or `python3 scripts/init.py` from the project root. Alternatively, you can run `docker compose run init` to start a Python container and execute the script automatically.
 
 Once the configuration is complete, you can choose one of the following methods to start the project.
 
-### Using Dev Containers (Recommended)
+### 🐳 Using Dev Containers (Recommended)
 
 Dev Containers allow you to connect VS Code directly to a Docker container, enabling you to develop inside the container using autocompletion as well as npm and python commands just like on your local machine.
 
@@ -62,7 +64,7 @@ flask --app startup:app run --host=0.0.0.0 --port=4200 --debug # run the app
 4. Select "Python: Dev Container" at the top
 5. Click the little green play button at the top left
 
-### Using Docker Compose in VS Code UI
+### 🐋 Using Docker Compose in VS Code UI
 
 If you have opened this project in VS Code and installed all recommended extensions, you can start the project by following these steps:
 
@@ -79,7 +81,7 @@ Here are the available tasks:
 
 Alternatively, you can use the "Tasks: Run Task" command in VS Code to run these tasks. The "Start Dev" task should also appear in the status bar at the bottom of the screen.
 
-### Manually run Docker Compose commands
+### 🛠️ Manually run Docker Compose commands
 
 You can also manually run Docker commands from the root of the project:
 
@@ -96,25 +98,45 @@ docker compose -f docker-compose.debug.yml up --build # Start the application in
 
 **Hint:** The default backend port is `4200` and the frontend uses `3000`.
 
-## Grafana
+## 🌐 Access the live system with a domain
 
-Access Grafana on `http://<server-ip>:30433`.
+You can access the live system using the server's IP address. To simplify access, you can create custom internal domain mappings by adding entries to your local machine's hosts file:
 
-## Running Tests
+1. Locate and open the `hosts` file on your system ([instructions here](https://www.howtogeek.com/27350/beginner-geek-how-to-edit-your-hosts-file/)).
+2. Append the following lines to the file and save:
+
+   ```
+   172.26.92.165    sep.internal
+   172.26.92.165    grafana.sep.internal
+   ```
+
+You can now access the live application at `https://sep.internal` and connect via SSH using `ssh swtp@sep.internal`.
+
+**Note:** Use the domain names exactly as specified. The reverse proxies are configured to accept only these domains or the IPv4 address.
+
+## 🙈 Grafana
+
+For monitoring purposes, we deploy Grafana, Prometheus, and Loki on our server. To access the Grafana interface, follow the steps to edit the hosts file as described above. Then, navigate to `https://grafana.sep.internal`.
+
+<img src=".gitlab/assets/screenshot_grafana.png" />
+
+## 🧪 Running Tests
 
 ### Backend
 
 To run tests using Dev Containers connected to the backend container, open a new terminal in VS Code (top bar -> Terminal -> New Terminal). Then, execute one of the following commands:
 
 ```bash
-pytest backend/  # Run all tests once and then exit
+FLASK_ENV=testing pytest backend/  # Run all tests once and then exit
 
-pytest --cov=backend backend/  # Run all tests once and generate a coverage report
+FLASK_ENV=testing pytest --cov=backend backend/  # Run all tests once and generate a coverage report
 
-ptw backend/  # Start a test runner that will watch for file changes and automatically rerun tests
+FLASK_ENV=testing ptw backend/  # Start a test runner that will watch for file changes and automatically rerun tests
 ```
 
-Alternatively, you can start a separate Docker container to run the tests:
+To only run End-to-End tests or unit tests use `backend/e2e` or `backend/tests` respectively.
+
+You can start a separate Docker container to run the tests:
 
 ```bash
 docker compose run test-backend  # Run tests and then exit
@@ -126,7 +148,7 @@ docker compose run test-backend-watch  # Start a test runner that will watch for
 
 #todo
 
-## Database Migrations
+## 🗄️ Database Migrations
 
 All database migrations are checked in with Git. They are applied automatically when starting the backend container.
 
@@ -152,74 +174,12 @@ FLASK_ENV=migration alembic current
 
 [Alembic Documentation](https://alembic.sqlalchemy.org/en/latest/tutorial.html)
 
-## Test and Deploy
+## 🙏 Authors
 
-Use the built-in continuous integration in GitLab.
-
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
----
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-
-Choose a self-explaining name for your project.
-
-## Description
-
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-
-Show your appreciation to those who have contributed to the project.
-
-## License
-
-For open source projects, say how it is licensed.
-
-## Project status
-
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+- Amelie Biwolé
+- Lalita Kuhn
+- Moritz Oczko
+- Hazem Rikabi
+- Nico Schroeder
+- Lennox Schuster
+- Sidney Stiller

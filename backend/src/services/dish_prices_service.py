@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from src.utils.exceptions import NotFoundError
+from src.utils.exceptions import BadValueError, NotFoundError
 from src.models.dish_price import DishPrice
 from src.repositories.dish_prices_repository import DishPricesRepository
 
@@ -31,8 +31,9 @@ class DishPricesService:
 
         :return: The dish price for today or None if no dish price was found
         """
+        today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
 
-        return DishPricesService.get_price_valid_at_date(datetime.now().date())
+        return DishPricesService.get_price_valid_at_date(today)
 
     @staticmethod
     def create_price(
@@ -49,16 +50,13 @@ class DishPricesService:
         """
 
         if DishPricesRepository.get_price_by_date(date):
-            # TODO: Use BadValueError
-            raise ValueError(f"Dish price for date {date} already exists")
+            raise BadValueError(f"Es existiert bereits ein Preis für das Datum {date}")
 
         if main_dish_price < 0 or salad_price < 0:
-            # TODO: Use BadValueError
-            raise ValueError("Prices must not be negative")
+            raise BadValueError("Preise dürfen nicht negativ sein")
 
         if prepayment < 0:
-            # TODO: Use BadValueError
-            raise ValueError("Prepayment must not be negative")
+            raise BadValueError("Vorauszahlung darf nicht negativ sein")
 
         price = DishPrice(
             date=date,
@@ -91,19 +89,16 @@ class DishPricesService:
         price = DishPricesRepository.get_price_by_date(old_date)
 
         if price is None:
-            raise NotFoundError(f"Dish price for date {date} does not exist")
+            raise NotFoundError(f"Preis für Datum {old_date} existiert nicht")
 
         if old_date != date and DishPricesRepository.get_price_by_date(date):
-            # TODO: Use BadValueError
-            raise ValueError(f"Dish price for date {date} already exists")
+            raise BadValueError(f"Es existiert bereits ein Preis für das Datum {date}")
 
         if main_dish_price < 0 or salad_price < 0:
-            # TODO: Use BadValueError
-            raise ValueError("Prices must not be negative")
+            raise BadValueError("Preise dürfen nicht negativ sein")
 
         if prepayment < 0:
-            # TODO: Use BadValueError
-            raise ValueError("Prepayment must not be negative")
+            raise BadValueError("Vorauszahlung darf nicht negativ sein")
 
         price.date = date
         price.main_dish_price = main_dish_price

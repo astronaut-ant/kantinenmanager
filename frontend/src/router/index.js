@@ -20,11 +20,15 @@ import VerwaltungNeueGruppe from "@/pages/Verwaltung/VerwaltungNeueGruppe.vue";
 import VerwaltungMitarbeiterManuell from "@/pages/Verwaltung/VerwaltungMitarbeiterManuell.vue";
 import GruppenleitungVorbestellungen from "@/pages/Gruppenleitung/GruppenleitungVorbestellungen.vue";
 import GruppenleitungMeineGruppen from "@/pages/Gruppenleitung/GruppenleitungMeineGruppen.vue";
+import Impressum from "@/pages/Impressum.vue";
+import Datenschutzerklaerung from "@/pages/Datenschutzerklaerung.vue";
 import VerwaltungAbrechnungErstellen from "@/pages/Verwaltung/VerwaltungAbrechnungErstellen.vue";
 import VerwaltungEssensPreise from "@/pages/Verwaltung/VerwaltungEssensPreise.vue";
 
 const routes = [
   { path: "/", component: index, redirect: "/login" },
+  { path: "/impressum", component: Impressum },
+  { path: "/datenschutzerklaerung", component: Datenschutzerklaerung },
   { path: "/accessdenied", component: AccessDenied },
   {
     path: "/login",

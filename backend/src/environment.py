@@ -17,8 +17,8 @@ class Environment(enum.Enum):
     MIGRATION = "migration"
     """Used for database migrations"""
 
-    UNIT_TESTING = "unit_testing"
-    """Used for unit testing"""
+    TESTING = "testing"
+    """Used for testing"""
 
 
 class Features(ABC):
@@ -51,6 +51,9 @@ class Features(ABC):
     LOGGING: LoggingMethod
     """The logging method to use"""
 
+    ORDER_MIGRATION_STARTUP: bool
+    """Whether to migrate orders on startup"""
+
 
 class ProductionFeatures(Features):
     DATABASE = "real"
@@ -59,9 +62,10 @@ class ProductionFeatures(Features):
     CORS = False
     SWAGGER = False
     INSERT_DEFAULT_DATA = True
-    INSERT_MOCK_DATA = True
+    INSERT_MOCK_DATA = False
     CRONJOBS = True
     LOGGING = LoggingMethod.LOKI
+    ORDER_MIGRATION_STARTUP = True
 
 
 class DevelopmentFeatures(Features):
@@ -74,6 +78,7 @@ class DevelopmentFeatures(Features):
     INSERT_MOCK_DATA = True
     CRONJOBS = True
     LOGGING = LoggingMethod.CONSOLE
+    ORDER_MIGRATION_STARTUP = False
 
 
 class MigrationFeatures(Features):
@@ -86,9 +91,10 @@ class MigrationFeatures(Features):
     INSERT_MOCK_DATA = False
     CRONJOBS = False
     LOGGING = LoggingMethod.CONSOLE
+    ORDER_MIGRATION_STARTUP = False
 
 
-class UnitTestingFeatures(Features):
+class TestingFeatures(Features):
     DATABASE = "in-memory"
     METRICS = False
     TESTING_MODE = True
@@ -98,6 +104,7 @@ class UnitTestingFeatures(Features):
     INSERT_MOCK_DATA = False
     CRONJOBS = False
     LOGGING = LoggingMethod.CONSOLE
+    ORDER_MIGRATION_STARTUP = False
 
 
 def get_features(env: Environment) -> Features:
@@ -108,7 +115,7 @@ def get_features(env: Environment) -> Features:
         return DevelopmentFeatures
     elif env == Environment.MIGRATION:
         return MigrationFeatures
-    elif env == Environment.UNIT_TESTING:
-        return UnitTestingFeatures
+    elif env == Environment.TESTING:
+        return TestingFeatures
     else:
         raise ValueError(f"Unknown environment: {env}")
