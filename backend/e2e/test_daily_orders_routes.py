@@ -260,14 +260,20 @@ def describe_daily_orders():
         def it_returns_daily_order(
             client,
             user_verwaltung,
+            user_standortleitung,
+            location,
             daily_order,
             db,
         ):
             # enforce foreign key constraints just for this test
-            db.session.execute(text("PRAGMA foreign_keys = OFF"))  # noqa: F405
+            db.session.execute(text("PRAGMA foreign_keys =ON"))  # noqa: F405
 
             db.session.add(user_verwaltung)
-            daily_order.user_id = user_verwaltung.id
+            db.session.add(user_standortleitung)
+            db.session.commit()
+            db.session.add(location)
+            db.session.commit()
+            daily_order.person_id = user_verwaltung.id
             db.session.add(daily_order)
             db.session.commit()
 
@@ -275,10 +281,10 @@ def describe_daily_orders():
             res = client.get("/api/daily-orders/own")
 
             assert db.session.query(DailyOrder).count() == 1
-            assert db.session.query(DailyOrder).first().user_id == user_verwaltung.id
+            assert db.session.query(DailyOrder).first().person_id == user_verwaltung.id
 
             assert res.status_code == 200
-            assert res.json["id"] == db.session.query(DailyOrder).first().id
+            assert res.json["id"] == str(db.session.query(DailyOrder).first().id)
 
         def it_returns_no_daily_order_out_of_userscope():
             pass
@@ -311,30 +317,36 @@ def describe_daily_orders():
         def it_returns_daily_order(
             client,
             user_verwaltung,
-            user_kuechenpersonal,
+            user_kuechenpersonal_alt,
+            user_standortleitung,
+            location,
             daily_order,
             db,
         ):
             # enforce foreign key constraints just for this test
-            db.session.execute(text("PRAGMA foreign_keys = OFF"))  # noqa: F405
+            db.session.execute(text("PRAGMA foreign_keys = ON"))  # noqa: F405
 
             db.session.add(user_verwaltung)
-            db.session.add(user_kuechenpersonal)
-            daily_order.user_id = user_verwaltung.id
+            db.session.add(user_standortleitung)
+            db.session.commit()
+            db.session.add(location)
+            db.session.commit()
+            db.session.add(user_kuechenpersonal_alt)
+            daily_order.person_id = user_verwaltung.id
             db.session.add(daily_order)
             db.session.commit()
 
-            login(user=user_kuechenpersonal, client=client)
+            login(user=user_kuechenpersonal_alt, client=client)
             res = client.get(f"/api/daily-orders/person/{user_verwaltung.id}")
 
             assert db.session.query(DailyOrder).count() == 1
-            assert db.session.query(DailyOrder).first().user_id == user_verwaltung.id
+            assert db.session.query(DailyOrder).first().person_id == user_verwaltung.id
 
             assert res.status_code == 200
             assert (
-                res.json["id"]
-                == db.session.query(DailyOrder).first().id
-                == user_verwaltung.id
+                res.json["person_id"]
+                == str(db.session.query(DailyOrder).first().person_id)
+                == str(user_verwaltung.id)
             )
 
         def it_returns_no_daily_order_out_of_scope():
@@ -344,12 +356,21 @@ def describe_daily_orders():
             client,
             user_verwaltung,
             user_kuechenpersonal,
+            user_standortleitung,
+            location,
             daily_order,
             db,
         ):
+            # enforce foreign key constraints just for this test
+            db.session.execute(text("PRAGMA foreign_keys = ON"))  # noqa: F405
+
             db.session.add(user_verwaltung)
             db.session.add(user_kuechenpersonal)
-            daily_order.user_id = user_verwaltung.id
+            db.session.add(user_standortleitung)
+            db.session.commit()
+            db.session.add(location)
+            db.session.commit()
+            daily_order.person_id = user_verwaltung.id
             db.session.add(daily_order)
             db.session.commit()
 
@@ -357,7 +378,7 @@ def describe_daily_orders():
             res = client.get(f"/api/daily-orders/person/{uuid.uuid4()}")
 
             assert db.session.query(DailyOrder).count() == 1
-            assert db.session.query(DailyOrder).first().user_id == user_verwaltung.id
+            assert db.session.query(DailyOrder).first().person_id == user_verwaltung.id
 
             assert res.status_code == 404
 
