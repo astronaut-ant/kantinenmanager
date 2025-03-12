@@ -5,7 +5,7 @@ from sqlalchemy.orm import joinedload, aliased
 from src.database import db
 from uuid import UUID
 from typing import List, Optional
-from datetime import date, datetime
+from datetime import date, datetime, time
 from flask import current_app as app
 from src.models.employee import Employee
 from src.models.group import Group
@@ -256,11 +256,14 @@ class OrdersRepository:
         :param date: Date
         :return: Preorder if it exists else None
         """
+
+        dt = datetime.combine(date, time(0, 0))  # convert date to datetime
+
         return db.session.scalars(
             select((PreOrder)).filter(
                 and_(
                     (PreOrder.person_id == person_id),
-                    (PreOrder.date == date),
+                    (PreOrder.date == dt),
                 )
             )
         ).first()
@@ -274,11 +277,13 @@ class OrdersRepository:
         :param date: Date
         :return: Preorder if it exists else None
         """
+        dt = datetime.combine(date, time(0, 0))  # convert date to datetime
+
         return db.session.scalars(
             select((PreOrder)).filter(
                 and_(
                     (PreOrder.person_id == person_id),
-                    (PreOrder.date == date),
+                    (PreOrder.date == dt),
                     (PreOrder.id != id),
                 )
             )
