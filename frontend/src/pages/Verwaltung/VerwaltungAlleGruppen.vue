@@ -324,7 +324,7 @@ const form = ref(false);
 const tab = ref("");
 const search = ref("");
 
-onMounted(() => {
+const getData = () => {
   axios
     .get(import.meta.env.VITE_API + "/api/groups/with-employees", {
       withCredentials: true,
@@ -356,7 +356,7 @@ onMounted(() => {
       employees.value = response.data;
     })
     .catch((err) => console.log(err));
-});
+};
 
 const headers = [
   { title: "Nummer", key: "employee_number" },
@@ -482,6 +482,7 @@ const confirmDelete = () => {
       closeDeleteDialog();
       snackbarText.value = "Die Gruppe wurde erfolgreich gelöscht!";
       snackbar.value = true;
+      getData();
     })
     .catch((err) => {
       console.log(err);
@@ -520,6 +521,7 @@ const sortGroups = (array) => {
     return 0;
   });
 };
+getData();
 </script>
 
 <style scoped>

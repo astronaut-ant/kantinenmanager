@@ -29,11 +29,7 @@
             base-color="blue-grey"
             color="primary"
             variant="outlined"
-            :Placeholder="
-              noStandortleiter
-                ? 'Keine freien Standortleiter mehr verfügbar'
-                : 'Verfügbaren Standortleiter auswählen'
-            "
+            Placeholder="Verfügbaren Standortleiter auswählen"
             label="Standortleiter"
             class="mb-5 mt-3"
             v-model="standortLeitungSelection"
@@ -49,11 +45,7 @@
             base-color="blue-grey"
             color="primary"
             variant="outlined"
-            :Placeholder="
-              noKuechenpersonal
-                ? 'Kein freies Küchenpersonal mehr verfügbar'
-                : 'Verfügbares Küchenpersonal zuweisen'
-            "
+            Placeholder="Verfügbares Küchenpersonal zuweisen"
             chips
             multiple
             label="Küchenpersonal"

@@ -91,6 +91,7 @@
             v-model="gruppenleitung"
             :rules="[required]"
             :items="gruppenleiterList"
+            no-data-text="Keine freien Gruppenleiter mehr verfügbar"
           ></v-select>
           <v-select
             :active="true"
@@ -103,6 +104,7 @@
             v-model="standort"
             :rules="[required]"
             :items="allLocations"
+            no-data-text="Es existieren noch keine Standorte"
           ></v-select>
           <v-card-actions class="justify-end me-n2">
             <v-btn @click="emptyForm" color="blue-grey" variant="text">
@@ -147,7 +149,7 @@ const gruppenName = ref("");
 const gruppenleitung = ref(null);
 const gruppenleiterList = ref([]);
 const noGruppenleiter = ref(false);
-const gruppenleiterLookupTable = {};
+const gruppenLeiterLookUpTable = ref({});
 const errorSnackbar = ref(false);
 const errorSnackbarText = ref("");
 
@@ -168,14 +170,12 @@ const getData = () => {
     .then((response) => {
       response.data.forEach((user) => {
         if (user.own_group === null)
-          gruppenleiterLookupTable[`${user.first_name} ${user.last_name}`] =
-            user.id;
+          gruppenLeiterLookUpTable.value[
+            `${user.first_name} ${user.last_name}`
+          ] = user.id;
       });
-      if (Object.keys(gruppenleiterLookupTable).length === 0) {
-        noGruppenleiter.value = true;
-      } else {
-        gruppenleiterList.value = Object.keys(gruppenleiterLookupTable);
-      }
+
+      gruppenleiterList.value = Object.keys(gruppenLeiterLookUpTable.value);
     })
     .catch((err) => console.log(err));
 
@@ -202,9 +202,6 @@ const getData = () => {
         console.log(location);
       });
       console.log(standortLookupTable);
-      if (Object.keys(standortLookupTable).length === 0) {
-        noStandorte.value = true;
-      }
       console.log(allLocations.value);
     })
     .catch((err) => console.log(err.response.data.description));
@@ -219,13 +216,17 @@ const handleSubmit = () => {
         group_number: gruppenNr.value,
         group_name: gruppenName.value,
         location_id: standortLookupTable[standort.value],
-        user_id_group_leader: gruppenleiterLookupTable[gruppenleitung.value],
+        user_id_group_leader:
+          gruppenLeiterLookUpTable.value[gruppenleitung.value],
       },
       { withCredentials: true }
     )
     .then((response) => {
       console.log(response.data);
       showConfirm.value = true;
+      gruppenLeiterLookUpTable.value = {};
+      standortLookupTable.value = {};
+      getData();
       emptyForm();
     })
     .catch((err) => {
@@ -248,6 +249,7 @@ const emptyForm = () => {
   showConfirm.value = false;
   validation.value.reset();
 };
+
 getData();
 </script>
 <style scoped>
