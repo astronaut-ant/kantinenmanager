@@ -1,11 +1,11 @@
 """Repository to handle database operations for order data."""
 
 from sqlalchemy import delete, insert, select, func, or_, and_, text
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, aliased
 from src.database import db
 from uuid import UUID
 from typing import List, Optional
-from datetime import date, datetime
+from datetime import date, datetime, time
 from flask import current_app as app
 from src.models.employee import Employee
 from src.models.group import Group
@@ -64,10 +64,11 @@ class OrdersRepository:
     """Repository to handle database operations for order data."""
 
     @staticmethod
-    def create_bulk_orders(bulk_orders, commit=True):
+    def create_bulk_orders(bulk_orders: List[PreOrder], commit=True):
         """
-        Create (pre)orders
-        :param orders: List of (pre)orders
+        Create preorders
+
+        :param orders: List of preorders
         """
         db.session.bulk_save_objects(bulk_orders)
         if commit:
@@ -79,6 +80,7 @@ class OrdersRepository:
     ):
         """
         Delete orders
+
         :param orders: List of orders
         """
         try:
@@ -94,11 +96,11 @@ class OrdersRepository:
     @staticmethod
     def create_single_order(order: PreOrder) -> PreOrder:
         """
-        Create (pre)order for user
+        Create preorder for user
 
-        :param order: (pre)order object to create
+        :param order: preorder object to create
 
-        :return: Created (pre)order object
+        :return: Created preorder object
         """
         db.session.add(order)
         db.session.commit()
@@ -112,7 +114,7 @@ class OrdersRepository:
         db.session.commit()
 
     @staticmethod
-    def delete_order(order):
+    def delete_order(order: PreOrder | DailyOrder | OldOrder):
         """
         Delete order
         """
@@ -190,8 +192,31 @@ class OrdersRepository:
         :param filters: Filters for orders
         :return: List of pre orders
         """
-        # TODO: Filter by user scope
         query = select(PreOrder)
+
+        user = UsersRepository.get_user_by_id(user_id)
+        if user_group == UserGroup.verwaltung:
+            query = query
+        elif (
+            user_group == UserGroup.standortleitung
+            or user_group == UserGroup.kuechenpersonal
+        ):
+            query = query.filter(PreOrder.location_id == user.location_id)
+        elif user_group == UserGroup.gruppenleitung:
+            employee_alias = aliased(Employee)
+            query = (
+                query.join(PreOrder.person)
+                .outerjoin(employee_alias, PreOrder.person_id == employee_alias.id)
+                .filter(
+                    or_(
+                        user.leader_of_group.id == employee_alias.group_id,
+                        employee_alias.group_id.in_(
+                            [group.id for group in user.replacement_leader_of_groups]
+                        ),
+                        user.id == PreOrder.person_id,
+                    )
+                )
+            )
 
         if filters.person_id:
             query = query.filter(PreOrder.person_id == filters.person_id)
@@ -230,11 +255,35 @@ class OrdersRepository:
         :param date: Date
         :return: Preorder if it exists else None
         """
+
+        dt = datetime.combine(date, time(0, 0))  # convert date to datetime
+
         return db.session.scalars(
             select((PreOrder)).filter(
                 and_(
                     (PreOrder.person_id == person_id),
-                    (PreOrder.date == date),
+                    (PreOrder.date == dt),
+                )
+            )
+        ).first()
+
+    @staticmethod
+    def preorder_already_exists_different_id(
+        person_id: UUID, date: date, id: int
+    ) -> Optional[PreOrder]:
+        """Check if another order already exists for the person and date
+        :param person_id: Person id
+        :param date: Date
+        :return: Preorder if it exists else None
+        """
+        dt = datetime.combine(date, time(0, 0))  # convert date to datetime
+
+        return db.session.scalars(
+            select((PreOrder)).filter(
+                and_(
+                    (PreOrder.person_id == person_id),
+                    (PreOrder.date == dt),
+                    (PreOrder.id != id),
                 )
             )
         ).first()
@@ -255,7 +304,7 @@ class OrdersRepository:
         ).first()
 
     @staticmethod
-    def get_daily_order_by_id(daily_order_id: UUID) -> DailyOrder:
+    def get_daily_order_by_id(daily_order_id: UUID) -> Optional[DailyOrder]:
         """
         Get daily order by id
 
@@ -268,7 +317,6 @@ class OrdersRepository:
             select(DailyOrder).filter(DailyOrder.id == daily_order_id)
         ).first()
 
-    # TODO: Refactor this method to avoid duplicate code
     @staticmethod
     def get_all_daily_orders(
         filters: OrdersFilters | None = None,
@@ -279,7 +327,10 @@ class OrdersRepository:
         Get daily orders based on filters
 
         :param filters: Filters for orders
-        :return: List of daily orders
+        :param prejoin_person: Is Person Table Prejoined
+        :param prejoin_location: Is Location Table Prejoined
+
+        :return: List of daily orders in a response schema
         """
         query = select(DailyOrder)
 
@@ -319,6 +370,13 @@ class OrdersRepository:
 
     @staticmethod
     def get_daily_orders_filtered_by_user_scope(user_id: UUID) -> List[DailyOrder]:
+        """
+        Get daily orders based on user scope
+
+        :param user_id: UUID
+
+        :return: Daily orders in a response schmea
+        """
         user = UsersRepository.get_user_by_id(user_id)
         if user.user_group == UserGroup.verwaltung:
             return db.session.scalars(select(DailyOrder)).all()
@@ -333,7 +391,7 @@ class OrdersRepository:
             return []
 
     @staticmethod
-    def get_daily_orders_for_group(group_id: UUID, user_id: UUID) -> List[DailyOrder]:
+    def get_daily_orders_for_group(group_id: UUID) -> List[DailyOrder]:
         """
         Get daily orders for a group
 
@@ -400,7 +458,7 @@ class OrdersRepository:
     @staticmethod
     def push_preorders_to_dailyorders(today: date):
         """
-        Push preorders from todoy to dailyorders
+        Push preorders from today to dailyorders
         """
 
         db.session.execute(text("BEGIN TRANSACTION"))

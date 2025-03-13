@@ -6,7 +6,10 @@ from marshmallow import ValidationError
 
 from src.utils.exceptions import NotFoundError, AccessDeniedError, BadValueError
 from src.models.user import UserGroup
-from src.schemas.daily_orders_schema import DailyOrderFullSchema
+from src.schemas.daily_orders_schema import (
+    DailyOrderFullSchema,
+    DailyOrderHandedOutSchema,
+)
 from src.schemas.reports_schemas import CountOrdersSchema
 from src.services.daily_orders_service import DailyOrdersService
 from src.services.reports_service import ReportsService
@@ -16,7 +19,6 @@ from src.utils.error import ErrMsg, abort_with_err
 daily_orders_routes = Blueprint("daily_orders_routes", __name__)
 
 
-# TODO: Test all routes
 @daily_orders_routes.get("/api/daily-orders")
 @login_required(
     groups=[UserGroup.verwaltung, UserGroup.standortleitung, UserGroup.kuechenpersonal]
@@ -32,7 +34,6 @@ daily_orders_routes = Blueprint("daily_orders_routes", __name__)
                     "items": DailyOrderFullSchema,
                 },
             },
-            404: {"description": "Bad request"},
         },
     }
 )
@@ -41,36 +42,13 @@ def get_daily_orders():
     Get all daily orders filtered by location of the user
     """
 
-    try:
-        daily_orders = DailyOrdersService.get_daily_orders_filtered_by_user_scope(
-            g.user_id
-        )
-    except NotFoundError as err:
-        abort_with_err(
-            ErrMsg(
-                status_code=404,
-                title="Fehler",
-                description="Ein Fehler ist aufgetreten.",
-                details=str(err),
-            )
-        )
-    except AccessDeniedError as err:
-        abort_with_err(
-            ErrMsg(
-                status_code=403,
-                title="Nicht autorisiert",
-                description="Sie haben keinen Zugriff auf diese Bestellungen.",
-                details=str(err),
-            )
-        )
+    daily_orders = DailyOrdersService.get_daily_orders_filtered_by_user_scope(g.user_id)
 
     return DailyOrderFullSchema(many=True).dump(daily_orders)
 
 
 @daily_orders_routes.get("/api/daily-orders/counted")
-@login_required(
-    groups=[UserGroup.verwaltung, UserGroup.kuechenpersonal]
-)  # TODO: pick allowed usergroups
+@login_required(groups=[UserGroup.kuechenpersonal, UserGroup.verwaltung])
 @swag_from(
     {
         "tags": ["daily_orders"],
@@ -82,7 +60,8 @@ def get_daily_orders():
                     "items": CountOrdersSchema,
                 },
             },
-            404: {"description": "Bad request"},
+            403: {"description": "Access denied"},
+            500: {"description": "Server Error"},
         },
     }
 )
@@ -95,15 +74,6 @@ def get_daily_orders_counted():
         orders_counted_by_location = ReportsService.get_daily_orders_count(
             g.user_group, g.user_id
         )
-    except BadValueError as err:
-        abort_with_err(
-            ErrMsg(
-                status_code=400,
-                title="Fehler",
-                description="Ein Fehler ist aufgetreten.",
-                details=str(err),
-            )
-        )
     except AccessDeniedError as err:
         abort_with_err(
             ErrMsg(
@@ -111,6 +81,16 @@ def get_daily_orders_counted():
                 title="Nicht autorisiert",
                 description=f"Nutzer:in mit ID {g.user_id} auf eine Bestellung.",
                 details=str(err),
+            )
+        )
+    except NotFoundError:
+        # Handled as Server Error because logic would not allow this to happen.
+        abort_with_err(
+            ErrMsg(
+                status_code=500,
+                title="Server Error",
+                description="Zuordnung Fehlgeschlagen.",
+                details="Für die Zuordnung einer Bestellung zu einem Standort, wurde kein Standort gefunden",
             )
         )
 
@@ -170,6 +150,7 @@ def get_own_daily_order():
                 "schema": DailyOrderFullSchema,
             },
             404: {"description": "Not found"},
+            403: {"description": "Access denied"},
         },
     }
 )
@@ -185,7 +166,7 @@ def get_daily_order(person_id: UUID):
             ErrMsg(
                 status_code=404,
                 title="Nicht gefunden",
-                description=f"Bestellung für Person {person_id} nicht gefunden.",
+                description="Bestellung oder Person wurde nicht gefunden.",
                 details=str(err),
             )
         )
@@ -195,15 +176,6 @@ def get_daily_order(person_id: UUID):
                 status_code=403,
                 title="Nicht autorisiert",
                 description="Sie haben keinen Zugriff auf diese Bestellung.",
-                details=str(err),
-            )
-        )
-    except BadValueError as err:
-        abort_with_err(
-            ErrMsg(
-                status_code=400,
-                title="Fehler",
-                description="Ein Fehler ist aufgetreten.",
                 details=str(err),
             )
         )
@@ -230,6 +202,7 @@ def get_daily_order(person_id: UUID):
                 "schema": {"type": "array", "items": DailyOrderFullSchema},
             },
             404: {"description": "Not found"},
+            403: {"description": "Access denied"},
         },
     }
 )
@@ -279,14 +252,9 @@ def get_daily_orders_for_group(group_id: UUID):
             {
                 "in": "body",
                 "name": "body",
-                "type": "object",
-                "properties": {
-                    "handed_out": {
-                        "type": "boolean",
-                        "required": True,
-                        "description": "Set to true if the order has been handed out",
-                    }
-                },
+                "schema": DailyOrderHandedOutSchema,
+                "required": True,
+                "description": "True if Order was Handed out",
             },
         ],
         "responses": {
@@ -296,6 +264,7 @@ def get_daily_orders_for_group(group_id: UUID):
             },
             400: {"description": "Bad request"},
             404: {"description": "Not found"},
+            403: {"description": "Access denied"},
         },
     }
 )
@@ -305,7 +274,7 @@ def update_daily_order(daily_order_id: int):
     """
 
     try:
-        order = DailyOrderFullSchema(only=("handed_out",)).load(request.json)
+        order = DailyOrderHandedOutSchema().load(request.json)
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
@@ -335,6 +304,15 @@ def update_daily_order(daily_order_id: int):
                 status_code=403,
                 title="Nicht autorisiert",
                 description="Sie haben keinen Zugriff auf diese Bestellung.",
+                details=str(err),
+            )
+        )
+    except BadValueError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=400,
+                title="Eingabefehler",
+                description="Ein Eingabefehler ist aufgetreten.",
                 details=str(err),
             )
         )

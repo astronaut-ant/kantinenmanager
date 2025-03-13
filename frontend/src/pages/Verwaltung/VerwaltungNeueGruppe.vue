@@ -1,10 +1,23 @@
 <template>
-  <NavbarVerwaltung :breadcrumbs = '[{"title": "Gruppen"}, {"title": "Neue Gruppe"}]'/>
-  <div class="mt-7 d-flex justify-center">
+  <NavbarVerwaltung
+    :breadcrumbs="[{ title: 'Gruppen' }, { title: 'Neue Gruppe' }]"
+  />
+  <div class="mt-14 d-flex justify-center">
     <div>
-      <v-card class="elevation-7 px-6 py-4 w-100">
-        <v-card-text class="mb-2 text-h5"> Neue Gruppe anlegen </v-card-text>
-        <CustomAlert
+      <v-card
+        :min-width="600"
+        class="elevation-7 px-6 py-4 w-100 text-blue-grey-darken-3"
+      >
+        <v-card-text class="mb-2 text-h6">
+          <div class="d-flex ga-4 mt-n3 mb-2 ms-2 ms-n3 text-primary">
+            <div class="d-flex align-center mt-n2 ms-n1">
+              <v-icon :size="40">mdi-account-group</v-icon>
+              <v-icon class="ms-n1" :size="30">mdi-plus</v-icon>
+            </div>
+            <h2>Neue Gruppe anlegen</h2>
+          </div>
+        </v-card-text>
+        <!-- <CustomAlert
           v-if="noGruppenleiter"
           class="mb-7"
           text="Es existieren keine Gruppenleiter"
@@ -17,10 +30,50 @@
           text="Es existieren keine Standorte"
           color="blue-grey"
           icon="mdi-information-outline"
-        />
+        /> -->
+
         <v-form ref="validation" v-model="form" @submit.prevent="handleSubmit">
-          <v-text-field
+          <div class="d-flex ga-8 mb-2 mt-4">
+            <v-text-field
+              :active="true"
+              base-color="blue-grey"
+              color="primary"
+              variant="outlined"
+              v-model="gruppenName"
+              :rules="[required]"
+              class="mb-2 w-100"
+              label="Gruppenname"
+              placeholder="Namen der Gruppe eingeben"
+              required
+              clearable
+            ></v-text-field>
+            <v-container class="pa-0">
+              <v-number-input
+                hide-details="auto"
+                precision="0"
+                :active="true"
+                base-color="blue-grey"
+                color="primary"
+                control-variant="default"
+                inset
+                variant="outlined"
+                v-model="gruppenNr"
+                :rules="[required, unique]"
+                class="w-100"
+                label="Gruppennummer"
+                placeholder="Nummer zuweisen"
+                :min="1"
+                required
+                clearable
+              ></v-number-input>
+            </v-container>
+          </div>
+          <!-- <v-text-field
             v-if="!noGruppenleiter && !noStandorte"
+            :active="true"
+            base-color="blue-grey"
+            color="primary"
+            variant="outlined"
             v-model="gruppenNr"
             :rules="[required]"
             class="mb-2"
@@ -28,44 +81,47 @@
             required
             clearable
             type="number"
-          ></v-text-field>
-          <v-text-field
-            v-if="!noGruppenleiter && !noStandorte"
-            v-model="gruppenName"
-            :rules="[required]"
-            class="mb-2"
-            label="Gruppe"
-            required
-            clearable
-          ></v-text-field>
+          ></v-text-field> -->
+
           <v-select
-            class="mb-2"
-            v-if="!noGruppenleiter && !noStandorte"
+            :active="true"
+            base-color="blue-grey"
+            color="primary"
+            variant="outlined"
+            class="mb-5 mt-2"
             label="Gruppenleiter"
+            Placeholder="Verfügbaren Gruppenleiter auswählen"
             v-model="gruppenleitung"
             :rules="[required]"
             :items="gruppenleiterList"
+            no-data-text="Keine freien Gruppenleiter mehr verfügbar"
           ></v-select>
           <v-select
-            v-if="!noGruppenleiter && !noStandorte"
+            :active="true"
+            base-color="blue-grey"
+            color="primary"
+            variant="outlined"
+            class="mb-4"
             label="Standort"
+            Placeholder="Standort auswählen"
             v-model="standort"
             :rules="[required]"
             :items="allLocations"
+            no-data-text="Es existieren noch keine Standorte"
           ></v-select>
-
-          <v-btn
-            v-if="!noGruppenleiter && !noStandorte"
-            class="mt-3"
-            :disabled="!form"
-            color="primary"
-            size="large"
-            type="submit"
-            variant="elevated"
-            block
-          >
-            anlegen
-          </v-btn>
+          <v-card-actions class="justify-end me-n2">
+            <v-btn @click="emptyForm" color="blue-grey" variant="text">
+              Verwerfen
+            </v-btn>
+            <v-btn
+              :disabled="!form"
+              color="primary"
+              type="submit"
+              variant="elevated"
+            >
+              anlegen
+            </v-btn>
+          </v-card-actions>
         </v-form>
         <div
           v-if="showConfirm"
@@ -78,6 +134,11 @@
       </v-card>
     </div>
   </div>
+  <SuccessSnackbar
+    v-model="snackbar"
+    text="Gruppe erfolgreich angelegt!"
+    @close="snackbar = false"
+  ></SuccessSnackbar>
   <ErrorSnackbar
     v-model="errorSnackbar"
     :text="errorSnackbarText"
@@ -96,18 +157,20 @@ const gruppenName = ref("");
 const gruppenleitung = ref(null);
 const gruppenleiterList = ref([]);
 const noGruppenleiter = ref(false);
-const gruppenleiterLookupTable = {};
+const gruppenLeiterLookUpTable = ref({});
 const errorSnackbar = ref(false);
-const errorSnackbarText = ref ("");
+const errorSnackbarText = ref("");
+const snackbar = ref(false);
 
 //Dummy for Location-Endpoint
 const standort = ref();
 const allLocations = ref([]);
 const noStandorte = ref(false);
 const standortLookupTable = {};
+const blockedGroupnumbers = [];
 
 //fill Dropdown-Menus and id-Lookup
-onMounted(() => {
+const getData = () => {
   // Gruppenleiter laden
   axios
     .get(import.meta.env.VITE_API + "/api/users/group-leaders", {
@@ -115,14 +178,25 @@ onMounted(() => {
     })
     .then((response) => {
       response.data.forEach((user) => {
-        gruppenleiterLookupTable[`${user.first_name} ${user.last_name}`] =
-          user.id;
+        if (user.own_group === null)
+          gruppenLeiterLookUpTable.value[
+            `${user.first_name} ${user.last_name}`
+          ] = user.id;
       });
-      if (Object.keys(gruppenleiterLookupTable).length === 0) {
-        noGruppenleiter.value = true;
-      } else {
-        gruppenleiterList.value = Object.keys(gruppenleiterLookupTable);
-      }
+
+      gruppenleiterList.value = Object.keys(gruppenLeiterLookUpTable.value);
+    })
+    .catch((err) => console.log(err));
+
+  axios
+    .get(import.meta.env.VITE_API + "/api/groups", {
+      withCredentials: true,
+    })
+    .then((response) => {
+      response.data.forEach((group) => {
+        blockedGroupnumbers.push(group.group_number);
+        console.log("Blocked: ", blockedGroupnumbers);
+      });
     })
     .catch((err) => console.log(err));
 
@@ -137,13 +211,10 @@ onMounted(() => {
         console.log(location);
       });
       console.log(standortLookupTable);
-      if (Object.keys(standortLookupTable).length === 0) {
-        noStandorte.value = true;
-      }
       console.log(allLocations.value);
     })
     .catch((err) => console.log(err.response.data.description));
-});
+};
 
 //send to Backend needs Endpoint
 const handleSubmit = () => {
@@ -154,13 +225,18 @@ const handleSubmit = () => {
         group_number: gruppenNr.value,
         group_name: gruppenName.value,
         location_id: standortLookupTable[standort.value],
-        user_id_group_leader: gruppenleiterLookupTable[gruppenleitung.value],
+        user_id_group_leader:
+          gruppenLeiterLookUpTable.value[gruppenleitung.value],
       },
       { withCredentials: true }
     )
     .then((response) => {
       console.log(response.data);
       showConfirm.value = true;
+      gruppenLeiterLookUpTable.value = {};
+      standortLookupTable.value = {};
+      snackbar.value = true;
+      getData();
       emptyForm();
     })
     .catch((err) => {
@@ -174,12 +250,24 @@ const handleSubmit = () => {
 const required = (v) => {
   return !!v || "Eingabe erforderlich";
 };
+const unique = (v) => {
+  return !blockedGroupnumbers.includes(v) || "Gruppe bereits vergeben";
+};
 
 //emptyForm for new submit
 const emptyForm = () => {
-  if (showConfirm.value) {
-    showConfirm.value = false;
-    validation.value.reset();
-  }
+  showConfirm.value = false;
+  validation.value.reset();
 };
+
+getData();
 </script>
+<style scoped>
+.v-select .v-btn--decrement {
+  background-color: #4caf50; /* Green background for decrement button */
+  color: white; /* Text color */
+  border-radius: 50%; /* Round buttons */
+  width: 40px;
+  height: 40px;
+}
+</style>

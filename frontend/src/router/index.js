@@ -22,6 +22,8 @@ import GruppenleitungVorbestellungen from "@/pages/Gruppenleitung/Gruppenleitung
 import GruppenleitungMeineGruppen from "@/pages/Gruppenleitung/GruppenleitungMeineGruppen.vue";
 import Impressum from "@/pages/Impressum.vue";
 import Datenschutzerklaerung from "@/pages/Datenschutzerklaerung.vue";
+import VerwaltungAbrechnungErstellen from "@/pages/Verwaltung/VerwaltungAbrechnungErstellen.vue";
+import VerwaltungEssensPreise from "@/pages/Verwaltung/VerwaltungEssensPreise.vue";
 
 const routes = [
   { path: "/", component: index, redirect: "/login" },
@@ -169,6 +171,22 @@ const routes = [
   {
     path: "/verwaltung/gruppen/neueGruppe",
     component: VerwaltungNeueGruppe,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "verwaltung");
+    },
+  },
+
+  {
+    path: "/verwaltung/abrechnung/neueAbrechnung",
+    component: VerwaltungAbrechnungErstellen,
+    beforeEnter: (to, from, next) => {
+      protectRoute(next, "verwaltung");
+    },
+  },
+
+  {
+    path: "/verwaltung/abrechnung/essensPreise",
+    component: VerwaltungEssensPreise,
     beforeEnter: (to, from, next) => {
       protectRoute(next, "verwaltung");
     },

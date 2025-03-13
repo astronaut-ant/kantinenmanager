@@ -1,6 +1,6 @@
 <template>
   <v-card
-    class="mx-2 my-2"
+    class="mx-2 my-2 text-blue-grey-darken-2"
     width="425"
     elevation="16"
     :class="isBlocked ? 'blockedBackground' : ''"
@@ -30,11 +30,7 @@
       <v-divider></v-divider>
       <div class="mt-3 d-flex justify-space-between align-center">
         <v-chip
-          :prepend-icon="
-            props.role === 'verwaltung'
-              ? 'mdi-shield-account'
-              : 'mdi-badge-account'
-          "
+          :prepend-icon="isOwnCard ? 'mdi-shield-account' : 'mdi-badge-account'"
           :color="color"
           density="comfortable"
         >
@@ -51,6 +47,7 @@
           <v-btn
             class="bg-red"
             @click="deleteDialog = true"
+            :disabled="isOwnCard || props.isFixed"
             size="default"
             density="comfortable"
             ><v-icon>mdi-trash-can-outline</v-icon></v-btn
@@ -86,19 +83,20 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-  <v-dialog v-model="editDialog" no-click-animation persistent max-width="500">
-    <v-card>
+  <v-dialog v-model="editDialog" no-click-animation persistent max-width="600">
+    <v-card class="text-blue-grey-darken-3">
       <v-card-text>
-        <div class="d-flex ga-3 mb-5 mt-2 text-primary">
+        <div class="d-flex ga-3 mb-4 text-primary">
           <div class="d-flex align-center">
-            <v-icon size="x-large">mdi-account-edit</v-icon>
+            <v-icon class="mt-n1" size="35">mdi-account-edit</v-icon>
           </div>
-          <h2>Benutzer bearbeiten</h2>
+          <h1>Benutzer bearbeiten</h1>
         </div>
 
         <div>
           <v-form ref="validation" v-model="form">
             <v-radio-group
+              :disabled="isOwnCard || props.isFixed"
               v-model="user_group"
               @update:model-value="hasChanged = true"
               :rules="[required]"
@@ -192,8 +190,8 @@
               >Passwort zurücksetzen</v-btn
             >
             <v-btn
-              v-if="props.id != appStore.userData.id"
               class="bg-blue-grey w-100 mt-4 mb-2"
+              :disabled="isOwnCard"
               block
               @click="blocking"
               >{{
@@ -208,7 +206,7 @@
           text
           color="blue-grey"
           @click="(editDialog = false), restore()"
-          >{{ hasChanged ? "Verwerfen" : "Zurück" }}</v-btn
+          >{{ hasChanged ? "Abbrechen" : "Zurück" }}</v-btn
         >
         <v-btn
           v-if="hasChanged"
@@ -251,16 +249,10 @@ const props = defineProps([
   "firstName",
   "lastName",
   "location_id",
+  "isFixed",
 ]);
-const emit = defineEmits(["user-removed", "user-edited"]);
-const color = computed(() => {
-  switch (props.role) {
-    case "verwaltung":
-      return "red";
-    default:
-      return "primary";
-  }
-});
+const emit = defineEmits(["user-removed", "user-edited", "avatar-changed"]);
+const color = ref("primary");
 const deleteDialog = ref(false);
 const editDialog = ref(false);
 
@@ -301,7 +293,7 @@ const errorSnackbar = ref(false);
 const errorSnackbarText = ref(" ");
 const isBlocked = ref(false);
 const hasChanged = ref(false);
-
+const isOwnCard = ref(false);
 const handlePasswordReset = () => {
   axios
     .put(
@@ -330,9 +322,9 @@ const confirmEdit = () => {
     last_name: last_name.value,
     username: username.value,
     user_group: user_group.value,
-    location_id: props.location_id,
   };
 
+  console.log(updatedUser);
   axios
     .put(import.meta.env.VITE_API + `/api/users/${props.id}`, updatedUser, {
       withCredentials: true,
@@ -342,6 +334,12 @@ const confirmEdit = () => {
       editDialog.value = false;
       snackbarText.value = "Der Benutzer wurde erfolgreich aktualisiert!";
       snackbar.value = true;
+      if (isOwnCard.value) {
+        appStore.userData.first_name = first_name.value;
+        appStore.userData.last_name = last_name.value;
+        appStore.userData.username = username.value;
+        emit("avatar-changed");
+      }
     })
     .catch((err) => {
       console.error("Error updating user:", err);
@@ -402,6 +400,11 @@ const restore = () => {
     user_group.value = props.role;
   }, 500);
 };
+
+if (appStore.userData.id === props.id) {
+  isOwnCard.value = true;
+  color.value = "red";
+}
 </script>
 <style scoped>
 .blockedBackground {
