@@ -278,3 +278,34 @@ def pre_orders_alt(employees_alt, location):
         )
         pre_orders.append(pre_order)
     return pre_orders
+
+
+@pytest.fixture
+def daily_order(location):
+    daily_order = OldOrder(
+        person_id=uuid.uuid4(),
+        location_id=location.id,
+        date=datetime.now().date(),
+        nothing=False,
+        main_dish=MainDish.rot,
+        salad_option=True,
+        handed_out=False,
+    )
+    return daily_order
+
+
+@pytest.fixture
+def daily_orders(employees, location):
+    daily_orders = []
+    for employee in employees:
+        daily_order = OldOrder(
+            person_id=employee.id,
+            location_id=location.id,
+            date=datetime.now().date(),
+            nothing=False,
+            main_dish=MainDish.rot,
+            salad_option=True,
+            handed_out=False,
+        )
+        daily_orders.append(daily_order)
+    return daily_orders

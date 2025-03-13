@@ -116,8 +116,6 @@ class DailyOrdersService:
         OrdersRepository.create_daily_orders(orders)
         return DailyOrderFullSchema(many=True).dump(orders)
 
-    ##################### test method  #####################
-
     @staticmethod
     def get_all_daily_orders() -> List[DailyOrder]:
         return OrdersRepository.get_all_daily_orders()
