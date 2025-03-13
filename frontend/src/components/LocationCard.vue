@@ -133,33 +133,6 @@
     </v-card>
   </v-dialog>
 
-  <v-dialog v-model="secondDeleteDialog" persistent max-width="500">
-    <v-card>
-      <v-card-text>
-        <div class="d-flex justify-center text-red mb-4">
-          <p class="text-h5 font-weight-black">
-            Standort kann nicht gelöscht werden
-          </p>
-        </div>
-        <div class="text-medium-emphasis">
-          <p v-if="groups.length > 0">
-            Der Standort
-            <strong>{{ props.location_name }}</strong> enthält noch folgende
-            Gruppen:
-            <li class="mt-2 mb-2" v-for="group in groups">{{ group }}</li>
-          </p>
-          <p>
-            Bitte löschen Sie zuerst alle Gruppen und Bestellungen, um den
-            Standort zu löschen.
-          </p>
-        </div>
-      </v-card-text>
-      <v-card-actions>
-        <v-btn text @click="closeDeleteDialog">Schließen</v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-
   <v-dialog v-model="editDialog" persistent>
     <LocationChange
       @close="closeEditDialog"
@@ -184,8 +157,8 @@
 
 <script setup>
 import axios from "axios";
-import { useErrorStore } from "@/stores/error";
-const errorStore = useErrorStore();
+import { useFeedbackStore } from "@/stores/feedback";
+const feedbackStore = useFeedbackStore();
 
 const props = defineProps([
   "id",
@@ -197,7 +170,6 @@ const props = defineProps([
 const emit = defineEmits(["location-edited", "location-removed"]);
 
 const deleteDialog = ref(false);
-const secondDeleteDialog = ref(false);
 const editDialog = ref(false);
 const snackbar = ref(false);
 const snackbarText = ref("");
@@ -210,7 +182,6 @@ const openDeleteDialog = () => {
 
 const closeDeleteDialog = () => {
   deleteDialog.value = false;
-  secondDeleteDialog.value = false;
 };
 
 const confirmDelete = () => {
@@ -221,14 +192,12 @@ const confirmDelete = () => {
     .then(() => {
       emit("location-removed");
       closeDeleteDialog();
-      snackbarText.value = "Der Standort wurde erfolgreich gelöscht!";
-      snackbar.value = true;
+      feedbackStore.setFeedback("success", "Standort gelöscht", "Der Standort wurde erfolgreich gelöscht", "snackbar");
     })
     .catch((err) => {
       console.log(err);
       deleteDialog.value = false;
-
-      errorStore.setError(err.response?.data?.title, err.response?.data?.description, "dialog");
+      feedbackStore.setFeedback("error", err.response?.data?.title, err.response?.data?.description, "dialog");
     });
 };
 
