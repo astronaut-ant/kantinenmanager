@@ -192,7 +192,6 @@ class OrdersRepository:
         :param filters: Filters for orders
         :return: List of pre orders
         """
-        # TODO: Filter by user scope
         query = select(PreOrder)
 
         user = UsersRepository.get_user_by_id(user_id)
@@ -318,7 +317,6 @@ class OrdersRepository:
             select(DailyOrder).filter(DailyOrder.id == daily_order_id)
         ).first()
 
-    # TODO: Refactor this method to avoid duplicate code
     @staticmethod
     def get_all_daily_orders(
         filters: OrdersFilters | None = None,

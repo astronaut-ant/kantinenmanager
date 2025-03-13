@@ -93,8 +93,10 @@ class DailyOrdersService:
         if not group:
             raise NotFoundError(f"Gruppe mit ID {group_id}")
         if (
-            user_id != group.user_id_group_leader
-            and user_id != group.user_id_replacement
+            (user_id != group.user_id_group_leader
+            and user_id != group.user_id_replacement)
+            or (user_id == group.user_id_group_leader
+            and group.user_id_replacement is not None)
         ):
             raise AccessDeniedError(
                 f"Zugriff verweigert. Gruppe {group_id} gehört nicht zu Nutzer {user_id}"

@@ -134,7 +134,7 @@ class PreOrdersService:
 
             if order["date"] == today and current_time >= time(8, 0):
                 raise BadValueError(
-                    f"Es ist nach 8 Uhr. Bestellungen sind nicht mehr möglich."
+                    "Es ist nach 8 Uhr. Bestellungen sind nicht mehr möglich."
                 )
 
             if order["date"].weekday() >= 5:  # 0 = Montag, 6 = Sonntag
@@ -152,7 +152,7 @@ class PreOrdersService:
                     f"Person {order["person_id"]} gehört nicht zum Standort {order["location_id"]}"
                 )
 
-            if order["nothing"] == True and (
+            if order["nothing"] == True and (  # noqa: E712
                 order["main_dish"] or order["salad_option"]
             ):
                 raise BadValueError(
@@ -215,7 +215,7 @@ class PreOrdersService:
 
         if order["date"] == today and current_time >= time(8, 0):
             raise BadValueError(
-                f"Es ist nach 8 Uhr. Bestellungen sind nicht mehr möglich."
+                "Es ist nach 8 Uhr. Bestellungen sind nicht mehr möglich."
             )
 
         if order["date"].weekday() >= 5:  # 0 = Montag, 6 = Sonntag
@@ -224,7 +224,9 @@ class PreOrdersService:
         if user_id != order["person_id"]:
             raise AccessDeniedError(f"Person {order['person_id']}'")
 
-        if order["nothing"] == True and (order["main_dish"] or order["salad_option"]):
+        if order["nothing"] == True and (  # noqa: E712
+            order["main_dish"] or order["salad_option"]
+        ):
             raise BadValueError(
                 "Wenn 'nichts' ausgewählt ist, dürfen keine Essensoptionen ausgewählt werden."
             )
@@ -269,13 +271,13 @@ class PreOrdersService:
 
         if new_order["date"] == today and current_time >= time(8, 0):
             raise BadValueError(
-                f"Es ist nach 8 Uhr. Bestellungen sind nicht mehr möglich."
+                "Es ist nach 8 Uhr. Bestellungen sind nicht mehr möglich."
             )
 
         if user_id != new_order["person_id"] or user_id != old_pre_order.person_id:
             raise AccessDeniedError(f"Person'{new_order['person_id']}'")
 
-        if new_order["nothing"] == True and (
+        if new_order["nothing"] == True and (  # noqa: E712
             new_order["main_dish"] or new_order["salad_option"]
         ):
             raise BadValueError(
@@ -285,7 +287,7 @@ class PreOrdersService:
             new_order["person_id"], new_order["date"], preorder_id
         )
 
-        if checkOrderExists != None:
+        if checkOrderExists != None:  # noqa: E711
             raise AlreadyExistsError(
                 ressource=f"Bestellung für {new_order['person_id']} am {new_order['date']}",
                 details=". Für diese Person existiert an diesem Tag bereits die Bestellung {checkOrderExists.id}.",
