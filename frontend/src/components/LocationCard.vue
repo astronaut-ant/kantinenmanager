@@ -184,6 +184,9 @@
 
 <script setup>
 import axios from "axios";
+import { useErrorStore } from "@/stores/error";
+const errorStore = useErrorStore();
+
 const props = defineProps([
   "id",
   "location_name",
@@ -224,7 +227,8 @@ const confirmDelete = () => {
     .catch((err) => {
       console.log(err);
       deleteDialog.value = false;
-      secondDeleteDialog.value = true;
+
+      errorStore.setError(err.response?.data?.title, err.response?.data?.description, "dialog");
     });
 };
 

@@ -1,31 +1,24 @@
 <template>
-  <!-- Error Banner -->
-  <v-banner 
-    v-if="errorStore.show && errorStore.type === 'banner'" 
-    color="error" 
-    icon="mdi-alert"
-    >
-    {{ errorStore.message }}
-  </v-banner>
-
   <!-- Error Dialog -->
   <v-dialog 
-    v-model="errorStore.show" v-if="errorStore.type === 'dialog'" 
+    v-model="errorStore.show" v-if="errorStore.type === 'dialog'"
+    no-click-animation
+    persistent 
     max-width="400"
     >
     <v-card>
-      <v-card-title>
-        Error
-      </v-card-title>
       <v-card-text>
-        {{ errorStore.message }}
+        <div class="d-flex justify-center text-red mb-4">
+          <p class="text-h5 font-weight-black">Fehler: {{ errorStore.title }}</p>
+        </div>
+        <div class="text-medium-emphasis">
+          <p>
+            {{ errorStore.message }}
+          </p>
+        </div>
       </v-card-text>
       <v-card-actions>
-        <v-btn 
-            @click="errorStore.clearError()"
-            >
-            Close
-        </v-btn>
+        <v-btn text @click="errorStore.clearError()">Schließen</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
