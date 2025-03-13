@@ -23,9 +23,15 @@ from src.services.pre_orders_service import OrdersFilters, PreOrdersService
 pre_orders_routes = Blueprint("pre_orders_routes", __name__)
 
 
-# TODO: Test all routes
 @pre_orders_routes.get("/api/pre-orders")
-@login_required()
+@login_required(
+    [
+        UserGroup.verwaltung,
+        UserGroup.standortleitung,
+        UserGroup.gruppenleitung,
+        UserGroup.kuechenpersonal,
+    ]
+)
 @swag_from(
     {
         "tags": ["pre_orders"],
@@ -121,7 +127,9 @@ def get_pre_orders():
 
 
 @pre_orders_routes.get("/api/pre-orders/<int:preorder_id>")
-@login_required()
+@login_required(
+    [UserGroup.gruppenleitung, UserGroup.kuechenpersonal, UserGroup.verwaltung]
+)
 @swag_from(
     {
         "tags": ["pre_orders"],
@@ -139,6 +147,7 @@ def get_pre_orders():
                 "schema": PreOrderFullSchema,
             },
             404: {"description": "Not found"},
+            403: {"description": "Access Denied"},
         },
     }
 )
@@ -147,13 +156,26 @@ def get_pre_order(preorder_id: int):
     Get a single pre-order
     """
 
-    order = PreOrdersService.get_pre_order_by_id(preorder_id)
-    if order is None:
+    try:
+        order = PreOrdersService.get_pre_order_by_id(
+            preorder_id, g.user_id, g.user_group
+        )
+    except NotFoundError as err:
         abort_with_err(
             ErrMsg(
                 status_code=404,
-                title="Bestellung nicht gefunden",
-                description=f"Bestellung mit ID {preorder_id} nicht gefunden.",
+                title="Vorbestellung nicht gefunden",
+                description="Die gesuchte Vorbestellung wurde nicht gefunden.",
+                details=str(err),
+            )
+        )
+    except AccessDeniedError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=403,
+                title="Keine Berechtigung",
+                description="Sie haben keine Berechtigung für diese Aktion.",
+                details=str(err),
             )
         )
 
@@ -226,6 +248,7 @@ def get_pre_orders_by_group_leader(user_id: UUID):
                 },
             },
             400: {"description": "Bad request"},
+            409: {"description": "Conflict"},
         },
     }
 )
@@ -249,8 +272,8 @@ def create_update_preorders_employees():
         abort_with_err(
             ErrMsg(
                 status_code=400,
-                title="Keine Bestellungen übergeben",
-                description="Es wurden keine Bestellungen übergeben.",
+                title="Keine Vorbestellungen übergeben",
+                description="Es wurden keine Vorbestellungen übergeben.",
             )
         )
 
@@ -261,7 +284,7 @@ def create_update_preorders_employees():
             ErrMsg(
                 status_code=400,
                 title="Datum nicht valide",
-                description="Das Datum einer der Bestellungen ist nicht valide.",
+                description="Das Datum einer der Vorbestellungen ist nicht valide.",
                 details=str(err),
             )
         )
@@ -275,12 +298,18 @@ def create_update_preorders_employees():
             )
         )
 
-    return jsonify({"message": "Bestellungen erfolgreich erstellt"}), 201
+    return jsonify({"message": "Vorbestellungen erfolgreich erstellt"}), 201
 
 
 @pre_orders_routes.post("/api/pre-orders/users")
-# Must not be restricted for user food order! (Frontend)
-@login_required()
+@login_required(
+    groups=[
+        UserGroup.verwaltung,
+        UserGroup.standortleitung,
+        UserGroup.gruppenleitung,
+        UserGroup.kuechenpersonal,
+    ]
+)
 @swag_from(
     {
         "tags": ["pre_orders"],
@@ -298,6 +327,7 @@ def create_update_preorders_employees():
             },
             400: {"description": "Bad request"},
             404: {"description": "Not found"},
+            409: {"description": "Conflict"},
         },
     }
 )
@@ -323,8 +353,8 @@ def create_preorder_user():
         abort_with_err(
             ErrMsg(
                 status_code=409,
-                title="Bestellung existiert bereits",
-                description="Eine Bestellung für diese Person an diesem Datum existiert bereits.",
+                title="Vorbestellung existiert bereits",
+                description="Eine Vorbestellung für diese Person an diesem Datum existiert bereits.",
                 details=str(err),
             )
         )
@@ -333,7 +363,7 @@ def create_preorder_user():
             ErrMsg(
                 status_code=400,
                 title="Validierungsfehler",
-                description="Die Daten der Bestellung sind nicht valide.",
+                description="Die Daten der Vorbestellung sind nicht valide.",
                 details=str(err),
             )
         )
@@ -352,7 +382,12 @@ def create_preorder_user():
 
 @pre_orders_routes.put("/api/pre-orders/<int:preorder_id>")
 @login_required(
-    groups=[UserGroup.verwaltung, UserGroup.standortleitung, UserGroup.gruppenleitung]
+    groups=[
+        UserGroup.verwaltung,
+        UserGroup.kuechenpersonal,
+        UserGroup.standortleitung,
+        UserGroup.gruppenleitung,
+    ]
 )
 @swag_from(
     {
@@ -376,6 +411,7 @@ def create_preorder_user():
                 "schema": PreOrderFullSchema,
             },
             400: {"description": "Bad request"},
+            403: {"description": "Access Denied"},
             404: {"description": "Not found"},
         },
     }
@@ -392,7 +428,7 @@ def update_preorder_user(preorder_id: UUID):
                 status_code=400,
                 title="Validierungsfehler",
                 description="Format der Daten im Request-Body nicht valide",
-                details=err.messages,
+                details=str(err),
             )
         )
 
@@ -402,8 +438,8 @@ def update_preorder_user(preorder_id: UUID):
         abort_with_err(
             ErrMsg(
                 status_code=404,
-                title="Bestellung nicht gefunden",
-                description=f"Bestellung mit ID {preorder_id} nicht gefunden.",
+                title="Vorbestellung nicht gefunden",
+                description=f"Vorbestellung mit ID {preorder_id} nicht gefunden.",
                 details=str(err),
             )
         )
@@ -411,8 +447,8 @@ def update_preorder_user(preorder_id: UUID):
         abort_with_err(
             ErrMsg(
                 status_code=400,
-                title="Datum der Bestellung nicht valide",
-                description="Das Datum der Bestellung ist nicht valide.",
+                title="Datum der Vorbestellung nicht valide",
+                description="Das Datum der Vorbestellung ist nicht valide.",
                 details=str(err),
             )
         )
@@ -425,13 +461,27 @@ def update_preorder_user(preorder_id: UUID):
                 details=str(err),
             )
         )
+    except AlreadyExistsError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=409,
+                title="Vorbestellung existiert bereits",
+                description="Eine Vorbestellung für diese Person an diesem Datum existiert bereits.",
+                details=str(err),
+            )
+        )
 
     return jsonify(order), 200
 
 
 @pre_orders_routes.delete("/api/pre-orders/<int:preorder_id>")
 @login_required(
-    groups=[UserGroup.verwaltung, UserGroup.standortleitung, UserGroup.gruppenleitung]
+    groups=[
+        UserGroup.verwaltung,
+        UserGroup.standortleitung,
+        UserGroup.gruppenleitung,
+        UserGroup.kuechenpersonal,
+    ]
 )
 @swag_from(
     {
@@ -448,7 +498,7 @@ def update_preorder_user(preorder_id: UUID):
             204: {
                 "description": "Order deleted",
             },
-            400: {"description": "Bad request"},
+            403: {"description": "Not authorized"},
             404: {"description": "Not found"},
         },
     }
@@ -463,8 +513,8 @@ def delete_preorder_user(preorder_id: int):
         abort_with_err(
             ErrMsg(
                 status_code=404,
-                title="Bestellung nicht gefunden",
-                description=f"Bestellung mit ID {preorder_id} nicht gefunden.",
+                title="Vorbestellung nicht gefunden",
+                description=f"Vorbestellung mit ID {preorder_id} nicht gefunden.",
                 details=str(err),
             )
         )
@@ -478,4 +528,4 @@ def delete_preorder_user(preorder_id: int):
             )
         )
 
-    return "", 204
+    return jsonify({"message": "Vorbestellungen erfolgreich gelöscht"}), 204

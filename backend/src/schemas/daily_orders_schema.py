@@ -3,7 +3,11 @@ from flasgger import Schema, fields
 from src.models.maindish import MainDish
 
 
-class DailyOrderBaseSchema(Schema):
+class DailyOrderHandedOutSchema(Schema):
+    handed_out = fields.Boolean(required=True, dump_default=False, allow_none=True)
+
+
+class DailyOrderBaseSchema(DailyOrderHandedOutSchema):
     """Schema representing data returned for every daily order"""
 
     id = fields.UUID(required=True, dump_only=True)
@@ -13,7 +17,6 @@ class DailyOrderBaseSchema(Schema):
         MainDish, required=False, dump_default=None, allow_none=True
     )
     salad_option = fields.Boolean(required=False, dump_default=False)
-    handed_out = fields.Boolean(required=True, dump_default=False, allow_none=True)
 
 
 class DailyOrderFullSchema(DailyOrderBaseSchema):

@@ -27,8 +27,7 @@ class DailyOrdersService:
 
         if order.location_id != user.location_id:
             raise AccessDeniedError(
-                resssource=f"Person {person_id}",
-                details=f" auf Standort {user.location_id}",
+                ressource=f"den Standort {order.location_id}",
             )
 
         return order
@@ -60,13 +59,12 @@ class DailyOrdersService:
 
         if order.location_id != user.location_id:
             raise AccessDeniedError(
-                ressource=f"Person {order.person_id}",
-                details=f" auf Standort {user.location_id}",
+                ressource=f"den Standort {order.location_id}",
             )
 
-        if order.nothing is True and (order.main_dish or order.salad_option):
+        if order.handed_out == handed_out:
             raise BadValueError(
-                "Wenn 'nichts' ausgewählt ist, dürfen keine Essensoptionen ausgewählt werden."
+                f"Bestellung {daily_order_id} wurde bereits als {handed_out} markiert"
             )
 
         order.handed_out = handed_out
@@ -95,14 +93,16 @@ class DailyOrdersService:
         if not group:
             raise NotFoundError(f"Gruppe mit ID {group_id}")
         if (
-            user_id != group.user_id_group_leader
-            and user_id != group.user_id_replacement
+            (user_id != group.user_id_group_leader
+            and user_id != group.user_id_replacement)
+            or (user_id == group.user_id_group_leader
+            and group.user_id_replacement is not None)
         ):
             raise AccessDeniedError(
                 f"Zugriff verweigert. Gruppe {group_id} gehört nicht zu Nutzer {user_id}"
             )
 
-        return OrdersRepository.get_daily_orders_for_group(group_id, user_id)
+        return OrdersRepository.get_daily_orders_for_group(group_id)
 
     @staticmethod
     def create_daily_orders(
@@ -117,8 +117,6 @@ class DailyOrdersService:
 
         OrdersRepository.create_daily_orders(orders)
         return DailyOrderFullSchema(many=True).dump(orders)
-
-    ##################### test method  #####################
 
     @staticmethod
     def get_all_daily_orders() -> List[DailyOrder]:

@@ -5,46 +5,18 @@ from flask import Blueprint, jsonify, request
 from flasgger import swag_from
 from src.services.old_orders_service import OrdersFilters, OldOrdersService
 from src.models.user import UserGroup
+from src.schemas.old_orders_schemas import OldOrderFilterSchema, OldOrderFullSchema
+from src.utils.exceptions import NotFoundError
 
 
 old_orders_routes = Blueprint("old_orders_routes", __name__)
 
 
-class OldOrdersGetQuery(Schema):
-    """
-    Schema for the GET /api/old-orders endpoint
-    Uses ISO 8601-formatted date strings (YYYY-MM-DD)
-    """
-
-    person_id = fields.UUID(data_key="person-id", required=False)
-    location_id = fields.UUID(data_key="location-id", required=False)
-    group_id = fields.UUID(data_key="group-id", required=False)
-    date = fields.Date(data_key="date", required=False)
-    date_start = fields.Date(data_key="date-start", required=False)
-    date_end = fields.Date(data_key="date-end", required=False)
-
-
-# TODO: Test route
 @old_orders_routes.get("/api/old-orders")
 @login_required(groups=[UserGroup.verwaltung])
 @swag_from(
     {
         "tags": ["old_orders"],
-        "definitions": {
-            "OldOrder": {
-                "type": "object",
-                "properties": {
-                    "id": {"type": "string", "format": "uuid"},
-                    "person_id": {"type": "string", "format": "uuid"},
-                    "location_id": {"type": "string", "format": "uuid"},
-                    "date": {"type": "string", "format": "date"},
-                    "nothing": {"type": "boolean"},
-                    "main_dish": {"type": "string"},
-                    "salad_option": {"type": "boolean"},
-                    "handed_out": {"type": "boolean"},
-                },
-            }
-        },
         "parameters": [
             {
                 "in": "query",
@@ -106,11 +78,11 @@ class OldOrdersGetQuery(Schema):
                 "description": "Returns a list of orders",
                 "schema": {
                     "type": "array",
-                    "items": {"$ref": "#/definitions/OldOrder"},
+                    "items": OldOrderFullSchema,
                 },
             },
-            401: {"description": "Unauthorized"},
-            403: {"description": "Forbidden"},
+            404: {"description": "Unauthorized"},
+            400: {"description": "Bad Request"},
         },
     }
 )
@@ -121,9 +93,8 @@ def get_old_orders():
     """
 
     try:
-        query_params = OldOrdersGetQuery().load(request.args)
+        query_params = OldOrderFilterSchema().load(request.args)
         filters = OrdersFilters(**query_params)
-
     except ValidationError as err:
         abort_with_err(
             ErrMsg(
@@ -133,6 +104,15 @@ def get_old_orders():
                 details=err.messages,
             )
         )
-
-    orders = OldOrdersService.get_old_orders(filters)
-    return jsonify([order.to_dict() for order in orders]), 200
+    try:
+        orders = OldOrdersService.get_old_orders(filters)
+    except NotFoundError as err:
+        abort_with_err(
+            ErrMsg(
+                status_code=404,
+                title="Nicht gefunden",
+                description="Es wurden keine passenden Bestellungen gefunden",
+                details=str(err),
+            )
+        )
+    return OldOrderFullSchema(many=True).dump(orders)
