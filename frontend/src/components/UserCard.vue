@@ -1,6 +1,6 @@
 <template>
   <v-card
-    class="mx-2 my-2"
+    class="mx-2 my-2 text-blue-grey-darken-2"
     width="425"
     elevation="16"
     :class="isBlocked ? 'blockedBackground' : ''"
@@ -47,7 +47,7 @@
           <v-btn
             class="bg-red"
             @click="deleteDialog = true"
-            :disabled="isOwnCard"
+            :disabled="isOwnCard || props.isFixed"
             size="default"
             density="comfortable"
             ><v-icon>mdi-trash-can-outline</v-icon></v-btn
@@ -83,14 +83,14 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-  <v-dialog v-model="editDialog" no-click-animation persistent max-width="500">
+  <v-dialog v-model="editDialog" no-click-animation persistent max-width="600">
     <v-card>
       <v-card-text>
-        <div class="d-flex ga-3 mb-5 mt-2 text-primary">
+        <div class="d-flex ga-3 mb-4 text-primary">
           <div class="d-flex align-center">
-            <v-icon size="x-large">mdi-account-edit</v-icon>
+            <v-icon class="mt-n1" size="35">mdi-account-edit</v-icon>
           </div>
-          <h2>Benutzer bearbeiten</h2>
+          <h1>Benutzer bearbeiten</h1>
         </div>
 
         <div>
@@ -206,7 +206,7 @@
           text
           color="blue-grey"
           @click="(editDialog = false), restore()"
-          >{{ hasChanged ? "Verwerfen" : "Zurück" }}</v-btn
+          >{{ hasChanged ? "Abbrechen" : "Zurück" }}</v-btn
         >
         <v-btn
           v-if="hasChanged"
