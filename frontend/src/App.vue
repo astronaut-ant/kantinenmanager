@@ -4,12 +4,14 @@
       <router-view />
     </v-main>
     <Footer v-if="useRoute().path !== '/accessdenied'"></Footer>
+    <GlobalErrorFeedback />
   </v-app>
 </template>
 
 <script setup>
 import { useRoute } from 'vue-router';
 import Footer from './components/Footer.vue';
+import GlobalErrorFeedback from './components/GlobalErrorFeedback.vue';
 </script>
 
 <style>
