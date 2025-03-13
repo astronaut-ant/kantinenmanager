@@ -1,7 +1,10 @@
 <template>
   <div class="mt-14 d-flex justify-center">
     <div>
-      <v-card :min-width="600" class="elevation-7 px-6 py-4">
+      <v-card
+        :min-width="600"
+        class="elevation-7 px-6 py-4 text-blue-grey-darken-3"
+      >
         <v-card-text class="mb-2 text-h6">
           <div class="d-flex ga-4 mt-n3 mb-2 ms-2 ms-n4 text-primary">
             <div class="d-flex align-center mt-n2">

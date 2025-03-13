@@ -181,7 +181,7 @@
   </v-dialog>
 
   <v-dialog v-model="editDialog" max-width="600">
-    <v-card>
+    <v-card class="text-blue-grey-darken-3">
       <v-card-title class="ms-2 mt-2 mb-1 text-primary d-flex justify-start">
         <v-icon left class="mr-2 mb-n3"> mdi-account-group </v-icon>
         <div class="d-flex h-100 align-center">
@@ -232,7 +232,9 @@
         </v-menu>
       </v-card-text>
       <v-card-actions class="mb-2 mt-5">
-        <v-btn class="blue-grey" text @click="closeEditDialog">Abbrechen</v-btn>
+        <v-btn class="blue-grey" text @click="closeEditDialog">{{
+          form ? "Abbrechen" : "Zurück"
+        }}</v-btn>
         <v-btn
           class="me-4"
           color="primary"
@@ -240,7 +242,7 @@
           type="submit"
           variant="elevated"
           @click="confirmEdit"
-          >Speichern
+          >Übernehmen
         </v-btn>
       </v-card-actions>
     </v-card>

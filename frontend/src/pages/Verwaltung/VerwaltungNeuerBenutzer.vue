@@ -5,7 +5,10 @@
 
   <div class="d-flex justify-center pa-15">
     <div>
-      <v-card class="elevation-7 px-8 py-4 w-100" min-width="700">
+      <v-card
+        class="elevation-7 px-8 py-4 w-100 text-blue-grey-darken-3"
+        min-width="700"
+      >
         <v-card-text class="mb-2 text-h6">
           <div class="d-flex ga-4 mt-n3 ms-2 ms-n4 text-primary">
             <div class="d-flex align-center mt-n2">

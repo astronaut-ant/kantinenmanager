@@ -1,10 +1,22 @@
 <template>
-  <v-card width="500" :max-width="500" class="elevation-7 px-6 py-4 mx-auto">
-    <v-card-title class="mb-3 text-h5 text-center">
-      Standort bearbeiten
-    </v-card-title>
+  <v-card :min-width="600" class="elevation-7 px-6 py-4 mx-auto text-blue-grey">
+    <v-card-text class="mb-2 text-h6">
+      <div class="d-flex ga-4 mt-n3 mb-2 ms-n7 text-primary">
+        <div class="d-flex align-center mt-n2">
+          <v-icon :size="40">mdi-home-edit-outline</v-icon>
+        </div>
+        <h2>Standort bearbeiten</h2>
+      </div>
+    </v-card-text>
     <v-form ref="validation" v-model="form" @submit.prevent="handleSubmit">
       <v-text-field
+        @update:model-value="hasChanged = true"
+        class="mb-5"
+        :active="true"
+        base-color="blue-grey"
+        color="primary"
+        variant="outlined"
+        Placeholder="Namen des Standorts eingeben"
         v-model="standortName"
         :rules="[required]"
         label="Standort"
@@ -12,8 +24,14 @@
         clearable
       ></v-text-field>
       <v-select
+        @update:model-value="hasChanged = true"
+        :active="true"
+        base-color="blue-grey"
+        color="primary"
+        variant="outlined"
+        Placeholder="Verfügbaren Standortleiter auswählen"
         label="Standortleiter"
-        class="mb-3 mt-3"
+        class="mb-5 mt-3"
         v-model="standortLeitungSelection"
         :rules="[required]"
         :items="availableStandortleiterItems"
@@ -21,24 +39,36 @@
         item-value="id"
       ></v-select>
       <v-select
-        menu-icon="mdi-chevron-right"
-        :menu-props="{ submenu: true, offset: 60 }"
-        variant="outlined"
-        chips
+        @update:model-value="hasChanged = true"
+        class="mb-6 mt-3"
+        :active="true"
+        base-color="blue-grey"
         color="primary"
+        variant="outlined"
+        Placeholder="Verfügbares Küchenpersonal zuweisen"
+        chips
         multiple
         label="Küchenpersonal"
         v-model="kuechenpersonalSelection"
         :items="availableKuechenpersonalItems"
         item-title="name"
         item-value="id"
-        :disabled="noKuechenpersonal"
+        no-data-text="Kein freies Küchenpersonal mehr verfügbar"
       >
+        <template v-slot:chip>
+          <v-chip color="primary"> </v-chip>
+        </template>
       </v-select>
       <v-card-actions class="mt-3 justify-end pa-0">
-        <v-btn text @click="close">Abbrechen</v-btn>
-        <v-btn color="primary" type="submit" variant="elevated"
-          >Speichern
+        <v-btn text @click="close">{{
+          hasChanged ? "Abbrechen" : "Zurück"
+        }}</v-btn>
+        <v-btn
+          :disabled="!hasChanged"
+          color="primary"
+          type="submit"
+          variant="elevated"
+          >Übernehmen
         </v-btn>
       </v-card-actions>
     </v-form>
@@ -62,7 +92,7 @@ const success = () => {
 };
 const error = () => {
   emit("error");
-}
+};
 const validation = ref("");
 const showConfirm = ref(false);
 const form = ref(false);
@@ -78,6 +108,7 @@ const availableStandortleiterItems = ref([]);
 const availableKuechenpersonal = [];
 const noKuechenpersonal = ref(false);
 const availableKuechenpersonalItems = ref([]);
+const hasChanged = ref(false);
 
 const oldLocationName = props.oldValues.location_name;
 const oldStandorleitungSelection = props.oldValues.location_leader.id;

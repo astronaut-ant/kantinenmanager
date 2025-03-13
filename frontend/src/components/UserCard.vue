@@ -84,7 +84,7 @@
     </v-card>
   </v-dialog>
   <v-dialog v-model="editDialog" no-click-animation persistent max-width="600">
-    <v-card>
+    <v-card class="text-blue-grey-darken-3">
       <v-card-text>
         <div class="d-flex ga-3 mb-4 text-primary">
           <div class="d-flex align-center">
