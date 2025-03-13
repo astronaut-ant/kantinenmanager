@@ -180,11 +180,16 @@
     </v-card>
   </v-dialog>
 
-  <v-dialog v-model="editDialog" persistent max-width="400">
+  <v-dialog v-model="editDialog" max-width="600">
     <v-card>
-      <v-card-title class="primary d-flex justify-start">
-        <v-icon left class="mr-2"> mdi-map-marker-radius </v-icon>
-        <span class="text-h5">Gruppe bearbeiten</span>
+      <v-card-title class="ms-2 mt-2 mb-1 text-primary d-flex justify-start">
+        <v-icon left class="mr-2 mb-n3"> mdi-account-group </v-icon>
+        <div class="d-flex h-100 align-center">
+          <v-icon size="18" left class="mr-3 mb-n9 ms-n1">
+            mdi-lead-pencil
+          </v-icon>
+        </div>
+        <h3>Gruppe bearbeiten</h3>
       </v-card-title>
       <v-card-text>
         <v-menu>
@@ -196,8 +201,8 @@
               variant="outlined"
               v-bind="props"
               v-model="newLeaderName"
-              label="Neue Gruppenleitung"
-              placeholder="Neue Gruppenleitung"
+              label="Gruppenleitung"
+              placeholder="Neue Gruppenleitung zuweisen"
               readonly
               append-inner-icon="mdi-chevron-down"
             ></v-text-field>
@@ -212,15 +217,24 @@
             >
               <v-list-item-title
                 >{{ leader?.first_name }}
-                {{ leader?.last_name }}</v-list-item-title
-              >
+                {{ leader?.last_name }}
+              </v-list-item-title>
             </v-list-item>
+            <v-list-item
+              v-if="
+                groupLeaders.filter((leader) => leader.own_group === null)
+                  .length < 1
+              "
+              disabled
+              >Keine freien Gruppenleiter verfügbar {{
+            }}</v-list-item>
           </v-list>
         </v-menu>
       </v-card-text>
-      <v-card-actions>
+      <v-card-actions class="mb-2 mt-5">
         <v-btn class="blue-grey" text @click="closeEditDialog">Abbrechen</v-btn>
         <v-btn
+          class="me-4"
           color="primary"
           :disabled="!form"
           type="submit"
