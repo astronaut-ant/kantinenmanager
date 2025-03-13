@@ -309,3 +309,20 @@ def daily_orders(employees, location):
         )
         daily_orders.append(daily_order)
     return daily_orders
+
+
+@pytest.fixture
+def old_orders(employees, location):
+    old_orders = []
+    for employee in employees:
+        old_order = OldOrder(
+            person_id=employee.id,
+            location_id=location.id,
+            date=datetime.now().date(),
+            nothing=False,
+            main_dish=MainDish.rot,
+            salad_option=True,
+            handed_out=False,
+        )
+        old_orders.append(old_order)
+    return old_orders

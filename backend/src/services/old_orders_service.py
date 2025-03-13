@@ -6,7 +6,6 @@ from src.utils.exceptions import NotFoundError
 
 class OldOrdersService:
 
-    # TODO: think about deleting this methode/route because it is not used (also in repository)
     @staticmethod
     def get_old_orders(filters: OrdersFilters) -> List[OldOrder]:
         """
