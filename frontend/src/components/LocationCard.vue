@@ -192,12 +192,12 @@ const confirmDelete = () => {
     .then(() => {
       emit("location-removed");
       closeDeleteDialog();
-      feedbackStore.setFeedback("success", "Standort gelöscht", "Der Standort wurde erfolgreich gelöscht", "snackbar");
+      feedbackStore.setFeedback("success", "snackbar", "Standort gelöscht", "Der Standort wurde erfolgreich gelöscht");
     })
     .catch((err) => {
       console.log(err);
       deleteDialog.value = false;
-      feedbackStore.setFeedback("error", err.response?.data?.title, err.response?.data?.description, "dialog");
+      feedbackStore.setFeedback("error", "dialog", err.response?.data?.title, err.response?.data?.description);
     });
 };
 

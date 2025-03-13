@@ -10,7 +10,7 @@
     <v-card>
       <v-card-text>
         <div class="d-flex justify-center text-red mb-4">
-          <p class="text-h5 font-weight-black">Fehler: {{ feedbackStore.title }}</p>
+          <p class="text-h5 font-weight-black">Fehler{{ feedbackStore.title === "" ? '' : ':' }} {{ feedbackStore.title }}</p>
         </div>
         <div class="text-medium-emphasis">
           <p>

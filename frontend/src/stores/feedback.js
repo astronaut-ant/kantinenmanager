@@ -9,7 +9,7 @@ export const useFeedbackStore = defineStore("feedbackStore", {
     show: false,
   }),
   actions: {
-    setFeedback(status, title, message, type = "snackbar") {
+    setFeedback(status, type = "snackbar", title = "", message = "Etwas ist schief gelaufen, bitte versuchen Sie es später erneut.") {
       this.status = status;
       this.title = title;
       this.message = message;
