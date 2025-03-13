@@ -11,7 +11,7 @@
               size="small"
             ></v-icon>
             <span class="me-1 ml-2"
-              >Leitung: {{ props.location_leader.first_name }}
+              >{{ props.location_leader.first_name }}
               {{ props.location_leader.last_name }}</span
             >
           </v-card-subtitle>

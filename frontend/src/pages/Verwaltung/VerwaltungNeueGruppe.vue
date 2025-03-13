@@ -131,6 +131,11 @@
       </v-card>
     </div>
   </div>
+  <SuccessSnackbar
+    v-model="snackbar"
+    text="Gruppe erfolgreich angelegt!"
+    @close="snackbar = false"
+  ></SuccessSnackbar>
   <ErrorSnackbar
     v-model="errorSnackbar"
     :text="errorSnackbarText"
@@ -152,6 +157,7 @@ const noGruppenleiter = ref(false);
 const gruppenLeiterLookUpTable = ref({});
 const errorSnackbar = ref(false);
 const errorSnackbarText = ref("");
+const snackbar = ref(false);
 
 //Dummy for Location-Endpoint
 const standort = ref();
@@ -226,6 +232,7 @@ const handleSubmit = () => {
       showConfirm.value = true;
       gruppenLeiterLookUpTable.value = {};
       standortLookupTable.value = {};
+      snackbar.value = true;
       getData();
       emptyForm();
     })
