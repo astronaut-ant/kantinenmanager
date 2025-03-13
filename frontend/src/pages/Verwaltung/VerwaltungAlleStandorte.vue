@@ -51,6 +51,15 @@ const fetchData = () => {
     .then((response) => {
       locations.value = Object.values(response.data);
       console.log("Locations:", locations.value);
+      locations.value.sort((a, b) =>
+        a.location_name.toLowerCase() > b.location_name.toLowerCase()
+          ? 1
+          : b.location_name.toLowerCase() > a.location_name.toLowerCase()
+          ? -1
+          : 0
+      );
+      console.log("Locations:", locations.value);
+
       getKitchen();
       axios
         .get(import.meta.env.VITE_API + "/api/groups/with-locations", {

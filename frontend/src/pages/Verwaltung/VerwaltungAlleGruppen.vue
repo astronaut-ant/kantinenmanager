@@ -1,120 +1,182 @@
 <template>
-  <NavbarVerwaltung :breadcrumbs = '[{"title": "Gruppen"}, {"title": "Alle Gruppen"}]'/>
+  <NavbarVerwaltung
+    :breadcrumbs="[{ title: 'Gruppen' }, { title: 'Alle Gruppen' }]"
+  />
   <FilterBar
     :viewSwitcherEnabled="false"
-    :filterList="['group_name', 'group_number', 'group_leader.first_name', 'group_leader.last_name', 'location.location_name']"
+    :filterList="[
+      'group_name',
+      'group_number',
+      'group_leader.first_name',
+      'group_leader.last_name',
+      'location.location_name',
+    ]"
     :items="sortGroups(groups)"
     @searchresult="updateOverview"
     @changeview=""
-    />
+  />
   <div v-if="grouplist.length != 0" class="grid-container">
-    <div
-      v-for="group in grouplist"
-      :key="group?.id"
-      class="grid-item"
-    >
-      <v-card class="mx-2 my-2" width="425" elevation="16">
+    <div v-for="group in grouplist" :key="group?.id" class="grid-item">
+      <v-card
+        class="mx-2 my-2 text-blue-grey-darken-2"
+        width="425"
+        elevation="16"
+      >
         <v-card-item>
-            <v-card-title>
-              <div class="d-flex justify-space-between align-center">
-                {{ group?.group_name }}
-                <v-btn class="bg-primary mt-1 mx-1" @click="openDialog(group)" size="small"><v-icon>mdi-information-outline</v-icon></v-btn>
-              </div>
-            </v-card-title>
-            <v-card-subtitle>
-              <div class="d-flex flex-column">
-                <div>
-                  <v-icon
+          <v-card-title>
+            <div class="d-flex justify-space-between align-center mb-2">
+              {{ group?.group_name }}
+              <v-btn
+                class="bg-primary mt-1 mx-1"
+                @click="openDialog(group)"
+                size="small"
+                ><v-icon>mdi-information-outline</v-icon></v-btn
+              >
+            </div>
+          </v-card-title>
+          <v-card-subtitle>
+            <div class="d-flex flex-column">
+              <div>
+                <v-icon
                   color="primary"
                   icon="mdi-account-circle"
                   size="small"
-                  ></v-icon>
-                  <span class="me-1 ml-2">{{ group?.group_leader.first_name }} {{ group?.group_leader.last_name }}</span>
-                </div>
-                <div>
-                  <v-icon
+                ></v-icon>
+                <span class="me-1 ml-2"
+                  >{{ group?.group_leader.first_name }}
+                  {{ group?.group_leader.last_name }}</span
+                >
+              </div>
+              <div class="mt-1">
+                <v-icon
                   color="primary"
                   icon="mdi-map-marker"
                   size="small"
-                  ></v-icon>
-                  <span class="me-1 ml-2">{{ group?.location.location_name }}</span>
-                </div>
+                ></v-icon>
+                <span class="me-1 ml-2">{{
+                  group?.location.location_name
+                }}</span>
               </div>
-            </v-card-subtitle>
+            </div>
+          </v-card-subtitle>
         </v-card-item>
         <v-card-text>
-            <v-divider></v-divider>
-            <div class="mt-3 d-flex justify-space-between align-center">
-                <v-chip prepend-icon="mdi-account-multiple" color="primary" label density="comfortable"> Mitgliederanzahl: {{group?.employees.length}} </v-chip>
-                <div class="d-flex ga-1 justify-end">
-                  <v-btn class="bg-primary mx-1" @click="openEditDialog(group)" size="default" density="comfortable"><v-icon>mdi-lead-pencil</v-icon></v-btn>
-                  <v-btn class="bg-red" @click="handleDelete(group)" size="default" density="comfortable"><v-icon>mdi-trash-can-outline</v-icon></v-btn>
-                </div>
+          <v-divider></v-divider>
+          <div class="mt-3 d-flex justify-space-between align-center">
+            <v-chip
+              prepend-icon="mdi-account-multiple"
+              color="primary"
+              label
+              density="comfortable"
+            >
+              Mitgliederanzahl: {{ group?.employees.length }}
+            </v-chip>
+            <div class="d-flex ga-1 justify-end">
+              <v-btn
+                class="bg-primary mx-1"
+                @click="openEditDialog(group)"
+                size="default"
+                density="comfortable"
+                ><v-icon>mdi-lead-pencil</v-icon></v-btn
+              >
+              <v-btn
+                class="bg-red"
+                @click="handleDelete(group)"
+                size="default"
+                density="comfortable"
+                ><v-icon>mdi-trash-can-outline</v-icon></v-btn
+              >
             </div>
+          </div>
         </v-card-text>
       </v-card>
     </div>
   </div>
 
   <v-dialog v-model="detailDialog" max-width="600" max-height="600" scrollable>
-    <v-card>
-        <v-card-title color="primary">
-            <div class="text-center mt-4">
-                <v-chip color="primary" label> <p class="text-h5 font-weight-black"> {{ selectedGroup?.group_name }} </p> </v-chip>
-            </div>
-        </v-card-title>
-        <div class="mb-2">
-            <v-tabs v-model="tab" align-tabs="center" color="primary">
-                <v-tab value="one">Übersicht</v-tab>
-                <v-tab value="two">Mitglieder</v-tab>
-            </v-tabs>
+    <v-card class="text-blue-grey">
+      <v-card-title color="primary">
+        <div class="text-center mt-4">
+          <v-chip color="primary" label>
+            <p class="text-h5 font-weight-black">
+              {{ selectedGroup?.group_name }}
+            </p>
+          </v-chip>
         </div>
+      </v-card-title>
+      <div class="mb-2">
+        <v-tabs v-model="tab" align-tabs="center" color="primary">
+          <v-tab value="one">Übersicht</v-tab>
+          <v-tab value="two">Mitglieder</v-tab>
+        </v-tabs>
+      </div>
 
-        <v-card-text>
-            <v-tabs-window v-model="tab">
-                <v-tabs-window-item value="one">
-                    <div class="text-left ml-4 mb-2 mt-2">
-                        <p class="font-weight-black"> Gruppe </p>
-                    </div>
-                    <div class="ml-5 mb-4 text-medium-emphasis">
-                        <p color="text-primary"> Gruppennummer: {{ selectedGroup?.group_number }}</p>
-                        <p color="text-primary"> Standort: {{ selectedGroup?.location.location_name }}</p>
-                        <p color="text-primary"> Mitgliederanzahl: {{selectedGroup?.employees.length}} </p>
-                    </div>
-                    <v-divider></v-divider>
-                    <div class="text-left ml-4 mb-2 mt-4">
-                        <p class="font-weight-black"> Gruppenleitung </p>
-                    </div>
-                    <div class="ml-5 text-medium-emphasis">
-                        <p color="text-primary"> Vorname: {{selectedGroup?.group_leader.first_name}} </p>
-                        <p color="text-primary"> Nachname: {{selectedGroup?.group_leader.last_name}} </p>
-                        <p color="text-primary"> Benutzername: {{selectedGroup?.group_leader.username}} </p>
-                    </div>
-                </v-tabs-window-item>
-
-                <v-tabs-window-item value="two">
-                    <v-text-field
-                        v-model="search"
-                        density="compact"
-                        label="Suche"
-                        prepend-inner-icon="mdi-magnify"
-                        variant="solo-filled"
-                        flat
-                        hide-details
-                        clearable
-                        single-line
-                        rounded
-                    ></v-text-field>
-                    <v-data-table-virtual :items="selectedGroup?.employees" :search="search" :headers="headers" :sort-by="sortBy" :hover="true" density="compact">
-                    </v-data-table-virtual>
-                </v-tabs-window-item>
-            </v-tabs-window>
-        </v-card-text>
-        <v-card-actions>
-            <div class="d-flex justify-end ga-1">
-                <v-btn class="mt-2 bg-primary" @click="closeDialog"><v-icon>mdi-close-thick</v-icon></v-btn>
+      <v-card-text>
+        <v-tabs-window v-model="tab">
+          <v-tabs-window-item value="one">
+            <div class="text-left ml-4 mb-2 mt-2">
+              <p class="font-weight-black">Gruppe</p>
             </div>
-        </v-card-actions>
+            <div class="ml-5 mb-4 text-medium-emphasis">
+              <p color="text-primary">
+                Gruppennummer: {{ selectedGroup?.group_number }}
+              </p>
+              <p color="text-primary">
+                Standort: {{ selectedGroup?.location.location_name }}
+              </p>
+              <p color="text-primary">
+                Mitgliederanzahl: {{ selectedGroup?.employees.length }}
+              </p>
+            </div>
+            <v-divider></v-divider>
+            <div class="text-left ml-4 mb-2 mt-4">
+              <p class="font-weight-black">Gruppenleitung</p>
+            </div>
+            <div class="ml-5 text-medium-emphasis">
+              <p color="text-primary">
+                Vorname: {{ selectedGroup?.group_leader.first_name }}
+              </p>
+              <p color="text-primary">
+                Nachname: {{ selectedGroup?.group_leader.last_name }}
+              </p>
+              <p color="text-primary">
+                Benutzername: {{ selectedGroup?.group_leader.username }}
+              </p>
+            </div>
+          </v-tabs-window-item>
+
+          <v-tabs-window-item value="two">
+            <v-text-field
+              v-model="search"
+              density="compact"
+              label="Suche"
+              prepend-inner-icon="mdi-magnify"
+              variant="solo-filled"
+              flat
+              hide-details
+              clearable
+              single-line
+              rounded
+            ></v-text-field>
+            <v-data-table-virtual
+              :items="selectedGroup?.employees"
+              :search="search"
+              :headers="headers"
+              :sort-by="sortBy"
+              :hover="true"
+              density="compact"
+            >
+            </v-data-table-virtual>
+          </v-tabs-window-item>
+        </v-tabs-window>
+      </v-card-text>
+      <v-card-actions>
+        <div class="d-flex justify-end ga-1">
+          <v-btn class="mt-2 bg-primary" @click="closeDialog"
+            ><v-icon>mdi-close-thick</v-icon></v-btn
+          >
+        </div>
+      </v-card-actions>
     </v-card>
   </v-dialog>
 
@@ -264,10 +326,19 @@ const search = ref("");
 
 onMounted(() => {
   axios
-    .get(import.meta.env.VITE_API + "/api/groups/with-employees", { withCredentials: true })
+    .get(import.meta.env.VITE_API + "/api/groups/with-employees", {
+      withCredentials: true,
+    })
     .then((response) => {
       groups.value = sortGroups(response.data);
       grouplist.value = Object.values(sortGroups(response.data));
+      grouplist.value.sort((a, b) =>
+        a.group_name.toLowerCase() > b.group_name.toLowerCase()
+          ? 1
+          : b.group_name.toLowerCase() > a.group_name.toLowerCase()
+          ? -1
+          : 0
+      );
     })
     .catch((err) => console.log(err));
   axios
@@ -288,21 +359,21 @@ onMounted(() => {
 });
 
 const headers = [
-  { title: "Nummer", key: "employee_number"},
+  { title: "Nummer", key: "employee_number" },
   { title: "Nachname", key: "last_name" },
   { title: "Vorname", key: "first_name" },
 ];
 
-const sortBy = [{ key: 'employee_number', order: 'asc' }]
+const sortBy = [{ key: "employee_number", order: "asc" }];
 
 const openDialog = (group) => {
-    detailDialog.value = true;
-    selectedGroup.value = group;
+  detailDialog.value = true;
+  selectedGroup.value = group;
 };
 
 const closeDialog = () => {
-    detailDialog.value = false;
-    selectedGroup.value = null;
+  detailDialog.value = false;
+  selectedGroup.value = null;
 };
 
 const openEditDialog = (group) => {
@@ -321,7 +392,7 @@ const confirmEdit = () => {
     location_id: groupToEdit.value.location.id,
     user_id_group_leader: newLeaderID.value,
   };
-  console.log(updatedGroup)
+  console.log(updatedGroup);
   axios
     .put(
       import.meta.env.VITE_API + `/api/groups/${groupToEdit.value.id}`,
@@ -449,12 +520,9 @@ const sortGroups = (array) => {
     return 0;
   });
 };
-
 </script>
 
-
 <style scoped>
-
 .grid-container {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(425px, 1fr));
@@ -474,5 +542,4 @@ const sortGroups = (array) => {
   min-width: 400px;
   max-width: 425px;
 }
-
 </style>

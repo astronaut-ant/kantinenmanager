@@ -71,7 +71,11 @@ const fetchData = () => {
     .then((response) => {
       users.value = response.data;
       users.value.sort((a, b) =>
-        a.username > b.username ? 1 : b.username > a.username ? -1 : 0
+        a.username.toLowerCase() > b.username.toLowerCase()
+          ? 1
+          : b.username.toLowerCase() > a.username.toLowerCase()
+          ? -1
+          : 0
       );
       userlist.value = Object.values(response.data);
 
