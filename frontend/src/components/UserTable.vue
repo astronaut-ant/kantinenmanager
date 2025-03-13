@@ -18,11 +18,11 @@
       <v-chip
         :class="item.blocked ? 'blockedBackground' : ''"
         :prepend-icon="
-          item.user_group === 'verwaltung'
+          item.id === appStore.userData.id
             ? 'mdi-shield-account'
             : 'mdi-badge-account'
         "
-        :color="item.user_group === 'verwaltung' ? 'red' : 'primary'"
+        :color="item.id === appStore.userData.id ? 'red' : 'primary'"
         density="comfortable"
       >
         {{ formattedRole(item.user_group) }}
@@ -36,6 +36,7 @@
         size="small"
       ></v-btn>
       <v-btn
+        :disabled="item.id === appStore.userData.id || item.isFixed"
         icon="mdi-trash-can-outline"
         class="bg-red"
         @click="opendeleteDialog(item)"
@@ -71,19 +72,20 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-  <v-dialog v-model="editDialog" no-click-animation persistent max-width="500">
+  <v-dialog v-model="editDialog" no-click-animation persistent max-width="600">
     <v-card>
       <v-card-text>
-        <div class="d-flex ga-3 ms-2 mb-5 mt-2 text-primary">
+        <div class="d-flex ga-3 mb-4 text-primary">
           <div class="d-flex align-center">
-            <v-icon size="x-large">mdi-account-edit</v-icon>
+            <v-icon class="mt-n1" size="35">mdi-account-edit</v-icon>
           </div>
-          <h2>Benutzer bearbeiten</h2>
+          <h1>Benutzer bearbeiten</h1>
         </div>
 
         <div>
           <v-form ref="validation" v-model="form">
             <v-radio-group
+              :disabled="userToEditID === appStore.userData.id || isFixed"
               v-model="user_group"
               @update:model-value="hasChanged = true"
               :rules="[required]"
@@ -91,6 +93,7 @@
             >
               <div class="d-flex">
                 <v-radio
+                  class="ms-n2"
                   base-color="blue-grey"
                   label="Verwaltung"
                   value="verwaltung"
@@ -111,6 +114,7 @@
               </div>
               <div class="d-flex">
                 <v-radio
+                  class="ms-n2"
                   base-color="blue-grey"
                   label="Gruppenleitung"
                   value="gruppenleitung"
@@ -175,8 +179,8 @@
               >Passwort zurücksetzen</v-btn
             >
             <v-btn
-              v-if="userToEditID != appStore.userData.id"
               class="bg-blue-grey w-100 mt-4 mb-2"
+              :disabled="userToEditID === appStore.userData.id"
               block
               @click="blocking(userToEditID)"
               >{{
@@ -188,7 +192,7 @@
       </v-card-text>
       <v-card-actions class="mb-2" :class="!hasChanged ? 'me-4' : ''">
         <v-btn text @click="editDialog = false">{{
-          hasChanged ? "Verwerfen" : "Zurück"
+          hasChanged ? "Abbrechen" : "Zurück"
         }}</v-btn>
         <v-btn
           v-if="hasChanged"
@@ -283,6 +287,7 @@ const last_name = ref("");
 const username = ref("");
 const user_group = ref("");
 const location_id = ref("");
+const isFixed = ref("false");
 const userToEditID = ref("");
 const showConfirm = ref(false);
 const initialPassword = ref();
@@ -323,6 +328,7 @@ const openeditDialog = (item) => {
   username.value = item.username;
   user_group.value = item.user_group;
   location_id.value = item.location_id;
+  isFixed.value = item.isFixed;
   editDialog.value = true;
 };
 

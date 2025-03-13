@@ -27,7 +27,7 @@
             },
             {
               title: 'Neuer Benutzer',
-              icon: 'mdi-pencil-plus-outline',
+              icon: 'mdi-plus',
               link: '/verwaltung/benutzer/neuerBenutzer',
             },
           ]"
@@ -44,7 +44,7 @@
             },
             {
               title: 'Neuer Standort',
-              icon: 'mdi-pencil-plus-outline',
+              icon: 'mdi-plus',
               link: '/verwaltung/standorte/neuerStandort',
             },
           ]"
@@ -61,7 +61,7 @@
             },
             {
               title: 'Neue Gruppe',
-              icon: 'mdi-pencil-plus-outline',
+              icon: 'mdi-plus',
               link: '/verwaltung/gruppen/neueGruppe',
             },
           ]"
@@ -78,8 +78,25 @@
             },
             {
               title: 'Neuer Mitarbeiter',
-              icon: 'mdi-pencil-plus-outline',
+              icon: 'mdi-plus',
               link: '/verwaltung/mitarbeiter/neuerMitarbeiter',
+            },
+          ]"
+        />
+
+        <Dropdown
+          menuName="Abrechnung"
+          menuIcon="mdi-file-document-outline"
+          :items="[
+            {
+              title: 'Abrechnung erstellen',
+              icon: 'mdi-file-plus-outline',
+              link: '/verwaltung/abrechnung/neueAbrechnung',
+            },
+            {
+              title: 'Preise Anpassen',
+              icon: 'mdi-silverware',
+              link: '/verwaltung/abrechnung/essensPreise',
             },
           ]"
         />
@@ -101,7 +118,7 @@ const showDrawer = () => {
 const props = defineProps({
   breadcrumbs: {
     type: Array,
-    required: false
-  }
+    required: false,
+  },
 });
 </script>
