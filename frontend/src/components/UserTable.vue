@@ -18,11 +18,11 @@
       <v-chip
         :class="item.blocked ? 'blockedBackground' : ''"
         :prepend-icon="
-          item.user_group === 'verwaltung'
+          item.id === appStore.userData.id
             ? 'mdi-shield-account'
             : 'mdi-badge-account'
         "
-        :color="item.user_group === 'verwaltung' ? 'red' : 'primary'"
+        :color="item.id === appStore.userData.id ? 'red' : 'primary'"
         density="comfortable"
       >
         {{ formattedRole(item.user_group) }}
@@ -36,6 +36,7 @@
         size="small"
       ></v-btn>
       <v-btn
+        :disabled="item.id === appStore.userData.id"
         icon="mdi-trash-can-outline"
         class="bg-red"
         @click="opendeleteDialog(item)"
@@ -84,6 +85,7 @@
         <div>
           <v-form ref="validation" v-model="form">
             <v-radio-group
+              :disabled="userToEditID === appStore.userData.id || isFixed"
               v-model="user_group"
               @update:model-value="hasChanged = true"
               :rules="[required]"
@@ -175,8 +177,8 @@
               >Passwort zurücksetzen</v-btn
             >
             <v-btn
-              v-if="userToEditID != appStore.userData.id"
               class="bg-blue-grey w-100 mt-4 mb-2"
+              :disabled="userToEditID === appStore.userData.id"
               block
               @click="blocking(userToEditID)"
               >{{
@@ -283,6 +285,7 @@ const last_name = ref("");
 const username = ref("");
 const user_group = ref("");
 const location_id = ref("");
+const isFixed = ref("false");
 const userToEditID = ref("");
 const showConfirm = ref(false);
 const initialPassword = ref();
@@ -323,6 +326,7 @@ const openeditDialog = (item) => {
   username.value = item.username;
   user_group.value = item.user_group;
   location_id.value = item.location_id;
+  isFixed.value = item.isFixed;
   editDialog.value = true;
 };
 

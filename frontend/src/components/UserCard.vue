@@ -96,7 +96,7 @@
         <div>
           <v-form ref="validation" v-model="form">
             <v-radio-group
-              :disabled="isOwnCard"
+              :disabled="isOwnCard || props.isFixed"
               v-model="user_group"
               @update:model-value="hasChanged = true"
               :rules="[required]"
@@ -249,6 +249,7 @@ const props = defineProps([
   "firstName",
   "lastName",
   "location_id",
+  "isFixed",
 ]);
 const emit = defineEmits(["user-removed", "user-edited", "avatar-changed"]);
 const color = ref("primary");

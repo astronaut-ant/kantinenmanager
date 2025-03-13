@@ -23,6 +23,7 @@
         :firstName="item.first_name"
         :lastName="item.last_name"
         :location_id="item.location_id"
+        :isFixed="checkIfFixed(item.id)"
         @user-edited="fetchData"
         @user-removed="fetchData"
         @avatar-changed="reset"
@@ -60,8 +61,9 @@ const ansicht = ref("cardview");
 const errorSnackbar = ref(false);
 const errorSnackbarText = ref("");
 const forcer = ref(1);
-
 const allLocations = ref([]);
+const fixedGroupLeaderIDs = ref([]);
+const fixedLocationLeaderIDs = ref([]);
 
 const fetchData = () => {
   axios
@@ -72,7 +74,8 @@ const fetchData = () => {
         a.username > b.username ? 1 : b.username > a.username ? -1 : 0
       );
       userlist.value = Object.values(response.data);
-      //console.log(users.value);
+
+      console.log(userlist.value);
     })
     .catch((err) => {
       console.log(err);
@@ -85,7 +88,26 @@ const fetchData = () => {
     .then((response) => {
       response.data.forEach((location) => {
         allLocations.value.push(location.location_name);
+        fixedLocationLeaderIDs.value.push(location.location_leader.id);
+        axios
+          .get(import.meta.env.VITE_API + "/api/groups", {
+            withCredentials: true,
+          })
+          .then((response) => {
+            response.data.forEach((group) => {
+              fixedGroupLeaderIDs.value.push(group.group_leader.id);
+              userlist.value.forEach((user) => {
+                user.isFixed = checkIfFixed(user.id);
+              });
+            });
+            console.log("fixed Groupleaders: ", fixedGroupLeaderIDs.value);
+
+            //console.log(allLocations.value);
+          })
+          .catch((err) => console.log(err));
       });
+      console.log("fixed Locationleaders: ", fixedLocationLeaderIDs.value);
+
       //console.log(allLocations.value);
     })
     .catch((err) => console.log(err));
@@ -108,5 +130,10 @@ const changeview = (string) => {
 const reset = () => {
   forcer.value += 1;
   forcer.value %= 2;
+};
+const checkIfFixed = (id) => {
+  return fixedGroupLeaderIDs.value
+    .concat(fixedLocationLeaderIDs.value)
+    .includes(id);
 };
 </script>
