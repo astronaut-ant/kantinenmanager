@@ -187,13 +187,17 @@
         <span class="text-h5">Gruppe bearbeiten</span>
       </v-card-title>
       <v-card-text>
-        <span>Neue Gruppenleitung festlegen</span>
         <v-menu>
           <template #activator="{ props }">
             <v-text-field
+              :active="true"
+              base-color="blue-grey"
+              color="primary"
+              variant="outlined"
               v-bind="props"
               v-model="newLeaderName"
               label="Neue Gruppenleitung"
+              placeholder="Neue Gruppenleitung"
               readonly
               append-inner-icon="mdi-chevron-down"
             ></v-text-field>
@@ -215,7 +219,7 @@
         </v-menu>
       </v-card-text>
       <v-card-actions>
-        <v-btn text @click="closeEditDialog">Abbrechen</v-btn>
+        <v-btn class="blue-grey" text @click="closeEditDialog">Abbrechen</v-btn>
         <v-btn
           color="primary"
           :disabled="!form"
@@ -429,6 +433,7 @@ const confirmEdit = () => {
         (leader) => leader.id === newLeaderID.value
       );
       groupLeaders.value[newLeaderIndex].own_group = 0;
+      getData();
       closeEditDialog();
       snackbarText.value = "Die Gruppe wurde erfolgreich aktualisiert!";
       snackbar.value = true;
