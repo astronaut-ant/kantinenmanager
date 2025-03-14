@@ -10,7 +10,7 @@
       <v-card-text>
         <div class="d-flex h-100 align-center justify-center ga-2">
           <v-icon color="primary" size="36">mdi-circle</v-icon>
-          <h3>{{ orderCount.rot }}</h3>
+          <h3>{{ orderCount.blau }}</h3>
         </div>
       </v-card-text>
     </v-card>
@@ -20,7 +20,7 @@
       <v-card-text>
         <div class="d-flex h-100 align-center justify-center ga-2">
           <v-icon color="red" size="36">mdi-circle</v-icon>
-          <h3>{{ orderCount.blau }}</h3>
+          <h3>{{ orderCount.rot }}</h3>
         </div>
       </v-card-text>
     </v-card>
