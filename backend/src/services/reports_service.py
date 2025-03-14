@@ -1,6 +1,6 @@
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta, time, date
 import pytz
-from typing import List, Union
+from typing import List, Union, Dict
 from uuid import UUID
 from flask import Response
 
@@ -73,10 +73,12 @@ class ReportsService:
             fil=filters, user_id=user_id, user_group=user_group
         )
 
-        location_counts = ReportsService._count_location_orders(orders)
+        date_location_counts: Dict[dict] = (
+            ReportsService._count_location_orders_by_date(orders)
+        )
 
         return PDFCreationUtils.create_pdf_report(
-            filters=filters, location_counts=location_counts
+            filters=filters, date_location_counts=date_location_counts
         )
 
     def _get_reports_orders_by_location(
@@ -115,11 +117,11 @@ class ReportsService:
         else:
             return False
 
-    def _count_location_orders(
-        orders: Union[List[PreOrder], List[DailyOrder], List[OldOrder]]
-    ) -> dict:
+    def _count_location_orders_by_date(
+        orders: Union[List[PreOrder], List[DailyOrder], List[OldOrder]],
+    ) -> Dict:
 
-        location_counts = {}
+        date_location_counts = {}
 
         for order in orders:
             if order.nothing:
@@ -129,21 +131,28 @@ class ReportsService:
             if not location:
                 raise NotFoundError(f"Standort mit ID {order.location_id}")
 
-            if location not in location_counts:
-                location_counts[location] = {
+            order_date = order.date
+            if isinstance(order_date, datetime):
+                order_date = order_date.date()
+
+            if order_date not in date_location_counts:
+                date_location_counts[order_date] = {}
+
+            if location not in date_location_counts:
+                date_location_counts[location] = {
                     "rot": 0,
                     "blau": 0,
                     "salad_option": 0,
                 }
 
             if order.main_dish == MainDish.rot:
-                location_counts[location]["rot"] += 1
+                date_location_counts[order_date][location]["rot"] += 1
             elif order.main_dish == MainDish.blau:
-                location_counts[location]["blau"] += 1
+                date_location_counts[order_date][location]["blau"] += 1
             if order.salad_option:
-                location_counts[location]["salad_option"] += 1
+                date_location_counts[order_date][location]["salad_option"] += 1
 
-        return location_counts
+        return date_location_counts
 
     ################################# Invoices Services #################################
 

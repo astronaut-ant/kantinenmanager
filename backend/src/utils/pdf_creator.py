@@ -206,7 +206,7 @@ class PDFCreationUtils:
     ################################# Reports PDF #################################
 
     @staticmethod
-    def create_pdf_report(filters: OrdersFilters, location_counts: dict) -> Response:
+    def create_pdf_report(filters: OrdersFilters, date_location_counts: dict) -> Response:
 
         buffer = BytesIO()
         pdf = SimpleDocTemplate(buffer, pagesize=A4)
@@ -217,14 +217,25 @@ class PDFCreationUtils:
         if not date_str:
             raise ValueError("Kein Datum übergeben")
 
-        elements.append(Paragraph(f"Datum: {date_str}", styles["Heading2"]))
+        elements.append(Paragraph(f"Bestellübersicht für Zeitraum: {date_str}", styles["Heading1"]))
         elements.append(Spacer(1, 12))
+        sorted_dates = sorted(date_location_counts.keys())
 
-        for location, counts in location_counts.items():
-            location_block = PDFCreationUtils._create_location_pdf_block(
-                location.location_name, counts, styles
-            )
-            elements.append(KeepTogether(location_block))
+        for current_date in sorted_dates:
+            date_formatted = current_date.strftime("%d.%m.%Y")
+            elements.append(Paragraph(f"Datum: {date_formatted}", styles["Heading2"]))
+            elements.append(Spacer(1, 8))
+            
+            locations_for_date: dict = date_location_counts[current_date]
+            
+            for location, counts in locations_for_date.items():
+                location_block = PDFCreationUtils._create_location_pdf_block(
+                    location.location_name, counts, styles
+                )
+                elements.append(KeepTogether(location_block))
+            
+            elements.append(Spacer(1, 20))
+
 
         pdf.build(elements)
         buffer.seek(0)
