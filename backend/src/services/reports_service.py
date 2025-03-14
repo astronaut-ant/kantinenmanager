@@ -116,7 +116,7 @@ class ReportsService:
             return False
 
     def _count_location_orders(
-        orders: Union[List[PreOrder], List[DailyOrder], List[OldOrder]]
+        orders: Union[List[PreOrder], List[DailyOrder], List[OldOrder]],
     ) -> dict:
 
         location_counts = {}
@@ -152,7 +152,7 @@ class ReportsService:
         filters: OrdersFilters,
     ) -> Union[Response]:
         """
-        Get an invoice report #TODO filterd by date and location
+        Get an invoice report filterd by date and location
         :param filters: Filters for old orders
         :return: a pdf file with the report or None if no orders were found
         """
