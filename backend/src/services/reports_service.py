@@ -73,13 +73,14 @@ class ReportsService:
             ):
                 raise ValueError("Keine Standort-ID oder Datum übergeben")
 
+            all_locations = False
             orders = ReportsService._get_reports_orders_by_location(
                 fil=filters, user_id=user_id, user_group=user_group
             )
         else:
             if not filters.date_start or not filters.date_end:
                 raise ValueError("Keine Standort-ID oder Datum übergeben")
-
+            all_locations = True
             orders = ReportsService._get_reports_orders_by_location(
                 fil=filters, user_id=user_id, user_group=user_group
             )
@@ -89,7 +90,9 @@ class ReportsService:
         )
 
         return PDFCreationUtils.create_pdf_report(
-            filters=filters, date_location_counts=date_location_counts
+            filters=filters,
+            date_location_counts=date_location_counts,
+            all_locations=all_locations,
         )
 
     def _get_reports_orders_by_location(
