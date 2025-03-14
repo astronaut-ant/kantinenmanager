@@ -92,25 +92,34 @@
                 </v-list-item>
               </v-list>
             </v-menu>
-            <v-text-field
-              :active="true"
-              base-color="blue-grey"
-              color="primary"
-              variant="outlined"
-              class="mt-5"
-              Placeholder="Zeitraum auswählen"
-              v-model="formattedDateRange1"
-              label="Zeitraum"
-              readonly
-              append-inner-icon="mdi-chevron-down"
-              @click="showDialog1 = true"
-            ></v-text-field>
+            <v-menu v-model="dateMenu1" location="center" transition="scale-transition">
+              <template v-slot:activator="{ props }">
+                <v-text-field
+                  v-model="selectedMonthFormatted"
+                  label="Monat auswählen"
+                  readonly
+                  v-bind="props"
+                  append-inner-icon="mdi-chevron-down"
+                  :rules="[required]"
+                ></v-text-field>
+              </template>
+
+              <v-list>
+                <v-list-item
+                  v-for="month in lastSixMonths"
+                  :key="month.value"
+                  @click="selectMonth(month)"
+                >
+                  <v-list-item-title>{{ month.label }}</v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
           </v-card-text>
           <v-card-actions class="justify-end me-2">
             <v-btn
               color="primary"
               variant="elevated"
-              :disabled="!selectedLocationName || selectedDates1.length === 0"
+              :disabled="!selectedLocation || !selectedMonth"
               @click="generateInvoice()"
             >
               Erstellen
@@ -183,25 +192,34 @@
                 </v-list-item>
               </v-list>
             </v-menu>
-            <v-text-field
-              :active="true"
-              base-color="blue-grey"
-              color="primary"
-              variant="outlined"
-              class="mt-5"
-              placeholder="Zeitraum auswählen"
-              v-model="formattedDateRange2"
-              label="Zeitraum"
-              readonly
-              append-inner-icon="mdi-chevron-down"
-              @click="showDialog2 = true"
-            ></v-text-field>
+            <v-menu v-model="dateMenu2" location="center" transition="scale-transition">
+              <template v-slot:activator="{ props }">
+                <v-text-field
+                  v-model="selectedMonthFormatted"
+                  label="Monat auswählen"
+                  readonly
+                  v-bind="props"
+                  append-inner-icon="mdi-chevron-down"
+                  :rules="[required]"
+                ></v-text-field>
+              </template>
+
+              <v-list>
+                <v-list-item
+                  v-for="month in lastSixMonths"
+                  :key="month.value"
+                  @click="selectMonth(month)"
+                >
+                  <v-list-item-title>{{ month.label }}</v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
           </v-card-text>
           <v-card-actions class="justify-end me-2">
             <v-btn
               color="primary"
               variant="elevated"
-              :disabled="!selectedGroupName || selectedDates2.length === 0"
+              :disabled="!selectedGroup || !selectedMonth"
               @click="generateInvoice()"
             >
               Erstellen
@@ -229,25 +247,34 @@
               append-inner-icon="mdi-chevron-down"
               @click="(personDialog = true), (isSearchVisible = false)"
             ></v-text-field>
-            <v-text-field
-              :active="true"
-              base-color="blue-grey"
-              color="primary"
-              variant="outlined"
-              class="mt-5"
-              Placeholder="Zeitraum auswählen"
-              v-model="formattedDateRange3"
-              label="Zeitraum"
-              readonly
-              append-inner-icon="mdi-chevron-down"
-              @click="showDialog3 = true"
-            ></v-text-field>
+            <v-menu v-model="dateMenu3" location="center" transition="scale-transition">
+              <template v-slot:activator="{ props }">
+                <v-text-field
+                  v-model="selectedMonthFormatted"
+                  label="Monat auswählen"
+                  readonly
+                  v-bind="props"
+                  append-inner-icon="mdi-chevron-down"
+                  :rules="[required]"
+                ></v-text-field>
+              </template>
+
+              <v-list>
+                <v-list-item
+                  v-for="month in lastSixMonths"
+                  :key="month.value"
+                  @click="selectMonth(month)"
+                >
+                  <v-list-item-title>{{ month.label }}</v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
           </v-card-text>
           <v-card-actions class="justify-end me-2">
             <v-btn
               color="primary"
               variant="elevated"
-              :disabled="!selectedPersonName || selectedDates3.length === 0"
+              :disabled="!selectedPersonId || selectedPersonId.length < 1 || !selectedMonth"
               @click="generateInvoice()"
             >
               Erstellen
@@ -257,138 +284,6 @@
       </v-col>
     </v-row>
   </v-container>
-
-  <v-dialog v-model="showDialog1" max-width="400">
-    <v-card class="text-blue-grey-darken-3">
-      <v-card-title class="text-h5 mt-2 ms-7 mb-n2">
-        Zeitraum auswählen
-      </v-card-title>
-
-      <v-card-text>
-        <v-date-picker
-          color="primary"
-          v-model="selectedDates1"
-          multiple="range"
-          :min="minDate"
-          :max="maxDate"
-          hide-header
-        />
-      </v-card-text>
-      <span class="text-center text-blue-grey mt-n6 mb-8 font-weight-bold">
-        {{ formattedDateRange1 }}
-      </span>
-
-      <div class="px-12">
-        <v-divider></v-divider>
-      </div>
-
-      <v-card-actions class="justify-end me-7">
-        <v-btn
-          color="blue-grey"
-          variant="text"
-          @click="(showDialog1 = false), (selectedDates1 = [])"
-        >
-          Abbrechen
-        </v-btn>
-        <v-btn
-          :disabled="selectedDates1.length === 0"
-          color="primary"
-          variant="elevated"
-          @click="showDialog1 = false"
-        >
-          Übernehmen
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-
-  <v-dialog v-model="showDialog2" max-width="400">
-    <v-card class="text-blue-grey-darken-3">
-      <v-card-title class="text-h5 mt-2 ms-7 mb-n2">
-        Zeitraum auswählen
-      </v-card-title>
-
-      <v-card-text>
-        <v-date-picker
-          color="primary"
-          v-model="selectedDates2"
-          multiple="range"
-          :min="minDate"
-          :max="maxDate"
-          hide-header
-        />
-      </v-card-text>
-      <span class="text-center text-blue-grey mt-n6 mb-8 font-weight-bold">
-        {{ formattedDateRange2 }}
-      </span>
-
-      <div class="px-12">
-        <v-divider></v-divider>
-      </div>
-
-      <v-card-actions class="justify-end me-7">
-        <v-btn
-          color="blue-grey"
-          variant="text"
-          @click="(showDialog2 = false), (selectedDates2 = [])"
-        >
-          Abbrechen
-        </v-btn>
-        <v-btn
-          :disabled="selectedDates2.length === 0"
-          color="primary"
-          variant="elevated"
-          @click="showDialog2 = false"
-        >
-          Übernehmen
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-
-  <v-dialog v-model="showDialog3" max-width="400">
-    <v-card class="text-blue-grey-darken-3">
-      <v-card-title class="text-h5 mt-2 ms-7 mb-n2">
-        Zeitraum auswählen
-      </v-card-title>
-
-      <v-card-text>
-        <v-date-picker
-          color="primary"
-          v-model="selectedDates3"
-          multiple="range"
-          :min="minDate"
-          :max="maxDate"
-          hide-header
-        />
-      </v-card-text>
-      <span class="text-center text-blue-grey mt-n6 mb-8 font-weight-bold">
-        {{ formattedDateRange2 }}
-      </span>
-
-      <div class="px-12">
-        <v-divider></v-divider>
-      </div>
-
-      <v-card-actions class="justify-end me-7">
-        <v-btn
-          color="blue-grey"
-          variant="text"
-          @click="(showDialog3 = false), (selectedDates3 = [])"
-        >
-          Abbrechen
-        </v-btn>
-        <v-btn
-          :disabled="selectedDates3.length === 0"
-          color="primary"
-          variant="elevated"
-          @click="showDialog3 = false"
-        >
-          Übernehmen
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
 
   <v-dialog v-model="personDialog" max-width="800">
     <v-card class="text-blue-grey-darken-3 px-5">
@@ -461,9 +356,7 @@
 <script setup>
 import axios from "axios";
 const selected = ref("");
-const selectedDates1 = ref([]);
-const selectedDates2 = ref([]);
-const selectedDates3 = ref([]);
+const selectedMonth = ref(null);
 const selectedLocation = ref(null);
 const selectedLocationName = ref(null);
 const locations = ref([]);
@@ -475,9 +368,9 @@ const selectedPersonId = ref(null);
 const employees = ref([]);
 const users = ref([]);
 const items = ref([]);
-const showDialog1 = ref(false);
-const showDialog2 = ref(false);
-const showDialog3 = ref(false);
+const dateMenu1 = ref(false);
+const dateMenu2 = ref(false);
+const dateMenu3 = ref(false);
 const personDialog = ref(false);
 const isSearchVisible = ref(false);
 const search = ref("");
@@ -516,37 +409,33 @@ const toggleSearchField = () => {
   isSearchVisible.value = !isSearchVisible.value;
 };
 
-const today = new Date();
-const sixMonthsAgo = new Date();
-sixMonthsAgo.setMonth(today.getMonth() - 6);
+const lastSixMonths = computed(() => {
+  const months = [];
+  const monthNames = [
+    "Januar", "Februar", "März", "April", "Mai", "Juni",
+    "Juli", "August", "September", "Oktober", "November", "Dezember"
+  ];
 
-const minDate = computed(() => sixMonthsAgo.toISOString().split("T")[0]);
-const maxDate = computed(() => today.toISOString().split("T")[0]);
+  const today = new Date();
+  for (let i = 1; i <= 6; i++) {
+    const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+    const monthLabel = `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+    const monthValue = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 
-const formattedDateRange1 = computed(() => {
-  if (selectedDates1.value.length === 0) return "";
-  return `${selectedDates1.value[0].toLocaleDateString(
-    "de-DE"
-  )} - ${selectedDates1.value[
-    selectedDates1.value.length - 1
-  ].toLocaleDateString("de-DE")}`;
+    months.push({ label: monthLabel, value: monthValue });
+  }
+  return months;
 });
-const formattedDateRange2 = computed(() => {
-  if (selectedDates2.value.length === 0) return "";
-  return `${selectedDates2.value[0].toLocaleDateString(
-    "de-DE"
-  )} - ${selectedDates2.value[
-    selectedDates2.value.length - 1
-  ].toLocaleDateString("de-DE")}`;
+
+const selectedMonthFormatted = computed(() => {
+  return selectedMonth.value
+    ? lastSixMonths.value.find(m => m.value === selectedMonth.value)?.label
+    : null;
 });
-const formattedDateRange3 = computed(() => {
-  if (selectedDates3.value.length === 0) return "";
-  return `${selectedDates3.value[0].toLocaleDateString(
-    "de-DE"
-  )} - ${selectedDates3.value[
-    selectedDates3.value.length - 1
-  ].toLocaleDateString("de-DE")}`;
-});
+
+const selectMonth = (month) => {
+  selectedMonth.value = month.value;
+};
 
 const selectLocation = (location) => {
   selectedLocation.value = location;
@@ -613,31 +502,23 @@ watch(selectedPersonId, (newId) => {
 
 const generateInvoice = () => {
   let id = null;
-  let selectedDatesRef = null;
   let idName = null;
 
   if (selected.value === "standort") {
     id = selectedLocation.value?.id;
     idName = "location-id";
-    selectedDatesRef = selectedDates1?.value;
   } else if (selected.value === "gruppe") {
     id = selectedGroup.value?.id;
     idName = "group-id";
-    selectedDatesRef = selectedDates2?.value;
   } else if (selected.value === "mitarbeiter") {
     id = selectedPersonId?.value[0];
     idName = "person-id";
-    selectedDatesRef = selectedDates3?.value;
   }
 
-  if (!id || !idName || !selectedDatesRef || selectedDatesRef.length < 1) {
-    console.log("Fehlende Eingaben!");
-    return;
-  }
-
-  const startDate = selectedDatesRef[0].toLocaleDateString("fr-CA");
-  const endDate =
-    selectedDatesRef[selectedDatesRef.length - 1].toLocaleDateString("fr-CA");
+  const startDate = `${selectedMonth.value}-01`;
+  const [year, month] = selectedMonth.value.split("-").map(Number);
+  const lastDay = new Date(year, month, 0).getDate();
+  const endDate = `${selectedMonth.value}-${String(lastDay).padStart(2, "0")}`;
 
   console.log("Selected:", selected.value);
   console.log("ID:", id);
