@@ -104,6 +104,9 @@
     
 
 <script setup>
+    import { useFeedbackStore } from "@/stores/feedback";
+    const feedbackStore = useFeedbackStore();
+
     const replacementGroupLeader = ref("");
     const setGroupReplacementDialog = ref(false);
     const removeGroupReplacementDialog = ref(false);
@@ -126,8 +129,11 @@
         .then(() => {
             emit("replacement-removed");
             closeremoveGroupReplacementDialog();
+            feedbackStore.setFeedback("success", "snackbar", "Vertretung gelöscht", "Der Gruppenleiter kann wieder Essensbestellungen für seine Gruppe übernehmen.");
         })
-        .catch((err) => console.error("Error deleting", err));
+        .catch((err) => {
+            feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+        });
     };
     const opensetGroupReplacementDialog = () => {
         setGroupReplacementDialog.value = true;
@@ -164,8 +170,12 @@
             .then(() => {
                 emit("replacement-set");
                 closesetGroupReplacementDialog();
+                feedbackStore.setFeedback("success", "snackbar", "Vertretung gesetzt", "Der temporäre Gruppenleiter übernimmt Essensbestellungen für die Gruppe.");
             })
-            .catch((err) => console.error("Error setting replacement", err));
+            .catch((err) => {
+                closesetGroupReplacementDialog();
+                feedbackStore.setFeedback("error", "dialog", err.response?.data?.title, err.response?.data?.description);
+            });
     };
 
 

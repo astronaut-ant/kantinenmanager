@@ -32,10 +32,11 @@
     :timeout="2500"
     :color="feedbackStore.status === 'error' ? 'red' : 'success'" 
     variant="elevated"
+    :key="feedbackStore.show ? 'snackbar-' + Date.now() : ''"
   >
     <h4 class="text-center align-center">
       <v-icon class="me-2"> {{ feedbackStore.status === 'error' ? 'mdi-alert-circle-outline' : 'mdi-check-circle-outline' }} </v-icon>
-      {{ feedbackStore.title }}: {{ feedbackStore.message }}
+      {{ feedbackStore.title }}{{ feedbackStore.title === "" ? '' : ':' }} {{ feedbackStore.message }}
     </h4>
   </v-snackbar>
 </template>

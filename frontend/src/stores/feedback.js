@@ -10,11 +10,15 @@ export const useFeedbackStore = defineStore("feedbackStore", {
   }),
   actions: {
     setFeedback(status, type = "snackbar", title = "", message = "Etwas ist schief gelaufen, bitte versuchen Sie es später erneut.") {
+      this.clearFeedback();
       this.status = status;
       this.title = title;
       this.message = message;
       this.type = type;
       this.show = true;
+      setTimeout(() => {
+        this.show = true;
+      }, 100);
     },
     clearFeedback() {
       this.show = false;

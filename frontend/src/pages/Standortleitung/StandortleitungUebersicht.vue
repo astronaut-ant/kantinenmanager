@@ -27,6 +27,8 @@
   import FilterBar from "@/components/SearchComponents/FilterBar.vue";
   import NoResult from "@/components/SearchComponents/NoResult.vue";
   import axios from "axios";
+  import { useFeedbackStore } from "@/stores/feedback";
+  const feedbackStore = useFeedbackStore();
 
   const groups = ref({});
   const grouplist = ref([]);
@@ -38,7 +40,9 @@
       groups.value = response.data;
       grouplist.value = Object.values(response.data);
     })
-    .catch((err) => console.error("Error fetching data", err));
+    .catch((err) => {
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+    });
   };
 
   onMounted(() => {

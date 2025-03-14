@@ -25,6 +25,9 @@
   
 <script setup>
   import axios from "axios";
+  import { useFeedbackStore } from "@/stores/feedback";
+  const feedbackStore = useFeedbackStore();
+
   const groupLeaders = ref([]);
   const originalGroupLeaders = ref([]);
   const availableLeaders = ref([]);
@@ -38,7 +41,9 @@
         availableLeaders.value = getAvailableLeaders(response.data);
 
       })
-      .catch((err) => console.error("Error fetching data", err));
+      .catch((err) => {
+        feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+      });
   };
 
   const getAvailableLeaders = (leaders) => {
