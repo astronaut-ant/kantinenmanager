@@ -206,7 +206,7 @@ class PDFCreationUtils:
     ################################# Reports PDF #################################
 
     @staticmethod
-    def create_pdf_report(filters: OrdersFilters, date_location_counts: dict) -> Response:
+    def create_pdf_report(filters: OrdersFilters, date_location_counts: dict, all_loactions: bool = False) -> Response:
 
         buffer = BytesIO()
         pdf = SimpleDocTemplate(buffer, pagesize=A4)
@@ -224,8 +224,17 @@ class PDFCreationUtils:
         for current_date in sorted_dates:
             date_formatted = current_date.strftime("%d.%m.%Y")
             elements.append(Paragraph(f"Datum: {date_formatted}", styles["Heading2"]))
+
+            if all_loactions:
+                counter_for_date = {}
+                for location in date_location_counts[current_date]:
+                    counter_for_date["rot"] = date_location_counts[current_date][location]["rot"]
+                    counter_for_date["blau"] = date_location_counts[current_date][location]["blau"]
+                    counter_for_date["salad_option"] = date_location_counts[current_date][location]["salad_option"]
+                elements.append(Paragraph(f"Rot: {counter_for_date["rot"]}, Blau: {counter_for_date["blau"]}, Salat: {counter_for_date["salad_option"]}", styles["Heading3"]))
+                
             elements.append(Spacer(1, 8))
-            
+
             locations_for_date: dict = date_location_counts[current_date]
             
             for location, counts in locations_for_date.items():

@@ -65,20 +65,34 @@ class ReportsService:
         :param filters: Filters for date_start, date_end and location_id
         :return: a pdf file with the report or None if no orders were found
         """
+        if filters.location_id:
+            if (
+                not filters.location_id
+                or not filters.date_start
+                or not filters.date_end
+            ):
+                raise ValueError("Keine Standort-ID oder Datum übergeben")
 
-        if not filters.location_id or not filters.date_start or not filters.date_end:
-            raise ValueError("Keine Standort-ID oder Datum übergeben")
-
-        orders = ReportsService._get_reports_orders_by_location(
-            fil=filters, user_id=user_id, user_group=user_group
-        )
+            all_locations = False
+            orders = ReportsService._get_reports_orders_by_location(
+                fil=filters, user_id=user_id, user_group=user_group
+            )
+        else:
+            if not filters.date_start or not filters.date_end:
+                raise ValueError("Keine Standort-ID oder Datum übergeben")
+            all_locations = True
+            orders = ReportsService._get_reports_orders_by_location(
+                fil=filters, user_id=user_id, user_group=user_group
+            )
 
         date_location_counts: Dict[dict] = (
             ReportsService._count_location_orders_by_date(orders)
         )
 
         return PDFCreationUtils.create_pdf_report(
-            filters=filters, date_location_counts=date_location_counts
+            filters=filters,
+            date_location_counts=date_location_counts,
+            all_locations=all_locations,
         )
 
     def _get_reports_orders_by_location(
@@ -93,7 +107,11 @@ class ReportsService:
             if ReportsService._check_user_access_to_location(
                 fil.location_id, user_id, user_group
             ):
-                orders.extend(OrdersRepository.get_pre_orders(fil))
+                orders.extend(
+                    OrdersRepository.get_pre_orders(
+                        fil, user_group=user_group, user_id=user_id
+                    )
+                )
                 orders.extend(OrdersRepository.get_all_daily_orders(fil))
                 orders.extend(OrdersRepository.get_old_orders(fil))
             else:
@@ -138,8 +156,8 @@ class ReportsService:
             if order_date not in date_location_counts:
                 date_location_counts[order_date] = {}
 
-            if location not in date_location_counts:
-                date_location_counts[location] = {
+            if location not in date_location_counts[order_date]:
+                date_location_counts[order_date][location] = {
                     "rot": 0,
                     "blau": 0,
                     "salad_option": 0,
