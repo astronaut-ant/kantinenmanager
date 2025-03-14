@@ -65,13 +65,24 @@ class ReportsService:
         :param filters: Filters for date_start, date_end and location_id
         :return: a pdf file with the report or None if no orders were found
         """
+        if filters.location_id:
+            if (
+                not filters.location_id
+                or not filters.date_start
+                or not filters.date_end
+            ):
+                raise ValueError("Keine Standort-ID oder Datum übergeben")
 
-        if not filters.location_id or not filters.date_start or not filters.date_end:
-            raise ValueError("Keine Standort-ID oder Datum übergeben")
+            orders = ReportsService._get_reports_orders_by_location(
+                fil=filters, user_id=user_id, user_group=user_group
+            )
+        else:
+            if not filters.date_start or not filters.date_end:
+                raise ValueError("Keine Standort-ID oder Datum übergeben")
 
-        orders = ReportsService._get_reports_orders_by_location(
-            fil=filters, user_id=user_id, user_group=user_group
-        )
+            orders = ReportsService._get_reports_orders_by_location(
+                fil=filters, user_id=user_id, user_group=user_group
+            )
 
         date_location_counts: Dict[dict] = (
             ReportsService._count_location_orders_by_date(orders)
