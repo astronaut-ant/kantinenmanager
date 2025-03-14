@@ -1,6 +1,9 @@
 <template>
-  <NavbarVerwaltung />
-  <v-card class="pa-5 mx-auto mt-14" max-width="900">
+  <NavbarVerwaltung
+    :breadcrumbs="[{ title: 'Abrechnung' }, { title: 'Preise anpassen' }]"
+  />
+
+  <v-card class="pa-5 mx-auto mt-15" max-width="900">
     <v-card-title class="text-h4 font-weight-bold ms-2 mb-2 text-primary">
       <v-icon :size="36" class="me-3 ms-n2 mt-n1">mdi-currency-eur</v-icon
       >Essenspreise</v-card-title
@@ -106,39 +109,69 @@
   <v-dialog v-model="addDialog" persistent max-width="600px">
     <v-card>
       <v-card-title>
-        <span class="headline justify-center">Neuer Essenspreis</span>
+        <h2 class="text-primary headline justify-center ms-2 mt-2">
+          Neuer Essenspreis
+        </h2>
       </v-card-title>
       <v-card-text>
         <v-text-field
+          class="mt-4"
+          :active="true"
+          base-color="blue-grey"
+          color="primary"
+          variant="outlined"
+          Placeholder="Start-Datum auswählen"
           v-model="startDateAddF"
-          label="Start Datum"
+          label="Start-Datum"
           @click="dateMenu = true"
           readonly
         ></v-text-field>
         <v-text-field
+          class="mt-4"
+          :active="true"
+          base-color="blue-grey"
+          color="primary"
+          variant="outlined"
+          Placeholder="Hauptgericht Preis (€)"
           v-model="mainDishAdd"
-          label="Hauptgericht Preis (€)"
+          label="Hauptgericht"
           type="number"
           :rules="[required]"
         ></v-text-field>
         <v-text-field
+          :active="true"
+          class="mt-4"
+          base-color="blue-grey"
+          color="primary"
+          variant="outlined"
+          Placeholder="Salat Preis (€)"
           v-model="saladAdd"
-          label="Salat Preis (€)"
+          label="Salat"
           type="number"
           :rules="[required]"
         ></v-text-field>
         <v-text-field
+          class="mt-4"
+          :active="true"
+          base-color="blue-grey"
+          color="primary"
+          variant="outlined"
+          Placeholder="Vorrauszahlung in €"
           v-model="prepaymentAdd"
-          label="Vorrauszahlung (€)"
+          label="Vorrauszahlung"
           type="number"
           :rules="[required]"
         ></v-text-field>
       </v-card-text>
       <v-card-actions>
-        <v-btn @click="closeAddDialog()" color="grey">Abbrechen</v-btn>
+        <v-btn @click="closeAddDialog()" variant="text" color="blue-grey"
+          >Abbrechen</v-btn
+        >
         <v-btn
           @click="handleAdd()"
-          color="green"
+          color="primary"
+          variant="elevated"
+          class="me-4"
           :disabled="
             !startDateAdd || !mainDishAdd || !saladAdd || !prepaymentAdd
           "
