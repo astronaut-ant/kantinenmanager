@@ -65,9 +65,10 @@ const fetchData = () => {
         console.log(groupIDArray);
 
         console.log("groups", response.data);
-        groupLeaders.value = groupLeaders.value.filter((group) => {
-          return groupIDArray.includes(group.own_group.id);
-        });
+        groupLeaders.value = groupLeaders.value.filter(
+          (group) =>
+            !group.own_group || groupIDArray.includes(group.own_group.id)
+        );
         originalGroupLeaders.value = groupLeaders.value;
 
         availableLeaders.value = getAvailableLeaders(groupLeaders.value);
