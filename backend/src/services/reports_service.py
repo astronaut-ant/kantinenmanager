@@ -49,9 +49,9 @@ class ReportsService:
         orders = [
             CountOrdersObject(
                 location_id=location.id,
-                rot=location["rot"],
-                blau=location["blau"],
-                salad_option=location["salad_option"],
+                rot=location_counts[datum][location]["rot"],
+                blau=location_counts[datum][location]["blau"],
+                salad_option=location_counts[datum][location]["salad_option"],
             )
             for location in location_counts[datum]
         ]
