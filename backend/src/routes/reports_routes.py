@@ -25,7 +25,7 @@ reports_routes = Blueprint("reports_routes", __name__)
                 "in": "query",
                 "name": "location_id",
                 "description": "choose the location for the invoice",
-                "required": True,
+                "required": False,
                 "schema": {
                     "type": "string",
                     "format": "uuid",
@@ -37,7 +37,7 @@ reports_routes = Blueprint("reports_routes", __name__)
                 "description": "filter for pre_orders on or after date-start (YYYY-MM-DD)",
                 "type": "string",
                 "format": "date",
-                "required": False,
+                "required": True,
                 "example": "2024-12-08",
             },
             {
@@ -46,7 +46,7 @@ reports_routes = Blueprint("reports_routes", __name__)
                 "description": "filter for pre_orders on or before date-end (YYYY-MM-DD)",
                 "type": "string",
                 "format": "date",
-                "required": False,
+                "required": True,
                 "example": "2024-12-08",
             },
         ],
@@ -71,20 +71,20 @@ def get_report():
 
     try:
         location_id = request.args.get("location_id")
-        if not location_id:
-            abort_with_err(
-                ErrMsg(
-                    status_code=400,
-                    title="Validierungsfehler",
-                    description="Es wurde kein Standort übergeben",
-                    details="Die Abfrage erfordert mindestens einen Standort.",
-                )
-            )
+        # if not location_id:
+        #     abort_with_err(
+        #         ErrMsg(
+        #             status_code=400,
+        #             title="Validierungsfehler",
+        #             description="Es wurde kein Standort übergeben",
+        #             details="Die Abfrage erfordert mindestens einen Standort.",
+        #         )
+        #     )
 
         filters = OrdersFilters(
             date_start=datetime.strptime(ds_str, "%Y-%m-%d").date() if ds_str else None,
             date_end=datetime.strptime(de_str, "%Y-%m-%d").date() if de_str else None,
-            location_id=location_id,
+            location_id=location_id if location_id else None,
         )
 
     except ValidationError as err:
