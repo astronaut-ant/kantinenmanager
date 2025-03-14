@@ -208,20 +208,39 @@ onMounted(() => {
 });
 
 const handleSubmit = () => {
+  if (noKuechenpersonal.value) {
+    axios
+      .put(
+        import.meta.env.VITE_API +
+          `/api/locations/${oldLocationLeaderObject.location_id}`,
+        {
+          location_name: standortName.value,
+          user_id_location_leader: standortLeitungSelection.value,
+        },
+        { withCredentials: true }
+      )
+      .then(() => {
+        save();
+        success();
+        close();
+      });
+  }
   console.log(standortName.value);
   console.log(standortLeitungSelection.value);
   availableKuechenpersonal.forEach((kuechenpersonalObject) => {
     if (kuechenpersonalObject.location_id != null) {
-      axios.put(
-        import.meta.env.VITE_API + `/api/users/${kuechenpersonalObject.id}`,
-        {
-          first_name: kuechenpersonalObject.first_name,
-          last_name: kuechenpersonalObject.last_name,
-          user_group: kuechenpersonalObject.user_group,
-          username: kuechenpersonalObject.username,
-        },
-        { withCredentials: true }
-      );
+      axios
+        .put(
+          import.meta.env.VITE_API + `/api/users/${kuechenpersonalObject.id}`,
+          {
+            first_name: kuechenpersonalObject.first_name,
+            last_name: kuechenpersonalObject.last_name,
+            user_group: kuechenpersonalObject.user_group,
+            username: kuechenpersonalObject.username,
+          },
+          { withCredentials: true }
+        )
+        .then((response) => console.log(response.data));
     }
     console.log("EP", standortLeitungSelection.value);
     axios
@@ -235,35 +254,39 @@ const handleSubmit = () => {
         { withCredentials: true }
       )
       .then(() => {
-        const kuechenpersonalArrayForRequests = availableKuechenpersonal.filter(
-          (kuechenpersonalObject) => {
-            return kuechenpersonalSelection.value.includes(
-              kuechenpersonalObject.id
-            );
-          }
-        );
-        kuechenpersonalArrayForRequests.forEach(
-          (kuechenpersonalObject) =>
-            (kuechenpersonalObject.location_id =
-              oldLocationLeaderObject.location_id)
-        );
-        kuechenpersonalArrayForRequests.forEach((kuechenpersonalObject) => {
-          axios
-            .put(
-              import.meta.env.VITE_API +
-                `/api/users/${kuechenpersonalObject.id}`,
-              {
-                first_name: kuechenpersonalObject.first_name,
-                last_name: kuechenpersonalObject.last_name,
-                location_id: kuechenpersonalObject.location_id,
-                user_group: kuechenpersonalObject.user_group,
-                username: kuechenpersonalObject.username,
-              },
-              { withCredentials: true }
-            )
-            .then((response) => console.log(response.data))
-            .catch((err) => console.log(err));
-        });
+        {
+          const kuechenpersonalArrayForRequests =
+            availableKuechenpersonal.filter((kuechenpersonalObject) => {
+              return kuechenpersonalSelection.value.includes(
+                kuechenpersonalObject.id
+              );
+            });
+          kuechenpersonalArrayForRequests.forEach(
+            (kuechenpersonalObject) =>
+              (kuechenpersonalObject.location_id =
+                oldLocationLeaderObject.location_id)
+          );
+          kuechenpersonalArrayForRequests.forEach((kuechenpersonalObject) => {
+            axios
+              .put(
+                import.meta.env.VITE_API +
+                  `/api/users/${kuechenpersonalObject.id}`,
+                {
+                  first_name: kuechenpersonalObject.first_name,
+                  last_name: kuechenpersonalObject.last_name,
+                  location_id: kuechenpersonalObject.location_id,
+                  user_group: kuechenpersonalObject.user_group,
+                  username: kuechenpersonalObject.username,
+                },
+                { withCredentials: true }
+              )
+              .then((response) => console.log(response.data))
+              .catch((err) => console.log(err));
+          });
+        }
+      })
+      .catch((err) => {
+        console.log(err);
       })
       .then(() => {
         save();

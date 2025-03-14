@@ -7,17 +7,22 @@
   >
     <v-form v-model="form" @submit.prevent="init">
       <v-card>
-        <v-card-title class="mx-auto mt-3"
+        <v-card-title class="text-blue-grey-darken-3 ms-2 mt-3"
           >Bestellformular anlegen für den
           {{ formatDate(props.date) }}</v-card-title
         >
         <v-card-text
           ><v-select
             v-if="!onlyOne && !noGroupsLeft && !timeLimitExceeded"
+            :active="true"
+            base-color="blue-grey"
+            color="primary"
+            variant="outlined"
             class="mt-0"
+            placeholder="adkjlsf"
             required
             :rules="[required]"
-            label="Wähle Gruppe"
+            label="Gruppe"
             v-model="selectedGroup"
             :items="props.groups"
           ></v-select>
@@ -25,7 +30,7 @@
             v-if="onlyOne && !timeLimitExceeded"
             class="d-flex justify-center"
           >
-            <v-chip class="mt-3" color="#607D8B" size="large">{{
+            <v-chip class="mt-3" color="#4CAF50" size="large">{{
               selectedGroup
             }}</v-chip>
           </div>
@@ -43,10 +48,12 @@
           />
         </v-card-text>
 
-        <v-card-actions class="me-4 mb-2">
+        <v-card-actions class="me-4 mb-3">
           <v-spacer></v-spacer>
 
           <v-btn
+            variant="text"
+            color="blue-grey"
             :text="
               noGroupsLeft || timeLimitExceeded ? 'Schließen' : 'Abbrechen'
             "
