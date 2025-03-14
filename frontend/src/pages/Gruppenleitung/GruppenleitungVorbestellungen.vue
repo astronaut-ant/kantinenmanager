@@ -1,6 +1,6 @@
 <template>
-  <NavbarGruppenleitung :breadcrumbs = '[{"title": "Vorbestellungen"}]'/>
-  <h1 class="text-center mt-5 mb-7">Vorbestellungen</h1>
+  <NavbarGruppenleitung :breadcrumbs="[{ title: 'Vorbestellungen' }]" />
+  <h1 class="text-center mt-5 mb-7 text-blue-grey-darken-3">Vorbestellungen</h1>
   <div class="mx-auto w-75">
     <FullCalendar :options="calendarOptions" />
     <CalendarDialog
@@ -350,7 +350,20 @@ export default {
     console.log(employeeMap);
     const appStore = useAppStore();
     groupLeaderId = appStore.userData.id;
-    groupLocationId = appStore.userData.location_id;
+    console.log("TEST");
+    axios
+      .get(`${import.meta.env.VITE_API}/api/groups`, {
+        withCredentials: true,
+      })
+      .then((response) => {
+        let ownGroup = response.data;
+        groupLocationId = ownGroup[0].location.id;
+      })
+      .catch((err) => {
+        console.log("NOT WORKING");
+      });
+
+    // groupLocationId = appStore.userData.location_id;
     console.log(appStore);
     this.fillCalendar(groupLeaderId);
   },
@@ -358,17 +371,21 @@ export default {
 </script>
 
 <style>
+.fc-toolbar-title {
+  color: #37474f !important;
+}
 .fc-day-today {
   background: #1866c037 !important;
   border: none !important;
 }
 .fc-day-today:hover {
-  background: #fff9c4 !important;
+  background: #e8f5e9 !important;
   border: none !important;
 }
 
 .fc-day:hover {
-  background: #fff9c4 !important;
+  background: #e8f5e9 !important;
+
   cursor: pointer;
 }
 .fc-event:hover {
@@ -386,7 +403,7 @@ export default {
 }
 
 .fc-bg-event:hover {
-  background-color: #fff9c4 !important;
+  background-color: #e8f5e9 !important;
 }
 
 .fc-daygrid-day-number {

@@ -77,11 +77,11 @@
                 inset
                 variant="outlined"
                 v-model="employee_number"
-                :rules="[required, unique]"
+                :rules="[required]"
                 class="w-100"
                 label="Mitarbeiter-Nr."
                 placeholder="Nummer zuweisen"
-                :min="1"
+                :min="0"
                 required
                 clearable
               ></v-number-input>
@@ -145,6 +145,8 @@
       </v-card>
     </div>
   </div>
+  <SuccessSnackbar v-model="snackbar" :text="snackbarText"></SuccessSnackbar>
+
   <ErrorSnackbar
     v-model="errorSnackbar"
     :text="errorSnackbarText"
@@ -157,15 +159,19 @@ import axios from "axios";
 const validation = ref("");
 const showConfirm = ref(false);
 const form = ref(false);
-const employee_number = ref("");
+const employee_number = ref(null);
 const first_name = ref("");
 const last_name = ref("");
 const group_name = ref("");
 const location_name = ref("");
 const groupnames = ref({});
 const keys = ref([]);
+const snackbar = ref(false);
+const snackbarText = ref("");
 const errorSnackbar = ref(false);
 const errorSnackbarText = ref("");
+const groupObjects = ref([]);
+const location_id = ref(null);
 
 onMounted(() => {
   axios
@@ -175,9 +181,22 @@ onMounted(() => {
     .then((response) => {
       groupnames.value = response.data;
       keys.value = Object.keys(groupnames.value);
+      getGroupObjects();
     })
     .catch((err) => console.log(err));
 });
+
+const getGroupObjects = () => {
+  axios
+    .get(import.meta.env.VITE_API + "/api/groups", {
+      withCredentials: true,
+    })
+    .then((response) => {
+      groupObjects.value = response.data;
+      console.log(groupObjects.value);
+    })
+    .catch((err) => console.log(err));
+};
 
 const handleSubmit = () => {
   axios
@@ -194,13 +213,28 @@ const handleSubmit = () => {
     )
     .then((response) => {
       console.log(response.data);
+      getEmployeesData(response.data.id);
       showConfirm.value = true;
+      snackbarText.value = `${first_name.value} ${last_name.value} wurde erfolgreich angelegt!`;
+      snackbar.value = true;
+      emptyForm();
     })
     .catch((err) => {
       console.log(err);
       errorSnackbarText.value = "Fehler beim Anlegen des Mitarbeiters!";
       errorSnackbar.value = true;
     });
+};
+
+const getEmployeesData = (id) => {
+  axios
+    .get(import.meta.env.VITE_API + `/api/employees/${id}`, {
+      withCredentials: true,
+    })
+    .then((response) => {
+      console.log(response.data);
+    })
+    .catch((err) => console.log(err));
 };
 
 const required = (v) => {
@@ -220,6 +254,11 @@ const emptyForm = () => {
 };
 
 const selectOption = (option, area) => {
+  console.log("groupNames: ", groupnames.value);
+  location_id.value = groupObjects.value.find((groupObject) => {
+    return groupObject.location.location_name === area;
+  }).location.id;
+  console.log(location_id.value);
   group_name.value = option;
   location_name.value = area;
 };

@@ -238,11 +238,11 @@
                   inset
                   variant="outlined"
                   v-model="employee_number"
-                  :rules="[required, unique]"
+                  :rules="[required]"
                   class="w-100"
                   label="Mitarbeiter-Nr."
                   placeholder="Nummer zuweisen"
-                  :min="1"
+                  :min="0"
                   required
                   clearable
                 ></v-number-input>
@@ -328,7 +328,7 @@ const itemsPerPage = ref([
   { value: -1, title: "Alle Einträge" },
 ]);
 
-const employee_number = ref("");
+const employee_number = ref(null);
 const first_name = ref("");
 const last_name = ref("");
 const group_name = ref("");
