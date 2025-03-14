@@ -1,9 +1,12 @@
 <template>
-  <NavbarVerwaltung />
+  <NavbarVerwaltung
+    :breadcrumbs="[{ title: 'Abrechnung' }, { title: 'Abrechnung erstellen' }]"
+  />
   <v-container>
     <v-row justify="center" class="mt-6 mb-4">
       <v-col cols="12" class="text-center">
         <h1 class="text-h4 text-primary font-weight-bold">
+          <v-icon class="me-2">mdi-invoice-arrow-left-outline</v-icon>
           Abrechnung erstellen
         </h1>
       </v-col>
@@ -42,7 +45,7 @@
           :color="selected === 'mitarbeiter' ? 'primary' : 'blue-grey'"
           @click="(selected = 'mitarbeiter'), clearStandort(), clearGruppe()"
         >
-          Mitarbeiter
+          Personal
         </v-btn>
         <v-divider class="flex-grow-1 ml-2"></v-divider>
       </v-col>
@@ -52,13 +55,14 @@
       <v-col cols="6">
         <v-card
           v-if="selected === 'standort'"
-          class="pa-4 text-blue-grey-darken-3"
+          class="pa-4 text-blue-grey-darken-3 ms-n2 me-n8"
         >
           <v-card-title class="text-h6">
             Abrechnung für einen Standort
           </v-card-title>
           <v-card-text>
-            Standort für welchen die Abrechnung erstellt werden soll auswählen.
+            Standort, für welchen die Abrechnung erstellt werden soll,
+            auswählen.
             <v-menu>
               <template #activator="{ props }">
                 <v-text-field
@@ -67,10 +71,11 @@
                   color="primary"
                   variant="outlined"
                   Placeholder="Standort auswählen"
-                  class="mt-5 text-blue-grey-darken-3"
+                  class="mt-10 text-blue-grey-darken-3"
                   v-bind="props"
                   v-model="selectedLocationName"
                   label="Standort"
+                  clearable
                   readonly
                   append-inner-icon="mdi-chevron-down"
                 ></v-text-field>
@@ -115,13 +120,13 @@
 
         <v-card
           v-if="selected === 'gruppe'"
-          class="pa-4 text-blue-grey-darken-3"
+          class="pa-4 text-blue-grey-darken-3 ms-n2 me-n8"
         >
           <v-card-title class="text-h6">
             Abrechnung für eine Gruppe
           </v-card-title>
           <v-card-text>
-            Gruppe für welche die Abrechnung erstellt werden soll auswählen.
+            Gruppe, für welche die Abrechnung erstellt werden soll, auswählen.
             <v-menu offset-y>
               <template #activator="{ props }">
                 <v-text-field
@@ -130,17 +135,18 @@
                   color="primary"
                   variant="outlined"
                   Placeholder="Gruppe auswählen"
-                  class="mt-5"
+                  class="mt-10"
                   v-bind="props"
                   v-model="selectedGroupName"
                   label="Gruppe auswählen"
                   readonly
+                  clearable
                   append-inner-icon="mdi-chevron-down"
                 ></v-text-field>
               </template>
-              <v-list>
+              <v-list class="w-50">
                 <v-list-item v-for="location in locations" :key="location.id">
-                  <v-list-item-title>{{
+                  <v-list-item-title class="cursor-pointer">{{
                     location?.location_name
                   }}</v-list-item-title>
 
@@ -151,7 +157,7 @@
                   <v-menu
                     offset-y
                     activator="parent"
-                    open-on-hover
+                    open-on-click
                     close-on-content-click
                     location="end"
                   >
@@ -205,26 +211,23 @@
 
         <v-card
           v-if="selected === 'mitarbeiter'"
-          class="pa-4 text-blue-grey-darken-3"
+          class="pa-4 text-blue-grey-darken-3 ms-n2 me-n8"
         >
-          <v-card-title class="text-h6">
-            Abrechnung für einen Mitarbeiter
-          </v-card-title>
+          <v-card-title class="text-h6"> Abrechnung für Personal </v-card-title>
           <v-card-text>
-            Mitarbeiter für welchen eine Abrechnung erstellt werden soll
-            auswählen.
+            Person, für welche eine Abrechnung erstellt werden soll, auswählen.
             <v-text-field
               :active="true"
               base-color="blue-grey"
               color="primary"
               variant="outlined"
-              Placeholder="Mitarbeiter auswählen"
-              class="mt-5"
+              Placeholder="Person auswählen"
+              class="mt-10"
               v-model="selectedPersonName"
-              label="Mitarbeiter"
+              label="Person"
               readonly
               append-inner-icon="mdi-chevron-down"
-              @click="personDialog = true"
+              @click="(personDialog = true), (isSearchVisible = false)"
             ></v-text-field>
             <v-text-field
               :active="true"
@@ -256,12 +259,14 @@
   </v-container>
 
   <v-dialog v-model="showDialog1" max-width="400">
-    <v-card>
-      <v-card-title class="text-h5 mt-2"> Zeitraum auswählen </v-card-title>
+    <v-card class="text-blue-grey-darken-3">
+      <v-card-title class="text-h5 mt-2 ms-7 mb-n2">
+        Zeitraum auswählen
+      </v-card-title>
 
       <v-card-text>
-        {{ formattedDateRange1 }}
         <v-date-picker
+          color="primary"
           v-model="selectedDates1"
           multiple="range"
           :min="minDate"
@@ -269,28 +274,43 @@
           hide-header
         />
       </v-card-text>
+      <span class="text-center text-blue-grey mt-n6 mb-8 font-weight-bold">
+        {{ formattedDateRange1 }}
+      </span>
 
-      <v-divider></v-divider>
+      <div class="px-12">
+        <v-divider></v-divider>
+      </div>
 
-      <v-card-actions class="justify-center">
+      <v-card-actions class="justify-end me-7">
         <v-btn
-          color="grey darken-1"
+          color="blue-grey"
           variant="text"
+          @click="(showDialog1 = false), (selectedDates1 = [])"
+        >
+          Abbrechen
+        </v-btn>
+        <v-btn
+          :disabled="selectedDates1.length === 0"
+          color="primary"
+          variant="elevated"
           @click="showDialog1 = false"
         >
-          Schließen
+          Übernehmen
         </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
 
   <v-dialog v-model="showDialog2" max-width="400">
-    <v-card>
-      <v-card-title class="text-h5 mt-2"> Zeitraum auswählen </v-card-title>
+    <v-card class="text-blue-grey-darken-3">
+      <v-card-title class="text-h5 mt-2 ms-7 mb-n2">
+        Zeitraum auswählen
+      </v-card-title>
 
       <v-card-text>
-        {{ formattedDateRange2 }}
         <v-date-picker
+          color="primary"
           v-model="selectedDates2"
           multiple="range"
           :min="minDate"
@@ -298,28 +318,43 @@
           hide-header
         />
       </v-card-text>
+      <span class="text-center text-blue-grey mt-n6 mb-8 font-weight-bold">
+        {{ formattedDateRange2 }}
+      </span>
 
-      <v-divider></v-divider>
+      <div class="px-12">
+        <v-divider></v-divider>
+      </div>
 
-      <v-card-actions class="justify-center">
+      <v-card-actions class="justify-end me-7">
         <v-btn
-          color="grey darken-1"
+          color="blue-grey"
           variant="text"
+          @click="(showDialog2 = false), (selectedDates2 = [])"
+        >
+          Abbrechen
+        </v-btn>
+        <v-btn
+          :disabled="selectedDates2.length === 0"
+          color="primary"
+          variant="elevated"
           @click="showDialog2 = false"
         >
-          Schließen
+          Übernehmen
         </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
 
   <v-dialog v-model="showDialog3" max-width="400">
-    <v-card>
-      <v-card-title class="text-h5 mt-2"> Zeitraum auswählen </v-card-title>
+    <v-card class="text-blue-grey-darken-3">
+      <v-card-title class="text-h5 mt-2 ms-7 mb-n2">
+        Zeitraum auswählen
+      </v-card-title>
 
       <v-card-text>
-        {{ formattedDateRange3 }}
         <v-date-picker
+          color="primary"
           v-model="selectedDates3"
           multiple="range"
           :min="minDate"
@@ -327,49 +362,67 @@
           hide-header
         />
       </v-card-text>
+      <span class="text-center text-blue-grey mt-n6 mb-8 font-weight-bold">
+        {{ formattedDateRange2 }}
+      </span>
 
-      <v-divider></v-divider>
+      <div class="px-12">
+        <v-divider></v-divider>
+      </div>
 
-      <v-card-actions class="justify-center">
+      <v-card-actions class="justify-end me-7">
         <v-btn
-          color="grey darken-1"
+          color="blue-grey"
           variant="text"
+          @click="(showDialog3 = false), (selectedDates3 = [])"
+        >
+          Abbrechen
+        </v-btn>
+        <v-btn
+          :disabled="selectedDates3.length === 0"
+          color="primary"
+          variant="elevated"
           @click="showDialog3 = false"
         >
-          Schließen
+          Übernehmen
         </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
 
   <v-dialog v-model="personDialog" max-width="800">
-    <v-card>
-      <div>
-        <v-toolbar color="white" flat dark>
-          <p class="text-h5 font-weight-black ml-4">Mitarbeiter Auswahl</p>
-          <v-spacer></v-spacer>
-          <v-btn icon="mdi-magnify" @click="toggleSearchField"></v-btn>
-        </v-toolbar>
-      </div>
-      <div class="d-flex justify-center">
-        <v-expand-transition>
-          <v-text-field
-            v-if="isSearchVisible"
-            v-model="search"
-            density="compact"
-            label="Suche"
-            prepend-inner-icon="mdi-magnify"
-            variant="solo-filled"
-            flat
-            hide-details
-            single-line
-            clearable
-            rounded
-          ></v-text-field>
-        </v-expand-transition>
+    <v-card class="text-blue-grey-darken-3 px-5">
+      <v-spacer></v-spacer>
+
+      <div class="d-flex h-100 align-center justify-space-between pe-6 mt-5">
+        <h2 class="text-blue-grey-darken-3 ml-6">Personal</h2>
+        <div class="w-50">
+          <v-slide-x-reverse-transition>
+            <v-text-field
+              v-if="isSearchVisible"
+              v-model="search"
+              density="compact"
+              label="Suche"
+              prepend-inner-icon="mdi-magnify"
+              variant="solo-filled"
+              flat
+              hide-details
+              single-line
+              clearable
+              rounded
+            ></v-text-field>
+          </v-slide-x-reverse-transition>
+        </div>
+        <v-btn
+          class="bg-blue-grey"
+          size="35"
+          icon="mdi-magnify"
+          @click="toggleSearchField"
+        ></v-btn>
       </div>
       <v-card-text>
         <v-data-table
+          class="text-blue-grey"
           :headers="headers"
           :items="items"
           :search="search"
@@ -379,16 +432,26 @@
           select-strategy="single"
           dense
           hover
+          @update:model-value="check"
         >
         </v-data-table>
       </v-card-text>
-      <v-card-actions class="justify-center">
+      <v-card-actions class="justify-end mt-n5 mb-2 me-3">
         <v-btn
-          color="grey darken-1"
+          @click="
+            (personDialog = false), (selectedPersonId = null), (checked = false)
+          "
+          color="blue-grey"
           variant="text"
+          >Abbrechen</v-btn
+        >
+        <v-btn
+          :disabled="!checked"
+          color="primary"
+          variant="elevated"
           @click="personDialog = false"
         >
-          Schließen
+          Übernehmen
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -418,14 +481,19 @@ const showDialog3 = ref(false);
 const personDialog = ref(false);
 const isSearchVisible = ref(false);
 const search = ref("");
+const checked = ref(false);
 
 const headers = [
-  { titel: "Tätigkeit", key: "tätikeit", nowrap: true },
+  { titel: "Tätigkeit", key: "tätigkeit", nowrap: true },
   { title: "Vorname", key: "first_name", nowrap: true },
   { title: "Nachname", key: "last_name", nowrap: true },
   { title: "Standort", key: "location_name", nowrap: true },
   { title: "Gruppe", key: "group_name", nowrap: true },
 ];
+
+const check = () => {
+  checked.value = selectedPersonId.value.length !== 0;
+};
 
 const clearStandort = () => {
   selectedLocationName.value = null;

@@ -200,7 +200,6 @@
                       offset-y
                       activator="parent"
                       open-on-click
-                      open-on-hover
                       close-on-content-click
                       location="end"
                     >
