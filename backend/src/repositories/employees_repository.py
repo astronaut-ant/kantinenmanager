@@ -110,8 +110,8 @@ class EmployeesRepository:
             select(Group)
             .join(Location)
             .where(
-                func.lower(Group.group_name) == group_name.lower(),
-                func.lower(Location.location_name) == location_name.lower(),
+                Group.group_name == group_name,
+                Location.location_name == location_name,
             )
         ).first()
 
