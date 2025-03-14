@@ -206,7 +206,7 @@ class PDFCreationUtils:
     ################################# Reports PDF #################################
 
     @staticmethod
-    def create_pdf_report(filters: OrdersFilters, location_counts: dict) -> Response:
+    def create_pdf_report(filters: OrdersFilters, date_location_counts: dict, all_locations: bool = False) -> Response:
 
         buffer = BytesIO()
         pdf = SimpleDocTemplate(buffer, pagesize=A4)
@@ -217,14 +217,34 @@ class PDFCreationUtils:
         if not date_str:
             raise ValueError("Kein Datum übergeben")
 
-        elements.append(Paragraph(f"Datum: {date_str}", styles["Heading2"]))
+        elements.append(Paragraph(f"Bestellübersicht für Zeitraum: {date_str}", styles["Heading1"]))
         elements.append(Spacer(1, 12))
+        sorted_dates = sorted(date_location_counts.keys())
 
-        for location, counts in location_counts.items():
-            location_block = PDFCreationUtils._create_location_pdf_block(
-                location.location_name, counts, styles
-            )
-            elements.append(KeepTogether(location_block))
+        for current_date in sorted_dates:
+            date_formatted = current_date.strftime("%d.%m.%Y")
+            elements.append(Paragraph(f"Datum: {date_formatted}", styles["Heading2"]))
+
+            if all_locations:
+                counter_for_date = {"rot": 0, "blau": 0, "salad_option": 0}
+                for location in date_location_counts[current_date]:
+                    counter_for_date["rot"] += date_location_counts[current_date][location]["rot"]
+                    counter_for_date["blau"] += date_location_counts[current_date][location]["blau"]
+                    counter_for_date["salad_option"] += date_location_counts[current_date][location]["salad_option"]
+                elements.append(Paragraph(f"Rot: {counter_for_date["rot"]}, Blau: {counter_for_date["blau"]}, Salat: {counter_for_date["salad_option"]}", styles["Heading3"]))
+                
+            elements.append(Spacer(1, 8))
+
+            locations_for_date: dict = date_location_counts[current_date]
+            
+            for location, counts in locations_for_date.items():
+                location_block = PDFCreationUtils._create_location_pdf_block(
+                    location.location_name, counts, styles
+                )
+                elements.append(KeepTogether(location_block))
+            
+            elements.append(Spacer(1, 20))
+
 
         pdf.build(elements)
         buffer.seek(0)

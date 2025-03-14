@@ -78,7 +78,7 @@ class DevelopmentFeatures(Features):
     INSERT_MOCK_DATA = True
     CRONJOBS = True
     LOGGING = LoggingMethod.CONSOLE
-    ORDER_MIGRATION_STARTUP = False
+    ORDER_MIGRATION_STARTUP = True
 
 
 class MigrationFeatures(Features):

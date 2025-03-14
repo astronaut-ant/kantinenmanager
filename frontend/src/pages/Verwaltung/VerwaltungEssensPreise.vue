@@ -1,7 +1,13 @@
 <template>
-  <NavbarVerwaltung />
-  <v-card class="mx-auto mt-5" max-width="900">
-    <v-card-title class="text-h6 font-weight-bold text-center">Essenspreise</v-card-title>
+  <NavbarVerwaltung
+    :breadcrumbs="[{ title: 'Abrechnung' }, { title: 'Preise anpassen' }]"
+  />
+
+  <v-card class="pa-5 mx-auto mt-15" max-width="900">
+    <v-card-title class="text-h4 font-weight-bold ms-2 mb-2 text-primary">
+      <v-icon :size="36" class="me-3 ms-n2 mt-n1">mdi-currency-eur</v-icon
+      >Essenspreise</v-card-title
+    >
     <v-card-text>
       <v-data-table
         :headers="headers"
@@ -10,8 +16,18 @@
         :sort-by="sortBy"
       >
         <template v-slot:[`item.actions`]="{ item }">
-          <v-btn icon="mdi-lead-pencil" class="bg-primary mr-2" @click="openEditDialog(item)" size="small"></v-btn>
-          <v-btn icon="mdi-trash-can-outline" class="bg-red" @click="openDeleteDialog(item)" size="small"></v-btn>
+          <v-btn
+            icon="mdi-lead-pencil"
+            class="bg-primary mr-2"
+            @click="openEditDialog(item)"
+            size="small"
+          ></v-btn>
+          <v-btn
+            icon="mdi-trash-can-outline"
+            class="bg-red"
+            @click="openDeleteDialog(item)"
+            size="small"
+          ></v-btn>
         </template>
       </v-data-table>
     </v-card-text>
@@ -29,14 +45,34 @@
       </v-card-title>
       <v-card-text>
         <v-form>
-          <v-text-field v-model="mainDishEdit" label="Hauptgericht Preis (€)" type="number" :rules="[required]"></v-text-field>
-          <v-text-field v-model="saladEdit" label="Salat Preis (€)" type="number" :rules="[required]"></v-text-field>
-          <v-text-field v-model="prepaymentEdit" label="Vorauszahlung (€)" type="number" :rules="[required]"></v-text-field>
+          <v-text-field
+            v-model="mainDishEdit"
+            label="Hauptgericht Preis (€)"
+            type="number"
+            :rules="[required]"
+          ></v-text-field>
+          <v-text-field
+            v-model="saladEdit"
+            label="Salat Preis (€)"
+            type="number"
+            :rules="[required]"
+          ></v-text-field>
+          <v-text-field
+            v-model="prepaymentEdit"
+            label="Vorauszahlung (€)"
+            type="number"
+            :rules="[required]"
+          ></v-text-field>
         </v-form>
       </v-card-text>
       <v-card-actions>
         <v-btn @click="closeEditDialog()" color="grey">Abbrechen</v-btn>
-        <v-btn @click="saveChanges()" color="green" :disabled="!mainDishEdit || !saladEdit || !prepaymentEdit">Speichern</v-btn>
+        <v-btn
+          @click="saveChanges()"
+          color="green"
+          :disabled="!mainDishEdit || !saladEdit || !prepaymentEdit"
+          >Speichern</v-btn
+        >
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -44,18 +80,28 @@
   <v-dialog v-model="deleteDialog" persistent max-width="600px">
     <v-card>
       <v-card-title>
-        <span class="headline justify-center" color="red">Essenspreis Löschen</span>
+        <span class="headline justify-center" color="red"
+          >Essenspreis Löschen</span
+        >
       </v-card-title>
       <v-card-text v-if="deletableMeal">
         <div class="text-medium-emphasis">
-          <p> Sind Sie sicher, dass Sie den Essenspreis vom <strong>{{ deletableMeal?.startDateF }}</strong>
-            bis zum <strong>{{ deletableMeal?.endDateF }}</strong> löschen möchten?</p>
-          <p> Nach dem Löschen werden die Daten(Preise und Vorbezahlung) vom <strong>vorherigen Essenspreis</strong> verwendet</p>
+          <p>
+            Sind Sie sicher, dass Sie den Essenspreis vom
+            <strong>{{ deletableMeal?.startDateF }}</strong> bis zum
+            <strong>{{ deletableMeal?.endDateF }}</strong> löschen möchten?
+          </p>
+          <p>
+            Nach dem Löschen werden die Daten(Preise und Vorbezahlung) vom
+            <strong>vorherigen Essenspreis</strong> verwendet
+          </p>
         </div>
       </v-card-text>
       <v-card-actions>
         <v-btn @click="closeDeleteDialog()" color="grey">Abbrechen</v-btn>
-        <v-btn @click="handleDelete()" color="red" :disabled="!deletableMeal">Löschen</v-btn>
+        <v-btn @click="handleDelete()" color="red" :disabled="!deletableMeal"
+          >Löschen</v-btn
+        >
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -63,30 +109,86 @@
   <v-dialog v-model="addDialog" persistent max-width="600px">
     <v-card>
       <v-card-title>
-        <span class="headline justify-center">Neuer Essenspreis</span>
+        <h2 class="text-primary headline justify-center ms-2 mt-2">
+          Neuer Essenspreis
+        </h2>
       </v-card-title>
       <v-card-text>
-        <v-text-field v-model="startDateAddF" label="Start Datum" @click="dateMenu=true" readonly></v-text-field>
-        <v-text-field v-model="mainDishAdd" label="Hauptgericht Preis (€)" type="number" :rules="[required]"></v-text-field>
-        <v-text-field v-model="saladAdd" label="Salat Preis (€)" type="number" :rules="[required]"></v-text-field>
-        <v-text-field v-model="prepaymentAdd" label="Vorrauszahlung (€)" type="number" :rules="[required]"></v-text-field>
+        <v-text-field
+          class="mt-4"
+          :active="true"
+          base-color="blue-grey"
+          color="primary"
+          variant="outlined"
+          Placeholder="Start-Datum auswählen"
+          v-model="startDateAddF"
+          label="Start-Datum"
+          @click="dateMenu = true"
+          readonly
+        ></v-text-field>
+        <v-text-field
+          class="mt-4"
+          :active="true"
+          base-color="blue-grey"
+          color="primary"
+          variant="outlined"
+          Placeholder="Hauptgericht Preis (€)"
+          v-model="mainDishAdd"
+          label="Hauptgericht"
+          type="number"
+          :rules="[required]"
+        ></v-text-field>
+        <v-text-field
+          :active="true"
+          class="mt-4"
+          base-color="blue-grey"
+          color="primary"
+          variant="outlined"
+          Placeholder="Salat Preis (€)"
+          v-model="saladAdd"
+          label="Salat"
+          type="number"
+          :rules="[required]"
+        ></v-text-field>
+        <v-text-field
+          class="mt-4"
+          :active="true"
+          base-color="blue-grey"
+          color="primary"
+          variant="outlined"
+          Placeholder="Vorrauszahlung in €"
+          v-model="prepaymentAdd"
+          label="Vorrauszahlung"
+          type="number"
+          :rules="[required]"
+        ></v-text-field>
       </v-card-text>
       <v-card-actions>
-        <v-btn @click="closeAddDialog()" color="grey">Abbrechen</v-btn>
-        <v-btn @click="handleAdd()" color="green"
-          :disabled="!startDateAdd || !mainDishAdd || !saladAdd || !prepaymentAdd"
-        >Hinzufügen</v-btn>
+        <v-btn @click="closeAddDialog()" variant="text" color="blue-grey"
+          >Abbrechen</v-btn
+        >
+        <v-btn
+          @click="handleAdd()"
+          color="primary"
+          variant="elevated"
+          class="me-4"
+          :disabled="
+            !startDateAdd || !mainDishAdd || !saladAdd || !prepaymentAdd
+          "
+          >Hinzufügen</v-btn
+        >
       </v-card-actions>
     </v-card>
   </v-dialog>
 
   <v-dialog v-model="dateMenu" max-width="400">
     <v-card>
-      <v-card-title>
-        Start Datum auswählen
-      </v-card-title>
+      <v-card-title> Start Datum auswählen </v-card-title>
       <v-card-text>
-        <v-date-picker v-model="selectedDate" @update:modelValue="confirmDate()"></v-date-picker>
+        <v-date-picker
+          v-model="selectedDate"
+          @update:modelValue="confirmDate()"
+        ></v-date-picker>
       </v-card-text>
     </v-card>
   </v-dialog>
@@ -98,7 +200,7 @@ const meals = ref([]);
 const editDialog = ref(false);
 const mainDishEdit = ref(null);
 const saladEdit = ref(null);
-const prepaymentEdit = ref (null);
+const prepaymentEdit = ref(null);
 const startDateEdit = ref(null);
 const deleteDialog = ref(false);
 const deletableMeal = ref(null);
@@ -107,23 +209,23 @@ const startDateAdd = ref(null);
 const startDateAddF = ref(null);
 const mainDishAdd = ref(null);
 const saladAdd = ref(null);
-const prepaymentAdd = ref (null);
+const prepaymentAdd = ref(null);
 const dateMenu = ref(false);
 const selectedDate = ref(null);
 
 const headers = [
-  { title: "Startdatum", key: "startDateF", nowrap: true},
-  { title: "Enddatum", key: "endDateF", nowrap: true},
-  { title: "Hauptgericht (€)", key: "mainDishF", nowrap: true},
-  { title: "Salat (€)", key: "saladF", nowrap: true},
-  { title: "Vorauszahlung (€)", key: "prepaymentF", nowrap: true},
+  { title: "Startdatum", key: "startDateF", nowrap: true },
+  { title: "Enddatum", key: "endDateF", nowrap: true },
+  { title: "Hauptgericht (€)", key: "mainDishF", nowrap: true },
+  { title: "Salat (€)", key: "saladF", nowrap: true },
+  { title: "Vorauszahlung (€)", key: "prepaymentF", nowrap: true },
   { title: "", key: "actions", sortable: false, nowrap: true },
 ];
 
-const sortBy = [{ key: 'startDatum', order: 'asc' }]
+const sortBy = [{ key: "startDatum", order: "asc" }];
 
 const openEditDialog = (meal) => {
-  console.log(meal)
+  console.log(meal);
   mainDishEdit.value = meal.mainDish;
   saladEdit.value = meal.salad;
   prepaymentEdit.value = meal.prepayment;
@@ -141,14 +243,16 @@ const closeEditDialog = () => {
 
 const saveChanges = () => {
   axios
-    .put(import.meta.env.VITE_API + `/api/dish_prices/${startDateEdit.value}`,
+    .put(
+      import.meta.env.VITE_API + `/api/dish_prices/${startDateEdit.value}`,
       {
-        "date": startDateEdit.value,
-        "main_dish_price": mainDishEdit.value,
-        "salad_price": saladEdit.value,
-        "prepayment": prepaymentEdit.value,
+        date: startDateEdit.value,
+        main_dish_price: mainDishEdit.value,
+        salad_price: saladEdit.value,
+        prepayment: prepaymentEdit.value,
       },
-      { withCredentials: true })
+      { withCredentials: true }
+    )
     .then(() => {
       fetchMeals();
       closeEditDialog();
@@ -177,8 +281,8 @@ const formattedMeals = computed(() => {
 
 const openDeleteDialog = (meal) => {
   deletableMeal.value = meal;
-  console.log(meal)
-  console.log(deletableMeal.value)
+  console.log(meal);
+  console.log(deletableMeal.value);
   deleteDialog.value = true;
 };
 
@@ -189,8 +293,11 @@ const closeDeleteDialog = () => {
 
 const handleDelete = () => {
   axios
-    .delete(import.meta.env.VITE_API + `/api/dish_prices/${deletableMeal.value?.startDate}`,
-      { withCredentials: true })
+    .delete(
+      import.meta.env.VITE_API +
+        `/api/dish_prices/${deletableMeal.value?.startDate}`,
+      { withCredentials: true }
+    )
     .then(() => {
       fetchMeals();
       closeDeleteDialog();
@@ -214,23 +321,25 @@ const confirmDate = () => {
   const dateObj = new Date(selectedDate.value);
 
   const year = dateObj.getFullYear();
-  const month = String(dateObj.getMonth() + 1).padStart(2, '0'); // Monate sind 0-basiert
-  const day = String(dateObj.getDate()).padStart(2, '0');
+  const month = String(dateObj.getMonth() + 1).padStart(2, "0"); // Monate sind 0-basiert
+  const day = String(dateObj.getDate()).padStart(2, "0");
 
-  startDateAddF.value = `${day}.${month}.${year}`
-  startDateAdd.value = `${year}-${month}-${day}`
+  startDateAddF.value = `${day}.${month}.${year}`;
+  startDateAdd.value = `${year}-${month}-${day}`;
 };
 
 const handleAdd = () => {
   axios
-    .post(import.meta.env.VITE_API + "/api/dish_prices",
+    .post(
+      import.meta.env.VITE_API + "/api/dish_prices",
       {
-        "date": startDateAdd.value,
-        "main_dish_price": mainDishAdd.value,
-        "prepayment": prepaymentAdd.value,
-        "salad_price": saladAdd.value,
+        date: startDateAdd.value,
+        main_dish_price: mainDishAdd.value,
+        prepayment: prepaymentAdd.value,
+        salad_price: saladAdd.value,
       },
-      { withCredentials: true })
+      { withCredentials: true }
+    )
     .then((response) => {
       fetchMeals();
       closeAddDialog();
@@ -240,16 +349,20 @@ const handleAdd = () => {
 
 const fetchMeals = () => {
   axios
-    .get(import.meta.env.VITE_API + "/api/dish_prices", { withCredentials: true })
+    .get(import.meta.env.VITE_API + "/api/dish_prices", {
+      withCredentials: true,
+    })
     .then((response) => {
-      console.log(response.data)
+      console.log(response.data);
       meals.value = response.data.sort((a, b) => {
         const dateA = a.date.split("-").map(Number);
         const dateB = b.date.split("-").map(Number);
 
-        return dateA[0] - dateB[0] || dateA[1] - dateB[1] || dateA[2] - dateB[2];
+        return (
+          dateA[0] - dateB[0] || dateA[1] - dateB[1] || dateA[2] - dateB[2]
+        );
       });
-      console.log(meals.value)
+      console.log(meals.value);
     })
     .catch((err) => console.log("Fehler beim Laden der Essenspreise:", err));
 };

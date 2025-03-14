@@ -2,7 +2,7 @@
   <v-card class="mx-2 my-2" width="425" elevation="16">
     <v-card-item>
       <div class="d-flex justify-space-between align-center">
-        <v-card-title>{{ props.name }}</v-card-title>
+        <v-card-title class="mb-2">{{ props.name }}</v-card-title>
         <v-chip color="primary" density="comfortable">{{
           props.group_number
         }}</v-chip>
