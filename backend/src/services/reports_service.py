@@ -142,8 +142,8 @@ class ReportsService:
             if order_date not in date_location_counts:
                 date_location_counts[order_date] = {}
 
-            if location not in date_location_counts:
-                date_location_counts[location] = {
+            if location not in date_location_counts[order_date]:
+                date_location_counts[order_date][location] = {
                     "rot": 0,
                     "blau": 0,
                     "salad_option": 0,
