@@ -93,7 +93,11 @@ class ReportsService:
             if ReportsService._check_user_access_to_location(
                 fil.location_id, user_id, user_group
             ):
-                orders.extend(OrdersRepository.get_pre_orders(fil))
+                orders.extend(
+                    OrdersRepository.get_pre_orders(
+                        fil, user_group=user_group, user_id=user_id
+                    )
+                )
                 orders.extend(OrdersRepository.get_all_daily_orders(fil))
                 orders.extend(OrdersRepository.get_old_orders(fil))
             else:
