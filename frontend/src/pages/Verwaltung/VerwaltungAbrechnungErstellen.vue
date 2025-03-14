@@ -92,11 +92,21 @@
                 </v-list-item>
               </v-list>
             </v-menu>
-            <v-menu v-model="dateMenu1" location="center" transition="scale-transition">
+            <v-menu
+              v-model="dateMenu1"
+              location="center"
+              transition="scale-transition"
+            >
               <template v-slot:activator="{ props }">
                 <v-text-field
+                  :active="true"
+                  base-color="blue-grey"
+                  color="primary"
+                  variant="outlined"
+                  Placeholder="Monat auswählen"
+                  class="mt-3 mb-n2"
+                  label="Monat"
                   v-model="selectedMonthFormatted"
-                  label="Monat auswählen"
                   readonly
                   v-bind="props"
                   append-inner-icon="mdi-chevron-down"
@@ -192,15 +202,24 @@
                 </v-list-item>
               </v-list>
             </v-menu>
-            <v-menu v-model="dateMenu2" location="center" transition="scale-transition">
+            <v-menu
+              v-model="dateMenu2"
+              location="center"
+              transition="scale-transition"
+            >
               <template v-slot:activator="{ props }">
                 <v-text-field
+                  :active="true"
+                  base-color="blue-grey"
+                  color="primary"
+                  variant="outlined"
+                  Placeholder="Monat auswählen"
+                  class="mt-3 mb-n2"
                   v-model="selectedMonthFormatted"
-                  label="Monat auswählen"
+                  label="Monat"
                   readonly
                   v-bind="props"
                   append-inner-icon="mdi-chevron-down"
-                  :rules="[required]"
                 ></v-text-field>
               </template>
 
@@ -210,7 +229,9 @@
                   :key="month.value"
                   @click="selectMonth(month)"
                 >
-                  <v-list-item-title>{{ month.label }}</v-list-item-title>
+                  <v-list-item-title class="text-blue-grey-darken-3">{{
+                    month.label
+                  }}</v-list-item-title>
                 </v-list-item>
               </v-list>
             </v-menu>
@@ -247,11 +268,21 @@
               append-inner-icon="mdi-chevron-down"
               @click="(personDialog = true), (isSearchVisible = false)"
             ></v-text-field>
-            <v-menu v-model="dateMenu3" location="center" transition="scale-transition">
+            <v-menu
+              v-model="dateMenu3"
+              location="center"
+              transition="scale-transition"
+            >
               <template v-slot:activator="{ props }">
                 <v-text-field
+                  :active="true"
+                  base-color="blue-grey"
+                  color="primary"
+                  variant="outlined"
+                  Placeholder="Monat auswählen"
+                  class="mt-3 mb-n2"
+                  label="Monat"
                   v-model="selectedMonthFormatted"
-                  label="Monat auswählen"
                   readonly
                   v-bind="props"
                   append-inner-icon="mdi-chevron-down"
@@ -274,7 +305,11 @@
             <v-btn
               color="primary"
               variant="elevated"
-              :disabled="!selectedPersonId || selectedPersonId.length < 1 || !selectedMonth"
+              :disabled="
+                !selectedPersonId ||
+                selectedPersonId.length < 1 ||
+                !selectedMonth
+              "
               @click="generateInvoice()"
             >
               Erstellen
@@ -412,15 +447,27 @@ const toggleSearchField = () => {
 const lastSixMonths = computed(() => {
   const months = [];
   const monthNames = [
-    "Januar", "Februar", "März", "April", "Mai", "Juni",
-    "Juli", "August", "September", "Oktober", "November", "Dezember"
+    "Januar",
+    "Februar",
+    "März",
+    "April",
+    "Mai",
+    "Juni",
+    "Juli",
+    "August",
+    "September",
+    "Oktober",
+    "November",
+    "Dezember",
   ];
 
   const today = new Date();
   for (let i = 1; i <= 6; i++) {
     const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
     const monthLabel = `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
-    const monthValue = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    const monthValue = `${date.getFullYear()}-${String(
+      date.getMonth() + 1
+    ).padStart(2, "0")}`;
 
     months.push({ label: monthLabel, value: monthValue });
   }
@@ -429,7 +476,7 @@ const lastSixMonths = computed(() => {
 
 const selectedMonthFormatted = computed(() => {
   return selectedMonth.value
-    ? lastSixMonths.value.find(m => m.value === selectedMonth.value)?.label
+    ? lastSixMonths.value.find((m) => m.value === selectedMonth.value)?.label
     : null;
 });
 
