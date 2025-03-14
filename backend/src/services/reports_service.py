@@ -161,7 +161,7 @@ class ReportsService:
         filters: OrdersFilters,
     ) -> Union[Response]:
         """
-        Get an invoice report #TODO filterd by date and location
+        Get an invoice report filterd by date and location
         :param filters: Filters for old orders
         :return: a pdf file with the report or None if no orders were found
         """

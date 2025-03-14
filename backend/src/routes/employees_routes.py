@@ -245,7 +245,6 @@ def csv_create():
     Create Employees contained in a CSV File
     ---
     """
-    # TODO: Return type
 
     if "file" not in request.files:
         abort_with_err(
