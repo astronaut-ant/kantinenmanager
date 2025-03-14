@@ -57,7 +57,7 @@
           density="compact"
           rounded="lg"
         >
-          <p class="text-h6">
+          <p class="text-h6 text-blue-grey-darken-2 ms-4">
             Anzahl aller jetzigen Mitarbeiter: {{ employees.length }}
           </p>
           <v-spacer></v-spacer>
@@ -69,6 +69,7 @@
   <v-container style="width: 70%">
     <div v-if="items.length > 0">
       <v-data-table
+        class="text-blue-grey"
         v-model="selected"
         :headers="headers"
         :items="items"
@@ -187,12 +188,14 @@
                     append-inner-icon="mdi-chevron-down"
                   ></v-text-field>
                 </template>
-                <v-list class="text-blue-grey-darken-3">
+                <v-list class="text-blue-grey-darken-3 w-75">
                   <v-list-item
                     v-for="location in locations"
                     :key="location.name"
                   >
-                    <v-list-item-title>{{ location.name }}</v-list-item-title>
+                    <v-list-item-title class="cursor-pointer">{{
+                      location.name
+                    }}</v-list-item-title>
                     <template v-slot:append>
                       <v-icon icon="mdi-menu-right" size="x-small"></v-icon>
                     </template>

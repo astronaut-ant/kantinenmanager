@@ -36,11 +36,12 @@
                   append-inner-icon="mdi-chevron-down"
                 ></v-text-field>
               </template>
-              <v-list>
+              <v-list class="w-75">
                 <v-list-item color="primary" v-for="area in keys">
-                  <v-list-item-title class="text-blue-grey-darken-3">{{
-                    area
-                  }}</v-list-item-title>
+                  <v-list-item-title
+                    class="text-blue-grey-darken-3 cursor-pointer"
+                    >{{ area }}</v-list-item-title
+                  >
                   <template v-slot:append>
                     <v-icon icon="mdi-menu-right" size="x-small"></v-icon>
                   </template>
@@ -115,8 +116,13 @@
           </div>
 
           <v-card-actions class="justify-end me-n2 mt-2">
-            <v-btn @click="emptyForm" color="blue-grey" variant="text">
-              Verwerfen
+            <v-btn
+              to="/verwaltung/mitarbeiter/neuerMitarbeiter"
+              @click="emptyForm"
+              color="blue-grey"
+              variant="text"
+            >
+              Zurück
             </v-btn>
             <v-btn
               :disabled="!form"
