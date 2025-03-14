@@ -28,6 +28,7 @@ class ReportsService:
     ) -> List[CountOrdersSchema]:
         """Function for daily_orders_routes"""
 
+        daily_orders: List[DailyOrder] = []
         if user_group == UserGroup.kuechenpersonal:
             user = UsersRepository.get_user_by_id(user_id)
             daily_orders = OrdersRepository.get_all_daily_orders(
@@ -38,16 +39,21 @@ class ReportsService:
         else:
             raise AccessDeniedError(f"Nutzer:in {user_id}")
 
-        location_counts = ReportsService._count_location_orders(daily_orders)
+        location_counts = ReportsService._count_location_orders_by_date(daily_orders)
+        datum = (
+            (daily_orders[0].date).date()
+            if isinstance(daily_orders[0].date, datetime)
+            else daily_orders[0].date
+        )
 
         orders = [
             CountOrdersObject(
                 location_id=location.id,
-                rot=counts["rot"],
-                blau=counts["blau"],
-                salad_option=counts["salad_option"],
+                rot=location["rot"],
+                blau=location["blau"],
+                salad_option=location["salad_option"],
             )
-            for location, counts in location_counts.items()
+            for location in location_counts[datum]
         ]
 
         return CountOrdersSchema(many=True).dump(orders)
