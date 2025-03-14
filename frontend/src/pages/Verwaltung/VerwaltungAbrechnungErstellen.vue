@@ -201,7 +201,7 @@
               @click="personDialog=true"
               :rules="[required]"
             ></v-text-field>
-            <v-menu v-model="dateMenu1" location="center" transition="scale-transition">
+            <v-menu v-model="dateMenu3" location="center" transition="scale-transition">
               <template v-slot:activator="{ props }">
                 <v-text-field
                   v-model="selectedMonthFormatted"
@@ -352,26 +352,6 @@ const selectedMonthFormatted = computed(() => {
 const selectMonth = (month) => {
   selectedMonth.value = month.value;
 };
-
-const today = new Date();
-const sixMonthsAgo = new Date();
-sixMonthsAgo.setMonth(today.getMonth() - 6);
-
-const minDate = computed(() => sixMonthsAgo.toISOString().split("T")[0]);
-const maxDate = computed(() => today.toISOString().split("T")[0]);
-
-const formattedDateRange1 = computed(() => {
-  if (selectedDates1.value.length === 0) return "";
-  return `${selectedDates1.value[0].toLocaleDateString("de-DE")} - ${selectedDates1.value[selectedDates1.value.length - 1].toLocaleDateString("de-DE")}`;
-});
-const formattedDateRange2 = computed(() => {
-  if (selectedDates2.value.length === 0) return "";
-  return `${selectedDates2.value[0].toLocaleDateString("de-DE")} - ${selectedDates2.value[selectedDates2.value.length - 1].toLocaleDateString("de-DE")}`;
-});
-const formattedDateRange3 = computed(() => {
-  if (selectedDates3.value.length === 0) return "";
-  return `${selectedDates3.value[0].toLocaleDateString("de-DE")} - ${selectedDates3.value[selectedDates3.value.length - 1].toLocaleDateString("de-DE")}`;
-});
 
 const selectLocation = (location) => {
   selectedLocation.value = location;
