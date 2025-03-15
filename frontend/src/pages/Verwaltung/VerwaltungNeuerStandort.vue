@@ -25,6 +25,6 @@ const reset = () => {
   showConfirm.value = true;
   setTimeout(() => {
     showConfirm.value = false;
-  }, 3000);
+  }, 1500);
 };
 </script>

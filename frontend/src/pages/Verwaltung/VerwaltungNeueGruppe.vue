@@ -237,7 +237,7 @@ const handleSubmit = () => {
       emptyForm();
       setTimeout(() => {
         showConfirm.value = false;
-      }, 3000);
+      }, 1500);
     })
     .catch((err) => {
       console.error("Error creating group:", err);
