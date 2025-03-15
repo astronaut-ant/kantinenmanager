@@ -42,11 +42,6 @@
     </UserTable>
   </div>
   <NoResult v-if="userlist.length === 0 && users.length !== 0" />
-  <ErrorSnackbar
-    v-model="errorSnackbar"
-    :text="errorSnackbarText"
-    @close="errorSnackbar = false"
-  ></ErrorSnackbar>
 </template>
 
 <script setup>
@@ -54,12 +49,12 @@ import axios from "axios";
 import FilterBar from "@/components/SearchComponents/FilterBar.vue";
 import NoResult from "@/components/SearchComponents/NoResult.vue";
 import GridContainer from "@/components/GridContainer.vue";
+import { useFeedbackStore } from "@/stores/feedback";
 
+const feedbackStore = useFeedbackStore();
 const users = ref({});
 const userlist = ref([]);
 const ansicht = ref("cardview");
-const errorSnackbar = ref(false);
-const errorSnackbarText = ref("");
 const forcer = ref(1);
 const allLocations = ref([]);
 const fixedGroupLeaderIDs = ref([]);
@@ -79,12 +74,11 @@ const fetchData = () => {
       );
       userlist.value = Object.values(response.data);
 
-      console.log(userlist.value);
+      //console.log(userlist.value);
     })
     .catch((err) => {
-      console.log(err);
-      errorSnackbarText.value = "Fehler beim laden der Nutzer!";
-      errorSnackbar.value = true;
+      console.error("Error fetching data", err);
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
     });
 
   axios
@@ -114,7 +108,10 @@ const fetchData = () => {
 
       //console.log(allLocations.value);
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error("Error fetching data", err);
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+    });
 
   //TODO Fetch actual location for initial selection in v-Select
 };
