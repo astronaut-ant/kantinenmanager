@@ -126,9 +126,36 @@
       </v-card-text>
       <v-card-actions>
         <v-btn text @click="closeDeleteDialog">Abbrechen</v-btn>
-        <v-btn color="red" variant="elevated" @click="confirmDelete"
+        <v-btn color="red" variant="elevated" @click="checkdelete"
           >Löschen</v-btn
         >
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog v-model="secondDeleteDialog" persistent max-width="500">
+    <v-card>
+      <v-card-text>
+        <div class="d-flex justify-center text-red mb-4">
+          <p class="text-h5 font-weight-black">
+            Standort kann nicht gelöscht werden
+          </p>
+        </div>
+        <div class="text-medium-emphasis">
+          <p v-if="groups.length > 0">
+            Der Standort
+            <strong>{{ props.location_name }}</strong> enthält noch folgende
+            Gruppen:
+            <li class="mt-2 mb-2" v-for="group in groups">{{ group }}</li>
+          </p>
+          <p>
+            Bitte löschen Sie zuerst alle Gruppen und Bestellungen, um den
+            Standort zu löschen.
+          </p>
+        </div>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn text @click="closeDeleteDialog">Schließen</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -137,8 +164,6 @@
     <LocationChange
       @close="closeEditDialog"
       @save="confirmEdit"
-      @success="FeedbackConfirm"
-      @error="FeedbackError"
       :oldValues="props"
     />
   </v-dialog>
@@ -160,6 +185,7 @@ const emit = defineEmits(["location-edited", "location-removed"]);
 
 const deleteDialog = ref(false);
 const editDialog = ref(false);
+const secondDeleteDialog = ref(false);
 
 const openDeleteDialog = () => {
   deleteDialog.value = true;
@@ -167,6 +193,16 @@ const openDeleteDialog = () => {
 
 const closeDeleteDialog = () => {
   deleteDialog.value = false;
+  secondDeleteDialog.value = false;
+};
+
+const checkdelete = () => {
+  if (props.groups.length > 0) {
+    deleteDialog.value = false;
+    secondDeleteDialog.value = true;
+  } else {
+    confirmDelete();
+  }
 };
 
 const confirmDelete = () => {
@@ -199,12 +235,6 @@ const closeEditDialog = () => {
   editDialog.value = false;
 };
 
-const FeedbackConfirm = () => {
-  feedbackStore.setFeedback("success", "snackbar", "", "Der Standort wurde erfolgreich aktualisiert");
-};
-const FeedbackError = () => {
-  feedbackStore.setFeedback("error", "snackbar", "", "Fehler beim aktualisieren des Standorts!");
-};
 </script>
 
 <style>

@@ -145,9 +145,7 @@
             Sind Sie sicher, dass Sie folgende Mitarbeiter löschen möchten?
           </p>
           <li v-for="employee in employeesToDelete" :key="employee.id">
-            <strong>
               {{ employee.first_name }} {{ employee.last_name }}
-            </strong>
           </li>
         </div>
       </v-card-text>
