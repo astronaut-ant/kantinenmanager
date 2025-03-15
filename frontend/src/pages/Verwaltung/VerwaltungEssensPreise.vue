@@ -40,25 +40,46 @@
 
   <v-dialog v-model="editDialog" persistent max-width="600px">
     <v-card>
-      <v-card-title>
-        <span class="headline justify-center">Essenspreis Bearbeiten</span>
-      </v-card-title>
       <v-card-text>
+        <div class="d-flex ga-3 mb-8 text-primary">
+          <div class="d-flex align-center">
+            <v-icon class="mt-n1" size="35">mdi-tag-edit-outline</v-icon>
+          </div>
+          <h2>Essenspreis bearbeiten</h2>
+        </div>
         <v-form>
           <v-text-field
             v-model="mainDishEdit"
-            label="Hauptgericht Preis (€)"
+            class="mt-4"
+            :active="true"
+            base-color="blue-grey"
+            color="primary"
+            variant="outlined"
+            Placeholder="Hauptgericht Preis (€)"
+            label="Hauptgericht (€)"
             type="number"
             :rules="[required]"
           ></v-text-field>
           <v-text-field
             v-model="saladEdit"
-            label="Salat Preis (€)"
+            class="mt-4"
+            :active="true"
+            base-color="blue-grey"
+            color="primary"
+            variant="outlined"
+            Placeholder="Salat Preis (€)"
+            label="Salat (€)"
             type="number"
             :rules="[required]"
           ></v-text-field>
           <v-text-field
             v-model="prepaymentEdit"
+            class="mt-4"
+            :active="true"
+            base-color="blue-grey"
+            color="primary"
+            variant="outlined"
+            Placeholder="Vorauszahlung (€)"
             label="Vorauszahlung (€)"
             type="number"
             :rules="[required]"
@@ -66,10 +87,12 @@
         </v-form>
       </v-card-text>
       <v-card-actions>
-        <v-btn @click="closeEditDialog()" color="grey">Abbrechen</v-btn>
+        <v-btn @click="closeEditDialog()" color="blue-grey">Abbrechen</v-btn>
         <v-btn
           @click="saveChanges()"
-          color="green"
+          color="primary"
+          class="me-4"
+          variant="elevated"
           :disabled="!mainDishEdit || !saladEdit || !prepaymentEdit"
           >Speichern</v-btn
         >
@@ -79,12 +102,10 @@
 
   <v-dialog v-model="deleteDialog" persistent max-width="600px">
     <v-card>
-      <v-card-title>
-        <span class="headline justify-center" color="red"
-          >Essenspreis Löschen</span
-        >
-      </v-card-title>
       <v-card-text v-if="deletableMeal">
+        <div class="d-flex justify-center text-red mb-4">
+          <p class="text-h5 font-weight-black">Essenspreis löschen</p>
+        </div>
         <div class="text-medium-emphasis">
           <p>
             Sind Sie sicher, dass Sie den Essenspreis vom
@@ -98,8 +119,8 @@
         </div>
       </v-card-text>
       <v-card-actions>
-        <v-btn @click="closeDeleteDialog()" color="grey">Abbrechen</v-btn>
-        <v-btn @click="handleDelete()" color="red" :disabled="!deletableMeal"
+        <v-btn @click="closeDeleteDialog()">Abbrechen</v-btn>
+        <v-btn @click="handleDelete()" color="red" variant="elevated" :disabled="!deletableMeal"
           >Löschen</v-btn
         >
       </v-card-actions>
