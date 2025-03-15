@@ -137,22 +137,11 @@
     <LocationChange
       @close="closeEditDialog"
       @save="confirmEdit"
-      @success="snackbarConfirm"
-      @error="snackbarError"
+      @success="FeedbackConfirm"
+      @error="FeedbackError"
       :oldValues="props"
     />
   </v-dialog>
-
-  <SuccessSnackbar
-    v-model="snackbar"
-    :text="snackbarText"
-    @close="snackbar = false"
-  ></SuccessSnackbar>
-  <ErrorSnackbar
-    v-model="errorSnackbar"
-    :text="errorSnackbarText"
-    @close="errorSnackbar = false"
-  ></ErrorSnackbar>
 </template>
 
 <script setup>
@@ -171,10 +160,6 @@ const emit = defineEmits(["location-edited", "location-removed"]);
 
 const deleteDialog = ref(false);
 const editDialog = ref(false);
-const snackbar = ref(false);
-const snackbarText = ref("");
-const errorSnackbar = ref(false);
-const errorSnackbarText = "";
 
 const openDeleteDialog = () => {
   deleteDialog.value = true;
@@ -192,12 +177,12 @@ const confirmDelete = () => {
     .then(() => {
       emit("location-removed");
       closeDeleteDialog();
-      feedbackStore.setFeedback("success", "snackbar", "Standort gelöscht", "Der Standort wurde erfolgreich gelöscht");
+      feedbackStore.setFeedback("success", "snackbar", "Standort gelöscht", `Der Standort ${props.location_name} wurde erfolgreich gelöscht!`);
     })
     .catch((err) => {
       console.log(err);
       deleteDialog.value = false;
-      feedbackStore.setFeedback("error", "dialog", err.response?.data?.title, err.response?.data?.description);
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
     });
 };
 
@@ -214,13 +199,11 @@ const closeEditDialog = () => {
   editDialog.value = false;
 };
 
-const snackbarConfirm = () => {
-  snackbarText.value = "Der Standort wurde erfolgreich aktualisiert";
-  snackbar.value = true;
+const FeedbackConfirm = () => {
+  feedbackStore.setFeedback("success", "snackbar", "", "Der Standort wurde erfolgreich aktualisiert");
 };
-const snackbarError = () => {
-  errorSnackbarText.value = "Fehler beim aktualisieren des Standorts!";
-  errorSnackbar.value = true;
+const FeedbackError = () => {
+  feedbackStore.setFeedback("error", "snackbar", "", "Fehler beim aktualisieren des Standorts!");
 };
 </script>
 
