@@ -31,6 +31,8 @@
 import axios from "axios";
 import { useAppStore } from "@/stores/app";
 const appStore = useAppStore();
+import { useFeedbackStore } from "@/stores/feedback";
+const feedbackStore = useFeedbackStore();
 const groupLeaders = ref([]);
 const originalGroupLeaders = ref([]);
 const availableLeaders = ref([]);
@@ -48,7 +50,10 @@ const fetchData = () => {
       })[0].id;
       console.log(ownLocId.value);
     })
-    .catch((err) => console.error("Error fetching data", err));
+    .catch((err) => {
+      console.error("Error fetching data", err)
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+    });
 
   const getGroups = () => {
     axios
@@ -73,7 +78,10 @@ const fetchData = () => {
 
         availableLeaders.value = getAvailableLeaders(groupLeaders.value);
       })
-      .catch((err) => console.error("Error fetching data", err));
+      .catch((err) => {
+      console.error("Error fetching data", err)
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+      });
   };
 
   axios
@@ -85,7 +93,10 @@ const fetchData = () => {
       originalGroupLeaders.value = response.data;
       getGroups();
     })
-    .catch((err) => console.error("Error fetching data", err));
+    .catch((err) => {
+      console.error("Error fetching data", err)
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+    });
 };
 
 const getAvailableLeaders = (leaders) => {

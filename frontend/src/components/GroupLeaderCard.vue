@@ -198,11 +198,11 @@ const removeGroupReplacement = () => {
     .then(() => {
       emit("replacement-removed");
       closeremoveGroupReplacementDialog();
-        feedbackStore.setFeedback("success", "snackbar", "Vertretung gelöscht", "Der Gruppenleiter kann wieder Essensbestellungen für seine Gruppe übernehmen.");
+      feedbackStore.setFeedback("success", "snackbar", "Vertretung gelöscht", "Der Gruppenleiter kann wieder Essensbestellungen für seine Gruppe übernehmen.");
     })
     .catch((err) => {
-            feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
-        });
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+    });
 };
 const opensetGroupReplacementDialog = () => {
   setGroupReplacementDialog.value = true;

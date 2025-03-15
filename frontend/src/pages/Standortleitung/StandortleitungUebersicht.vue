@@ -41,6 +41,7 @@
       grouplist.value = Object.values(response.data);
     })
     .catch((err) => {
+      console.error("Error fetching data", err);
       feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
     });
   };
