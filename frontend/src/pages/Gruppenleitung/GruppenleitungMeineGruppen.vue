@@ -39,9 +39,10 @@
 import { useAppStore } from "@/stores/app";
 import axios from "axios";
 import { ref } from "vue";
+import { useFeedbackStore } from "@/stores/feedback";
+const feedbackStore = useFeedbackStore();
 const appStore = useAppStore();
 const id = appStore.userData.id;
-console.log("User ID:", id);
 
 
 const employees = ref([]);
@@ -81,10 +82,11 @@ const headers = [
           .map((key) => groupedEmployees[key]);
 
         loading.value = false;
-        console.log("Grouped Employees:", groupedEmployees);
+        //console.log("Grouped Employees:", groupedEmployees);
       })
       .catch((err) => {
         console.error("Error fetching data", err);
+        feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
         loading.value = false;
       });
   };
