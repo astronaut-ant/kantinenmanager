@@ -304,16 +304,6 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-  <SuccessSnackbar
-    v-model="snackbar"
-    :text="snackbarText"
-    @close="snackbar = false"
-  ></SuccessSnackbar>
-  <ErrorSnackbar
-    v-model="errorSnackbar"
-    :text="errorSnackbarText"
-    @close="errorSnackbar = false"
-  ></ErrorSnackbar>
   <NoResult v-if="grouplist.length === 0 && groups.length !== 0" />
 </template>
 
@@ -321,10 +311,8 @@
 import FilterBar from "@/components/SearchComponents/FilterBar.vue";
 import NoResult from "@/components/SearchComponents/NoResult.vue";
 import axios from "axios";
-const snackbarText = ref(" ");
-const snackbar = ref(false);
-const errorSnackbar = ref(false);
-const errorSnackbarText = ref("");
+import { useFeedbackStore } from "@/stores/feedback";
+const feedbackStore = useFeedbackStore();
 const groups = ref([]);
 const grouplist = ref([]);
 const employees = ref(null);
@@ -360,7 +348,10 @@ const getData = () => {
           : 0
       );
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error("Error fetching data", err);
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+    });
   axios
     .get(import.meta.env.VITE_API + "/api/users/group-leaders", {
       withCredentials: true,
@@ -368,14 +359,20 @@ const getData = () => {
     .then((response) => {
       groupLeaders.value = response.data;
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error("Error fetching data", err);
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+    });
 
   axios
     .get(import.meta.env.VITE_API + "/api/employees", { withCredentials: true })
     .then((response) => {
       employees.value = response.data;
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error("Error fetching data", err);
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+    });
 };
 
 const headers = [
@@ -451,13 +448,11 @@ const confirmEdit = () => {
       groupLeaders.value[newLeaderIndex].own_group = 0;
       getData();
       closeEditDialog();
-      snackbarText.value = "Die Gruppe wurde erfolgreich aktualisiert!";
-      snackbar.value = true;
+      feedbackStore.setFeedback("success", "snackbar", "", "Die Gruppe wurde erfolgreich aktualisiert!");
     })
     .catch((err) => {
-      console.log(err);
-      errorSnackbarText.value = "Fehler beim aktualisieren der Gruppe!";
-      errorSnackbar.value = true;
+      console.error("Error editing group", err);
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
     });
 };
 const closeEditDialog = () => {
@@ -501,13 +496,12 @@ const confirmDelete = () => {
       );
       console.log(groups);
       closeDeleteDialog();
-      snackbarText.value = "Die Gruppe wurde erfolgreich gelöscht!";
-      snackbar.value = true;
+      feedbackStore.setFeedback("success", "snackbar", "", "Die Gruppe wurde erfolgreich gelöscht!");
       getData();
     })
     .catch((err) => {
-      console.log(err);
-      secondDeleteDialog.value = true;
+      console.error("Error deleting group", err);
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
     });
 };
 
