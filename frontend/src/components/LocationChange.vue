@@ -347,12 +347,7 @@ const handleSubmit = () => {
         .catch((err) => {
           hasError = true;
           console.error(err);
-          feedbackStore.setFeedback(
-            "error",
-            "snackbar",
-            err.response?.data?.title,
-            err.response?.data?.description
-          );
+          feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
         });
     }
 

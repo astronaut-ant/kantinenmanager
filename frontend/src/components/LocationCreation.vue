@@ -85,7 +85,6 @@
 
 <script setup>
 import CustomAlert from "@/components/CustomAlert.vue";
-import SuccessSnackbar from "@/components/SuccessSnackbar.vue";
 import router from "@/router";
 import axios from "axios";
 const emit = defineEmits(["close"]);
