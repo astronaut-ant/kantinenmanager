@@ -3,20 +3,24 @@
     <v-toolbar class="bg-primary" flat app>
       <v-app-bar-nav-icon @click="showDrawer"></v-app-bar-nav-icon>
       <v-toolbar-title>
-        <CustomBreadCrumbs :breadcrumbs="props.breadcrumbs" role="Gruppenleitung" />
+        <CustomBreadCrumbs
+          :breadcrumbs="props.breadcrumbs"
+          role="Gruppenleitung"
+        />
       </v-toolbar-title>
       <Avatar />
     </v-toolbar>
     <v-navigation-drawer
       :disable-resize-watcher="true"
       :mobile="true"
+      :width="250"
       class="elevation-10 bg-red"
       v-model="drawer"
       app
     >
-      <h1 class="mt-5 ps-2">Menu</h1>
+      <h1 class="mt-5 ms-4">Menu</h1>
       <hr class="text-white mt-4" />
-      <div class="d-flex flex-column h-75 justify-space-evenly ps-2">
+      <div class="d-flex flex-column h-75 justify-space-evenly ms-4">
         <router-link
           @click="drawer = false"
           to="/gruppenleitung/meineGruppen"
@@ -48,7 +52,7 @@ const showDrawer = () => {
 const props = defineProps({
   breadcrumbs: {
     type: Array,
-    required: false
-  }
+    required: false,
+  },
 });
 </script>

@@ -187,17 +187,31 @@ class EmployeesService:
                 )
 
             if len(firstname) < 64 and len(lastname) < 64:
-                group_name = (
-                    re.match(
-                        r"^([A-Za-zäöüÄÖÜß']+(?:[\s][A-Za-zäöüÄÖÜß']+)*)(\s-\s)*+",
-                        row["Gruppen-Name 1"],
-                    )
-                ).group(1)
+                try:
+                    group_name = (
+                        re.search(r"^(.*) - [^-]+$", row["Gruppen-Name 1"])
+                    ).group(1)
+                except AttributeError:
+                    group_name = row["Gruppen-Name 1"]
+                print(group_name, " : ", row["Bereich"])
                 group = EmployeesRepository.get_group_by_name_and_location(
-                    group_name=group_name, location_name=row["Bereich"]
+                    group_name=group_name.strip(), location_name=row["Bereich"].strip()
                 )
                 if group is None:
-                    raise NotFoundError(f"Gruppe {row['Gruppen-Name 1']}")
+                    print("Gruppe nicht gefunden 1")
+                    group_name = (
+                        re.match(
+                            r"^([A-Za-zäöüÄÖÜß']+(?:[\s][A-Za-zäöüÄÖÜß']+)*)(\s-\s)*+",
+                            row["Gruppen-Name 1"],
+                        )
+                    ).group(1)
+                    group = EmployeesRepository.get_group_by_name_and_location(
+                        group_name=group_name.strip(),
+                        location_name=row["Bereich"].strip(),
+                    )
+                    if group is None:
+                        print("Gruppe nicht gefunden 2")
+                        raise NotFoundError(f"Gruppe {row['Gruppen-Name 1']}")
 
                 if EmployeesRepository.get_employee_by_number(row["Kunden-Nr."]):
                     continue

@@ -1,6 +1,6 @@
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta, time, date
 import pytz
-from typing import List, Union
+from typing import List, Union, Dict
 from uuid import UUID
 from flask import Response
 
@@ -28,6 +28,7 @@ class ReportsService:
     ) -> List[CountOrdersSchema]:
         """Function for daily_orders_routes"""
 
+        daily_orders: List[DailyOrder] = []
         if user_group == UserGroup.kuechenpersonal:
             user = UsersRepository.get_user_by_id(user_id)
             daily_orders = OrdersRepository.get_all_daily_orders(
@@ -38,16 +39,21 @@ class ReportsService:
         else:
             raise AccessDeniedError(f"Nutzer:in {user_id}")
 
-        location_counts = ReportsService._count_location_orders(daily_orders)
+        location_counts = ReportsService._count_location_orders_by_date(daily_orders)
+        datum = (
+            (daily_orders[0].date).date()
+            if isinstance(daily_orders[0].date, datetime)
+            else daily_orders[0].date
+        )
 
         orders = [
             CountOrdersObject(
                 location_id=location.id,
-                rot=counts["rot"],
-                blau=counts["blau"],
-                salad_option=counts["salad_option"],
+                rot=location_counts[datum][location]["rot"],
+                blau=location_counts[datum][location]["blau"],
+                salad_option=location_counts[datum][location]["salad_option"],
             )
-            for location, counts in location_counts.items()
+            for location in location_counts[datum]
         ]
 
         return CountOrdersSchema(many=True).dump(orders)
@@ -65,18 +71,34 @@ class ReportsService:
         :param filters: Filters for date_start, date_end and location_id
         :return: a pdf file with the report or None if no orders were found
         """
+        if filters.location_id:
+            if (
+                not filters.location_id
+                or not filters.date_start
+                or not filters.date_end
+            ):
+                raise ValueError("Keine Standort-ID oder Datum übergeben")
 
-        if not filters.location_id or not filters.date_start or not filters.date_end:
-            raise ValueError("Keine Standort-ID oder Datum übergeben")
+            all_locations = False
+            orders = ReportsService._get_reports_orders_by_location(
+                fil=filters, user_id=user_id, user_group=user_group
+            )
+        else:
+            if not filters.date_start or not filters.date_end:
+                raise ValueError("Keine Standort-ID oder Datum übergeben")
+            all_locations = True
+            orders = ReportsService._get_reports_orders_by_location(
+                fil=filters, user_id=user_id, user_group=user_group
+            )
 
-        orders = ReportsService._get_reports_orders_by_location(
-            fil=filters, user_id=user_id, user_group=user_group
+        date_location_counts: Dict[dict] = (
+            ReportsService._count_location_orders_by_date(orders)
         )
 
-        location_counts = ReportsService._count_location_orders(orders)
-
         return PDFCreationUtils.create_pdf_report(
-            filters=filters, location_counts=location_counts
+            filters=filters,
+            date_location_counts=date_location_counts,
+            all_locations=all_locations,
         )
 
     def _get_reports_orders_by_location(
@@ -91,7 +113,11 @@ class ReportsService:
             if ReportsService._check_user_access_to_location(
                 fil.location_id, user_id, user_group
             ):
-                orders.extend(OrdersRepository.get_pre_orders(fil))
+                orders.extend(
+                    OrdersRepository.get_pre_orders(
+                        fil, user_group=user_group, user_id=user_id
+                    )
+                )
                 orders.extend(OrdersRepository.get_all_daily_orders(fil))
                 orders.extend(OrdersRepository.get_old_orders(fil))
             else:
@@ -115,11 +141,11 @@ class ReportsService:
         else:
             return False
 
-    def _count_location_orders(
-        orders: Union[List[PreOrder], List[DailyOrder], List[OldOrder]]
-    ) -> dict:
+    def _count_location_orders_by_date(
+        orders: Union[List[PreOrder], List[DailyOrder], List[OldOrder]],
+    ) -> Dict:
 
-        location_counts = {}
+        date_location_counts = {}
 
         for order in orders:
             if order.nothing:
@@ -129,21 +155,28 @@ class ReportsService:
             if not location:
                 raise NotFoundError(f"Standort mit ID {order.location_id}")
 
-            if location not in location_counts:
-                location_counts[location] = {
+            order_date = order.date
+            if isinstance(order_date, datetime):
+                order_date = order_date.date()
+
+            if order_date not in date_location_counts:
+                date_location_counts[order_date] = {}
+
+            if location not in date_location_counts[order_date]:
+                date_location_counts[order_date][location] = {
                     "rot": 0,
                     "blau": 0,
                     "salad_option": 0,
                 }
 
             if order.main_dish == MainDish.rot:
-                location_counts[location]["rot"] += 1
+                date_location_counts[order_date][location]["rot"] += 1
             elif order.main_dish == MainDish.blau:
-                location_counts[location]["blau"] += 1
+                date_location_counts[order_date][location]["blau"] += 1
             if order.salad_option:
-                location_counts[location]["salad_option"] += 1
+                date_location_counts[order_date][location]["salad_option"] += 1
 
-        return location_counts
+        return date_location_counts
 
     ################################# Invoices Services #################################
 
@@ -152,7 +185,7 @@ class ReportsService:
         filters: OrdersFilters,
     ) -> Union[Response]:
         """
-        Get an invoice report #TODO filterd by date and location
+        Get an invoice report filterd by date and location
         :param filters: Filters for old orders
         :return: a pdf file with the report or None if no orders were found
         """

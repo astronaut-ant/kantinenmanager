@@ -1,34 +1,51 @@
 <template>
-  <NavbarVerwaltung />
+  <NavbarVerwaltung
+    :breadcrumbs="[{ title: 'Abrechnung' }, { title: 'Abrechnung erstellen' }]"
+  />
   <v-container>
     <v-row justify="center" class="mt-6 mb-4">
       <v-col cols="12" class="text-center">
-        <h1 class="text-h4 font-weight-bold">Abrechnung erstellen</h1>
+        <h1 class="text-h4 text-primary font-weight-bold">
+          <v-icon class="me-2">mdi-invoice-arrow-left-outline</v-icon>
+          Abrechnung erstellen
+        </h1>
       </v-col>
     </v-row>
 
     <v-row justify="center" class="align-center">
       <v-col cols="3" class="text-center d-flex align-center justify-end">
         <v-divider class="flex-grow-1 mr-2"></v-divider>
-        <v-btn variant="tonal" size="large" :color="selected === 'standort' ? 'primary' : 'black'"
-               @click="selected = 'standort'">
+        <v-btn
+          variant="tonal"
+          size="large"
+          :color="selected === 'standort' ? 'primary' : 'blue-grey'"
+          @click="(selected = 'standort'), clearGruppe(), clearPerson()"
+        >
           Standort
         </v-btn>
       </v-col>
 
       <v-col cols="3" class="text-center d-flex align-center justify-center">
         <v-divider class="flex-grow-1 mx-2"></v-divider>
-        <v-btn variant="tonal" size="large" :color="selected === 'gruppe' ? 'primary' : 'black'"
-               @click="selected = 'gruppe'">
+        <v-btn
+          variant="tonal"
+          size="large"
+          :color="selected === 'gruppe' ? 'primary' : 'blue-grey'"
+          @click="(selected = 'gruppe'), clearStandort(), clearPerson()"
+        >
           Gruppe
         </v-btn>
         <v-divider class="flex-grow-1 mx-2"></v-divider>
       </v-col>
 
       <v-col cols="3" class="text-center d-flex align-center justify-start">
-        <v-btn variant="tonal" size="large" :color="selected === 'mitarbeiter' ? 'primary' : 'black'"
-               @click="selected = 'mitarbeiter'">
-          Mitarbeiter
+        <v-btn
+          variant="tonal"
+          size="large"
+          :color="selected === 'mitarbeiter' ? 'primary' : 'blue-grey'"
+          @click="(selected = 'mitarbeiter'), clearStandort(), clearGruppe()"
+        >
+          Personal
         </v-btn>
         <v-divider class="flex-grow-1 ml-2"></v-divider>
       </v-col>
@@ -36,23 +53,31 @@
 
     <v-row justify="center" class="mt-4">
       <v-col cols="6">
-
-        <v-card v-if="selected==='standort'" class="pa-4">
-          <v-card-title class="text-h6 text-center">
+        <v-card
+          v-if="selected === 'standort'"
+          class="pa-4 text-blue-grey-darken-3 ms-n2 me-n8"
+        >
+          <v-card-title class="text-h6">
             Abrechnung für einen Standort
           </v-card-title>
           <v-card-text>
-            Standort für welchen die Abrechnung erstellt werden soll auswählen.
+            Standort, für welchen die Abrechnung erstellt werden soll,
+            auswählen.
             <v-menu>
               <template #activator="{ props }">
                 <v-text-field
-                  class="mt-1"
+                  :active="true"
+                  base-color="blue-grey"
+                  color="primary"
+                  variant="outlined"
+                  Placeholder="Standort auswählen"
+                  class="mt-10 text-blue-grey-darken-3"
                   v-bind="props"
                   v-model="selectedLocationName"
-                  label="Standort auswählen"
+                  label="Standort"
+                  clearable
                   readonly
                   append-inner-icon="mdi-chevron-down"
-                  :rules="[required]"
                 ></v-text-field>
               </template>
               <v-list>
@@ -67,20 +92,44 @@
                 </v-list-item>
               </v-list>
             </v-menu>
-            <v-text-field
-              v-model="formattedDateRange1"
-              label="Zeitraum auswählen"
-              readonly
-              append-inner-icon="mdi-chevron-down"
-              @click="showDialog1=true"
-              :rules="[required]"
-            ></v-text-field>
+            <v-menu
+              v-model="dateMenu1"
+              location="center"
+              transition="scale-transition"
+            >
+              <template v-slot:activator="{ props }">
+                <v-text-field
+                  :active="true"
+                  base-color="blue-grey"
+                  color="primary"
+                  variant="outlined"
+                  Placeholder="Monat auswählen"
+                  class="mt-3 mb-n2"
+                  label="Monat"
+                  v-model="selectedMonthFormatted"
+                  readonly
+                  v-bind="props"
+                  append-inner-icon="mdi-chevron-down"
+                  :rules="[required]"
+                ></v-text-field>
+              </template>
+
+              <v-list>
+                <v-list-item
+                  v-for="month in lastSixMonths"
+                  :key="month.value"
+                  @click="selectMonth(month)"
+                >
+                  <v-list-item-title>{{ month.label }}</v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
           </v-card-text>
-          <v-card-actions class="justify-center">
+          <v-card-actions class="justify-end me-2">
             <v-btn
               color="primary"
               variant="elevated"
-              :disabled="!selectedLocation || selectedDates1.length < 1"
+              :disabled="!selectedLocation || !selectedMonth"
               @click="generateInvoice()"
             >
               Erstellen
@@ -88,27 +137,37 @@
           </v-card-actions>
         </v-card>
 
-        <v-card v-if="selected==='gruppe'" class="pa-4">
-          <v-card-title class="text-h6 text-center">
+        <v-card
+          v-if="selected === 'gruppe'"
+          class="pa-4 text-blue-grey-darken-3 ms-n2 me-n8"
+        >
+          <v-card-title class="text-h6">
             Abrechnung für eine Gruppe
           </v-card-title>
           <v-card-text>
-            Gruppe für welche die Abrechnung erstellt werden soll auswählen.
+            Gruppe, für welche die Abrechnung erstellt werden soll, auswählen.
             <v-menu offset-y>
-              <template #activator="{props}">
+              <template #activator="{ props }">
                 <v-text-field
-                  class="mt-1"
+                  :active="true"
+                  base-color="blue-grey"
+                  color="primary"
+                  variant="outlined"
+                  Placeholder="Gruppe auswählen"
+                  class="mt-10"
                   v-bind="props"
                   v-model="selectedGroupName"
                   label="Gruppe auswählen"
                   readonly
+                  clearable
                   append-inner-icon="mdi-chevron-down"
-                  :rules="[required]"
                 ></v-text-field>
               </template>
-              <v-list>
+              <v-list class="w-50">
                 <v-list-item v-for="location in locations" :key="location.id">
-                  <v-list-item-title>{{ location?.location_name }}</v-list-item-title>
+                  <v-list-item-title class="cursor-pointer">{{
+                    location?.location_name
+                  }}</v-list-item-title>
 
                   <template v-slot:append>
                     <v-icon icon="mdi-menu-right" size="x-small"></v-icon>
@@ -117,7 +176,7 @@
                   <v-menu
                     offset-y
                     activator="parent"
-                    open-on-hover
+                    open-on-click
                     close-on-content-click
                     location="end"
                   >
@@ -127,30 +186,61 @@
                         :key="group.id"
                         @click="selectGroup(group)"
                       >
-                        <v-list-item-title>{{ group.group_name }}</v-list-item-title>
+                        <v-list-item-title>{{
+                          group.group_name
+                        }}</v-list-item-title>
                       </v-list-item>
-                      <v-list-item v-if="getGroupsByLocation(location.id).length === 0">
-                        <v-list-item-title style="color: red;">Besitzt keine Gruppen!</v-list-item-title>
+                      <v-list-item
+                        v-if="getGroupsByLocation(location.id).length === 0"
+                      >
+                        <v-list-item-title class="text-blue-grey"
+                          >Besitzt keine Gruppen!</v-list-item-title
+                        >
                       </v-list-item>
                     </v-list>
                   </v-menu>
                 </v-list-item>
               </v-list>
             </v-menu>
-            <v-text-field
-              v-model="formattedDateRange2"
-              label="Zeitraum auswählen"
-              readonly
-              append-inner-icon="mdi-chevron-down"
-              @click="showDialog2=true"
-              :rules="[required]"
-            ></v-text-field>
+            <v-menu
+              v-model="dateMenu2"
+              location="center"
+              transition="scale-transition"
+            >
+              <template v-slot:activator="{ props }">
+                <v-text-field
+                  :active="true"
+                  base-color="blue-grey"
+                  color="primary"
+                  variant="outlined"
+                  Placeholder="Monat auswählen"
+                  class="mt-3 mb-n2"
+                  v-model="selectedMonthFormatted"
+                  label="Monat"
+                  readonly
+                  v-bind="props"
+                  append-inner-icon="mdi-chevron-down"
+                ></v-text-field>
+              </template>
+
+              <v-list>
+                <v-list-item
+                  v-for="month in lastSixMonths"
+                  :key="month.value"
+                  @click="selectMonth(month)"
+                >
+                  <v-list-item-title class="text-blue-grey-darken-3">{{
+                    month.label
+                  }}</v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
           </v-card-text>
-          <v-card-actions class="justify-center">
+          <v-card-actions class="justify-end me-2">
             <v-btn
               color="primary"
               variant="elevated"
-              :disabled="!selectedGroup || selectedDates2.length < 1"
+              :disabled="!selectedGroup || !selectedMonth"
               @click="generateInvoice()"
             >
               Erstellen
@@ -158,35 +248,68 @@
           </v-card-actions>
         </v-card>
 
-        <v-card v-if="selected==='mitarbeiter'" class="pa-4">
-          <v-card-title class="text-h6 text-center">
-            Abrechnung für einen Mitarbeiter
-          </v-card-title>
+        <v-card
+          v-if="selected === 'mitarbeiter'"
+          class="pa-4 text-blue-grey-darken-3 ms-n2 me-n8"
+        >
+          <v-card-title class="text-h6"> Abrechnung für Personal </v-card-title>
           <v-card-text>
-            Mitarbeiter für welchen eine Abrechnung erstellt werden soll auswählen.
+            Person, für welche eine Abrechnung erstellt werden soll, auswählen.
             <v-text-field
+              :active="true"
+              base-color="blue-grey"
+              color="primary"
+              variant="outlined"
+              Placeholder="Person auswählen"
+              class="mt-10"
               v-model="selectedPersonName"
-              class="mt-1"
-              label="Mitarbeiter auswählen"
+              label="Person"
               readonly
               append-inner-icon="mdi-chevron-down"
-              @click="personDialog=true"
-              :rules="[required]"
+              @click="(personDialog = true), (isSearchVisible = false)"
             ></v-text-field>
-            <v-text-field
-              v-model="formattedDateRange3"
-              label="Zeitraum auswählen"
-              readonly
-              append-inner-icon="mdi-chevron-down"
-              @click="showDialog3=true"
-              :rules="[required]"
-            ></v-text-field>
+            <v-menu
+              v-model="dateMenu3"
+              location="center"
+              transition="scale-transition"
+            >
+              <template v-slot:activator="{ props }">
+                <v-text-field
+                  :active="true"
+                  base-color="blue-grey"
+                  color="primary"
+                  variant="outlined"
+                  Placeholder="Monat auswählen"
+                  class="mt-3 mb-n2"
+                  label="Monat"
+                  v-model="selectedMonthFormatted"
+                  readonly
+                  v-bind="props"
+                  append-inner-icon="mdi-chevron-down"
+                  :rules="[required]"
+                ></v-text-field>
+              </template>
+
+              <v-list>
+                <v-list-item
+                  v-for="month in lastSixMonths"
+                  :key="month.value"
+                  @click="selectMonth(month)"
+                >
+                  <v-list-item-title>{{ month.label }}</v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
           </v-card-text>
-          <v-card-actions class="justify-center">
+          <v-card-actions class="justify-end me-2">
             <v-btn
               color="primary"
               variant="elevated"
-              :disabled="!selectedPersonId || selectedPersonId.length < 1 || selectedDates3.length < 1"
+              :disabled="
+                !selectedPersonId ||
+                selectedPersonId.length < 1 ||
+                !selectedMonth
+              "
               @click="generateInvoice()"
             >
               Erstellen
@@ -197,110 +320,39 @@
     </v-row>
   </v-container>
 
-  <v-dialog v-model="showDialog1" max-width="400">
-    <v-card>
-      <v-card-title class="text-h5 mt-2"> Zeitraum auswählen </v-card-title>
-
-      <v-card-text>
-        {{formattedDateRange1}}
-        <v-date-picker
-          v-model="selectedDates1"
-          multiple="range"
-          :min="minDate"
-          :max="maxDate"
-          hide-header
-        />
-      </v-card-text>
-
-      <v-divider></v-divider>
-
-      <v-card-actions class="justify-center">
-        <v-btn color="grey darken-1" variant="text" @click="showDialog1 = false">
-          Schließen
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-
-  <v-dialog v-model="showDialog2" max-width="400">
-    <v-card>
-      <v-card-title class="text-h5 mt-2"> Zeitraum auswählen </v-card-title>
-
-      <v-card-text>
-        {{formattedDateRange2}}
-        <v-date-picker
-          v-model="selectedDates2"
-          multiple="range"
-          :min="minDate"
-          :max="maxDate"
-          hide-header
-        />
-      </v-card-text>
-
-      <v-divider></v-divider>
-
-      <v-card-actions class="justify-center">
-        <v-btn color="grey darken-1" variant="text" @click="showDialog2 = false">
-          Schließen
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-
-  <v-dialog v-model="showDialog3" max-width="400">
-    <v-card>
-      <v-card-title class="text-h5 mt-2"> Zeitraum auswählen </v-card-title>
-
-      <v-card-text>
-        {{formattedDateRange3}}
-        <v-date-picker
-          v-model="selectedDates3"
-          multiple="range"
-          :min="minDate"
-          :max="maxDate"
-          hide-header
-        />
-      </v-card-text>
-
-      <v-divider></v-divider>
-
-      <v-card-actions class="justify-center">
-        <v-btn color="grey darken-1" variant="text" @click="showDialog3 = false">
-          Schließen
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-
-
   <v-dialog v-model="personDialog" max-width="800">
-    <v-card>
-      <div>
-        <v-toolbar color="white" flat dark>
-          <p class="text-h5 font-weight-black ml-4" >Mitarbeiter Auswahl</p>
-          <v-spacer></v-spacer>
-          <v-btn icon="mdi-magnify" @click="toggleSearchField"></v-btn>
-        </v-toolbar>
-      </div>
-      <div class="d-flex justify-center">
-        <v-expand-transition>
-          <v-text-field
-          v-if="isSearchVisible"
-          v-model="search"
-          density="compact"
-          label="Suche"
-          prepend-inner-icon="mdi-magnify"
-          variant="solo-filled"
-          flat
-          hide-details
-          single-line
-          clearable
-          rounded
-          ></v-text-field>
-        </v-expand-transition>
+    <v-card class="text-blue-grey-darken-3 px-5">
+      <v-spacer></v-spacer>
+
+      <div class="d-flex h-100 align-center justify-space-between pe-6 mt-5">
+        <h2 class="text-blue-grey-darken-3 ml-6">Personal</h2>
+        <div class="w-50">
+          <v-slide-x-reverse-transition>
+            <v-text-field
+              v-if="isSearchVisible"
+              v-model="search"
+              density="compact"
+              label="Suche"
+              prepend-inner-icon="mdi-magnify"
+              variant="solo-filled"
+              flat
+              hide-details
+              single-line
+              clearable
+              rounded
+            ></v-text-field>
+          </v-slide-x-reverse-transition>
+        </div>
+        <v-btn
+          class="bg-blue-grey"
+          size="35"
+          icon="mdi-magnify"
+          @click="toggleSearchField"
+        ></v-btn>
       </div>
       <v-card-text>
         <v-data-table
+          class="text-blue-grey"
           :headers="headers"
           :items="items"
           :search="search"
@@ -310,12 +362,26 @@
           select-strategy="single"
           dense
           hover
+          @update:model-value="check"
         >
         </v-data-table>
       </v-card-text>
-      <v-card-actions class="justify-center">
-        <v-btn color="grey darken-1" variant="text" @click="personDialog = false">
-          Schließen
+      <v-card-actions class="justify-end mt-n5 mb-2 me-3">
+        <v-btn
+          @click="
+            (personDialog = false), (selectedPersonId = null), (checked = false)
+          "
+          color="blue-grey"
+          variant="text"
+          >Abbrechen</v-btn
+        >
+        <v-btn
+          :disabled="!checked"
+          color="primary"
+          variant="elevated"
+          @click="personDialog = false"
+        >
+          Übernehmen
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -325,9 +391,7 @@
 <script setup>
 import axios from "axios";
 const selected = ref("");
-const selectedDates1 = ref([]);
-const selectedDates2 = ref([]);
-const selectedDates3 = ref([]);
+const selectedMonth = ref(null);
 const selectedLocation = ref(null);
 const selectedLocationName = ref(null);
 const locations = ref([]);
@@ -339,20 +403,39 @@ const selectedPersonId = ref(null);
 const employees = ref([]);
 const users = ref([]);
 const items = ref([]);
-const showDialog1 = ref(false);
-const showDialog2 = ref(false);
-const showDialog3 = ref(false);
+const dateMenu1 = ref(false);
+const dateMenu2 = ref(false);
+const dateMenu3 = ref(false);
 const personDialog = ref(false);
 const isSearchVisible = ref(false);
 const search = ref("");
+const checked = ref(false);
 
 const headers = [
-     { titel: "Tätigkeit", key: "tätikeit", nowrap: true},
-     { title: "Vorname", key: "first_name", nowrap: true },
-     { title: "Nachname", key: "last_name", nowrap: true },
-     { title: "Standort", key: "location_name", nowrap: true},
-     { title: "Gruppe", key: "group_name", nowrap: true },
-  ];
+  { titel: "Tätigkeit", key: "tätigkeit", nowrap: true },
+  { title: "Vorname", key: "first_name", nowrap: true },
+  { title: "Nachname", key: "last_name", nowrap: true },
+  { title: "Standort", key: "location_name", nowrap: true },
+  { title: "Gruppe", key: "group_name", nowrap: true },
+];
+
+const check = () => {
+  checked.value = selectedPersonId.value.length !== 0;
+};
+
+const clearStandort = () => {
+  selectedLocationName.value = null;
+  selectedDates1.value = [];
+  console.log(selectedLocationName.value);
+};
+const clearGruppe = () => {
+  selectedGroupName.value = null;
+  selectedDates2.value = [];
+};
+const clearPerson = () => {
+  selectedPersonName.value = null;
+  selectedDates3.value = [];
+};
 
 const toggleSearchField = () => {
   if (isSearchVisible.value) {
@@ -361,25 +444,45 @@ const toggleSearchField = () => {
   isSearchVisible.value = !isSearchVisible.value;
 };
 
-const today = new Date();
-const sixMonthsAgo = new Date();
-sixMonthsAgo.setMonth(today.getMonth() - 6);
+const lastSixMonths = computed(() => {
+  const months = [];
+  const monthNames = [
+    "Januar",
+    "Februar",
+    "März",
+    "April",
+    "Mai",
+    "Juni",
+    "Juli",
+    "August",
+    "September",
+    "Oktober",
+    "November",
+    "Dezember",
+  ];
 
-const minDate = computed(() => sixMonthsAgo.toISOString().split("T")[0]);
-const maxDate = computed(() => today.toISOString().split("T")[0]);
+  const today = new Date();
+  for (let i = 1; i <= 6; i++) {
+    const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+    const monthLabel = `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+    const monthValue = `${date.getFullYear()}-${String(
+      date.getMonth() + 1
+    ).padStart(2, "0")}`;
 
-const formattedDateRange1 = computed(() => {
-  if (selectedDates1.value.length === 0) return "";
-  return `${selectedDates1.value[0].toLocaleDateString("de-DE")} - ${selectedDates1.value[selectedDates1.value.length - 1].toLocaleDateString("de-DE")}`;
+    months.push({ label: monthLabel, value: monthValue });
+  }
+  return months;
 });
-const formattedDateRange2 = computed(() => {
-  if (selectedDates2.value.length === 0) return "";
-  return `${selectedDates2.value[0].toLocaleDateString("de-DE")} - ${selectedDates2.value[selectedDates2.value.length - 1].toLocaleDateString("de-DE")}`;
+
+const selectedMonthFormatted = computed(() => {
+  return selectedMonth.value
+    ? lastSixMonths.value.find((m) => m.value === selectedMonth.value)?.label
+    : null;
 });
-const formattedDateRange3 = computed(() => {
-  if (selectedDates3.value.length === 0) return "";
-  return `${selectedDates3.value[0].toLocaleDateString("de-DE")} - ${selectedDates3.value[selectedDates3.value.length - 1].toLocaleDateString("de-DE")}`;
-});
+
+const selectMonth = (month) => {
+  selectedMonth.value = month.value;
+};
 
 const selectLocation = (location) => {
   selectedLocation.value = location;
@@ -409,7 +512,7 @@ const setItems = () => {
       group_name: employee.group.group_name || "Unbekannt",
       location_id: employee.group.location.id || null,
       location_name: employee.group.location.location_name,
-      tätikeit: "Gruppenmitglied"
+      tätikeit: "Gruppenmitglied",
     })),
     ...users.value.map((user) => ({
       id: user.id,
@@ -428,15 +531,17 @@ const setItems = () => {
           ? "Gruppenleitung"
           : user.user_group === "standortleitung"
           ? "Standortleitung"
-          : user.user_group
-    }))
+          : user.user_group,
+    })),
   ];
-}
+};
 
 watch(selectedPersonId, (newId) => {
   if (newId) {
-    const person = items.value.find(item => item.id === newId[0]);
-    selectedPersonName.value = person ? `${person.first_name} ${person.last_name}` : null;
+    const person = items.value.find((item) => item.id === newId[0]);
+    selectedPersonName.value = person
+      ? `${person.first_name} ${person.last_name}`
+      : null;
   } else {
     selectedPersonName.value = null;
   }
@@ -444,30 +549,23 @@ watch(selectedPersonId, (newId) => {
 
 const generateInvoice = () => {
   let id = null;
-  let selectedDatesRef = null;
   let idName = null;
 
   if (selected.value === "standort") {
     id = selectedLocation.value?.id;
     idName = "location-id";
-    selectedDatesRef = selectedDates1?.value;
   } else if (selected.value === "gruppe") {
     id = selectedGroup.value?.id;
     idName = "group-id";
-    selectedDatesRef = selectedDates2?.value;
   } else if (selected.value === "mitarbeiter") {
     id = selectedPersonId?.value[0];
     idName = "person-id";
-    selectedDatesRef = selectedDates3?.value;
   }
 
-  if (!id || !idName || !selectedDatesRef || selectedDatesRef.length < 1) {
-    console.log("Fehlende Eingaben!");
-    return;
-  }
-
-  const startDate = selectedDatesRef[0].toLocaleDateString('fr-CA');
-  const endDate = selectedDatesRef[selectedDatesRef.length - 1].toLocaleDateString('fr-CA');
+  const startDate = `${selectedMonth.value}-01`;
+  const [year, month] = selectedMonth.value.split("-").map(Number);
+  const lastDay = new Date(year, month, 0).getDate();
+  const endDate = `${selectedMonth.value}-${String(lastDay).padStart(2, "0")}`;
 
   console.log("Selected:", selected.value);
   console.log("ID:", id);
@@ -476,8 +574,7 @@ const generateInvoice = () => {
   console.log("Enddatum:", endDate);
 
   axios
-    .get(
-      import.meta.env.VITE_API + "/api/invoices", {
+    .get(import.meta.env.VITE_API + "/api/invoices", {
       params: {
         [idName]: id,
         "date-start": startDate,
@@ -485,8 +582,7 @@ const generateInvoice = () => {
       },
       withCredentials: true,
       responseType: "blob",
-    }
-    )
+    })
     .then((response) => {
       console.log(response.data);
       const blob = new Blob([response.data], { type: "application/pdf" });
@@ -513,8 +609,8 @@ const generateInvoice = () => {
       URL.revokeObjectURL(url);
     })
     .catch((err) => {
-      console.log(err.response.data.description)
-    })
+      console.log(err.response.data.description);
+    });
 };
 
 onMounted(() => {
@@ -547,5 +643,4 @@ onMounted(() => {
     })
     .catch((err) => console.log(err));
 });
-
 </script>
