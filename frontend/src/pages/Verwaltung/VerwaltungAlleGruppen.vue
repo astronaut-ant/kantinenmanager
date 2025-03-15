@@ -279,22 +279,17 @@
 
   <v-dialog v-model="secondDeleteDialog" persistent max-width="600">
     <v-card>
-      <v-card-title class="text-red"
-        >Gruppe und Mitglieder löschen</v-card-title
-      >
       <v-card-text>
-        <p>
+        <div class="d-flex justify-center text-red mb-4">
+          <p class="text-h5 font-weight-black">Gruppe und Mitglieder löschen</p>
+        </div>
+        <div class="text-medium-emphasis">
+          <p>
           Es werden <strong>{{ groupToDelete?.group_name }}</strong> und
           folgende Mitglieder gelöscht:
-        </p>
-        <v-list density="compact">
-          <v-list-item v-for="employee in employeesToDelete" :key="employee.id">
-            <v-list-item-title>
-              {{ employee.employee_number }} - {{ employee.first_name }}
-              {{ employee.last_name }}
-            </v-list-item-title>
-          </v-list-item>
-        </v-list>
+          </p>
+          <li class="mt-2 mb-2" v-for="employee in employeesToDelete"> {{ employee.employee_number }} - {{ employee.first_name }} {{ employee.last_name }}</li>
+        </div>
       </v-card-text>
       <v-card-actions>
         <v-btn text @click="closeDeleteDialog">Abbrechen</v-btn>
