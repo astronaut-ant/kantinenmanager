@@ -145,16 +145,11 @@
       </v-card>
     </div>
   </div>
-  <SuccessSnackbar v-model="snackbar" :text="snackbarText"></SuccessSnackbar>
-
-  <ErrorSnackbar
-    v-model="errorSnackbar"
-    :text="errorSnackbarText"
-    @close="errorSnackbar = false"
-  ></ErrorSnackbar>
 </template>
 
 <script setup>
+import { useFeedbackStore } from "@/stores/feedback";
+const feedbackStore = useFeedbackStore();
 import axios from "axios";
 const validation = ref("");
 const showConfirm = ref(false);
@@ -166,10 +161,6 @@ const group_name = ref("");
 const location_name = ref("");
 const groupnames = ref({});
 const keys = ref([]);
-const snackbar = ref(false);
-const snackbarText = ref("");
-const errorSnackbar = ref(false);
-const errorSnackbarText = ref("");
 const groupObjects = ref([]);
 const location_id = ref(null);
 
@@ -183,7 +174,10 @@ onMounted(() => {
       keys.value = Object.keys(groupnames.value);
       getGroupObjects();
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error(err);
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+    });
 });
 
 const getGroupObjects = () => {
@@ -195,7 +189,10 @@ const getGroupObjects = () => {
       groupObjects.value = response.data;
       console.log(groupObjects.value);
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error(err);
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+    });
 };
 
 const handleSubmit = () => {
@@ -215,14 +212,12 @@ const handleSubmit = () => {
       console.log(response.data);
       getEmployeesData(response.data.id);
       showConfirm.value = true;
-      snackbarText.value = `${first_name.value} ${last_name.value} wurde erfolgreich angelegt!`;
-      snackbar.value = true;
+      feedbackStore.setFeedback("success", "snackbar", " ", `${first_name.value} ${last_name.value} wurde erfolgreich angelegt!`);
       emptyForm();
     })
     .catch((err) => {
-      console.log(err);
-      errorSnackbarText.value = "Fehler beim Anlegen des Mitarbeiters!";
-      errorSnackbar.value = true;
+      console.error(err);
+      feedbackStore.setFeedback("error", "snackbar", "Fehler beim Anlegen des Mitarbeiters", err.response?.data?.description);
     });
 };
 
@@ -234,7 +229,10 @@ const getEmployeesData = (id) => {
     .then((response) => {
       console.log(response.data);
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error(err);
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+    })
 };
 
 const required = (v) => {

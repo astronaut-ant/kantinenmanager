@@ -1,10 +1,10 @@
 <template>
-  <v-card class="mx-2 my-2" width="425" elevation="16">
+  <v-card class="mx-2 my-2 text-blue-grey-darken-2" width="425" elevation="16">
     <v-card-item>
       <div class="d-flex justify-space-between align-center">
         <v-card-title class="mb-2">{{ props.name }}</v-card-title>
         <v-chip color="primary" density="comfortable">{{
-          props.group_number
+          props.group_number ? props.group_number : "-"
         }}</v-chip>
       </div>
       <v-card-subtitle>
@@ -38,7 +38,7 @@
   </v-card>
 
   <v-dialog v-model="more" max-width="600" max-height="600" scrollable>
-    <v-card>
+    <v-card class="text-blue-grey">
       <v-card-title color="primary">
         <div class="text-center mt-4">
           <v-chip color="primary" label>
@@ -61,7 +61,9 @@
             </div>
             <div class="ml-5 mb-4 text-medium-emphasis">
               <p color="text-primary">
-                Gruppennummer: {{ props.group_number }}
+                <template v-if="props.group_number">
+                  Gruppennummer: {{ props.group_number }}
+                </template>
               </p>
               <p color="text-primary">
                 Mitgliederanzahl: {{ props.employees.length }}
@@ -104,7 +106,7 @@
               :sort-by="sortBy"
               :hover="true"
               density="compact"
-            >
+            > 
             </v-data-table-virtual>
           </v-tabs-window-item>
         </v-tabs-window>

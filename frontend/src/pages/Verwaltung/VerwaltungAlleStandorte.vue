@@ -36,6 +36,8 @@
 </template>
 
 <script setup>
+import { useFeedbackStore } from "@/stores/feedback";
+const feedbackStore = useFeedbackStore();
 import FilterBar from "@/components/SearchComponents/FilterBar.vue";
 import NoResult from "@/components/SearchComponents/NoResult.vue";
 import axios from "axios";
@@ -81,15 +83,13 @@ const fetchData = () => {
           filterlocationsWithGroups.value = locationsWithGroups.value;
         })
         .catch((err) => {
-          console.log("Error fetching groups:", err);
-          errorSnackbarText.value = "Fehler beim Laden der Gruppen!";
-          errorSnackbar.value = true;
+          console.error("Error fetching groups:", err);
+          feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
         });
     })
     .catch((err) => {
-      console.log("Error fetching locations:", err);
-      errorSnackbarText.value = "Fehler beim Laden der Standorte!";
-      errorSnackbar.value = true;
+      console.error("Error fetching locations:", err);
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
     });
 };
 
@@ -109,7 +109,8 @@ const getKitchen = () => {
       });
     })
     .catch((err) => {
-      console.log(err);
+      console.error(err);
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
     });
 };
 

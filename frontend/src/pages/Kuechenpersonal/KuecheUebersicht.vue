@@ -105,6 +105,9 @@
 
 <script setup>
 import axios from "axios";
+import { useFeedbackStore } from "@/stores/feedback";
+const feedbackStore = useFeedbackStore();
+
 
 const orders = ref([]);
 const employees = ref([]);
@@ -163,7 +166,10 @@ const getCount = () => {
       };
       console.log("Count: ", orderCount.value);
     })
-    .catch((err) => console.error(err));
+    .catch((err) => {
+      console.error(err);
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+    });
 };
 
 const fillTable = () => {
@@ -180,7 +186,10 @@ const getOrders = () => {
       console.log("Daily Orders: ", orders.value);
       getEmployees();
     })
-    .catch((err) => console.error(err));
+    .catch((err) => {
+      console.error(err);
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+    });
 };
 
 const getEmployees = () => {
@@ -193,7 +202,10 @@ const getEmployees = () => {
       console.log("All Emplyees: ", employees.value);
       getUsers();
     })
-    .catch((err) => console.error(err));
+    .catch((err) => {
+      console.error(err);
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+    });
 };
 
 const getUsers = () => {
@@ -204,7 +216,10 @@ const getUsers = () => {
       console.log("All Users: ", users.value);
       getLocations();
     })
-    .catch((err) => console.error(err));
+    .catch((err) => {
+      console.error(err);
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+    });
 };
 const getLocations = () => {
   axios
@@ -218,7 +233,10 @@ const getLocations = () => {
       console.log("allLocationLeadsIds: ", allLocationLeadersIds.value);
       getGroupLeaders();
     })
-    .catch((err) => console.error(err));
+    .catch((err) => {
+      console.error(err);
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+    });
 };
 const getGroupLeaders = () => {
   axios
@@ -235,7 +253,10 @@ const getGroupLeaders = () => {
       console.log("All GroupLeaders: ", groupleaders.value);
       updateTableData();
     })
-    .catch((err) => console.error(err));
+    .catch((err) => {
+      console.error(err);
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+    });
 };
 
 // Daten zusammenführen
@@ -306,7 +327,8 @@ const confirmChange = () => {
       closeConfirmDialog();
     })
     .catch((err) => {
-      console.log(err);
+      console.error(err);
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
     });
 };
 const closeConfirmDialog = () => {

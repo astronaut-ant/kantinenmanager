@@ -134,19 +134,11 @@
       </v-card>
     </div>
   </div>
-  <SuccessSnackbar
-    v-model="snackbar"
-    text="Gruppe erfolgreich angelegt!"
-    @close="snackbar = false"
-  ></SuccessSnackbar>
-  <ErrorSnackbar
-    v-model="errorSnackbar"
-    :text="errorSnackbarText"
-    @close="errorSnackbar = false"
-  ></ErrorSnackbar>
 </template>
 
 <script setup>
+import { useFeedbackStore } from "@/stores/feedback";
+const feedbackStore = useFeedbackStore();
 import CustomAlert from "@/components/CustomAlert.vue";
 import axios from "axios";
 const validation = ref("");
@@ -158,9 +150,6 @@ const gruppenleitung = ref(null);
 const gruppenleiterList = ref([]);
 const noGruppenleiter = ref(false);
 const gruppenLeiterLookUpTable = ref({});
-const errorSnackbar = ref(false);
-const errorSnackbarText = ref("");
-const snackbar = ref(false);
 
 //Dummy for Location-Endpoint
 const standort = ref();
@@ -186,7 +175,10 @@ const getData = () => {
 
       gruppenleiterList.value = Object.keys(gruppenLeiterLookUpTable.value);
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error("Error loading group leaders:", err);
+      feedbackStore.setFeedback("error", "snackbar", "Fehler beim Laden der Gruppenleiter", err.response?.data?.description);
+    });
 
   axios
     .get(import.meta.env.VITE_API + "/api/groups", {
@@ -198,7 +190,10 @@ const getData = () => {
         console.log("Blocked: ", blockedGroupnumbers);
       });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error("Error loading groups:", err);
+      feedbackStore.setFeedback("error", "snackbar", "Fehler beim Laden der Gruppen", err.response?.data?.description);
+    });
 
   axios
     .get(import.meta.env.VITE_API + "/api/locations", { withCredentials: true })
@@ -213,7 +208,10 @@ const getData = () => {
       console.log(standortLookupTable);
       console.log(allLocations.value);
     })
-    .catch((err) => console.log(err.response.data.description));
+    .catch((err) => {
+      console.error("Error loading locations:", err);
+      feedbackStore.setFeedback("error", "snackbar", "Fehler beim Laden der Standorte", err.response?.data?.description);
+    });
 };
 
 //send to Backend needs Endpoint
@@ -235,14 +233,15 @@ const handleSubmit = () => {
       showConfirm.value = true;
       gruppenLeiterLookUpTable.value = {};
       standortLookupTable.value = {};
-      snackbar.value = true;
       getData();
       emptyForm();
+      setTimeout(() => {
+        showConfirm.value = false;
+      }, 1500);
     })
     .catch((err) => {
-      console.log(err.response.data.description);
-      errorSnackbarText.value = "Fehler beim erstellen der Gruppe!";
-      errorSnackbar.value = true;
+      console.error("Error creating group:", err);
+      feedbackStore.setFeedback("error", "snackbar", "Fehler beim Erstellen der Gruppe", err.response?.data?.description);
     });
 };
 
@@ -256,7 +255,6 @@ const unique = (v) => {
 
 //emptyForm for new submit
 const emptyForm = () => {
-  showConfirm.value = false;
   validation.value.reset();
 };
 

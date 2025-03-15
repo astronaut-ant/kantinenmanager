@@ -390,6 +390,8 @@
 
 <script setup>
 import axios from "axios";
+import { useFeedbackStore } from "@/stores/feedback";
+const feedbackStore = useFeedbackStore();
 const selected = ref("");
 const selectedMonth = ref(null);
 const selectedLocation = ref(null);
@@ -607,9 +609,11 @@ const generateInvoice = () => {
       document.body.removeChild(link);
 
       URL.revokeObjectURL(url);
+      feedbackStore.setFeedback("success", "snackbar", "", "Die Abrechnung für " + selectedMonthFormatted.value + " wurde erfolgreich erstellt.");
     })
     .catch((err) => {
-      console.log(err.response.data.description);
+      console.error(err.response.data.description);
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
     });
 };
 
@@ -619,7 +623,10 @@ onMounted(() => {
     .then((response) => {
       locations.value = response.data;
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error("Error fetching data", err);
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+    });
   axios
     .get(import.meta.env.VITE_API + "/api/groups", {
       withCredentials: true,
@@ -627,20 +634,29 @@ onMounted(() => {
     .then((response) => {
       groups.value = response.data;
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error("Error fetching data", err);
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+    });
   axios
     .get(import.meta.env.VITE_API + "/api/employees", { withCredentials: true })
     .then((response) => {
       employees.value = response.data;
       setItems();
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error("Error fetching data", err);
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+    });
   axios
     .get(import.meta.env.VITE_API + "/api/users", { withCredentials: true })
     .then((response) => {
       users.value = response.data;
       setItems();
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error("Error fetching data", err);
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+    });
 });
 </script>

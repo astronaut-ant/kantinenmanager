@@ -76,22 +76,17 @@
 </template>
 
 <script setup>
-import SuccessSnackbar from "@/components/SuccessSnackbar.vue";
+import { useFeedbackStore } from "@/stores/feedback";
+const feedbackStore = useFeedbackStore();
 import router from "@/router";
 import axios from "axios";
 const props = defineProps(["oldValues"]);
-const emit = defineEmits(["close", "save", "success", "error"]);
+const emit = defineEmits(["close", "save"]);
 const close = () => {
   emit("close");
 };
 const save = () => {
   emit("save");
-};
-const success = () => {
-  emit("success");
-};
-const error = () => {
-  emit("error");
 };
 const validation = ref("");
 const showConfirm = ref(false);
@@ -207,6 +202,7 @@ onMounted(() => {
     .catch((err) => console.log(err));
 });
 
+/*
 const handleSubmit = () => {
   if (noKuechenpersonal.value) {
     axios
@@ -297,6 +293,119 @@ const handleSubmit = () => {
       .catch((err) => {
         console.log(err);
         error();
+      });
+  });
+};
+*/
+
+const handleSubmit = () => {
+  let hasError = false;
+
+  if (noKuechenpersonal.value) {
+    axios
+      .put(
+        import.meta.env.VITE_API +
+          `/api/locations/${oldLocationLeaderObject.location_id}`,
+        {
+          location_name: standortName.value,
+          user_id_location_leader: standortLeitungSelection.value,
+        },
+        { withCredentials: true }
+      )
+      .then(() => {
+        if (!hasError) {
+          save();
+          feedbackStore.setFeedback("success", "snackbar", "", "Der Standort wurde erfolgreich aktualisiert");
+        }
+        close();
+      })
+      .catch((err) => {
+        hasError = true;
+        console.error(err);
+        feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+      });
+    return;
+  }
+
+  console.log(standortName.value);
+  console.log(standortLeitungSelection.value);
+
+  availableKuechenpersonal.forEach((kuechenpersonalObject) => {
+    if (kuechenpersonalObject.location_id != null) {
+      axios
+        .put(
+          import.meta.env.VITE_API + `/api/users/${kuechenpersonalObject.id}`,
+          {
+            first_name: kuechenpersonalObject.first_name,
+            last_name: kuechenpersonalObject.last_name,
+            user_group: kuechenpersonalObject.user_group,
+            username: kuechenpersonalObject.username,
+          },
+          { withCredentials: true }
+        )
+        .then((response) => console.log(response.data))
+        .catch((err) => {
+          hasError = true;
+          console.error(err);
+          feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+        });
+    }
+
+    axios
+      .put(
+        import.meta.env.VITE_API + `/api/locations/${oldLocationLeaderObject.location_id}`,
+        {
+          location_name: standortName.value,
+          user_id_location_leader: standortLeitungSelection.value,
+        },
+        { withCredentials: true }
+      )
+      .then(() => {
+        if (!hasError) {
+          const kuechenpersonalArrayForRequests =
+            availableKuechenpersonal.filter((kObj) => {
+              return kuechenpersonalSelection.value.includes(kObj.id);
+            });
+          kuechenpersonalArrayForRequests.forEach(
+            (kObj) => (kObj.location_id = oldLocationLeaderObject.location_id)
+          );
+          kuechenpersonalArrayForRequests.forEach((kObj) => {
+            axios
+              .put(
+                import.meta.env.VITE_API + `/api/users/${kObj.id}`,
+                {
+                  first_name: kObj.first_name,
+                  last_name: kObj.last_name,
+                  location_id: kObj.location_id,
+                  user_group: kObj.user_group,
+                  username: kObj.username,
+                },
+                { withCredentials: true }
+              )
+              .then((response) => console.log(response.data))
+              .catch((err) => {
+                hasError = true;
+                console.log(err);
+              });
+          });
+        }
+      })
+      .catch((err) => {
+        hasError = true;
+        console.error(err);
+        feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+      })
+      .then(() => {
+        if (!hasError) {
+          save();
+          feedbackStore.setFeedback("success", "snackbar", "", "Der Standort wurde erfolgreich aktualisiert");
+        }
+        close();
+      })
+      .catch((err) => {
+        hasError = true;
+        console.error(err);
+        feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
       });
   });
 };
