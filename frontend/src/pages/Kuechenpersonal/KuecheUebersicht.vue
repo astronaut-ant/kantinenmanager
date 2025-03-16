@@ -430,22 +430,22 @@ const handleDownload = () => {
 
   if(selectedDownloadOption.value === "today") {
     report = {
-      location_id: appStore.userData.location_id,
-      "start-date": today,
-      "end-date": today
+      "location_id": appStore.userData.location_id,
+      "date-start": today,
+      "date-end": today
     }
   }
   else if(selectedDownloadOption.value === "nextTwoWeeks") {
     report = {
-      location_id: appStore.userData.location_id,
-      "start-date": today,
-      "end-date": inTwoWeeks
+      "location_id": appStore.userData.location_id,
+      "date-start": today,
+      "date-end": inTwoWeeks
     }
   }
   else if(selectedDownloadOption.value === "allLocationsNextTwoWeeks") {
     report = {
-      "start-date": today,
-      "end-date": inTwoWeeks
+      "date-start": today,
+      "date-end": inTwoWeeks
     }
   }
   console.log(report);
@@ -468,9 +468,14 @@ const handleDownload = () => {
       let filename = "bestellungen.pdf";
 
       if (contentDisposition) {
-        const match = contentDisposition.match(/filename="?([^"]+)"?/);
-        if (match && match[1]) {
+        let match = contentDisposition.match(/filename="([^"]+)"/);
+        if (match) {
           filename = match[1];
+        } else {
+          match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/);
+          if (match) {
+            filename = decodeURIComponent(match[1]);
+          }
         }
       }
 
