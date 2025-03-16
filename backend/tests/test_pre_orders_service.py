@@ -985,8 +985,14 @@ def describe_update_preorder_user():
         )
         mocker.patch.object(OrdersRepository, "update_order", return_value=None)
 
+        forward = datetime.today().weekday()
+        if forward > 2 and forward < 5:
+            forward = 4
+        else:
+            forward = 2
+
         dict_pre_order = {
-            "date": datetime.today().date(),
+            "date": datetime.today().date() + timedelta(days=forward),
             "location_id": pre_order.location_id,
             "main_dish": pre_order.main_dish,
             "nothing": pre_order.nothing,

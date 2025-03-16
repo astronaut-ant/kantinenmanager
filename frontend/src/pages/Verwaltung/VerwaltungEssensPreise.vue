@@ -103,8 +103,10 @@
   <v-dialog v-model="deleteDialog" persistent max-width="600px">
     <v-card>
       <v-card-text v-if="deletableMeal">
-        <div class="d-flex justify-center text-red mb-4">
-          <p class="text-h5 font-weight-black">Essenspreis löschen</p>
+        <div class="d-flex justify-center text-red mb-7">
+          <p class="text-h5 font-weight-black">
+            Essenspreis Löschen
+          </p>
         </div>
         <div class="text-medium-emphasis">
           <p>
@@ -217,6 +219,8 @@
 
 <script setup>
 import axios from "axios";
+import { useFeedbackStore } from "@/stores/feedback";
+const feedbackStore = useFeedbackStore();
 const meals = ref([]);
 const editDialog = ref(false);
 const mainDishEdit = ref(null);
@@ -277,8 +281,12 @@ const saveChanges = () => {
     .then(() => {
       fetchMeals();
       closeEditDialog();
+      feedbackStore.setFeedback("success", "snackbar", "", "Die Änderungen wurden erfolgreich übernommen!");
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error(err);
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+    });
 };
 
 const formattedMeals = computed(() => {
@@ -322,8 +330,12 @@ const handleDelete = () => {
     .then(() => {
       fetchMeals();
       closeDeleteDialog();
+      feedbackStore.setFeedback("success", "snackbar", "", "Der Essenspreis wurde erfolgreich gelöscht.");
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error(err);
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+    });
 };
 
 const openAddDialog = () => {
@@ -364,8 +376,12 @@ const handleAdd = () => {
     .then((response) => {
       fetchMeals();
       closeAddDialog();
+      feedbackStore.setFeedback("success", "snackbar", "", "Der neue Essenspreis wurde erfolgreich hinzugefügt!");
     })
-    .catch((err) => console.log("Fehler beim Laden der Essenspreise:", err));
+    .catch((err) => {
+      console.error("Fehler beim Hinzufügen des Essenspreis:", err);
+      feedbackStore.setFeedback("error", "snackbar", "Fehler beim Hinzufügen des Essenspreis", err.response?.data?.description);
+    });
 };
 
 const fetchMeals = () => {
@@ -385,7 +401,10 @@ const fetchMeals = () => {
       });
       console.log(meals.value);
     })
-    .catch((err) => console.log("Fehler beim Laden der Essenspreise:", err));
+    .catch((err) => {
+      console.error("Fehler beim Laden der Essenspreise:", err);
+      feedbackStore.setFeedback("error", "snackbar", "Fehler beim Laden der Essenspreise", err.response?.data?.description);
+    });
 };
 
 onMounted(() => {

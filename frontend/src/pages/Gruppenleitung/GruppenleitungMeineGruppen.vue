@@ -57,9 +57,11 @@
 import { useAppStore } from "@/stores/app";
 import axios from "axios";
 import { ref } from "vue";
+import { useFeedbackStore } from "@/stores/feedback";
+const feedbackStore = useFeedbackStore();
 const appStore = useAppStore();
 const id = appStore.userData.id;
-console.log("User ID:", id);
+
 
 const employees = ref([]);
 const mygroup = ref([]);
@@ -105,6 +107,7 @@ const fetchDataWithId = () => {
     })
     .catch((err) => {
       console.error("Error fetching data", err);
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
       loading.value = false;
     });
 };

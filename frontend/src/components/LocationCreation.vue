@@ -78,6 +78,7 @@
             </v-btn>
           </v-card-actions>
         </v-form>
+        <slot name="confirm"></slot>
       </v-card>
     </div>
   </div>
@@ -85,9 +86,10 @@
 
 <script setup>
 import CustomAlert from "@/components/CustomAlert.vue";
-import SuccessSnackbar from "@/components/SuccessSnackbar.vue";
 import router from "@/router";
 import axios from "axios";
+import { useFeedbackStore } from "@/stores/feedback";
+const feedbackStore = useFeedbackStore();
 const emit = defineEmits(["close"]);
 const close = () => {
   emit("close");
@@ -138,7 +140,10 @@ onMounted(() => {
         console.log(busyStandortleiter);
       });
     })
-    .catch((err) => console.log(err))
+    .catch((err) => {
+      console.error(err);
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+    })
     .then(() => {
       axios
         .get(import.meta.env.VITE_API + "/api/users", { withCredentials: true })
@@ -186,7 +191,10 @@ onMounted(() => {
           });
         });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error(err);
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+    });
 });
 
 const handleSubmit = () => {
@@ -228,7 +236,10 @@ const handleSubmit = () => {
             { withCredentials: true }
           )
           .then((response) => console.log(response.data))
-          .catch((err) => console.log(err));
+          .catch((err) => {
+            console.error(err);
+            feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+          });
       });
     })
     .then(() => {

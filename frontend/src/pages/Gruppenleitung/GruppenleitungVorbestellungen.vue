@@ -34,6 +34,7 @@ import interactionPlugin from "@fullcalendar/interaction";
 import CalendarDialog from "@/components/CalendarDialog.vue";
 import deLocale from "@fullcalendar/core/locales/de";
 import { useAppStore } from "@/stores/app.js";
+import { useFeedbackStore } from "@/stores/feedback.js";
 import axios from "axios";
 
 //Non reactive
@@ -188,7 +189,9 @@ export default {
         })
 
         .catch((err) => {
-          console.log(err);
+          console.error(err);
+          const feedbackStore = useFeedbackStore();
+          feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
         });
       setTimeout(() => {
         this.clickedEventDate = this.clickedDate;
@@ -292,6 +295,11 @@ export default {
         .then(() => {
           this.calendarOptions.events = [];
           this.fillCalendar(groupLeaderId);
+        })
+        .catch((err) => {
+          console.error(err);
+          const feedbackStore = useFeedbackStore();
+          feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
         });
 
       this.showBestellformular = false;
@@ -343,7 +351,11 @@ export default {
               });
             });
           })
-          .catch((err) => console.log(err));
+          .catch((err) => {
+            console.error(err);
+            const feedbackStore = useFeedbackStore();
+            feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+          });
     },
   },
   mounted: function () {
@@ -361,6 +373,8 @@ export default {
       })
       .catch((err) => {
         console.log("NOT WORKING");
+        const feedbackStore = useFeedbackStore();
+        feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
       });
 
     // groupLocationId = appStore.userData.location_id;

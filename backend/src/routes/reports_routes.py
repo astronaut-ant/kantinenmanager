@@ -14,9 +14,7 @@ reports_routes = Blueprint("reports_routes", __name__)
 
 
 @reports_routes.get("/api/reports/locations")
-@login_required(
-    groups=[UserGroup.verwaltung, UserGroup.standortleitung, UserGroup.kuechenpersonal]
-)
+@login_required(groups=[UserGroup.kuechenpersonal])
 @swag_from(
     {
         "tags": ["reports"],
@@ -71,15 +69,6 @@ def get_report():
 
     try:
         location_id = request.args.get("location_id")
-        # if not location_id:
-        #     abort_with_err(
-        #         ErrMsg(
-        #             status_code=400,
-        #             title="Validierungsfehler",
-        #             description="Es wurde kein Standort übergeben",
-        #             details="Die Abfrage erfordert mindestens einen Standort.",
-        #         )
-        #     )
 
         filters = OrdersFilters(
             date_start=datetime.strptime(ds_str, "%Y-%m-%d").date() if ds_str else None,
@@ -119,6 +108,7 @@ def get_report():
                 status_code=404,
                 title="Einer der Standorte existiert nicht",
                 description="Einer der Standorte existiert nicht in der Datenbank mit gegebener ID",
+                details=str(err),
             )
         )
     except AccessDeniedError as err:
@@ -127,6 +117,7 @@ def get_report():
                 status_code=403,
                 title="Zugriff verweigert",
                 description=f"Nutzer:in {g.user_id} hat keine Berechtigung, einen der Standort zu sehen",
+                details=str(err),
             )
         )
 
