@@ -37,6 +37,21 @@
       </v-card-text>
     </v-card>
   </v-container>
+  <div class="d-flex justify-center">
+    <v-btn class="bg-primary text-white" @click="downloadDialog=true">
+      Bestellungen<v-icon>mdi-download</v-icon>
+    </v-btn>
+  </div>
+  <FilterBar
+    :viewSwitcherEnabled="false"
+    :filterList="[
+      'full_name',
+      'group_name',
+    ]"
+    :items="tableDataSearch"
+    @searchresult="updateOverview"
+    @changeview=""
+  />
   <v-data-table-virtual
     class="mx-auto w-75 text-blue-grey-darken-1"
     :hover="true"
@@ -101,11 +116,65 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <v-dialog v-model="downloadDialog" max-width="400px">
+    <v-card>
+      <v-card-text>
+        <div class="d-flex ga-3 mb-6 text-primary">
+          <div class="d-flex align-center">
+            <v-icon class="ml-n1 mr-n2" size="30">mdi-file-download-outline</v-icon>
+          </div>
+          <h3>Bestellung herunterladen</h3>
+        </div>
+        <v-radio-group v-model="selectedDownloadOption" color="primary">
+          <v-radio
+            class="ms-n2"
+            label="Heutige Bestellungen"
+            value="today"
+          >
+            <template v-slot:label="{ label }">
+              <span class="text-black">{{ label }} </span>
+            </template>
+          </v-radio>
+          <v-radio
+            class="ms-n2"
+            label="Bestellungen der nächsten zwei Wochen"
+            value="nextTwoWeeks"
+          >
+            <template v-slot:label="{ label }">
+              <span class="text-black">{{ label }} </span>
+            </template>
+          </v-radio>
+          <v-radio
+            class="ms-n2"
+            label="Bestellungen aller Standorte der nächsten zwei Wochen"
+            value="allLocationsNextTwoWeeks"
+          >
+            <template v-slot:label="{ label }">
+              <span class="text-black">{{ label }} </span>
+            </template>
+          </v-radio>
+        </v-radio-group>
+      </v-card-text>
+      <v-card-actions class="d-flex justify-end mt-n3">
+        <v-btn
+          color="blue-grey"
+          @click="closeDownloadDialog()"
+        >Abbrechen</v-btn>
+        <v-btn
+          color="primary"
+          variant="elevated"
+          @click="handleDownload"
+        >Herunterladen</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
 import axios from "axios";
-
+import { useAppStore } from "@/stores/app";
+const appStore = useAppStore();
 const orders = ref([]);
 const employees = ref([]);
 const locations = ref([]);
@@ -113,7 +182,10 @@ const allLocationLeadersIds = ref([]);
 const groupleaders = ref([]);
 const users = ref([]);
 const tableData = ref([]);
+const tableDataSearch = ref([])
 const dialog = ref(false);
+const downloadDialog = ref(false);
+const selectedDownloadOption = ref("today");
 const itemToConfirm = ref(null);
 const orderCount = ref({
   blau: 0,
@@ -281,6 +353,7 @@ const updateTableData = () => {
       handed_out: order.handed_out,
     };
   });
+  tableDataSearch.value = tableData.value;
 };
 const joinEmployeesAndUsers = () => {
   return employees.value.concat(users.value);
@@ -313,6 +386,89 @@ const closeConfirmDialog = () => {
   itemToConfirm.value = null;
   dialog.value = false;
 };
+
+const updateOverview = (list) => {
+  tableData.value = list;
+}
+
+const closeDownloadDialog = () =>{
+  selectedDownloadOption.value = "today";
+  downloadDialog.value = false;
+};
+
+const handleDownload = () => {
+  let report = {};
+  let today = new Date();
+  let inTwoWeeks = new Date();
+  inTwoWeeks.setDate(today.getDate() + 14);
+  today = getFormattedDate(today);
+  inTwoWeeks = getFormattedDate(inTwoWeeks);
+  console.log(inTwoWeeks);
+
+  if(selectedDownloadOption.value === "today") {
+    report = {
+      location_id: appStore.userData.location_id,
+      "start-date": today,
+      "end-date": today
+    }
+  }
+  else if(selectedDownloadOption.value === "nextTwoWeeks") {
+    report = {
+      location_id: appStore.userData.location_id,
+      "start-date": today,
+      "end-date": inTwoWeeks
+    }
+  }
+  else if(selectedDownloadOption.value === "allLocationsNextTwoWeeks") {
+    report = {
+      "start-date": today,
+      "end-date": inTwoWeeks
+    }
+  }
+  console.log(report);
+  axios
+    .get(
+      import.meta.env.VITE_API + `/api/reports/locations`, {
+      params: report,
+      withCredentials: true,
+      responseType: "blob",
+    })
+    .then((response) => {
+      console.log(response.data);
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+
+      const contentDisposition = response.headers["content-disposition"];
+      let filename = "bestellungen.pdf";
+
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="?([^"]+)"?/);
+        if (match && match[1]) {
+          filename = match[1];
+        }
+      }
+
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      URL.revokeObjectURL(url);
+
+      closeDownloadDialog();
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
+const getFormattedDate = (date) => {
+  return date.toISOString().split("T")[0];
+};
+
 getCount();
 fillTable();
 </script>
