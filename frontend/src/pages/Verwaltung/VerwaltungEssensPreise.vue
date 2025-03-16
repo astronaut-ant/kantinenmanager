@@ -40,59 +40,36 @@
 
   <v-dialog v-model="editDialog" persistent max-width="600px">
     <v-card>
+      <v-card-title>
+        <span class="headline justify-center">Essenspreis Bearbeiten</span>
+      </v-card-title>
       <v-card-text>
-        <div class="d-flex ga-3 mb-8 text-primary">
-          <div class="d-flex align-center">
-            <v-icon class="mt-n1" size="35">mdi-tag-edit-outline</v-icon>
-          </div>
-          <h2>Essenspreis bearbeiten</h2>
-        </div>
         <v-form>
           <v-text-field
             v-model="mainDishEdit"
-            class="mt-4"
-            :active="true"
-            base-color="blue-grey"
-            color="primary"
-            variant="outlined"
-            Placeholder="Hauptgericht Preis (€)"
-            label="Hauptgericht (€)"
+            label="Hauptgericht Preis (€)"
             type="number"
-            :rules="[required]"
+            :rules="[required, isPositive]"
           ></v-text-field>
           <v-text-field
             v-model="saladEdit"
-            class="mt-4"
-            :active="true"
-            base-color="blue-grey"
-            color="primary"
-            variant="outlined"
-            Placeholder="Salat Preis (€)"
-            label="Salat (€)"
+            label="Salat Preis (€)"
             type="number"
-            :rules="[required]"
+            :rules="[required, isPositive]"
           ></v-text-field>
           <v-text-field
             v-model="prepaymentEdit"
-            class="mt-4"
-            :active="true"
-            base-color="blue-grey"
-            color="primary"
-            variant="outlined"
-            Placeholder="Vorauszahlung (€)"
             label="Vorauszahlung (€)"
             type="number"
-            :rules="[required]"
+            :rules="[required, isPositive]"
           ></v-text-field>
         </v-form>
       </v-card-text>
       <v-card-actions>
-        <v-btn @click="closeEditDialog()" color="blue-grey">Abbrechen</v-btn>
+        <v-btn @click="closeEditDialog()" color="grey">Abbrechen</v-btn>
         <v-btn
           @click="saveChanges()"
-          color="primary"
-          class="me-4"
-          variant="elevated"
+          color="green"
           :disabled="!mainDishEdit || !saladEdit || !prepaymentEdit"
           >Speichern</v-btn
         >
@@ -121,8 +98,8 @@
         </div>
       </v-card-text>
       <v-card-actions>
-        <v-btn @click="closeDeleteDialog()">Abbrechen</v-btn>
-        <v-btn @click="handleDelete()" color="red" variant="elevated" :disabled="!deletableMeal"
+        <v-btn @click="closeDeleteDialog()" color="grey">Abbrechen</v-btn>
+        <v-btn @click="handleDelete()" color="red" :disabled="!deletableMeal"
           >Löschen</v-btn
         >
       </v-card-actions>
@@ -159,7 +136,7 @@
           v-model="mainDishAdd"
           label="Hauptgericht"
           type="number"
-          :rules="[required]"
+          :rules="[required, isPositive]"
         ></v-text-field>
         <v-text-field
           :active="true"
@@ -171,7 +148,7 @@
           v-model="saladAdd"
           label="Salat"
           type="number"
-          :rules="[required]"
+          :rules="[required, isPositive]"
         ></v-text-field>
         <v-text-field
           class="mt-4"
@@ -183,7 +160,7 @@
           v-model="prepaymentAdd"
           label="Vorrauszahlung"
           type="number"
-          :rules="[required]"
+          :rules="[required, isPositive]"
         ></v-text-field>
       </v-card-text>
       <v-card-actions>
@@ -426,5 +403,9 @@ const getPreviousDay = (date) => {
 
 const required = (v) => {
   return !!v || "Eingabe erforderlich";
+};
+
+const isPositive = (v) => {
+  return v > 0 || "Betrag muss positiv sein";
 };
 </script>
