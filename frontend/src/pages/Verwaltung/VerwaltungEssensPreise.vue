@@ -58,7 +58,7 @@
             Placeholder="Hauptgericht Preis (€)"
             label="Hauptgericht (€)"
             type="number"
-            :rules="[required]"
+            :rules="[required, isPositive]"
           ></v-text-field>
           <v-text-field
             v-model="saladEdit"
@@ -70,7 +70,7 @@
             Placeholder="Salat Preis (€)"
             label="Salat (€)"
             type="number"
-            :rules="[required]"
+            :rules="[required, isPositive]"
           ></v-text-field>
           <v-text-field
             v-model="prepaymentEdit"
@@ -82,7 +82,7 @@
             Placeholder="Vorauszahlung (€)"
             label="Vorauszahlung (€)"
             type="number"
-            :rules="[required]"
+            :rules="[required, isPositive]"
           ></v-text-field>
         </v-form>
       </v-card-text>
@@ -159,7 +159,7 @@
           v-model="mainDishAdd"
           label="Hauptgericht"
           type="number"
-          :rules="[required]"
+          :rules="[required, isPositive]"
         ></v-text-field>
         <v-text-field
           :active="true"
@@ -171,7 +171,7 @@
           v-model="saladAdd"
           label="Salat"
           type="number"
-          :rules="[required]"
+          :rules="[required, isPositive]"
         ></v-text-field>
         <v-text-field
           class="mt-4"
@@ -183,7 +183,7 @@
           v-model="prepaymentAdd"
           label="Vorrauszahlung"
           type="number"
-          :rules="[required]"
+          :rules="[required, isPositive]"
         ></v-text-field>
       </v-card-text>
       <v-card-actions>
@@ -426,5 +426,9 @@ const getPreviousDay = (date) => {
 
 const required = (v) => {
   return !!v || "Eingabe erforderlich";
+};
+
+const isPositive = (v) => {
+  return v > 0 || "Betrag muss positiv sein";
 };
 </script>
