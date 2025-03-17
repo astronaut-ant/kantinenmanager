@@ -569,7 +569,7 @@ onMounted(() => {
 });
 
 const headers = [
-  { title: "Nummer", key: "employee_number"},
+  { title: "Nummer", key: "employee_number" },
   { title: "Vorname", key: "first_name" },
   { title: "Nachname", key: "last_name" },
   { title: "Gruppe", key: "group_name" },
