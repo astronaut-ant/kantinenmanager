@@ -5,7 +5,7 @@
 
   <v-card :elevation="0" class="pa-5 mx-auto mt-7" max-width="900">
     <v-card-title class="text-h4 font-weight-bold mb-2 text-primary">
-      <v-icon :size="36" class="d-none d-md-inline me-3 ms-n2 mt-n1"
+      <v-icon :size="36" class="d-none d-md-inline-block me-3 ms-n2 mt-n2"
         >mdi-currency-eur</v-icon
       >Essenspreise</v-card-title
     >
