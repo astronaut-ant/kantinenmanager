@@ -102,7 +102,7 @@
               variant="outlined"
               class="mb-5 mt-2"
               v-model="username"
-              :rules="[required, unique]"
+              :rules="[required, unique, noWhiteSpace]"
               label="Benutzername"
               placeholder="Eindeutigen Benutzernamen vergeben"
               clearable
@@ -226,6 +226,9 @@ const unique = (v) => {
   return (
     !allsUserNames.value.includes(v.trim()) || "Benutzername bereits vergeben"
   );
+};
+const noWhiteSpace = (v) => {
+  return !v.includes(" ") || "Keine Leerzeichen erlaubt";
 };
 
 const emptyForm = () => {
