@@ -1,5 +1,10 @@
 <template>
-  <v-card class="mx-2 my-2 text-blue-grey-darken-2" width="425" elevation="16">
+  <v-card
+    class="mx-2 my-2 text-blue-grey-darken-2 w-xs-25 w-md-100"
+    min-width="350"
+    max-width="350"
+    elevation="16"
+  >
     <v-card-item>
       <div class="mb-2 d-flex justify-center">
         <v-chip
@@ -198,10 +203,20 @@ const removeGroupReplacement = () => {
     .then(() => {
       emit("replacement-removed");
       closeremoveGroupReplacementDialog();
-      feedbackStore.setFeedback("success", "snackbar", "Vertretung gelöscht", "Der Gruppenleiter kann wieder Essensbestellungen für seine Gruppe übernehmen.");
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "Vertretung gelöscht",
+        "Der Gruppenleiter kann wieder Essensbestellungen für seine Gruppe übernehmen."
+      );
     })
     .catch((err) => {
-      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
     });
 };
 const opensetGroupReplacementDialog = () => {
@@ -240,11 +255,21 @@ const confirmSetGroupReplacement = () => {
     .then(() => {
       emit("replacement-set");
       closesetGroupReplacementDialog();
-      feedbackStore.setFeedback("success", "snackbar", "Vertretung gesetzt", "Der temporäre Gruppenleiter übernimmt Essensbestellungen für die Gruppe.");
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "Vertretung gesetzt",
+        "Der temporäre Gruppenleiter übernimmt Essensbestellungen für die Gruppe."
+      );
     })
     .catch((err) => {
       closesetGroupReplacementDialog();
-      feedbackStore.setFeedback("error", "dialog", err.response?.data?.title, err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "dialog",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
     });
 };
 </script>

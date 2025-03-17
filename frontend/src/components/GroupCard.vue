@@ -1,5 +1,9 @@
 <template>
-  <v-card class="mx-2 my-2 text-blue-grey-darken-2" width="425" elevation="16">
+  <v-card
+    class="mx-2 my-2 text-blue-grey-darken-2 w-xs-25 w-sm-100"
+    width="350"
+    elevation="16"
+  >
     <v-card-item>
       <div class="d-flex justify-space-between align-center">
         <v-card-title class="mb-2">{{ props.name }}</v-card-title>
@@ -106,7 +110,7 @@
               :sort-by="sortBy"
               :hover="true"
               density="compact"
-            > 
+            >
             </v-data-table-virtual>
           </v-tabs-window-item>
         </v-tabs-window>
