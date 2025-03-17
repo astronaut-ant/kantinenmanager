@@ -6,14 +6,14 @@
     <v-row justify="center" class="mt-6 mb-4">
       <v-col cols="12" class="text-center">
         <h1 class="text-h4 text-primary font-weight-bold">
-          <v-icon class="me-2">mdi-invoice-arrow-left-outline</v-icon>
+          <v-icon class="me-2">mdi-invoice-text-plus-outline</v-icon>
           Abrechnung erstellen
         </h1>
       </v-col>
     </v-row>
 
     <v-row justify="center" class="align-center">
-      <v-col cols="3" class="text-center d-flex align-center justify-end">
+      <v-col cols="4" class="text-center d-flex align-center justify-end">
         <v-divider class="flex-grow-1 mr-2"></v-divider>
         <v-btn
           variant="tonal"
@@ -25,7 +25,7 @@
         </v-btn>
       </v-col>
 
-      <v-col cols="3" class="text-center d-flex align-center justify-center">
+      <v-col cols="4" class="text-center d-flex align-center justify-center">
         <v-divider class="flex-grow-1 mx-2"></v-divider>
         <v-btn
           variant="tonal"
@@ -38,7 +38,7 @@
         <v-divider class="flex-grow-1 mx-2"></v-divider>
       </v-col>
 
-      <v-col cols="3" class="text-center d-flex align-center justify-start">
+      <v-col cols="4" class="text-center d-flex align-center justify-start">
         <v-btn
           variant="tonal"
           size="large"
@@ -52,14 +52,13 @@
     </v-row>
 
     <v-row justify="center" class="mt-4">
-      <v-col cols="6">
+      <v-col cols="10">
         <v-card
+          :elevation="0"
           v-if="selected === 'standort'"
           class="pa-4 text-blue-grey-darken-3 ms-n2 me-n8"
         >
-          <v-card-title class="text-h6">
-            Abrechnung für einen Standort
-          </v-card-title>
+          <v-card-title class="text-h6"> Abrechnung für Standort </v-card-title>
           <v-card-text>
             Standort, für welchen die Abrechnung erstellt werden soll,
             auswählen.
@@ -138,12 +137,11 @@
         </v-card>
 
         <v-card
+          :elevation="0"
           v-if="selected === 'gruppe'"
           class="pa-4 text-blue-grey-darken-3 ms-n2 me-n8"
         >
-          <v-card-title class="text-h6">
-            Abrechnung für eine Gruppe
-          </v-card-title>
+          <v-card-title class="text-h6"> Abrechnung für Gruppe </v-card-title>
           <v-card-text>
             Gruppe, für welche die Abrechnung erstellt werden soll, auswählen.
             <v-menu offset-y>
@@ -163,7 +161,7 @@
                   append-inner-icon="mdi-chevron-down"
                 ></v-text-field>
               </template>
-              <v-list class="w-50">
+              <v-list class="w-75">
                 <v-list-item v-for="location in locations" :key="location.id">
                   <v-list-item-title class="cursor-pointer">{{
                     location?.location_name
@@ -249,6 +247,7 @@
         </v-card>
 
         <v-card
+          :elevation="0"
           v-if="selected === 'mitarbeiter'"
           class="pa-4 text-blue-grey-darken-3 ms-n2 me-n8"
         >
@@ -325,7 +324,7 @@
       <v-spacer></v-spacer>
 
       <div class="d-flex h-100 align-center justify-space-between pe-6 mt-5">
-        <h2 class="text-blue-grey-darken-3 ml-6">Personal</h2>
+        <h2 class="text-blue-grey-darken-2 ml-1 mr-2">Personal</h2>
         <div class="w-50">
           <v-slide-x-reverse-transition>
             <v-text-field
@@ -352,7 +351,7 @@
       </div>
       <v-card-text>
         <v-data-table
-          class="text-blue-grey"
+          class="text-blue-grey-darken-2"
           :headers="headers"
           :items="items"
           :search="search"
@@ -390,6 +389,8 @@
 
 <script setup>
 import axios from "axios";
+import { useFeedbackStore } from "@/stores/feedback";
+const feedbackStore = useFeedbackStore();
 const selected = ref("");
 const selectedMonth = ref(null);
 const selectedLocation = ref(null);
@@ -607,9 +608,23 @@ const generateInvoice = () => {
       document.body.removeChild(link);
 
       URL.revokeObjectURL(url);
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "",
+        "Die Abrechnung für " +
+          selectedMonthFormatted.value +
+          " wurde erfolgreich erstellt."
+      );
     })
     .catch((err) => {
-      console.log(err.response.data.description);
+      console.error(err.response.data.description);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
     });
 };
 
@@ -619,7 +634,15 @@ onMounted(() => {
     .then((response) => {
       locations.value = response.data;
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error("Error fetching data", err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
+    });
   axios
     .get(import.meta.env.VITE_API + "/api/groups", {
       withCredentials: true,
@@ -627,20 +650,44 @@ onMounted(() => {
     .then((response) => {
       groups.value = response.data;
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error("Error fetching data", err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
+    });
   axios
     .get(import.meta.env.VITE_API + "/api/employees", { withCredentials: true })
     .then((response) => {
       employees.value = response.data;
       setItems();
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error("Error fetching data", err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
+    });
   axios
     .get(import.meta.env.VITE_API + "/api/users", { withCredentials: true })
     .then((response) => {
       users.value = response.data;
       setItems();
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error("Error fetching data", err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
+    });
 });
 </script>

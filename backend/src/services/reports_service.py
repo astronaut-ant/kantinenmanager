@@ -39,6 +39,14 @@ class ReportsService:
         else:
             raise AccessDeniedError(f"Nutzer:in {user_id}")
 
+        if not daily_orders:
+            returnMessage = [
+                CountOrdersObject(
+                    location_id=user.location_id, rot=0, blau=0, salad_option=0
+                )
+            ]
+            return CountOrdersSchema(many=True).dump(returnMessage)
+
         location_counts = ReportsService._count_location_orders_by_date(daily_orders)
         datum = (
             (daily_orders[0].date).date()
@@ -115,7 +123,13 @@ class ReportsService:
             ):
                 orders.extend(
                     OrdersRepository.get_pre_orders(
-                        fil, user_group=user_group, user_id=user_id
+                        fil,
+                        user_group=(
+                            UserGroup.verwaltung
+                            if user_group == UserGroup.kuechenpersonal
+                            else user_group
+                        ),
+                        user_id=user_id,
                     )
                 )
                 orders.extend(OrdersRepository.get_all_daily_orders(fil))
@@ -130,14 +144,17 @@ class ReportsService:
         location_id: UUID, user_id: UUID, user_group: UserGroup
     ) -> bool:
 
-        if user_group == UserGroup.verwaltung:
+        if (
+            user_group == UserGroup.verwaltung
+            or user_group == UserGroup.kuechenpersonal
+        ):
             return True
         elif user_group == UserGroup.standortleitung:
             location = LocationsRepository.get_location_by_id(location_id)
-            return user_id == location.user_id_location_leader
+            return str(user_id) == str(location.user_id_location_leader)
         elif user_group == UserGroup.kuechenpersonal:
             user = UsersRepository.get_user_by_id(user_id)
-            return user.location_id == location_id
+            return str(user.location_id) == str(location_id)
         else:
             return False
 

@@ -42,11 +42,6 @@
     </UserTable>
   </div>
   <NoResult v-if="userlist.length === 0 && users.length !== 0" />
-  <ErrorSnackbar
-    v-model="errorSnackbar"
-    :text="errorSnackbarText"
-    @close="errorSnackbar = false"
-  ></ErrorSnackbar>
 </template>
 
 <script setup>
@@ -54,12 +49,12 @@ import axios from "axios";
 import FilterBar from "@/components/SearchComponents/FilterBar.vue";
 import NoResult from "@/components/SearchComponents/NoResult.vue";
 import GridContainer from "@/components/GridContainer.vue";
+import { useFeedbackStore } from "@/stores/feedback";
 
+const feedbackStore = useFeedbackStore();
 const users = ref({});
 const userlist = ref([]);
 const ansicht = ref("cardview");
-const errorSnackbar = ref(false);
-const errorSnackbarText = ref("");
 const forcer = ref(1);
 const allLocations = ref([]);
 const fixedGroupLeaderIDs = ref([]);
@@ -69,7 +64,12 @@ const fetchData = () => {
   axios
     .get(import.meta.env.VITE_API + "/api/users", { withCredentials: true })
     .then((response) => {
-      users.value = response.data;
+      users.value = response.data.map(user => {
+        let capitalizedRole = user.user_group.charAt(0).toUpperCase() + user.user_group.slice(1);
+        user.user_group = capitalizedRole.replace("ue", "ü");
+        return user;
+      });
+
       users.value.sort((a, b) =>
         a.username.toLowerCase() > b.username.toLowerCase()
           ? 1
@@ -77,14 +77,19 @@ const fetchData = () => {
           ? -1
           : 0
       );
-      userlist.value = Object.values(response.data);
 
-      console.log(userlist.value);
+      userlist.value = Object.values(users.value);
+
+      //console.log(userlist.value);
     })
     .catch((err) => {
-      console.log(err);
-      errorSnackbarText.value = "Fehler beim laden der Nutzer!";
-      errorSnackbar.value = true;
+      console.error("Error fetching data", err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
     });
 
   axios
@@ -114,7 +119,15 @@ const fetchData = () => {
 
       //console.log(allLocations.value);
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error("Error fetching data", err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
+    });
 
   //TODO Fetch actual location for initial selection in v-Select
 };

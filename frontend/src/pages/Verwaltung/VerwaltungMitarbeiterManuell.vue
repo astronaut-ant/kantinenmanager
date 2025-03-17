@@ -2,26 +2,27 @@
   <NavbarVerwaltung
     :breadcrumbs="[{ title: 'Mitarbeiter' }, { title: 'Neuer Mitarbeiter' }]"
   />
-  <div class="mt-14 d-flex justify-center">
+  <div class="mt-7 d-flex justify-center">
     <div>
       <v-card
-        :min-width="600"
-        class="elevation-7 px-6 py-4 w-100 text-blue-grey-darken-3"
+        :min-width="350"
+        class="elevation-0 px-6 py-4 w-100 text-blue-grey-darken-3"
       >
         <v-card-text class="mb-2 text-h6">
           <div class="d-flex ga-4 mt-n3 mb-2 ms-2 ms-n4 text-primary">
-            <div class="d-flex align-center mt-n2">
+            <div class="d-none d-md-flex align-center mt-n2">
               <v-icon :size="35">mdi-human-capacity-increase</v-icon>
             </div>
             <h2>Neuen Mitarbeiter anlegen</h2>
           </div>
         </v-card-text>
         <v-form ref="validation" v-model="form" @submit.prevent="handleSubmit">
-          <div class="d-flex ga-8">
+          <div class="d-block d-md-flex ga-8">
             <v-menu color="primary" offset-y>
               <template #activator="{ props }">
                 <v-text-field
-                  class="w-100"
+                  :min-width="250"
+                  class="w-100 mb-3"
                   :active="true"
                   base-color="blue-grey"
                   color="primary"
@@ -36,7 +37,7 @@
                   append-inner-icon="mdi-chevron-down"
                 ></v-text-field>
               </template>
-              <v-list class="w-75">
+              <v-list class="w-75 mb-3">
                 <v-list-item color="primary" v-for="area in keys">
                   <v-list-item-title
                     class="text-blue-grey-darken-3 cursor-pointer"
@@ -68,6 +69,7 @@
             </v-menu>
             <v-container class="pa-0">
               <v-number-input
+                :min-width="250"
                 hide-details="auto"
                 precision="0"
                 :active="true"
@@ -77,8 +79,8 @@
                 inset
                 variant="outlined"
                 v-model="employee_number"
-                :rules="[required]"
-                class="w-100"
+                :rules="[required, unique]"
+                class="w-100 mb-3"
                 label="Mitarbeiter-Nr."
                 placeholder="Nummer zuweisen"
                 :min="0"
@@ -88,9 +90,10 @@
             </v-container>
           </div>
 
-          <div class="d-flex ga-8 mt-6">
+          <div class="d-block d-md-flex ga-8 mt-6">
             <v-text-field
-              class="w-100"
+              :min-width="250"
+              class="w-100 mb-3"
               :active="true"
               base-color="blue-grey"
               color="primary"
@@ -102,6 +105,7 @@
               clearable
             ></v-text-field>
             <v-text-field
+              :min-width="250"
               class="w-100"
               :active="true"
               base-color="blue-grey"
@@ -145,16 +149,11 @@
       </v-card>
     </div>
   </div>
-  <SuccessSnackbar v-model="snackbar" :text="snackbarText"></SuccessSnackbar>
-
-  <ErrorSnackbar
-    v-model="errorSnackbar"
-    :text="errorSnackbarText"
-    @close="errorSnackbar = false"
-  ></ErrorSnackbar>
 </template>
 
 <script setup>
+import { useFeedbackStore } from "@/stores/feedback";
+const feedbackStore = useFeedbackStore();
 import axios from "axios";
 const validation = ref("");
 const showConfirm = ref(false);
@@ -166,12 +165,9 @@ const group_name = ref("");
 const location_name = ref("");
 const groupnames = ref({});
 const keys = ref([]);
-const snackbar = ref(false);
-const snackbarText = ref("");
-const errorSnackbar = ref(false);
-const errorSnackbarText = ref("");
 const groupObjects = ref([]);
 const location_id = ref(null);
+const empNumberArray = ref([]);
 
 onMounted(() => {
   axios
@@ -183,8 +179,36 @@ onMounted(() => {
       keys.value = Object.keys(groupnames.value);
       getGroupObjects();
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error(err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
+    });
 });
+
+axios
+  .get(import.meta.env.VITE_API + "/api/employees", {
+    withCredentials: true,
+  })
+  .then((response) => {
+    response.data.forEach((emp) => {
+      empNumberArray.value.push(emp.employee_number);
+    });
+    console.log("Emp-Number:", empNumberArray.value);
+  })
+  .catch((err) => {
+    console.error(err);
+    feedbackStore.setFeedback(
+      "error",
+      "snackbar",
+      err.response?.data?.title,
+      err.response?.data?.description
+    );
+  });
 
 const getGroupObjects = () => {
   axios
@@ -195,7 +219,15 @@ const getGroupObjects = () => {
       groupObjects.value = response.data;
       console.log(groupObjects.value);
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error(err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
+    });
 };
 
 const handleSubmit = () => {
@@ -215,14 +247,22 @@ const handleSubmit = () => {
       console.log(response.data);
       getEmployeesData(response.data.id);
       showConfirm.value = true;
-      snackbarText.value = `${first_name.value} ${last_name.value} wurde erfolgreich angelegt!`;
-      snackbar.value = true;
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        " ",
+        `${first_name.value} ${last_name.value} wurde erfolgreich angelegt!`
+      );
       emptyForm();
     })
     .catch((err) => {
-      console.log(err);
-      errorSnackbarText.value = "Fehler beim Anlegen des Mitarbeiters!";
-      errorSnackbar.value = true;
+      console.error(err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        "Fehler beim Anlegen des Mitarbeiters",
+        err.response?.data?.description
+      );
     });
 };
 
@@ -234,13 +274,24 @@ const getEmployeesData = (id) => {
     .then((response) => {
       console.log(response.data);
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error(err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
+    });
 };
 
 const required = (v) => {
   return !!v || "Eingabe erforderlich";
 };
 
+const unique = (v) => {
+  return !empNumberArray.value.includes(v) || "Nummer bereits vergeben";
+};
 const onlyIntegers = (value) => {
   if (value === "" || Number.isInteger(Number(value))) {
     return true;

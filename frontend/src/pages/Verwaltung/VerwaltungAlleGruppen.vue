@@ -19,7 +19,8 @@
     <div v-for="group in grouplist" :key="group?.id" class="grid-item">
       <v-card
         class="mx-2 my-2 text-blue-grey-darken-2"
-        width="425"
+        :min-width="400"
+        :max-width="400"
         elevation="16"
       >
         <v-card-item>
@@ -180,7 +181,7 @@
     </v-card>
   </v-dialog>
 
-  <v-dialog v-model="editDialog" max-width="600">
+  <v-dialog v-model="editDialog" max-width="400">
     <v-card class="text-blue-grey-darken-3">
       <v-card-title class="ms-2 mt-2 mb-1 text-primary d-flex justify-start">
         <v-icon left class="mr-2 mb-n3"> mdi-account-group </v-icon>
@@ -202,7 +203,7 @@
               v-bind="props"
               v-model="newLeaderName"
               label="Gruppenleitung"
-              placeholder="Neue Gruppenleitung zuweisen"
+              placeholder="Neue Leitung zuweisen"
               readonly
               append-inner-icon="mdi-chevron-down"
             ></v-text-field>
@@ -279,22 +280,20 @@
 
   <v-dialog v-model="secondDeleteDialog" persistent max-width="600">
     <v-card>
-      <v-card-title class="text-red"
-        >Gruppe und Mitglieder löschen</v-card-title
-      >
       <v-card-text>
-        <p>
-          Es werden <strong>{{ groupToDelete?.group_name }}</strong> und
-          folgende Mitglieder gelöscht:
-        </p>
-        <v-list density="compact">
-          <v-list-item v-for="employee in employeesToDelete" :key="employee.id">
-            <v-list-item-title>
-              {{ employee.employee_number }} - {{ employee.first_name }}
-              {{ employee.last_name }}
-            </v-list-item-title>
-          </v-list-item>
-        </v-list>
+        <div class="d-flex justify-center text-red mb-4">
+          <p class="text-h5 font-weight-black">Gruppe und Mitglieder löschen</p>
+        </div>
+        <div class="text-medium-emphasis">
+          <p>
+            Es werden <strong>{{ groupToDelete?.group_name }}</strong> und
+            folgende Mitglieder gelöscht:
+          </p>
+          <li class="mt-2 mb-2" v-for="employee in employeesToDelete">
+            {{ employee.employee_number }} - {{ employee.first_name }}
+            {{ employee.last_name }}
+          </li>
+        </div>
       </v-card-text>
       <v-card-actions>
         <v-btn text @click="closeDeleteDialog">Abbrechen</v-btn>
@@ -304,16 +303,6 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-  <SuccessSnackbar
-    v-model="snackbar"
-    :text="snackbarText"
-    @close="snackbar = false"
-  ></SuccessSnackbar>
-  <ErrorSnackbar
-    v-model="errorSnackbar"
-    :text="errorSnackbarText"
-    @close="errorSnackbar = false"
-  ></ErrorSnackbar>
   <NoResult v-if="grouplist.length === 0 && groups.length !== 0" />
 </template>
 
@@ -321,10 +310,8 @@
 import FilterBar from "@/components/SearchComponents/FilterBar.vue";
 import NoResult from "@/components/SearchComponents/NoResult.vue";
 import axios from "axios";
-const snackbarText = ref(" ");
-const snackbar = ref(false);
-const errorSnackbar = ref(false);
-const errorSnackbarText = ref("");
+import { useFeedbackStore } from "@/stores/feedback";
+const feedbackStore = useFeedbackStore();
 const groups = ref([]);
 const grouplist = ref([]);
 const employees = ref(null);
@@ -360,7 +347,15 @@ const getData = () => {
           : 0
       );
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error("Error fetching data", err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
+    });
   axios
     .get(import.meta.env.VITE_API + "/api/users/group-leaders", {
       withCredentials: true,
@@ -368,14 +363,30 @@ const getData = () => {
     .then((response) => {
       groupLeaders.value = response.data;
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error("Error fetching data", err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
+    });
 
   axios
     .get(import.meta.env.VITE_API + "/api/employees", { withCredentials: true })
     .then((response) => {
       employees.value = response.data;
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error("Error fetching data", err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
+    });
 };
 
 const headers = [
@@ -451,13 +462,21 @@ const confirmEdit = () => {
       groupLeaders.value[newLeaderIndex].own_group = 0;
       getData();
       closeEditDialog();
-      snackbarText.value = "Die Gruppe wurde erfolgreich aktualisiert!";
-      snackbar.value = true;
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "",
+        "Die Gruppe wurde erfolgreich aktualisiert!"
+      );
     })
     .catch((err) => {
-      console.log(err);
-      errorSnackbarText.value = "Fehler beim aktualisieren der Gruppe!";
-      errorSnackbar.value = true;
+      console.error("Error editing group", err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
     });
 };
 const closeEditDialog = () => {
@@ -501,13 +520,22 @@ const confirmDelete = () => {
       );
       console.log(groups);
       closeDeleteDialog();
-      snackbarText.value = "Die Gruppe wurde erfolgreich gelöscht!";
-      snackbar.value = true;
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "",
+        "Die Gruppe wurde erfolgreich gelöscht!"
+      );
       getData();
     })
     .catch((err) => {
-      console.log(err);
-      secondDeleteDialog.value = true;
+      console.error("Error deleting group", err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
     });
 };
 
@@ -548,7 +576,7 @@ getData();
 <style scoped>
 .grid-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(425px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(405px, 1fr));
   gap: 10px;
   justify-content: center;
   justify-items: center;
@@ -563,6 +591,6 @@ getData();
   justify-content: center;
   align-items: flex-start;
   min-width: 400px;
-  max-width: 425px;
+  max-width: 405px;
 }
 </style>

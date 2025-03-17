@@ -3,17 +3,19 @@
     :breadcrumbs="[{ title: 'Mitarbeiter' }, { title: 'Neuer Mitarbeiter' }]"
   />
   <div class="d-flex justify-center mt-14">
-    <v-card width="500" class="px-10 py-2 mt-10">
+    <v-card elevation="0" class="py-2 mt-10">
       <div class="d-flex justify-start">
-        <h1 class="text-primary">
-          <v-icon class="me-2">mdi-database-import</v-icon>Import CSV Dateien
+        <h1 class="text-primary ms-1">
+          <v-icon class="d-none d-md-inline me-2">mdi-database-import</v-icon
+          >Import CSV Dateien
         </h1>
       </div>
 
-      <div class="d-flex justify-center mt-10">
-        <div class="flex-grow-1" style="max-width: 600px; width: 100%">
+      <div class="d-flex justify-center flex-grow-1 mt-10">
+        <div>
           <v-form>
             <v-file-input
+              :min-width="350"
               :active="true"
               base-color="blue-grey"
               color="primary"
@@ -56,39 +58,17 @@
       </div>
 
       <div class="d-flex justify-center mt-4"></div> -->
-
-      <SuccessSnackbar
-        v-model="successSnackbar"
-        :text="snackbarText"
-      ></SuccessSnackbar>
-
-      <v-dialog v-model="errorDialog" persistent max-width="400">
-        <v-card>
-          <v-card-title class="text-error d-flex justify-start">
-            <v-icon left class="mr-2"> mdi-alert-circle-outline </v-icon>
-            <span class="text-h5">Fehler</span>
-          </v-card-title>
-          <v-card-text
-            >Fehler beim Hochladen der Datei. Bitte versuchen Sie es
-            erneut.</v-card-text
-          >
-          <v-card-actions>
-            <v-btn color="error" text @click="closeErrorDialog">OK</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
     </v-card>
   </div>
 </template>
 
 <script setup>
+import { useFeedbackStore } from "@/stores/feedback";
+const feedbackStore = useFeedbackStore();
 import axios from "axios";
 const file = ref(null);
 const fileError = ref(null);
 const loading = ref(false);
-const successSnackbar = ref(false);
-const snackbarText = ref("Die Datei wurde erfolgreich hochgeladen!");
-const errorDialog = ref(false);
 
 const onFileChange = () => {
   if (!file.value) {
@@ -119,19 +99,25 @@ const uploadFile = () => {
     })
     .then((response) => {
       console.log(response.data);
-      successSnackbar.value = true;
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "",
+        "Die Datei wurde erfolgreich hochgeladen!"
+      );
     })
     .catch((err) => {
       console.error(err);
-      errorDialog.value = true;
+      feedbackStore.setFeedback(
+        "error",
+        "dialog",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
     })
     .finally(() => {
       loading.value = false;
       file.value = null;
     });
-};
-
-const closeErrorDialog = () => {
-  errorDialog.value = false;
 };
 </script>

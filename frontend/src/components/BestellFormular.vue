@@ -6,24 +6,24 @@
     :no-click-animation="true"
   >
     <v-card>
+      <h3 class="text-center mt-5 mb-4">Gruppe: {{ props.group }}</h3>
+      <v-row justify="end">
+        <v-icon
+          v-if="!orderStop"
+          size="x-large"
+          class="text-center bg-primary me-10 mt-n10 rounded pa-5"
+          >mdi-note-edit-outline</v-icon
+        >
+        <v-icon
+          v-if="orderStop"
+          size="x-large"
+          class="text-center bg-red me-10 mt-10 rounded pa-5"
+          >mdi-send-lock</v-icon
+        >
+      </v-row>
       <div>
-        <v-row justify="end">
-          <v-icon
-            v-if="!orderStop"
-            size="x-large"
-            class="text-center bg-primary me-10 mt-10 rounded pa-5"
-            >mdi-note-edit-outline</v-icon
-          >
-          <v-icon
-            v-if="orderStop"
-            size="x-large"
-            class="text-center bg-red me-10 mt-10 rounded pa-5"
-            >mdi-send-lock</v-icon
-          >
-        </v-row>
-        <h2 class="text-center mt-n10 mb-2">Bestellung für {{ props.date }}</h2>
+        <h2 class="text-center mt-10 mb-2">Bestellung für {{ props.date }}</h2>
       </div>
-      <h3 class="text-center mb-4">Gruppe: {{ props.group }}</h3>
       <CustomAlert
         v-if="showRestoreAlert"
         class="w-75"

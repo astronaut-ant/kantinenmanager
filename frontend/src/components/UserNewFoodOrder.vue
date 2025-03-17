@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="dialog" width="400">
+  <v-dialog v-model="dialog" min-width="450">
     <template v-slot:activator="{ props: activatorProps }">
       <v-btn
         @click="reset"
@@ -26,7 +26,7 @@
             <v-card-title class="ps-0 mt-n3 mb-2 ms-3"
               >Gewünschtes Datum</v-card-title
             >
-            <v-container>
+            <v-container class="pa-0">
               <v-row justify="center">
                 <v-date-picker
                   v-if="preOrderDatesAvailable"

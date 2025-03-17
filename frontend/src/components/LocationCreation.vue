@@ -1,13 +1,13 @@
 <template>
-  <div class="mt-14 d-flex justify-center">
+  <div class="mt-7 d-flex justify-center">
     <div>
       <v-card
-        :min-width="600"
-        class="elevation-7 px-6 py-4 text-blue-grey-darken-3"
+        :min-width="350"
+        class="elevation-0 border-md-7 px-6 py-4 text-blue-grey-darken-3"
       >
         <v-card-text class="mb-2 text-h6">
           <div class="d-flex ga-4 mt-n3 mb-2 ms-2 ms-n4 text-primary">
-            <div class="d-flex align-center mt-n2">
+            <div class="d-none d-md-flex align-center mt-n2">
               <v-icon :size="40">mdi-home-plus</v-icon>
             </div>
             <h2>Neuen Standort anlegen</h2>
@@ -22,7 +22,7 @@
             variant="outlined"
             Placeholder="Namen des Standorts eingeben"
             v-model="standortName"
-            :rules="[required]"
+            :rules="[required, unique]"
             label="Standort"
             required
             clearable
@@ -78,6 +78,7 @@
             </v-btn>
           </v-card-actions>
         </v-form>
+        <slot name="confirm"></slot>
       </v-card>
     </div>
   </div>
@@ -85,9 +86,10 @@
 
 <script setup>
 import CustomAlert from "@/components/CustomAlert.vue";
-import SuccessSnackbar from "@/components/SuccessSnackbar.vue";
 import router from "@/router";
 import axios from "axios";
+import { useFeedbackStore } from "@/stores/feedback";
+const feedbackStore = useFeedbackStore();
 const emit = defineEmits(["close"]);
 const close = () => {
   emit("close");
@@ -108,6 +110,7 @@ const availableStandortleiterItems = ref([]);
 const availableKuechenpersonal = [];
 const noKuechenpersonal = ref(false);
 const availableKuechenpersonalItems = ref([]);
+const allLocationNames = ref([]);
 
 //get busylist of all locationleader ids; check
 //get all standortleiter
@@ -134,11 +137,20 @@ onMounted(() => {
       console.log(allLocations);
 
       allLocations.forEach((location) => {
+        allLocationNames.value.push(location.location_name);
         busyStandortleiter.push(location.location_leader.id);
         console.log(busyStandortleiter);
       });
     })
-    .catch((err) => console.log(err))
+    .catch((err) => {
+      console.error(err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
+    })
     .then(() => {
       axios
         .get(import.meta.env.VITE_API + "/api/users", { withCredentials: true })
@@ -186,7 +198,15 @@ onMounted(() => {
           });
         });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error(err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
+    });
 });
 
 const handleSubmit = () => {
@@ -228,7 +248,15 @@ const handleSubmit = () => {
             { withCredentials: true }
           )
           .then((response) => console.log(response.data))
-          .catch((err) => console.log(err));
+          .catch((err) => {
+            console.error(err);
+            feedbackStore.setFeedback(
+              "error",
+              "snackbar",
+              err.response?.data?.title,
+              err.response?.data?.description
+            );
+          });
       });
     })
     .then(() => {
@@ -239,6 +267,12 @@ const handleSubmit = () => {
 //validate
 const required = (v) => {
   return !!v || "Eingabe erforderlich";
+};
+const unique = (v) => {
+  return (
+    !allLocationNames.value.includes(v.trim()) ||
+    "Standortname bereits vergeben"
+  );
 };
 
 const emptyForm = () => {

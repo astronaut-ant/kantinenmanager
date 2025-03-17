@@ -15,7 +15,7 @@
     @searchresult="updateOverview"
   >
     <template #outside>
-      <transition name="fade-toolbar" mode="out-in" style="width: 70%">
+      <transition name="fade-toolbar" mode="out-in" style="width: 75%">
         <v-toolbar
           v-if="selected.length > 0 && items.length > 0"
           color="grey-lighten-2"
@@ -33,19 +33,19 @@
           <v-divider inset vertical></v-divider>
           <p class="ml-4 mr-2">{{ selected.length }} ausgewählt</p>
           <v-spacer></v-spacer>
-          <v-btn
-            prepend-icon="mdi-qrcode"
-            class="bg-green mr-2"
-            @click="getQRCodeSelected"
-            size="small"
-            >QR Codes generieren</v-btn
+          <v-btn class="bg-green mr-2" @click="getQRCodeSelected" size="small">
+            <v-icon>mdi-qrcode</v-icon>
+            <span class="d-none d-md-inline ml-2">Codes generieren</span></v-btn
           >
           <v-btn
-            prepend-icon="mdi-trash-can-outline"
             class="bg-red mr-2"
             @click="opendeleteDialogSelected"
             size="small"
-            >Ausgewählte Mitarbeiter löschen</v-btn
+          >
+            <v-icon>mdi-trash-can-outline</v-icon>
+            <span class="d-none d-md-inline ml-2"
+              >Ausgewählte Mitarbeiter löschen</span
+            ></v-btn
           >
         </v-toolbar>
 
@@ -57,7 +57,7 @@
           density="compact"
           rounded="lg"
         >
-          <p class="text-h6 text-blue-grey-darken-2 ms-4">
+          <p class="d-none d-md-block text-h6 text-blue-grey-darken-2 ms-4">
             Anzahl aller jetzigen Mitarbeiter: {{ employees.length }}
           </p>
           <v-spacer></v-spacer>
@@ -69,7 +69,7 @@
   <v-container style="width: 70%">
     <div v-if="items.length > 0">
       <v-data-table
-        class="text-blue-grey"
+        class="text-blue-grey-darken-2"
         v-model="selected"
         :headers="headers"
         :items="items"
@@ -87,21 +87,21 @@
         <template v-slot:[`item.actions`]="{ item }">
           <v-btn
             icon="mdi-qrcode"
-            class="bg-green mr-2"
+            class="bg-green mr-2 my-1"
             @click="getQRCode(item)"
             size="small"
             :disabled="selected.length > 0"
           ></v-btn>
           <v-btn
             icon="mdi-lead-pencil"
-            class="bg-primary mr-2"
+            class="bg-primary mr-2 my-1"
             @click="openeditDialog(item), (hasChanged = false)"
             size="small"
             :disabled="selected.length > 0"
           ></v-btn>
           <v-btn
             icon="mdi-trash-can-outline"
-            class="bg-red"
+            class="bg-red my-1"
             @click="opendeleteDialog(item)"
             size="small"
             :disabled="selected.length > 0"
@@ -145,9 +145,7 @@
             Sind Sie sicher, dass Sie folgende Mitarbeiter löschen möchten?
           </p>
           <li v-for="employee in employeesToDelete" :key="employee.id">
-            <strong>
-              {{ employee.first_name }} {{ employee.last_name }}
-            </strong>
+            {{ employee.first_name }} {{ employee.last_name }}
           </li>
         </div>
       </v-card-text>
@@ -159,21 +157,23 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-  <v-dialog v-model="editDialog" persistent max-width="600">
-    <v-card class="text-blue-grey-darken-3" min-width="600">
+  <v-dialog v-model="editDialog" max-width="600">
+    <v-card class="text-blue-grey-darken-3">
       <v-card-title class="ms-2 mt-2 mb-1 text-primary d-flex justify-start">
-        <v-icon size="40" left class="mr-2 mb-n3 me-2"> mdi-human-edit </v-icon>
+        <v-icon size="40" left class="d-none d-md-inline-block mr-2 mb-n3 me-2">
+          mdi-human-edit
+        </v-icon>
         <h2>Mitarbeiter bearbeiten</h2>
       </v-card-title>
       <v-card-text>
         <div>
           <v-form ref="validation" v-model="form">
-            <div class="d-flex ga-8">
+            <div class="d-block d-md-flex ga-8">
               <v-menu offset-y>
                 <template #activator="{ props }">
                   <v-text-field
                     @update:model-value="console.log(group_name)"
-                    class="w-100"
+                    class="w-100 mb-3"
                     :active="true"
                     base-color="blue-grey"
                     color="primary"
@@ -238,8 +238,8 @@
                   inset
                   variant="outlined"
                   v-model="employee_number"
-                  :rules="[required]"
-                  class="w-100"
+                  :rules="[required, unique]"
+                  class="w-100 mb-3"
                   label="Mitarbeiter-Nr."
                   placeholder="Nummer zuweisen"
                   :min="0"
@@ -249,10 +249,10 @@
               </v-container>
             </div>
 
-            <div class="d-flex ga-8 mt-6">
+            <div class="d-block d-md-flex ga-8 mt-6">
               <v-text-field
                 @update:model-value="hasChanged = true"
-                class="w-100"
+                class="w-100 mb-3"
                 :active="true"
                 base-color="blue-grey"
                 color="primary"
@@ -265,7 +265,7 @@
               ></v-text-field>
               <v-text-field
                 @update:model-value="hasChanged = true"
-                class="w-100"
+                class="w-100 mb-3"
                 :active="true"
                 base-color="blue-grey"
                 color="primary"
@@ -295,16 +295,12 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-  <SuccessSnackbar v-model="snackbar" :text="snackbarText"></SuccessSnackbar>
-  <ErrorSnackbar
-    v-model="errorSnackbar"
-    :text="errorSnackbarText"
-    @close="errorSnackbar = false"
-  ></ErrorSnackbar>
 </template>
 
 <script setup>
 import axios from "axios";
+import { useFeedbackStore } from "@/stores/feedback";
+const feedbackStore = useFeedbackStore();
 const loading = ref(true);
 const deleteDialog = ref(false);
 const editDialog = ref(false);
@@ -313,10 +309,6 @@ const employeeToDelete = ref("");
 const employeeToDeleteID = ref("");
 const employeeToEditID = ref("");
 const employeesToDelete = ref([]);
-const snackbar = ref(false);
-const snackbarText = ref("");
-const errorSnackbar = ref(false);
-const errorSnackbarText = ref("");
 const items = ref([]);
 const employees = ref([]);
 const locations = ref([]);
@@ -335,9 +327,37 @@ const group_name = ref("");
 const location_name = ref("");
 const validation = ref(null);
 const form = ref(false);
+const oldNumber = ref(null);
 
 const selected = ref([]);
 const hasChanged = ref(false);
+const empNumberArray = ref([]);
+axios
+  .get(import.meta.env.VITE_API + "/api/employees", {
+    withCredentials: true,
+  })
+  .then((response) => {
+    response.data.forEach((emp) => {
+      empNumberArray.value.push(emp.employee_number);
+    });
+    console.log("Emp-Number:", empNumberArray.value);
+  })
+  .catch((err) => {
+    console.error(err);
+    feedbackStore.setFeedback(
+      "error",
+      "snackbar",
+      err.response?.data?.title,
+      err.response?.data?.description
+    );
+  });
+const unique = (v) => {
+  return (
+    !empNumberArray.value.includes(v) ||
+    v === oldNumber.value ||
+    "Nummer bereits vergeben"
+  );
+};
 
 const opendeleteDialog = (item) => {
   employeeToDelete.value = item.first_name + " " + item.last_name;
@@ -370,6 +390,7 @@ const openeditDialog = (item) => {
   const employee = items.value.find(
     (item) => item.id === employeeToEditID.value
   );
+  oldNumber.value = employee.employee_number;
   employee_number.value = employee.employee_number;
   first_name.value = employee.first_name;
   last_name.value = employee.last_name;
@@ -390,15 +411,23 @@ const confirmDelete = () => {
     )
     .then(() => {
       deleteDialog.value = false;
-      snackbar.value = false;
-      snackbarText.value = `${employeeToDelete.value} wurde erfolgreich gelöscht!`;
-      snackbar.value = true;
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "Mitarbeiter gelöscht",
+        `${employeeToDelete.value} wurde erfolgreich gelöscht!`
+      );
       fetchData();
     })
     .catch((err) => {
       console.error(err);
-      errorSnackbarText.value = `Fehler beim löschen von ${employeeToDelete.value}`;
-      errorSnackbar.value = true;
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        `Fehler beim löschen von ${employeeToDelete.value}`,
+        err.response?.data?.description
+      );
+      //test!!!!
     });
 };
 
@@ -410,18 +439,23 @@ const confirmDeleteSelected = () => {
     })
     .then(() => {
       deleteDialogSelected.value = false;
-      snackbar.value = false;
-      snackbarText.value =
-        "Die ausgewählten Mitarbeiter wurden erfolgreich gelöscht!";
-      snackbar.value = true;
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "Mitarbeiter gelöscht",
+        "Die ausgewählten Mitarbeiter wurden erfolgreich gelöscht!"
+      );
       selected.value = [];
       fetchData();
     })
     .catch((err) => {
       console.error(err);
-      errorSnackbarText.value =
-        "Fehler beim löschen der ausgewählten Mitarbeiter!";
-      errorSnackbar.value = true;
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        "Fehler beim löschen der ausgewählten Mitarbeiter!",
+        err.response?.data?.description
+      );
     });
 };
 
@@ -456,14 +490,21 @@ const getQRCodeSelected = () => {
       link.click();
       window.URL.revokeObjectURL(url);
 
-      snackbar.value = false;
-      snackbarText.value = "Die QR-Codes wurden erfolgreich generiert!";
-      snackbar.value = true;
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "",
+        "Die QR-Codes wurden erfolgreich generiert!"
+      );
     })
     .catch((err) => {
       console.error("Error getting QR Codes", err);
-      errorSnackbarText.value = "Fehler beim generieren der QR-Codes!";
-      errorSnackbar.value = true;
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        "Fehler beim generieren der QR-Codes!",
+        err.response?.data?.description
+      );
     });
 };
 
@@ -497,14 +538,21 @@ const getQRCode = (item) => {
       link.click();
       window.URL.revokeObjectURL(url);
 
-      snackbar.value = false;
-      snackbarText.value = "Der QR-Code wurde erfolgreich generiert!";
-      snackbar.value = true;
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "",
+        "Der QR-Code wurde erfolgreich generiert!"
+      );
     })
     .catch((err) => {
       console.error("Error getting QR Code", err);
-      errorSnackbarText.value = "Fehler beim generieren des QR-Codes!";
-      errorSnackbar.value = true;
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        "Fehler beim generieren des QR-Codes!",
+        err.response?.data?.description
+      );
     });
 };
 
@@ -520,15 +568,23 @@ const fetchData = () => {
           last_name: employee.last_name,
           employee_number: employee.employee_number,
           group_id: employee.group.id,
-          group_name: employee.group.group_name || "Unbekannt",
+          group_name: employee.group.group_name || "-",
           location_id: employee.group.location.id || null,
-          location_name: employee.group.location.location_name || "Unbekannt",
+          location_name: employee.group.location.location_name || "-",
         };
       });
       employees.value = items.value;
       loading.value = false;
     })
-    .catch((err) => console.error("Error fetching data", err));
+    .catch((err) => {
+      console.error("Error fetching data", err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
+    });
 };
 
 const updateOverview = (list) => {
@@ -540,12 +596,12 @@ onMounted(() => {
 });
 
 const headers = [
-  { title: "Nummer", key: "employee_number", nowrap: true },
-  { title: "Vorname", key: "first_name", nowrap: true },
-  { title: "Nachname", key: "last_name", nowrap: true },
-  { title: "Gruppe", key: "group_name", nowrap: true },
-  { title: "Standort", key: "location_name", nowrap: true },
-  { title: "", key: "actions", sortable: false, nowrap: true },
+  { title: "Nummer", key: "employee_number" },
+  { title: "Vorname", key: "first_name" },
+  { title: "Nachname", key: "last_name" },
+  { title: "Gruppe", key: "group_name" },
+  { title: "Standort", key: "location_name" },
+  { title: "", key: "actions", sortable: false },
 ];
 const sortBy = [{ key: "employee_number", order: "asc" }];
 
@@ -567,7 +623,15 @@ const fetchGroups = () => {
         }
       );
     })
-    .catch((err) => console.error("Error fetching groups", err));
+    .catch((err) => {
+      console.error("Error fetching groups", err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
+    });
 };
 
 const required = (v) => {
@@ -597,15 +661,23 @@ const submitForm = () => {
     .then(() => {
       fetchData();
       closeeditDialog();
-      snackbar.value = false;
-      snackbarText.value = `${payload.first_name} ${payload.last_name} wurde erfolgreich aktualisiert!`;
-      snackbar.value = true;
+
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "Mitarbeiter aktualisiert",
+        `${payload.first_name} ${payload.last_name} wurde erfolgreich aktualisiert!`
+      );
       deleteDialog.value = false;
     })
     .catch((err) => {
       console.error("Error updating employee", err);
-      errorSnackbarText.value = `Fehler beim aktualisieren von ${payload.first_name} ${payload.last_name}`;
-      errorSnackbar.value = true;
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        `Fehler beim aktualisieren von ${payload.first_name} ${payload.last_name}`,
+        err.response?.data?.description
+      );
     });
 };
 </script>

@@ -443,9 +443,9 @@ def describe_pre_orders():
                 inte += 1
 
             forward = datetime.date.today().weekday()
-            if forward > 2 and forward < 5:  # weekend
+            if forward > 2 and forward < 5:
                 forward = 4
-            elif forward == 1 or forward == 0:
+            else:
                 forward = 2
 
             body = [
@@ -500,9 +500,9 @@ def describe_pre_orders():
                 inte += 1
 
             forward = datetime.date.today().weekday()
-            if forward > 2 and forward < 5:  # weekend
+            if forward > 2 and forward < 5:
                 forward = 4
-            elif forward == 1 or forward == 0:
+            else:
                 forward = 2
 
             body = [
@@ -555,9 +555,9 @@ def describe_pre_orders():
                 inte += 1
 
             forward = datetime.date.today().weekday()
-            if forward > 2 and forward < 5:  # weekend
+            if forward > 2 and forward < 5:
                 forward = 4
-            elif forward == 1 or forward == 0:
+            else:
                 forward = 2
 
             body = [
@@ -605,7 +605,7 @@ def describe_pre_orders():
             login(user=user_gruppenleitung, client=client)
 
             forward = datetime.date.today().weekday()
-            if forward > 2 and forward < 5:  # weekend
+            if forward > 2 and forward < 5:
                 forward = 4
             else:
                 forward = 2
@@ -694,7 +694,7 @@ def describe_pre_orders():
             login(user=user_verwaltung, client=client)
 
             forward = datetime.date.today().weekday()
-            if forward > 2 and forward < 5:  # weekend
+            if forward > 2 and forward < 5:
                 forward = 4
             else:
                 forward = 2
@@ -733,7 +733,7 @@ def describe_pre_orders():
             login(user=user_verwaltung, client=client)
 
             forward = datetime.date.today().weekday()
-            if forward > 2 and forward < 5:  # weekend
+            if forward > 2 and forward < 5:
                 forward = 4
             else:
                 forward = 2
@@ -773,7 +773,7 @@ def describe_pre_orders():
             login(user=user_verwaltung, client=client)
 
             forward = datetime.date.today().weekday()
-            if forward > 2 and forward < 5:  # weekend
+            if forward > 2 and forward < 5:
                 forward = 4
             else:
                 forward = 2
@@ -868,7 +868,7 @@ def describe_pre_orders():
             login(user=user_verwaltung, client=client)
 
             forward = datetime.date.today().weekday()
-            if forward > 2 and forward < 5:  # weekend
+            if forward > 2 and forward < 5:
                 forward = 18
             else:
                 forward = 16
@@ -917,7 +917,7 @@ def describe_pre_orders():
             login(user=user_verwaltung, client=client)
 
             forward = datetime.date.today().weekday()
-            if forward > 2 and forward < 5:  # weekend
+            if forward > 2 and forward < 5:
                 forward = 4
             else:
                 forward = 2
@@ -966,7 +966,7 @@ def describe_pre_orders():
             login(user=user_verwaltung, client=client)
 
             forward = datetime.date.today().weekday()
-            if forward > 2 and forward < 5:  # weekend
+            if forward > 2 and forward < 5:
                 forward = 4
             else:
                 forward = 2
@@ -1015,7 +1015,7 @@ def describe_pre_orders():
             login(user=user_verwaltung, client=client)
 
             forward = datetime.date.today().weekday()
-            if forward > 2 and forward < 5:  # weekend
+            if forward > 2 and forward < 5:
                 forward = 4
             else:
                 forward = 2
@@ -1053,7 +1053,7 @@ def describe_pre_orders():
             db.session.execute(text("PRAGMA foreign_keys = ON"))  # noqa: F405
 
             forward = datetime.date.today().weekday()
-            if forward > 1 and forward < 5:  # weekend
+            if forward > 1 and forward < 5:
                 forward = 5
             else:
                 forward = 2
@@ -1166,7 +1166,7 @@ def describe_pre_orders():
             assert db.session.query(PreOrder).count() == 1
             assert db.session.query(PreOrder).first().date == datum  # noqa: E712
 
-        def does_not_updte_14_days_in_advance_400(
+        def does_not_update_14_days_in_advance_400(
             client,
             location,
             user_verwaltung,
@@ -1190,10 +1190,10 @@ def describe_pre_orders():
 
             forward = datetime.date.today().weekday()
             forward = datetime.date.today().weekday()
-            if forward > 1 and forward < 5:  # weekend
+            if forward > 1 and forward < 5:
                 forward = 19
             else:
-                forward = 14
+                forward = 21
 
             datum = db.session.query(PreOrder).first().date
 

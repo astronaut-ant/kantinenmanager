@@ -8,7 +8,7 @@
       <v-btn text class="mr-4" to="/login">Login <v-icon class="ms-2">mdi-login</v-icon></v-btn>
     </v-toolbar>
     <div>
-        <v-card flat class="ml-4">
+        <v-card flat class="ml-4 text-blue-grey-darken-2">
             <v-card-title class="font-weight-black"> Impressum </v-card-title>
             <v-card-text class="ml-2">
                 <p><strong>Lebenshilfe Borna e.V.</strong><br>

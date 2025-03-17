@@ -3,9 +3,10 @@
     :breadcrumbs="[{ title: 'Abrechnung' }, { title: 'Preise anpassen' }]"
   />
 
-  <v-card class="pa-5 mx-auto mt-15" max-width="900">
-    <v-card-title class="text-h4 font-weight-bold ms-2 mb-2 text-primary">
-      <v-icon :size="36" class="me-3 ms-n2 mt-n1">mdi-currency-eur</v-icon
+  <v-card :elevation="0" class="pa-5 mx-auto mt-7" max-width="900">
+    <v-card-title class="text-h4 font-weight-bold mb-2 text-primary">
+      <v-icon :size="36" class="d-none d-md-inline-block me-3 ms-n2 mt-n2"
+        >mdi-currency-eur</v-icon
       >Essenspreise</v-card-title
     >
     <v-card-text>
@@ -40,36 +41,59 @@
 
   <v-dialog v-model="editDialog" persistent max-width="600px">
     <v-card>
-      <v-card-title>
-        <span class="headline justify-center">Essenspreis Bearbeiten</span>
-      </v-card-title>
       <v-card-text>
+        <div class="d-flex ga-3 mb-8 text-primary">
+          <div class="d-flex align-center">
+            <v-icon class="mt-n1" size="35">mdi-tag-edit-outline</v-icon>
+          </div>
+          <h2>Essenspreis bearbeiten</h2>
+        </div>
         <v-form>
           <v-text-field
             v-model="mainDishEdit"
-            label="Hauptgericht Preis (€)"
+            class="mt-4"
+            :active="true"
+            base-color="blue-grey"
+            color="primary"
+            variant="outlined"
+            Placeholder="Hauptgericht Preis (€)"
+            label="Hauptgericht (€)"
             type="number"
-            :rules="[required]"
+            :rules="[required, isPositive]"
           ></v-text-field>
           <v-text-field
             v-model="saladEdit"
-            label="Salat Preis (€)"
+            class="mt-4"
+            :active="true"
+            base-color="blue-grey"
+            color="primary"
+            variant="outlined"
+            Placeholder="Salat Preis (€)"
+            label="Salat (€)"
             type="number"
-            :rules="[required]"
+            :rules="[required, isPositive]"
           ></v-text-field>
           <v-text-field
             v-model="prepaymentEdit"
+            class="mt-4"
+            :active="true"
+            base-color="blue-grey"
+            color="primary"
+            variant="outlined"
+            Placeholder="Vorauszahlung (€)"
             label="Vorauszahlung (€)"
             type="number"
-            :rules="[required]"
+            :rules="[required, isPositive]"
           ></v-text-field>
         </v-form>
       </v-card-text>
       <v-card-actions>
-        <v-btn @click="closeEditDialog()" color="grey">Abbrechen</v-btn>
+        <v-btn @click="closeEditDialog()" color="blue-grey">Abbrechen</v-btn>
         <v-btn
           @click="saveChanges()"
-          color="green"
+          color="primary"
+          class="me-4"
+          variant="elevated"
           :disabled="!mainDishEdit || !saladEdit || !prepaymentEdit"
           >Speichern</v-btn
         >
@@ -79,12 +103,10 @@
 
   <v-dialog v-model="deleteDialog" persistent max-width="600px">
     <v-card>
-      <v-card-title>
-        <span class="headline justify-center" color="red"
-          >Essenspreis Löschen</span
-        >
-      </v-card-title>
       <v-card-text v-if="deletableMeal">
+        <div class="d-flex justify-center text-red mb-7">
+          <p class="text-h5 font-weight-black">Essenspreis Löschen</p>
+        </div>
         <div class="text-medium-emphasis">
           <p>
             Sind Sie sicher, dass Sie den Essenspreis vom
@@ -98,8 +120,12 @@
         </div>
       </v-card-text>
       <v-card-actions>
-        <v-btn @click="closeDeleteDialog()" color="grey">Abbrechen</v-btn>
-        <v-btn @click="handleDelete()" color="red" :disabled="!deletableMeal"
+        <v-btn @click="closeDeleteDialog()">Abbrechen</v-btn>
+        <v-btn
+          @click="handleDelete()"
+          color="red"
+          variant="elevated"
+          :disabled="!deletableMeal"
           >Löschen</v-btn
         >
       </v-card-actions>
@@ -126,8 +152,9 @@
           @click="dateMenu = true"
           readonly
         ></v-text-field>
-        <v-text-field
+        <v-number-input
           class="mt-4"
+          :precision="2"
           :active="true"
           base-color="blue-grey"
           color="primary"
@@ -136,10 +163,11 @@
           v-model="mainDishAdd"
           label="Hauptgericht"
           type="number"
-          :rules="[required]"
-        ></v-text-field>
-        <v-text-field
+          :rules="[required, isPositive]"
+        ></v-number-input>
+        <v-number-input
           :active="true"
+          :precision="2"
           class="mt-4"
           base-color="blue-grey"
           color="primary"
@@ -148,11 +176,14 @@
           v-model="saladAdd"
           label="Salat"
           type="number"
-          :rules="[required]"
-        ></v-text-field>
-        <v-text-field
+          :rules="[required, isPositive]"
+        >
+        </v-number-input>
+
+        <v-number-input
           class="mt-4"
           :active="true"
+          :precision="2"
           base-color="blue-grey"
           color="primary"
           variant="outlined"
@@ -160,10 +191,10 @@
           v-model="prepaymentAdd"
           label="Vorrauszahlung"
           type="number"
-          :rules="[required]"
-        ></v-text-field>
+          :rules="[required, isPositive]"
+        ></v-number-input>
       </v-card-text>
-      <v-card-actions>
+      <v-card-actions class="mb-2">
         <v-btn @click="closeAddDialog()" variant="text" color="blue-grey"
           >Abbrechen</v-btn
         >
@@ -183,19 +214,36 @@
 
   <v-dialog v-model="dateMenu" max-width="400">
     <v-card>
-      <v-card-title> Start Datum auswählen </v-card-title>
+      <v-card-title class="ms-11 mt-3"> Start Datum auswählen </v-card-title>
       <v-card-text>
         <v-date-picker
+          class="mx-auto w-75"
+          color="primary"
+          :first-day-of-week="1"
+          :hide-header="true"
           v-model="selectedDate"
-          @update:modelValue="confirmDate()"
+          @update:modelValue=""
         ></v-date-picker>
       </v-card-text>
+      <v-card-actions class="mb-2 me-2 justify-end">
+        <v-btn color="blue-grey" variant="text" @click="dateMenu = false"
+          >Abbrechen</v-btn
+        >
+        <v-btn
+          @click="(dateMenu = false), confirmDate()"
+          color="primary"
+          variant="elevated"
+          >Übernehmen</v-btn
+        >
+      </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
 
 <script setup>
 import axios from "axios";
+import { useFeedbackStore } from "@/stores/feedback";
+const feedbackStore = useFeedbackStore();
 const meals = ref([]);
 const editDialog = ref(false);
 const mainDishEdit = ref(null);
@@ -256,8 +304,22 @@ const saveChanges = () => {
     .then(() => {
       fetchMeals();
       closeEditDialog();
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "",
+        "Die Änderungen wurden erfolgreich übernommen!"
+      );
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error(err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
+    });
 };
 
 const formattedMeals = computed(() => {
@@ -301,8 +363,22 @@ const handleDelete = () => {
     .then(() => {
       fetchMeals();
       closeDeleteDialog();
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "",
+        "Der Essenspreis wurde erfolgreich gelöscht."
+      );
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error(err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
+    });
 };
 
 const openAddDialog = () => {
@@ -343,8 +419,22 @@ const handleAdd = () => {
     .then((response) => {
       fetchMeals();
       closeAddDialog();
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "",
+        "Der neue Essenspreis wurde erfolgreich hinzugefügt!"
+      );
     })
-    .catch((err) => console.log("Fehler beim Laden der Essenspreise:", err));
+    .catch((err) => {
+      console.error("Fehler beim Hinzufügen des Essenspreis:", err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        "Fehler beim Hinzufügen des Essenspreis",
+        err.response?.data?.description
+      );
+    });
 };
 
 const fetchMeals = () => {
@@ -364,7 +454,15 @@ const fetchMeals = () => {
       });
       console.log(meals.value);
     })
-    .catch((err) => console.log("Fehler beim Laden der Essenspreise:", err));
+    .catch((err) => {
+      console.error("Fehler beim Laden der Essenspreise:", err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        "Fehler beim Laden der Essenspreise",
+        err.response?.data?.description
+      );
+    });
 };
 
 onMounted(() => {
@@ -386,5 +484,9 @@ const getPreviousDay = (date) => {
 
 const required = (v) => {
   return !!v || "Eingabe erforderlich";
+};
+
+const isPositive = (v) => {
+  return v > 0 || "Betrag muss positiv sein";
 };
 </script>

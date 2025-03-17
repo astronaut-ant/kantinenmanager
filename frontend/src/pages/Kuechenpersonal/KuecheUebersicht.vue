@@ -1,10 +1,12 @@
 <template>
   <NavbarKueche :breadcrumbs="[{ title: 'Heutige Bestellungen' }]" />
   <h1 class="text-center text-blue-grey mt-5">Heutige Bestellungen</h1>
-  <v-container class="py-10 d-flex ga-15 justify-space-between w-75">
+  <v-container
+    class="py-10 d-md-flex d-sm-block ga-15 justify-space-between w-75"
+  >
     <v-card
       elevation="5"
-      class="ms-n4 text-center w-100 text-blue-grey custom-card"
+      class="text-center w-100 text-blue-grey custom-card mt-5"
     >
       <v-card-title>Blaues Hauptgericht</v-card-title>
       <v-card-text>
@@ -15,7 +17,10 @@
       </v-card-text>
     </v-card>
 
-    <v-card elevation="5" class="text-center w-100 text-blue-grey custom-card">
+    <v-card
+      elevation="5"
+      class="text-center w-100 text-blue-grey custom-card mt-5"
+    >
       <v-card-title>Rotes Hauptgericht</v-card-title>
       <v-card-text>
         <div class="d-flex h-100 align-center justify-center ga-2">
@@ -26,7 +31,7 @@
     </v-card>
     <v-card
       elevation="5"
-      class="text-center w-100 text-blue-grey custom-card me-n4"
+      class="text-center w-100 text-blue-grey custom-card me-n4 mt-5"
     >
       <v-card-title>Salat</v-card-title>
       <v-card-text>
@@ -37,18 +42,30 @@
       </v-card-text>
     </v-card>
   </v-container>
-  <v-data-table-virtual
-    class="mx-auto w-75 text-blue-grey-darken-1"
+  <div class="d-flex justify-center">
+    <v-btn class="bg-primary text-white mb-5" @click="downloadDialog = true">
+      Bestellungen<v-icon>mdi-download</v-icon>
+    </v-btn>
+  </div>
+  <FilterBar
+    :viewSwitcherEnabled="false"
+    :filterList="['full_name', 'group_name']"
+    :items="tableDataSearch"
+    @searchresult="updateOverview"
+    @changeview=""
+  />
+  <v-data-table
+    class="mx-auto w-75 text-blue-grey-darken-2"
     :hover="true"
     :fixed-header="true"
-    :height="tableHeight"
     :items="tableData"
     item-key="id"
     :headers="headers"
     :sort-by="sortBy"
+    show-current-page
   >
     <template v-slot:item="{ item }">
-      <tr class="hover-row">
+      <tr>
         <td>
           {{ item.full_name }}
         </td>
@@ -83,7 +100,7 @@
         </td>
       </tr>
     </template>
-  </v-data-table-virtual>
+  </v-data-table>
 
   <v-dialog v-model="dialog" max-width="400px" persistent>
     <v-card>
@@ -101,10 +118,58 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <v-dialog v-model="downloadDialog" max-width="400px">
+    <v-card>
+      <v-card-text>
+        <div class="d-flex ga-3 mb-6 text-primary">
+          <div class="d-flex align-center">
+            <v-icon class="ml-n1 mr-n2" size="30"
+              >mdi-file-download-outline</v-icon
+            >
+          </div>
+          <h3>Bestellung herunterladen</h3>
+        </div>
+        <v-radio-group v-model="selectedDownloadOption" color="primary">
+          <v-radio class="ms-n2" label="Heute" value="today">
+            <template v-slot:label="{ label }">
+              <span class="text-black">{{ label }} </span>
+            </template>
+          </v-radio>
+          <v-radio class="ms-n2 mt-5" label="Für 14 Tage" value="nextTwoWeeks">
+            <template v-slot:label="{ label }">
+              <span class="text-black">{{ label }} </span>
+            </template>
+          </v-radio>
+          <v-radio
+            class="ms-n2 mt-5"
+            label="Für 14 Tage (alle Standorte)"
+            value="allLocationsNextTwoWeeks"
+          >
+            <template v-slot:label="{ label }">
+              <span class="text-black">{{ label }} </span>
+            </template>
+          </v-radio>
+        </v-radio-group>
+      </v-card-text>
+      <v-card-actions class="d-flex justify-end mt-n3">
+        <v-btn color="blue-grey" @click="closeDownloadDialog()"
+          >Abbrechen</v-btn
+        >
+        <v-btn color="primary" variant="elevated" @click="handleDownload"
+          >Herunterladen</v-btn
+        >
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script setup>
 import axios from "axios";
+import { useAppStore } from "@/stores/app";
+const appStore = useAppStore();
+import { useFeedbackStore } from "@/stores/feedback";
+const feedbackStore = useFeedbackStore();
 
 const orders = ref([]);
 const employees = ref([]);
@@ -113,7 +178,10 @@ const allLocationLeadersIds = ref([]);
 const groupleaders = ref([]);
 const users = ref([]);
 const tableData = ref([]);
+const tableDataSearch = ref([]);
 const dialog = ref(false);
+const downloadDialog = ref(false);
+const selectedDownloadOption = ref("today");
 const itemToConfirm = ref(null);
 const orderCount = ref({
   blau: 0,
@@ -163,7 +231,15 @@ const getCount = () => {
       };
       console.log("Count: ", orderCount.value);
     })
-    .catch((err) => console.error(err));
+    .catch((err) => {
+      console.error(err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
+    });
 };
 
 const fillTable = () => {
@@ -180,7 +256,15 @@ const getOrders = () => {
       console.log("Daily Orders: ", orders.value);
       getEmployees();
     })
-    .catch((err) => console.error(err));
+    .catch((err) => {
+      console.error(err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
+    });
 };
 
 const getEmployees = () => {
@@ -193,7 +277,15 @@ const getEmployees = () => {
       console.log("All Emplyees: ", employees.value);
       getUsers();
     })
-    .catch((err) => console.error(err));
+    .catch((err) => {
+      console.error(err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
+    });
 };
 
 const getUsers = () => {
@@ -204,7 +296,15 @@ const getUsers = () => {
       console.log("All Users: ", users.value);
       getLocations();
     })
-    .catch((err) => console.error(err));
+    .catch((err) => {
+      console.error(err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
+    });
 };
 const getLocations = () => {
   axios
@@ -218,7 +318,15 @@ const getLocations = () => {
       console.log("allLocationLeadsIds: ", allLocationLeadersIds.value);
       getGroupLeaders();
     })
-    .catch((err) => console.error(err));
+    .catch((err) => {
+      console.error(err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
+    });
 };
 const getGroupLeaders = () => {
   axios
@@ -235,7 +343,15 @@ const getGroupLeaders = () => {
       console.log("All GroupLeaders: ", groupleaders.value);
       updateTableData();
     })
-    .catch((err) => console.error(err));
+    .catch((err) => {
+      console.error(err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
+    });
 };
 
 // Daten zusammenführen
@@ -281,6 +397,7 @@ const updateTableData = () => {
       handed_out: order.handed_out,
     };
   });
+  tableDataSearch.value = tableData.value;
 };
 const joinEmployeesAndUsers = () => {
   return employees.value.concat(users.value);
@@ -306,22 +423,104 @@ const confirmChange = () => {
       closeConfirmDialog();
     })
     .catch((err) => {
-      console.log(err);
+      console.error(err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
     });
 };
 const closeConfirmDialog = () => {
   itemToConfirm.value = null;
   dialog.value = false;
 };
+
+const updateOverview = (list) => {
+  tableData.value = list;
+};
+
+const closeDownloadDialog = () => {
+  selectedDownloadOption.value = "today";
+  downloadDialog.value = false;
+};
+
+const handleDownload = () => {
+  let report = {};
+  let today = new Date();
+  let inTwoWeeks = new Date();
+  inTwoWeeks.setDate(today.getDate() + 14);
+  today = getFormattedDate(today);
+  inTwoWeeks = getFormattedDate(inTwoWeeks);
+  console.log(inTwoWeeks);
+
+  if (selectedDownloadOption.value === "today") {
+    report = {
+      location_id: appStore.userData.location_id,
+      "date-start": today,
+      "date-end": today,
+    };
+  } else if (selectedDownloadOption.value === "nextTwoWeeks") {
+    report = {
+      location_id: appStore.userData.location_id,
+      "date-start": today,
+      "date-end": inTwoWeeks,
+    };
+  } else if (selectedDownloadOption.value === "allLocationsNextTwoWeeks") {
+    report = {
+      "date-start": today,
+      "date-end": inTwoWeeks,
+    };
+  }
+  console.log(report);
+  axios
+    .get(import.meta.env.VITE_API + `/api/reports/locations`, {
+      params: report,
+      withCredentials: true,
+      responseType: "blob",
+    })
+    .then((response) => {
+      console.log(response.data);
+      const blob = new Blob([response.data], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+
+      const contentDisposition = response.headers["content-disposition"];
+      let filename = "bestellungen.pdf";
+
+      if (contentDisposition) {
+        let match = contentDisposition.match(/filename="([^"]+)"/);
+        if (match) {
+          filename = match[1];
+        } else {
+          match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/);
+          if (match) {
+            filename = decodeURIComponent(match[1]);
+          }
+        }
+      }
+
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      URL.revokeObjectURL(url);
+
+      closeDownloadDialog();
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
+const getFormattedDate = (date) => {
+  return date.toISOString().split("T")[0];
+};
+
 getCount();
 fillTable();
 </script>
-<style scoped>
-.hover-row:hover {
-  background-color: #eceff1; /* Choose your desired color */
-  color: #37474f;
-}
-.custom-card {
-  border: 1px solid #607d8b; /* Set your desired border color */
-}
-</style>

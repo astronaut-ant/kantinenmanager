@@ -1,5 +1,10 @@
 <template>
-  <v-card class="mx-2 my-2 text-blue-grey-darken-2" width="425" elevation="16">
+  <v-card
+    :min-width="400"
+    :max-width="400"
+    class="mx-2 my-2 text-blue-grey-darken-2 w-50 w-md-100"
+    elevation="16"
+  >
     <v-card-item>
       <div class="d-flex mb-2 justify-space-between align-center">
         <div>
@@ -126,7 +131,7 @@
       </v-card-text>
       <v-card-actions>
         <v-btn text @click="closeDeleteDialog">Abbrechen</v-btn>
-        <v-btn color="red" variant="elevated" @click="confirmDelete"
+        <v-btn color="red" variant="elevated" @click="checkdelete"
           >Löschen</v-btn
         >
       </v-card-actions>
@@ -164,26 +169,16 @@
     <LocationChange
       @close="closeEditDialog"
       @save="confirmEdit"
-      @success="snackbarConfirm"
-      @error="snackbarError"
       :oldValues="props"
     />
   </v-dialog>
-
-  <SuccessSnackbar
-    v-model="snackbar"
-    :text="snackbarText"
-    @close="snackbar = false"
-  ></SuccessSnackbar>
-  <ErrorSnackbar
-    v-model="errorSnackbar"
-    :text="errorSnackbarText"
-    @close="errorSnackbar = false"
-  ></ErrorSnackbar>
 </template>
 
 <script setup>
 import axios from "axios";
+import { useFeedbackStore } from "@/stores/feedback";
+const feedbackStore = useFeedbackStore();
+
 const props = defineProps([
   "id",
   "location_name",
@@ -194,12 +189,8 @@ const props = defineProps([
 const emit = defineEmits(["location-edited", "location-removed"]);
 
 const deleteDialog = ref(false);
-const secondDeleteDialog = ref(false);
 const editDialog = ref(false);
-const snackbar = ref(false);
-const snackbarText = ref("");
-const errorSnackbar = ref(false);
-const errorSnackbarText = "";
+const secondDeleteDialog = ref(false);
 
 const openDeleteDialog = () => {
   deleteDialog.value = true;
@@ -210,6 +201,15 @@ const closeDeleteDialog = () => {
   secondDeleteDialog.value = false;
 };
 
+const checkdelete = () => {
+  if (props.groups.length > 0) {
+    deleteDialog.value = false;
+    secondDeleteDialog.value = true;
+  } else {
+    confirmDelete();
+  }
+};
+
 const confirmDelete = () => {
   axios
     .delete(import.meta.env.VITE_API + `/api/locations/${props.id}`, {
@@ -218,13 +218,12 @@ const confirmDelete = () => {
     .then(() => {
       emit("location-removed");
       closeDeleteDialog();
-      snackbarText.value = "Der Standort wurde erfolgreich gelöscht!";
-      snackbar.value = true;
+      feedbackStore.setFeedback("success", "snackbar", "Standort gelöscht", `Der Standort ${props.location_name} wurde erfolgreich gelöscht!`);
     })
     .catch((err) => {
       console.log(err);
       deleteDialog.value = false;
-      secondDeleteDialog.value = true;
+      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
     });
 };
 
@@ -241,14 +240,6 @@ const closeEditDialog = () => {
   editDialog.value = false;
 };
 
-const snackbarConfirm = () => {
-  snackbarText.value = "Der Standort wurde erfolgreich aktualisiert";
-  snackbar.value = true;
-};
-const snackbarError = () => {
-  errorSnackbarText.value = "Fehler beim aktualisieren des Standorts!";
-  errorSnackbar.value = true;
-};
 </script>
 
 <style>

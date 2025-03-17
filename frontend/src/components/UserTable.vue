@@ -5,8 +5,8 @@
     :sort-by="sortBy"
     :hover="true"
     item-value="id"
-    class="my-2"
-    style="width: 60%"
+    class="my-2 text-blue-grey-darken-2"
+    style="width: 75%"
     :row-props="colorRowItem"
   >
     <template v-slot:[`item.username`]="{ item }">
@@ -215,17 +215,14 @@
       @close="showConfirm = false"
     />
   </v-dialog>
-  <SuccessSnackbar v-model="snackbar" :text="snackbarText"></SuccessSnackbar>
-  <ErrorSnackbar
-    v-model="errorSnackbar"
-    :text="errorSnackbarText"
-  ></ErrorSnackbar>
 </template>
 
 <script setup>
 import axios from "axios";
 import { useAppStore } from "@/stores/app";
 const appStore = useAppStore();
+import { useFeedbackStore } from "@/stores/feedback";
+const feedbackStore = useFeedbackStore();
 
 const props = defineProps(["users"]);
 const emit = defineEmits(["user-removed", "user-edited"]);
@@ -255,8 +252,12 @@ const userToDeleteID = ref("");
 const userToDelete = ref("");
 
 const formattedRole = (role) => {
-  let capitalized = role.charAt(0).toUpperCase() + role.slice(1);
-  return capitalized.replace("ue", "ü");
+  if (role) {
+    let capitalized = role.charAt(0).toUpperCase() + role.slice(1);
+    return capitalized.replace("ue", "ü");
+  } else {
+    return "";
+  }
 };
 
 const opendeleteDialog = (item) => {
@@ -273,11 +274,22 @@ const confirmDelete = () => {
     .then(() => {
       emit("user-removed");
       deleteDialog.value = false;
-      snackbarText.value = "Der Benutzer wurde erfolgreich gelöscht!";
-      snackbar.value = true;
-      employeeToDeleteID.value = " ";
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "",
+        "Der Benutzer wurde erfolgreich gelöscht!"
+      );
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error("Error deleting user:", err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        "Fehler",
+        "Der Benutzer konnte nicht gelöscht werden."
+      );
+    });
 };
 
 const validation = ref("");
@@ -291,10 +303,6 @@ const isFixed = ref("false");
 const userToEditID = ref("");
 const showConfirm = ref(false);
 const initialPassword = ref();
-const snackbarText = ref(" ");
-const snackbar = ref(false);
-const errorSnackbar = ref(false);
-const errorSnackbarText = ref(" ");
 const isBlocked = ref(false);
 const hasChanged = ref(false);
 
@@ -312,7 +320,13 @@ const handlePasswordReset = () => {
       showConfirm.value = true;
     })
     .catch((err) => {
-      console.log(err);
+      console.error("Error reseting password:", err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        "",
+        "Fehler beim Zurücksetzen des Passwortes!"
+      );
     });
 };
 
@@ -352,11 +366,21 @@ const confirmEdit = () => {
     .then(() => {
       emit("user-edited");
       editDialog.value = false;
-      snackbarText.value = "Der Benutzer wurde erfolgreich aktualisiert!";
-      snackbar.value = true;
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "",
+        "Der Benutzer wurde erfolgreich aktualisiert!"
+      );
     })
     .catch((err) => {
       console.error("Error updating user:", err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        "",
+        "Fehler beim Aktualisieren des Benutzers!"
+      );
     });
 };
 function colorRowItem({ item }) {
@@ -379,13 +403,22 @@ const blocking = (userToEditID) => {
       .then((response) => {
         console.log(response.data);
         isBlocked.value = !isBlocked.value;
-        snackbarText.value = response.data.message + "!";
-        snackbar.value = true;
+        feedbackStore.setFeedback(
+          "success",
+          "snackbar",
+          "",
+          response.data?.message + "!"
+        );
         emit("user-edited");
       })
       .catch((err) => {
-        errorSnackbarText.value = err.message;
-        errorSnackbar.value = true;
+        console.error(err);
+        feedbackStore.setFeedback(
+          "error",
+          "snackbar",
+          err.response?.data?.title,
+          err.response?.data?.description
+        );
       });
   } else {
     axios
@@ -399,13 +432,22 @@ const blocking = (userToEditID) => {
       .then((response) => {
         console.log(response.data);
         isBlocked.value = !isBlocked.value;
-        snackbarText.value = response.data.message + "!";
-        snackbar.value = true;
+        feedbackStore.setFeedback(
+          "success",
+          "snackbar",
+          "",
+          response.data?.message + "!"
+        );
         emit("user-edited");
       })
       .catch((err) => {
-        errorSnackbarText.value = err.message;
-        errorSnackbar.value = true;
+        console.error(err);
+        feedbackStore.setFeedback(
+          "error",
+          "snackbar",
+          err.response?.data?.title,
+          err.response?.data?.description
+        );
       });
   }
 };

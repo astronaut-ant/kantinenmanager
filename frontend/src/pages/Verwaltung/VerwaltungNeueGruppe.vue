@@ -2,15 +2,12 @@
   <NavbarVerwaltung
     :breadcrumbs="[{ title: 'Gruppen' }, { title: 'Neue Gruppe' }]"
   />
-  <div class="mt-14 d-flex justify-center">
+  <div class="mt-7 d-flex justify-center">
     <div>
-      <v-card
-        :min-width="600"
-        class="elevation-7 px-6 py-4 w-100 text-blue-grey-darken-3"
-      >
+      <v-card class="elevation-0 px-6 py-4 w-100 text-blue-grey-darken-3">
         <v-card-text class="mb-2 text-h6">
           <div class="d-flex ga-4 mt-n3 mb-2 ms-2 ms-n3 text-primary">
-            <div class="d-flex align-center mt-n2 ms-n1">
+            <div class="d-none d-md-flex align-center mt-n2 ms-n1">
               <v-icon :size="40">mdi-account-group</v-icon>
               <v-icon class="ms-n1" :size="30">mdi-plus</v-icon>
             </div>
@@ -33,8 +30,9 @@
         /> -->
 
         <v-form ref="validation" v-model="form" @submit.prevent="handleSubmit">
-          <div class="d-flex ga-8 mb-2 mt-4">
+          <div class="d-block d-md-flex mx-auto ga-8 mb-2 mt-4">
             <v-text-field
+              :min-width="250"
               :active="true"
               base-color="blue-grey"
               color="primary"
@@ -49,6 +47,7 @@
             ></v-text-field>
             <v-container class="pa-0">
               <v-number-input
+                :min-width="250"
                 hide-details="auto"
                 precision="0"
                 :active="true"
@@ -59,7 +58,7 @@
                 variant="outlined"
                 v-model="gruppenNr"
                 :rules="[required, unique]"
-                class="w-100"
+                class="w-100 mb-8"
                 label="Gruppennummer"
                 placeholder="Nummer zuweisen"
                 :min="1"
@@ -90,7 +89,7 @@
             variant="outlined"
             class="mb-5 mt-2"
             label="Gruppenleiter"
-            Placeholder="Verfügbaren Gruppenleiter auswählen"
+            Placeholder="Gruppenleiter auswählen"
             v-model="gruppenleitung"
             :rules="[required]"
             :items="gruppenleiterList"
@@ -134,19 +133,11 @@
       </v-card>
     </div>
   </div>
-  <SuccessSnackbar
-    v-model="snackbar"
-    text="Gruppe erfolgreich angelegt!"
-    @close="snackbar = false"
-  ></SuccessSnackbar>
-  <ErrorSnackbar
-    v-model="errorSnackbar"
-    :text="errorSnackbarText"
-    @close="errorSnackbar = false"
-  ></ErrorSnackbar>
 </template>
 
 <script setup>
+import { useFeedbackStore } from "@/stores/feedback";
+const feedbackStore = useFeedbackStore();
 import CustomAlert from "@/components/CustomAlert.vue";
 import axios from "axios";
 const validation = ref("");
@@ -158,9 +149,6 @@ const gruppenleitung = ref(null);
 const gruppenleiterList = ref([]);
 const noGruppenleiter = ref(false);
 const gruppenLeiterLookUpTable = ref({});
-const errorSnackbar = ref(false);
-const errorSnackbarText = ref("");
-const snackbar = ref(false);
 
 //Dummy for Location-Endpoint
 const standort = ref();
@@ -186,7 +174,15 @@ const getData = () => {
 
       gruppenleiterList.value = Object.keys(gruppenLeiterLookUpTable.value);
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error("Error loading group leaders:", err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        "Fehler beim Laden der Gruppenleiter",
+        err.response?.data?.description
+      );
+    });
 
   axios
     .get(import.meta.env.VITE_API + "/api/groups", {
@@ -198,7 +194,15 @@ const getData = () => {
         console.log("Blocked: ", blockedGroupnumbers);
       });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.error("Error loading groups:", err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        "Fehler beim Laden der Gruppen",
+        err.response?.data?.description
+      );
+    });
 
   axios
     .get(import.meta.env.VITE_API + "/api/locations", { withCredentials: true })
@@ -213,7 +217,15 @@ const getData = () => {
       console.log(standortLookupTable);
       console.log(allLocations.value);
     })
-    .catch((err) => console.log(err.response.data.description));
+    .catch((err) => {
+      console.error("Error loading locations:", err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        "Fehler beim Laden der Standorte",
+        err.response?.data?.description
+      );
+    });
 };
 
 //send to Backend needs Endpoint
@@ -235,14 +247,20 @@ const handleSubmit = () => {
       showConfirm.value = true;
       gruppenLeiterLookUpTable.value = {};
       standortLookupTable.value = {};
-      snackbar.value = true;
       getData();
       emptyForm();
+      setTimeout(() => {
+        showConfirm.value = false;
+      }, 1500);
     })
     .catch((err) => {
-      console.log(err.response.data.description);
-      errorSnackbarText.value = "Fehler beim erstellen der Gruppe!";
-      errorSnackbar.value = true;
+      console.error("Error creating group:", err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        "Fehler beim Erstellen der Gruppe",
+        err.response?.data?.description
+      );
     });
 };
 
@@ -251,12 +269,11 @@ const required = (v) => {
   return !!v || "Eingabe erforderlich";
 };
 const unique = (v) => {
-  return !blockedGroupnumbers.includes(v) || "Gruppe bereits vergeben";
+  return !blockedGroupnumbers.includes(v) || "Nummer bereits vergeben";
 };
 
 //emptyForm for new submit
 const emptyForm = () => {
-  showConfirm.value = false;
   validation.value.reset();
 };
 

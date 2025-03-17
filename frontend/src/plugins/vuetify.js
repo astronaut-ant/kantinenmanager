@@ -10,6 +10,7 @@ import "vuetify/styles";
 
 // Composables
 import { createVuetify } from "vuetify";
+import { de, en } from "vuetify/locale";
 
 //components
 import { VNumberInput } from "vuetify/labs/VNumberInput";
@@ -18,6 +19,11 @@ import { VNumberInput } from "vuetify/labs/VNumberInput";
 export default createVuetify({
   theme: {
     defaultTheme: "light",
+  },
+  locale: {
+    locale: "de",
+    fallback: "en",
+    messages: { de, en },
   },
   components: {
     VNumberInput,

@@ -1,7 +1,8 @@
 <template>
   <v-card
-    class="mx-2 my-2 text-blue-grey-darken-2"
-    width="425"
+    class="mx-4 my-2 text-blue-grey-darken-2 w-25 w-md-100"
+    :min-width="400"
+    :max-width="400"
     elevation="16"
     :class="isBlocked ? 'blockedBackground' : ''"
   >
@@ -34,7 +35,7 @@
           :color="color"
           density="comfortable"
         >
-          {{ formattedRole }}
+          {{ props.role }}
         </v-chip>
         <div class="d-flex ga-1 justify-end">
           <v-btn
@@ -83,11 +84,11 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-  <v-dialog v-model="editDialog" no-click-animation persistent max-width="600">
+  <v-dialog v-model="editDialog" max-width="600">
     <v-card class="text-blue-grey-darken-3">
       <v-card-text>
         <div class="d-flex ga-3 mb-4 text-primary">
-          <div class="d-flex align-center">
+          <div class="d-none d-md-flex align-center">
             <v-icon class="mt-n1" size="35">mdi-account-edit</v-icon>
           </div>
           <h1>Benutzer bearbeiten</h1>
@@ -96,15 +97,16 @@
         <div>
           <v-form ref="validation" v-model="form">
             <v-radio-group
+              class="ms-n2"
               :disabled="isOwnCard || props.isFixed"
               v-model="user_group"
               @update:model-value="hasChanged = true"
               :rules="[required]"
               color="primary"
             >
-              <div class="d-flex">
+              <div class="d-md-flex d-block">
                 <v-radio
-                  class="ms-n2"
+                  class=""
                   base-color="blue-grey"
                   label="Verwaltung"
                   value="verwaltung"
@@ -123,9 +125,9 @@
                   </template></v-radio
                 >
               </div>
-              <div class="d-flex">
+              <div class="d-md-flex d-block">
                 <v-radio
-                  class="ms-n2"
+                  class=""
                   base-color="blue-grey"
                   label="Gruppenleitung"
                   value="gruppenleitung"
@@ -145,7 +147,7 @@
                 >
               </div>
             </v-radio-group>
-            <div class="d-flex ga-5">
+            <div class="d-block d-md-flex ga-5">
               <v-text-field
                 v-model="first_name"
                 :rules="[required]"
@@ -177,7 +179,7 @@
                 variant="outlined"
                 class="mb-2"
                 v-model="username"
-                :rules="[required]"
+                :rules="[required, unique, noWhiteSpace]"
                 label="Benutzername"
                 clearable
               ></v-text-field>
@@ -229,17 +231,14 @@
       @close="showConfirm = false"
     />
   </v-dialog>
-  <SuccessSnackbar v-model="snackbar" :text="snackbarText"></SuccessSnackbar>
-  <ErrorSnackbar
-    v-model="errorSnackbar"
-    :text="errorSnackbarText"
-  ></ErrorSnackbar>
 </template>
 
 <script setup>
 import axios from "axios";
 import { useAppStore } from "@/stores/app";
 const appStore = useAppStore();
+import { useFeedbackStore } from "@/stores/feedback";
+const feedbackStore = useFeedbackStore();
 
 const props = defineProps([
   "id",
@@ -256,11 +255,6 @@ const color = ref("primary");
 const deleteDialog = ref(false);
 const editDialog = ref(false);
 
-const formattedRole = computed(() => {
-  let capitalized = props.role.charAt(0).toUpperCase() + props.role.slice(1);
-  return capitalized.replace("ue", "ü");
-});
-
 const confirmDelete = () => {
   axios
     .delete(`${import.meta.env.VITE_API}/api/users/${props.id}`, {
@@ -269,13 +263,21 @@ const confirmDelete = () => {
     .then(() => {
       emit("user-removed");
       deleteDialog.value = false;
-      snackbarText.value = "Der Benutzer wurde erfolgreich gelöscht!";
-      snackbar.value = true;
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "",
+        "Der Benutzer wurde erfolgreich gelöscht!"
+      );
     })
     .catch((err) => {
-      console.log(err);
-      errorSnackbarText.value = "Fehler beim löschen des Nutzers!";
-      errorSnackbar.value = true;
+      console.error("Error deleting user:", err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        "Fehler",
+        "Der Benutzer konnte nicht gelöscht werden."
+      );
     });
 };
 
@@ -287,13 +289,27 @@ const username = ref(props.username);
 const user_group = ref(props.role);
 const showConfirm = ref(false);
 const initialPassword = ref();
-const snackbarText = ref(" ");
-const snackbar = ref(false);
-const errorSnackbar = ref(false);
-const errorSnackbarText = ref(" ");
 const isBlocked = ref(false);
 const hasChanged = ref(false);
 const isOwnCard = ref(false);
+const allsUserNames = ref([]);
+axios
+  .get(import.meta.env.VITE_API + "/api/users", { withCredentials: true })
+  .then((response) => {
+    response.data.forEach((user) => {
+      allsUserNames.value.push(user.username);
+    });
+  })
+  .catch((err) => {
+    console.error(err);
+    feedbackStore.setFeedback(
+      "error",
+      "snackbar",
+      err.response?.data?.title,
+      err.response?.data?.description
+    );
+  });
+
 const handlePasswordReset = () => {
   axios
     .put(
@@ -306,14 +322,28 @@ const handlePasswordReset = () => {
       showConfirm.value = true;
     })
     .catch((err) => {
-      console.log(err);
-      errorSnackbarText.value = "Fehler beim zurücksetzen des Passwortes!";
-      errorSnackbar.value = true;
+      console.error("Error reseting password:", err);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        "",
+        "Fehler beim Zurücksetzen des Passwortes!"
+      );
     });
 };
 
 const required = (v) => {
   return !!v || "Eingabe erforderlich";
+};
+const unique = (v) => {
+  return (
+    !allsUserNames.value.includes(v) ||
+    v === props.username ||
+    "Benutzername bereits vergeben"
+  );
+};
+const noWhiteSpace = (v) => {
+  return !v.includes(" ") || "Keine Leerzeichen erlaubt";
 };
 
 const confirmEdit = () => {
@@ -332,8 +362,12 @@ const confirmEdit = () => {
     .then(() => {
       emit("user-edited");
       editDialog.value = false;
-      snackbarText.value = "Der Benutzer wurde erfolgreich aktualisiert!";
-      snackbar.value = true;
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "",
+        "Der Benutzer wurde erfolgreich aktualisiert!"
+      );
       if (isOwnCard.value) {
         appStore.userData.first_name = first_name.value;
         appStore.userData.last_name = last_name.value;
@@ -343,8 +377,12 @@ const confirmEdit = () => {
     })
     .catch((err) => {
       console.error("Error updating user:", err);
-      errorSnackbarText.value = "Fehler beim aktualisieren des Benutzers!";
-      errorSnackbar.value = true;
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        "",
+        "Fehler beim Aktualisieren des Benutzers!"
+      );
     });
 };
 
@@ -361,12 +399,22 @@ const blocking = () => {
       .then((response) => {
         console.log(response.data);
         isBlocked.value = !isBlocked.value;
-        snackbarText.value = response.data.message + "!";
-        snackbar.value = true;
+        feedbackStore.setFeedback(
+          "success",
+          "snackbar",
+          "",
+          response.data?.message + "!"
+        );
+        emit("user-edited");
       })
       .catch((err) => {
-        errorSnackbarText.value = err.message;
-        errorSnackbar.value = true;
+        console.error(err);
+        feedbackStore.setFeedback(
+          "error",
+          "snackbar",
+          err.response?.data?.title,
+          err.response?.data?.description
+        );
       });
   } else {
     axios
@@ -380,12 +428,22 @@ const blocking = () => {
       .then((response) => {
         console.log(response.data);
         isBlocked.value = !isBlocked.value;
-        snackbarText.value = response.data.message + "!";
-        snackbar.value = true;
+        feedbackStore.setFeedback(
+          "success",
+          "snackbar",
+          "",
+          response.data?.message + "!"
+        );
+        emit("user-edited");
       })
       .catch((err) => {
-        errorSnackbarText.value = err.message;
-        errorSnackbar.value = true;
+        console.error(err);
+        feedbackStore.setFeedback(
+          "error",
+          "snackbar",
+          err.response?.data?.title,
+          err.response?.data?.description
+        );
       });
   }
 };
@@ -405,6 +463,7 @@ if (appStore.userData.id === props.id) {
   isOwnCard.value = true;
   color.value = "red";
 }
+console.log("props.username: ", props.username);
 </script>
 <style scoped>
 .blockedBackground {

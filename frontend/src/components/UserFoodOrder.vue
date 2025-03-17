@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="dialog" max-width="800">
+  <v-dialog v-model="dialog" max-width="800" min-width="500">
     <template v-slot:activator="{ props: activatorProps }">
       <div class="text-start">
         <v-btn
@@ -14,7 +14,7 @@
       </div>
     </template>
 
-    <v-card class="mx-auto px-4" color="blue-grey-lighten-5">
+    <v-card class="mx-auto w-75 w-md-100 px-4" color="blue-grey-lighten-5">
       <v-card-text>
         <h2 class="ms-n1 mt-4 mb-4 text-blue-grey font-weight-bold">
           <v-icon class="me-4 text-blue-grey">

@@ -1,5 +1,10 @@
 <template>
-  <v-card class="mx-2 my-2" width="425" elevation="16">
+  <v-card
+    class="mx-2 my-2 text-blue-grey-darken-2 w-xs-25 w-md-100"
+    :min-width="400"
+    :max-width="400"
+    elevation="16"
+  >
     <v-card-item>
       <div class="mb-2 d-flex justify-center">
         <v-chip
@@ -163,6 +168,8 @@
 </template>
 
 <script setup>
+import { useFeedbackStore } from "@/stores/feedback";
+const feedbackStore = useFeedbackStore();
 const replacementGroupLeader = ref("");
 const setGroupReplacementDialog = ref(false);
 const removeGroupReplacementDialog = ref(false);
@@ -196,8 +203,21 @@ const removeGroupReplacement = () => {
     .then(() => {
       emit("replacement-removed");
       closeremoveGroupReplacementDialog();
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "Vertretung gelöscht",
+        "Der Gruppenleiter kann wieder Essensbestellungen für seine Gruppe übernehmen."
+      );
     })
-    .catch((err) => console.error("Error deleting", err));
+    .catch((err) => {
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
+    });
 };
 const opensetGroupReplacementDialog = () => {
   setGroupReplacementDialog.value = true;
@@ -235,8 +255,22 @@ const confirmSetGroupReplacement = () => {
     .then(() => {
       emit("replacement-set");
       closesetGroupReplacementDialog();
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "Vertretung gesetzt",
+        "Der temporäre Gruppenleiter übernimmt Essensbestellungen für die Gruppe."
+      );
     })
-    .catch((err) => console.error("Error setting replacement", err));
+    .catch((err) => {
+      closesetGroupReplacementDialog();
+      feedbackStore.setFeedback(
+        "error",
+        "dialog",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
+    });
 };
 </script>
 
