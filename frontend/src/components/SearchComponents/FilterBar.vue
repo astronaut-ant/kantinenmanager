@@ -11,10 +11,9 @@
   >
     <div class="d-flex justify-center align-center mt-4">
       <v-toolbar
-        class="border"
+        class="border w-75 w-md-50"
         color="white"
         density="comfortable"
-        style="width: 75%"
         rounded="lg"
         floating
       >

@@ -1,8 +1,8 @@
 <template>
-  <v-card :min-width="600" class="elevation-7 px-6 py-4 mx-auto text-blue-grey">
+  <v-card :min-width="300" class="elevation-7 px-6 py-4 mx-auto text-blue-grey">
     <v-card-text class="mb-2 text-h6">
       <div class="d-flex ga-4 mt-n3 mb-2 ms-n7 text-primary">
-        <div class="d-flex align-center mt-n2">
+        <div class="d-none d-md-flex align-center mt-n2">
           <v-icon :size="40">mdi-home-edit-outline</v-icon>
         </div>
         <h2>Standort bearbeiten</h2>
@@ -315,14 +315,24 @@ const handleSubmit = () => {
       .then(() => {
         if (!hasError) {
           save();
-          feedbackStore.setFeedback("success", "snackbar", "", "Der Standort wurde erfolgreich aktualisiert");
+          feedbackStore.setFeedback(
+            "success",
+            "snackbar",
+            "",
+            "Der Standort wurde erfolgreich aktualisiert"
+          );
         }
         close();
       })
       .catch((err) => {
         hasError = true;
         console.error(err);
-        feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+        feedbackStore.setFeedback(
+          "error",
+          "snackbar",
+          err.response?.data?.title,
+          err.response?.data?.description
+        );
       });
     return;
   }
@@ -347,13 +357,19 @@ const handleSubmit = () => {
         .catch((err) => {
           hasError = true;
           console.error(err);
-          feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+          feedbackStore.setFeedback(
+            "error",
+            "snackbar",
+            err.response?.data?.title,
+            err.response?.data?.description
+          );
         });
     }
 
     axios
       .put(
-        import.meta.env.VITE_API + `/api/locations/${oldLocationLeaderObject.location_id}`,
+        import.meta.env.VITE_API +
+          `/api/locations/${oldLocationLeaderObject.location_id}`,
         {
           location_name: standortName.value,
           user_id_location_leader: standortLeitungSelection.value,
@@ -393,19 +409,34 @@ const handleSubmit = () => {
       .catch((err) => {
         hasError = true;
         console.error(err);
-        feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+        feedbackStore.setFeedback(
+          "error",
+          "snackbar",
+          err.response?.data?.title,
+          err.response?.data?.description
+        );
       })
       .then(() => {
         if (!hasError) {
           save();
-          feedbackStore.setFeedback("success", "snackbar", "", "Der Standort wurde erfolgreich aktualisiert");
+          feedbackStore.setFeedback(
+            "success",
+            "snackbar",
+            "",
+            "Der Standort wurde erfolgreich aktualisiert"
+          );
         }
         close();
       })
       .catch((err) => {
         hasError = true;
         console.error(err);
-        feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+        feedbackStore.setFeedback(
+          "error",
+          "snackbar",
+          err.response?.data?.title,
+          err.response?.data?.description
+        );
       });
   });
 };

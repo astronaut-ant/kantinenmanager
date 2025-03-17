@@ -1,13 +1,13 @@
 <template>
-  <div class="mt-14 d-flex justify-center">
+  <div class="mt-7 d-flex justify-center">
     <div>
       <v-card
-        :min-width="600"
-        class="elevation-7 px-6 py-4 text-blue-grey-darken-3"
+        :min-width="350"
+        class="elevation-0 border-md-7 px-6 py-4 text-blue-grey-darken-3"
       >
         <v-card-text class="mb-2 text-h6">
           <div class="d-flex ga-4 mt-n3 mb-2 ms-2 ms-n4 text-primary">
-            <div class="d-flex align-center mt-n2">
+            <div class="d-none d-md-flex align-center mt-n2">
               <v-icon :size="40">mdi-home-plus</v-icon>
             </div>
             <h2>Neuen Standort anlegen</h2>
@@ -142,7 +142,12 @@ onMounted(() => {
     })
     .catch((err) => {
       console.error(err);
-      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
     })
     .then(() => {
       axios
@@ -193,7 +198,12 @@ onMounted(() => {
     })
     .catch((err) => {
       console.error(err);
-      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
     });
 });
 
@@ -238,7 +248,12 @@ const handleSubmit = () => {
           .then((response) => console.log(response.data))
           .catch((err) => {
             console.error(err);
-            feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+            feedbackStore.setFeedback(
+              "error",
+              "snackbar",
+              err.response?.data?.title,
+              err.response?.data?.description
+            );
           });
       });
     })

@@ -1,6 +1,6 @@
 <template>
   <v-card
-    class="mx-4 my-2 text-blue-grey-darken-2 w-75 w-md-100"
+    class="mx-4 my-2 text-blue-grey-darken-2 w-25 w-md-100"
     :min-width="350"
     :max-width="350"
     elevation="16"
@@ -84,7 +84,7 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-  <v-dialog v-model="editDialog" no-click-animation persistent max-width="600">
+  <v-dialog v-model="editDialog" max-width="600">
     <v-card class="text-blue-grey-darken-3">
       <v-card-text>
         <div class="d-flex ga-3 mb-4 text-primary">
@@ -147,7 +147,7 @@
                 >
               </div>
             </v-radio-group>
-            <div class="d-flex ga-5">
+            <div class="d-block d-md-flex ga-5">
               <v-text-field
                 v-model="first_name"
                 :rules="[required]"
