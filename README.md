@@ -146,7 +146,14 @@ docker compose run test-backend-watch  # Start a test runner that will watch for
 
 ### Frontend
 
-#todo
+Connect to the dev container, then run the following commands:
+
+```bash
+cd frontend
+
+npm run test
+npm run coverage
+```
 
 ## 🗄️ Database Migrations
 
