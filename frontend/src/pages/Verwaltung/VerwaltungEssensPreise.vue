@@ -152,8 +152,9 @@
           @click="dateMenu = true"
           readonly
         ></v-text-field>
-        <v-text-field
+        <v-number-input
           class="mt-4"
+          :precision="2"
           :active="true"
           base-color="blue-grey"
           color="primary"
@@ -163,9 +164,10 @@
           label="Hauptgericht"
           type="number"
           :rules="[required, isPositive]"
-        ></v-text-field>
-        <v-text-field
+        ></v-number-input>
+        <v-number-input
           :active="true"
+          :precision="2"
           class="mt-4"
           base-color="blue-grey"
           color="primary"
@@ -175,10 +177,13 @@
           label="Salat"
           type="number"
           :rules="[required, isPositive]"
-        ></v-text-field>
-        <v-text-field
+        >
+        </v-number-input>
+
+        <v-number-input
           class="mt-4"
           :active="true"
+          :precision="2"
           base-color="blue-grey"
           color="primary"
           variant="outlined"
@@ -187,9 +192,9 @@
           label="Vorrauszahlung"
           type="number"
           :rules="[required, isPositive]"
-        ></v-text-field>
+        ></v-number-input>
       </v-card-text>
-      <v-card-actions>
+      <v-card-actions class="mb-2">
         <v-btn @click="closeAddDialog()" variant="text" color="blue-grey"
           >Abbrechen</v-btn
         >
@@ -209,13 +214,28 @@
 
   <v-dialog v-model="dateMenu" max-width="400">
     <v-card>
-      <v-card-title> Start Datum auswählen </v-card-title>
+      <v-card-title class="ms-11 mt-3"> Start Datum auswählen </v-card-title>
       <v-card-text>
         <v-date-picker
+          class="mx-auto w-75"
+          color="primary"
+          :first-day-of-week="1"
+          :hide-header="true"
           v-model="selectedDate"
-          @update:modelValue="confirmDate()"
+          @update:modelValue=""
         ></v-date-picker>
       </v-card-text>
+      <v-card-actions class="mb-2 me-2 justify-end">
+        <v-btn color="blue-grey" variant="text" @click="dateMenu = false"
+          >Abbrechen</v-btn
+        >
+        <v-btn
+          @click="(dateMenu = false), confirmDate()"
+          color="primary"
+          variant="elevated"
+          >Übernehmen</v-btn
+        >
+      </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
