@@ -1,13 +1,12 @@
 <template>
   <v-container
     min-height="100%"
-    class="bg-white d-flex flex-column justify-space-around ga-2 elevation-7 rounded"
+    class="bg-white d-flex flex-column ga-2 elevation-7 rounded"
   >
     <!-- <p>{{ props.data[0].rawValue }}</p> -->
     <v-container
-      max-height="50"
       min-width="30"
-      class="d-flex justify-center mt-2 mb-10"
+      class="h-100 d-flex justify-center mt-auto mb-auto"
     >
       <DoubleCircle v-if="maindishBlue && salad" color="primary" />
       <DoubleCircle v-if="maindishRed && salad" color="red" />
@@ -17,15 +16,16 @@
         v-if="salad && !maindishRed && !maindishBlue"
         color="success"
       />
-      <v-icon v-if="!accepted" color="red" size="15vw"
+      <v-icon v-if="!accepted" color="red" size="20vw"
         >mdi-hand-back-left</v-icon
       >
     </v-container>
-    <div class="d-flex justify-center mt-15">
+    <div class="d-flex justify-center mb-4">
       <v-btn
         width="25vw"
         height="5vw"
-        class="bg-blue-grey elevation-10"
+        color="blue-grey"
+        class="elevation-10"
         @click="$emit('close')"
       >
         <v-icon

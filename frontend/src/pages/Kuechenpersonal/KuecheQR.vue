@@ -1,13 +1,12 @@
 <template>
-  <NavbarKueche :breadcrumbs = '[{"title": "QR-Scanner"}]'/>
-  <div class="d-flex h-100 justify-center align-center mt-n10 bg-black">
-    <div class="w-50 auto">
-      <qrcode-stream
-        class="pa-1"
-        :paused="!inScanMode"
-        @detect="onDetect"
-        :track="trackQR"
-      >
+  <NavbarKueche :breadcrumbs="[{ title: 'QR-Scanner' }]" />
+  <v-container
+    min-width="100vw"
+    min-height="100vh"
+    class="bg-black d-flex align-center"
+  >
+    <div class="w-50 auto mx-auto">
+      <qrcode-stream :paused="!inScanMode" @detect="onDetect" :track="trackQR">
         <div
           class="position-absolute w-100 h-100 border-primary rounded elevation-2"
         >
@@ -19,7 +18,7 @@
         </div>
       </qrcode-stream>
     </div>
-  </div>
+  </v-container>
 </template>
 
 <script setup>
