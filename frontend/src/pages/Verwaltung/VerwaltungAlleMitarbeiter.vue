@@ -57,7 +57,7 @@
           density="compact"
           rounded="lg"
         >
-          <p class="text-h6 text-blue-grey-darken-2 ms-4">
+          <p class="d-none d-md-block text-h6 text-blue-grey-darken-2 ms-4">
             Anzahl aller jetzigen Mitarbeiter: {{ employees.length }}
           </p>
           <v-spacer></v-spacer>
@@ -145,7 +145,7 @@
             Sind Sie sicher, dass Sie folgende Mitarbeiter löschen möchten?
           </p>
           <li v-for="employee in employeesToDelete" :key="employee.id">
-              {{ employee.first_name }} {{ employee.last_name }}
+            {{ employee.first_name }} {{ employee.last_name }}
           </li>
         </div>
       </v-card-text>
@@ -380,12 +380,22 @@ const confirmDelete = () => {
     )
     .then(() => {
       deleteDialog.value = false;
-      feedbackStore.setFeedback("success", "snackbar", "Mitarbeiter gelöscht", `${employeeToDelete.value} wurde erfolgreich gelöscht!`);
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "Mitarbeiter gelöscht",
+        `${employeeToDelete.value} wurde erfolgreich gelöscht!`
+      );
       fetchData();
     })
     .catch((err) => {
       console.error(err);
-      feedbackStore.setFeedback("error", "snackbar", `Fehler beim löschen von ${employeeToDelete.value}`, err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        `Fehler beim löschen von ${employeeToDelete.value}`,
+        err.response?.data?.description
+      );
       //test!!!!
     });
 };
@@ -398,13 +408,23 @@ const confirmDeleteSelected = () => {
     })
     .then(() => {
       deleteDialogSelected.value = false;
-      feedbackStore.setFeedback("success", "snackbar", "Mitarbeiter gelöscht", "Die ausgewählten Mitarbeiter wurden erfolgreich gelöscht!");
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "Mitarbeiter gelöscht",
+        "Die ausgewählten Mitarbeiter wurden erfolgreich gelöscht!"
+      );
       selected.value = [];
       fetchData();
     })
     .catch((err) => {
       console.error(err);
-      feedbackStore.setFeedback("error", "snackbar", "Fehler beim löschen der ausgewählten Mitarbeiter!", err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        "Fehler beim löschen der ausgewählten Mitarbeiter!",
+        err.response?.data?.description
+      );
     });
 };
 
@@ -439,11 +459,21 @@ const getQRCodeSelected = () => {
       link.click();
       window.URL.revokeObjectURL(url);
 
-      feedbackStore.setFeedback("success", "snackbar", "", "Die QR-Codes wurden erfolgreich generiert!");
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "",
+        "Die QR-Codes wurden erfolgreich generiert!"
+      );
     })
     .catch((err) => {
       console.error("Error getting QR Codes", err);
-      feedbackStore.setFeedback("error", "snackbar", "Fehler beim generieren der QR-Codes!", err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        "Fehler beim generieren der QR-Codes!",
+        err.response?.data?.description
+      );
     });
 };
 
@@ -477,11 +507,21 @@ const getQRCode = (item) => {
       link.click();
       window.URL.revokeObjectURL(url);
 
-      feedbackStore.setFeedback("success", "snackbar", "", "Der QR-Code wurde erfolgreich generiert!");
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "",
+        "Der QR-Code wurde erfolgreich generiert!"
+      );
     })
     .catch((err) => {
       console.error("Error getting QR Code", err);
-      feedbackStore.setFeedback("error", "snackbar", "Fehler beim generieren des QR-Codes!", err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        "Fehler beim generieren des QR-Codes!",
+        err.response?.data?.description
+      );
     });
 };
 
@@ -507,7 +547,12 @@ const fetchData = () => {
     })
     .catch((err) => {
       console.error("Error fetching data", err);
-      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
     });
 };
 
@@ -549,7 +594,12 @@ const fetchGroups = () => {
     })
     .catch((err) => {
       console.error("Error fetching groups", err);
-      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
     });
 };
 
@@ -581,12 +631,22 @@ const submitForm = () => {
       fetchData();
       closeeditDialog();
 
-      feedbackStore.setFeedback("success", "snackbar", "Mitarbeiter aktualisiert", `${payload.first_name} ${payload.last_name} wurde erfolgreich aktualisiert!`);
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "Mitarbeiter aktualisiert",
+        `${payload.first_name} ${payload.last_name} wurde erfolgreich aktualisiert!`
+      );
       deleteDialog.value = false;
     })
     .catch((err) => {
       console.error("Error updating employee", err);
-      feedbackStore.setFeedback("error", "snackbar", `Fehler beim aktualisieren von ${payload.first_name} ${payload.last_name}`, err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        `Fehler beim aktualisieren von ${payload.first_name} ${payload.last_name}`,
+        err.response?.data?.description
+      );
     });
 };
 </script>

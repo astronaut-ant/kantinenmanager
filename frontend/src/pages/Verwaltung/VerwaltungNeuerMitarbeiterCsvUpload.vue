@@ -3,17 +3,19 @@
     :breadcrumbs="[{ title: 'Mitarbeiter' }, { title: 'Neuer Mitarbeiter' }]"
   />
   <div class="d-flex justify-center mt-14">
-    <v-card width="500" class="px-10 py-2 mt-10">
+    <v-card elevation="0" class="py-2 mt-10">
       <div class="d-flex justify-start">
-        <h1 class="text-primary">
-          <v-icon class="me-2">mdi-database-import</v-icon>Import CSV Dateien
+        <h1 class="text-primary ms-1">
+          <v-icon class="d-none d-md-inline me-2">mdi-database-import</v-icon
+          >Import CSV Dateien
         </h1>
       </div>
 
-      <div class="d-flex justify-center mt-10">
-        <div class="flex-grow-1" style="max-width: 600px; width: 100%">
+      <div class="d-flex justify-center flex-grow-1 mt-10">
+        <div>
           <v-form>
             <v-file-input
+              :min-width="350"
               :active="true"
               base-color="blue-grey"
               color="primary"
@@ -97,16 +99,25 @@ const uploadFile = () => {
     })
     .then((response) => {
       console.log(response.data);
-      feedbackStore.setFeedback("success", "snackbar", "", "Die Datei wurde erfolgreich hochgeladen!");
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "",
+        "Die Datei wurde erfolgreich hochgeladen!"
+      );
     })
     .catch((err) => {
       console.error(err);
-      feedbackStore.setFeedback("error", "dialog", err.response?.data?.title, err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "dialog",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
     })
     .finally(() => {
       loading.value = false;
       file.value = null;
     });
 };
-
 </script>

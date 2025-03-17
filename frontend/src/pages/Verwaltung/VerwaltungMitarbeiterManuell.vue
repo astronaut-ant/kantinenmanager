@@ -2,26 +2,27 @@
   <NavbarVerwaltung
     :breadcrumbs="[{ title: 'Mitarbeiter' }, { title: 'Neuer Mitarbeiter' }]"
   />
-  <div class="mt-14 d-flex justify-center">
+  <div class="mt-7 d-flex justify-center">
     <div>
       <v-card
-        :min-width="600"
-        class="elevation-7 px-6 py-4 w-100 text-blue-grey-darken-3"
+        :min-width="350"
+        class="elevation-0 px-6 py-4 w-100 text-blue-grey-darken-3"
       >
         <v-card-text class="mb-2 text-h6">
           <div class="d-flex ga-4 mt-n3 mb-2 ms-2 ms-n4 text-primary">
-            <div class="d-flex align-center mt-n2">
+            <div class="d-none d-md-flex align-center mt-n2">
               <v-icon :size="35">mdi-human-capacity-increase</v-icon>
             </div>
             <h2>Neuen Mitarbeiter anlegen</h2>
           </div>
         </v-card-text>
         <v-form ref="validation" v-model="form" @submit.prevent="handleSubmit">
-          <div class="d-flex ga-8">
+          <div class="d-block d-md-flex ga-8">
             <v-menu color="primary" offset-y>
               <template #activator="{ props }">
                 <v-text-field
-                  class="w-100"
+                  :min-width="250"
+                  class="w-100 mb-3"
                   :active="true"
                   base-color="blue-grey"
                   color="primary"
@@ -36,7 +37,7 @@
                   append-inner-icon="mdi-chevron-down"
                 ></v-text-field>
               </template>
-              <v-list class="w-75">
+              <v-list class="w-75 mb-3">
                 <v-list-item color="primary" v-for="area in keys">
                   <v-list-item-title
                     class="text-blue-grey-darken-3 cursor-pointer"
@@ -68,6 +69,7 @@
             </v-menu>
             <v-container class="pa-0">
               <v-number-input
+                :min-width="250"
                 hide-details="auto"
                 precision="0"
                 :active="true"
@@ -78,7 +80,7 @@
                 variant="outlined"
                 v-model="employee_number"
                 :rules="[required]"
-                class="w-100"
+                class="w-100 mb-3"
                 label="Mitarbeiter-Nr."
                 placeholder="Nummer zuweisen"
                 :min="0"
@@ -88,9 +90,10 @@
             </v-container>
           </div>
 
-          <div class="d-flex ga-8 mt-6">
+          <div class="d-block d-md-flex ga-8 mt-6">
             <v-text-field
-              class="w-100"
+              :min-width="250"
+              class="w-100 mb-3"
               :active="true"
               base-color="blue-grey"
               color="primary"
@@ -102,6 +105,7 @@
               clearable
             ></v-text-field>
             <v-text-field
+              :min-width="250"
               class="w-100"
               :active="true"
               base-color="blue-grey"
@@ -176,7 +180,12 @@ onMounted(() => {
     })
     .catch((err) => {
       console.error(err);
-      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
     });
 });
 
@@ -191,7 +200,12 @@ const getGroupObjects = () => {
     })
     .catch((err) => {
       console.error(err);
-      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
     });
 };
 
@@ -212,12 +226,22 @@ const handleSubmit = () => {
       console.log(response.data);
       getEmployeesData(response.data.id);
       showConfirm.value = true;
-      feedbackStore.setFeedback("success", "snackbar", " ", `${first_name.value} ${last_name.value} wurde erfolgreich angelegt!`);
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        " ",
+        `${first_name.value} ${last_name.value} wurde erfolgreich angelegt!`
+      );
       emptyForm();
     })
     .catch((err) => {
       console.error(err);
-      feedbackStore.setFeedback("error", "snackbar", "Fehler beim Anlegen des Mitarbeiters", err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        "Fehler beim Anlegen des Mitarbeiters",
+        err.response?.data?.description
+      );
     });
 };
 
@@ -231,8 +255,13 @@ const getEmployeesData = (id) => {
     })
     .catch((err) => {
       console.error(err);
-      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
-    })
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
+    });
 };
 
 const required = (v) => {
