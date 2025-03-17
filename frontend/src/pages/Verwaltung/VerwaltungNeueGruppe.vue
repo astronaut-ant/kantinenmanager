@@ -2,15 +2,12 @@
   <NavbarVerwaltung
     :breadcrumbs="[{ title: 'Gruppen' }, { title: 'Neue Gruppe' }]"
   />
-  <div class="mt-14 d-flex justify-center">
+  <div class="mt-7 d-flex justify-center">
     <div>
-      <v-card
-        :min-width="600"
-        class="elevation-7 px-6 py-4 w-100 text-blue-grey-darken-3"
-      >
+      <v-card class="elevation-0 px-6 py-4 w-100 text-blue-grey-darken-3">
         <v-card-text class="mb-2 text-h6">
           <div class="d-flex ga-4 mt-n3 mb-2 ms-2 ms-n3 text-primary">
-            <div class="d-flex align-center mt-n2 ms-n1">
+            <div class="d-none d-md-flex align-center mt-n2 ms-n1">
               <v-icon :size="40">mdi-account-group</v-icon>
               <v-icon class="ms-n1" :size="30">mdi-plus</v-icon>
             </div>
@@ -33,8 +30,9 @@
         /> -->
 
         <v-form ref="validation" v-model="form" @submit.prevent="handleSubmit">
-          <div class="d-flex ga-8 mb-2 mt-4">
+          <div class="d-block d-md-flex mx-auto ga-8 mb-2 mt-4">
             <v-text-field
+              :min-width="250"
               :active="true"
               base-color="blue-grey"
               color="primary"
@@ -49,6 +47,7 @@
             ></v-text-field>
             <v-container class="pa-0">
               <v-number-input
+                :min-width="250"
                 hide-details="auto"
                 precision="0"
                 :active="true"
@@ -59,7 +58,7 @@
                 variant="outlined"
                 v-model="gruppenNr"
                 :rules="[required, unique]"
-                class="w-100"
+                class="w-100 mb-8"
                 label="Gruppennummer"
                 placeholder="Nummer zuweisen"
                 :min="1"
@@ -90,7 +89,7 @@
             variant="outlined"
             class="mb-5 mt-2"
             label="Gruppenleiter"
-            Placeholder="Verfügbaren Gruppenleiter auswählen"
+            Placeholder="Gruppenleiter auswählen"
             v-model="gruppenleitung"
             :rules="[required]"
             :items="gruppenleiterList"
@@ -177,7 +176,12 @@ const getData = () => {
     })
     .catch((err) => {
       console.error("Error loading group leaders:", err);
-      feedbackStore.setFeedback("error", "snackbar", "Fehler beim Laden der Gruppenleiter", err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        "Fehler beim Laden der Gruppenleiter",
+        err.response?.data?.description
+      );
     });
 
   axios
@@ -192,7 +196,12 @@ const getData = () => {
     })
     .catch((err) => {
       console.error("Error loading groups:", err);
-      feedbackStore.setFeedback("error", "snackbar", "Fehler beim Laden der Gruppen", err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        "Fehler beim Laden der Gruppen",
+        err.response?.data?.description
+      );
     });
 
   axios
@@ -210,7 +219,12 @@ const getData = () => {
     })
     .catch((err) => {
       console.error("Error loading locations:", err);
-      feedbackStore.setFeedback("error", "snackbar", "Fehler beim Laden der Standorte", err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        "Fehler beim Laden der Standorte",
+        err.response?.data?.description
+      );
     });
 };
 
@@ -241,7 +255,12 @@ const handleSubmit = () => {
     })
     .catch((err) => {
       console.error("Error creating group:", err);
-      feedbackStore.setFeedback("error", "snackbar", "Fehler beim Erstellen der Gruppe", err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        "Fehler beim Erstellen der Gruppe",
+        err.response?.data?.description
+      );
     });
 };
 
