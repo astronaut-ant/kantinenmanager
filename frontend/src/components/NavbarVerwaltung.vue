@@ -10,12 +10,13 @@
     <v-navigation-drawer
       :disable-resize-watcher="true"
       class="elevation-10 bg-red"
+      :width="230"
       v-model="drawer"
       app
     >
-      <h1 class="mt-5 ps-2">Menu</h1>
+      <h1 class="mt-5 ms-4">Menu</h1>
       <hr class="text-white mt-4" />
-      <div class="d-flex flex-column h-75 justify-space-evenly ps-2">
+      <div class="d-flex flex-column h-50 justify-space-evenly">
         <Dropdown
           menuName="Benutzer"
           menuIcon="mdi-account"

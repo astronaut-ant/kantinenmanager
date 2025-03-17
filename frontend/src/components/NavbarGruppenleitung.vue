@@ -13,14 +13,14 @@
     <v-navigation-drawer
       :disable-resize-watcher="true"
       :mobile="true"
-      :width="250"
+      :width="230"
       class="elevation-10 bg-red"
       v-model="drawer"
       app
     >
       <h1 class="mt-5 ms-4">Menu</h1>
       <hr class="text-white mt-4" />
-      <div class="d-flex flex-column h-75 justify-space-evenly ms-4">
+      <div class="d-flex flex-column h-25 justify-space-evenly ms-4">
         <router-link
           @click="drawer = false"
           to="/gruppenleitung/meineGruppen"

@@ -65,7 +65,7 @@
     :sort-by="sortBy"
   >
     <template v-slot:item="{ item }">
-      <tr class="hover-row">
+      <tr>
         <td>
           {{ item.full_name }}
         </td>
@@ -524,9 +524,3 @@ const getFormattedDate = (date) => {
 getCount();
 fillTable();
 </script>
-<style scoped>
-.hover-row:hover {
-  background-color: #eceff1; /* Choose your desired color */
-  color: #37474f;
-}
-</style>
