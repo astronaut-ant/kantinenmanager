@@ -3,9 +3,10 @@
     :breadcrumbs="[{ title: 'Abrechnung' }, { title: 'Preise anpassen' }]"
   />
 
-  <v-card class="pa-5 mx-auto mt-15" max-width="900">
-    <v-card-title class="text-h4 font-weight-bold ms-2 mb-2 text-primary">
-      <v-icon :size="36" class="me-3 ms-n2 mt-n1">mdi-currency-eur</v-icon
+  <v-card :elevation="0" class="pa-5 mx-auto mt-7" max-width="900">
+    <v-card-title class="text-h4 font-weight-bold mb-2 text-primary">
+      <v-icon :size="36" class="d-none d-md-inline me-3 ms-n2 mt-n1"
+        >mdi-currency-eur</v-icon
       >Essenspreise</v-card-title
     >
     <v-card-text>
@@ -104,9 +105,7 @@
     <v-card>
       <v-card-text v-if="deletableMeal">
         <div class="d-flex justify-center text-red mb-7">
-          <p class="text-h5 font-weight-black">
-            Essenspreis Löschen
-          </p>
+          <p class="text-h5 font-weight-black">Essenspreis Löschen</p>
         </div>
         <div class="text-medium-emphasis">
           <p>
@@ -122,7 +121,11 @@
       </v-card-text>
       <v-card-actions>
         <v-btn @click="closeDeleteDialog()">Abbrechen</v-btn>
-        <v-btn @click="handleDelete()" color="red" variant="elevated" :disabled="!deletableMeal"
+        <v-btn
+          @click="handleDelete()"
+          color="red"
+          variant="elevated"
+          :disabled="!deletableMeal"
           >Löschen</v-btn
         >
       </v-card-actions>
@@ -281,11 +284,21 @@ const saveChanges = () => {
     .then(() => {
       fetchMeals();
       closeEditDialog();
-      feedbackStore.setFeedback("success", "snackbar", "", "Die Änderungen wurden erfolgreich übernommen!");
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "",
+        "Die Änderungen wurden erfolgreich übernommen!"
+      );
     })
     .catch((err) => {
       console.error(err);
-      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
     });
 };
 
@@ -330,11 +343,21 @@ const handleDelete = () => {
     .then(() => {
       fetchMeals();
       closeDeleteDialog();
-      feedbackStore.setFeedback("success", "snackbar", "", "Der Essenspreis wurde erfolgreich gelöscht.");
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "",
+        "Der Essenspreis wurde erfolgreich gelöscht."
+      );
     })
     .catch((err) => {
       console.error(err);
-      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
     });
 };
 
@@ -376,11 +399,21 @@ const handleAdd = () => {
     .then((response) => {
       fetchMeals();
       closeAddDialog();
-      feedbackStore.setFeedback("success", "snackbar", "", "Der neue Essenspreis wurde erfolgreich hinzugefügt!");
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "",
+        "Der neue Essenspreis wurde erfolgreich hinzugefügt!"
+      );
     })
     .catch((err) => {
       console.error("Fehler beim Hinzufügen des Essenspreis:", err);
-      feedbackStore.setFeedback("error", "snackbar", "Fehler beim Hinzufügen des Essenspreis", err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        "Fehler beim Hinzufügen des Essenspreis",
+        err.response?.data?.description
+      );
     });
 };
 
@@ -403,7 +436,12 @@ const fetchMeals = () => {
     })
     .catch((err) => {
       console.error("Fehler beim Laden der Essenspreise:", err);
-      feedbackStore.setFeedback("error", "snackbar", "Fehler beim Laden der Essenspreise", err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        "Fehler beim Laden der Essenspreise",
+        err.response?.data?.description
+      );
     });
 };
 
