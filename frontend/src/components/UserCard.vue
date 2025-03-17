@@ -1,7 +1,8 @@
 <template>
   <v-card
-    class="mx-2 my-2 text-blue-grey-darken-2"
-    width="425"
+    class="mx-4 my-2 text-blue-grey-darken-2 w-75 w-md-100"
+    :min-width="350"
+    :max-width="350"
     elevation="16"
     :class="isBlocked ? 'blockedBackground' : ''"
   >
@@ -266,11 +267,21 @@ const confirmDelete = () => {
     .then(() => {
       emit("user-removed");
       deleteDialog.value = false;
-      feedbackStore.setFeedback("success", "snackbar", "", "Der Benutzer wurde erfolgreich gelöscht!");
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "",
+        "Der Benutzer wurde erfolgreich gelöscht!"
+      );
     })
     .catch((err) => {
       console.error("Error deleting user:", err);
-      feedbackStore.setFeedback("error", "snackbar", "Fehler", "Der Benutzer konnte nicht gelöscht werden.");
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        "Fehler",
+        "Der Benutzer konnte nicht gelöscht werden."
+      );
     });
 };
 
@@ -298,7 +309,12 @@ const handlePasswordReset = () => {
     })
     .catch((err) => {
       console.error("Error reseting password:", err);
-      feedbackStore.setFeedback("error", "snackbar", "", "Fehler beim Zurücksetzen des Passwortes!");
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        "",
+        "Fehler beim Zurücksetzen des Passwortes!"
+      );
     });
 };
 
@@ -322,7 +338,12 @@ const confirmEdit = () => {
     .then(() => {
       emit("user-edited");
       editDialog.value = false;
-      feedbackStore.setFeedback("success", "snackbar", "", "Der Benutzer wurde erfolgreich aktualisiert!");
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "",
+        "Der Benutzer wurde erfolgreich aktualisiert!"
+      );
       if (isOwnCard.value) {
         appStore.userData.first_name = first_name.value;
         appStore.userData.last_name = last_name.value;
@@ -332,7 +353,12 @@ const confirmEdit = () => {
     })
     .catch((err) => {
       console.error("Error updating user:", err);
-      feedbackStore.setFeedback("error", "snackbar", "", "Fehler beim Aktualisieren des Benutzers!");
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        "",
+        "Fehler beim Aktualisieren des Benutzers!"
+      );
     });
 };
 
@@ -349,12 +375,22 @@ const blocking = () => {
       .then((response) => {
         console.log(response.data);
         isBlocked.value = !isBlocked.value;
-        feedbackStore.setFeedback("success", "snackbar", "", response.data?.message + "!");
+        feedbackStore.setFeedback(
+          "success",
+          "snackbar",
+          "",
+          response.data?.message + "!"
+        );
         emit("user-edited");
       })
       .catch((err) => {
         console.error(err);
-        feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+        feedbackStore.setFeedback(
+          "error",
+          "snackbar",
+          err.response?.data?.title,
+          err.response?.data?.description
+        );
       });
   } else {
     axios
@@ -368,12 +404,22 @@ const blocking = () => {
       .then((response) => {
         console.log(response.data);
         isBlocked.value = !isBlocked.value;
-        feedbackStore.setFeedback("success", "snackbar", "", response.data?.message + "!");
+        feedbackStore.setFeedback(
+          "success",
+          "snackbar",
+          "",
+          response.data?.message + "!"
+        );
         emit("user-edited");
       })
       .catch((err) => {
         console.error(err);
-        feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+        feedbackStore.setFeedback(
+          "error",
+          "snackbar",
+          err.response?.data?.title,
+          err.response?.data?.description
+        );
       });
   }
 };

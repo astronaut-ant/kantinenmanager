@@ -6,7 +6,7 @@
     :hover="true"
     item-value="id"
     class="my-2"
-    style="width: 60%"
+    style="width: 75%"
     :row-props="colorRowItem"
   >
     <template v-slot:[`item.username`]="{ item }">

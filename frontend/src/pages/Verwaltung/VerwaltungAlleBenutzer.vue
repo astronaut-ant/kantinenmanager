@@ -78,7 +78,12 @@ const fetchData = () => {
     })
     .catch((err) => {
       console.error("Error fetching data", err);
-      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
     });
 
   axios
@@ -110,7 +115,12 @@ const fetchData = () => {
     })
     .catch((err) => {
       console.error("Error fetching data", err);
-      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
     });
 
   //TODO Fetch actual location for initial selection in v-Select
