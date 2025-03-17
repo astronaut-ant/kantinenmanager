@@ -64,7 +64,12 @@ const fetchData = () => {
   axios
     .get(import.meta.env.VITE_API + "/api/users", { withCredentials: true })
     .then((response) => {
-      users.value = response.data;
+      users.value = response.data.map(user => {
+        let capitalizedRole = user.user_group.charAt(0).toUpperCase() + user.user_group.slice(1);
+        user.user_group = capitalizedRole.replace("ue", "ü");
+        return user;
+      });
+
       users.value.sort((a, b) =>
         a.username.toLowerCase() > b.username.toLowerCase()
           ? 1
@@ -72,7 +77,8 @@ const fetchData = () => {
           ? -1
           : 0
       );
-      userlist.value = Object.values(response.data);
+
+      userlist.value = Object.values(users.value);
 
       //console.log(userlist.value);
     })
