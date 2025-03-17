@@ -55,7 +55,7 @@
     @changeview=""
   />
   <v-data-table
-    class="mx-auto w-75 text-blue-grey-darken-1"
+    class="mx-auto w-75 text-blue-grey-darken-2"
     :hover="true"
     :fixed-header="true"
     :items="tableData"

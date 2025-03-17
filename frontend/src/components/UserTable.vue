@@ -5,7 +5,7 @@
     :sort-by="sortBy"
     :hover="true"
     item-value="id"
-    class="my-2"
+    class="my-2 text-blue-grey-darken-2"
     style="width: 75%"
     :row-props="colorRowItem"
   >

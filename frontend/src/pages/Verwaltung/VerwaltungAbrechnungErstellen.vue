@@ -324,7 +324,7 @@
       <v-spacer></v-spacer>
 
       <div class="d-flex h-100 align-center justify-space-between pe-6 mt-5">
-        <h2 class="text-blue-grey-darken-3 ml-1 mr-2">Personal</h2>
+        <h2 class="text-blue-grey-darken-2 ml-1 mr-2">Personal</h2>
         <div class="w-50">
           <v-slide-x-reverse-transition>
             <v-text-field
@@ -351,7 +351,7 @@
       </div>
       <v-card-text>
         <v-data-table
-          class="text-blue-grey"
+          class="text-blue-grey-darken-2"
           :headers="headers"
           :items="items"
           :search="search"

@@ -71,7 +71,7 @@
   <v-container style="width: 70%">
     <div v-if="items.length > 0">
       <v-data-table
-        class="text-blue-grey"
+        class="text-blue-grey-darken-2"
         v-model="selected"
         :headers="headers"
         :items="items"

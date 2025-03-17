@@ -4,7 +4,7 @@
     <div>
       <v-toolbar color="white" flat dark>
         <div class="d-flex justify-center">
-          <p class="text-h5 font-weight-bold text-blue-grey-darken-3">
+          <p class="text-h5 font-weight-bold text-blue-grey-darken-2">
             Meine Gruppe ({{ ownGroupDisplay }})
           </p>
         </div>
@@ -12,7 +12,7 @@
     </div>
     <div>
       <v-data-table-virtual
-        class="text-blue-grey-darken-3"
+        class="text-blue-grey-darken-2"
         :headers="headers"
         :items="mygroup"
         :loading="loading"
@@ -30,12 +30,12 @@
     </div>
     <div v-for="(group, index) in othergroups" :key="index" class="mt-5">
       <v-toolbar color="white" flat dark>
-        <p class="text-h5 font-weight-bold text-blue-grey-darken-3">
+        <p class="text-h5 font-weight-bold text-blue-grey-darken-2">
           Gruppe {{ group[0].group.group_name }}
         </p>
       </v-toolbar>
       <v-data-table-virtual
-        class="text-blue-grey-darken-3"
+        class="text-blue-grey-darken-2"
         :headers="headers"
         :items="group"
         :loading="loading"
@@ -61,7 +61,6 @@ import { useFeedbackStore } from "@/stores/feedback";
 const feedbackStore = useFeedbackStore();
 const appStore = useAppStore();
 const id = appStore.userData.id;
-
 
 const employees = ref([]);
 const mygroup = ref([]);
@@ -107,7 +106,12 @@ const fetchDataWithId = () => {
     })
     .catch((err) => {
       console.error("Error fetching data", err);
-      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
       loading.value = false;
     });
 };
