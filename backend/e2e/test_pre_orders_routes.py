@@ -1166,7 +1166,7 @@ def describe_pre_orders():
             assert db.session.query(PreOrder).count() == 1
             assert db.session.query(PreOrder).first().date == datum  # noqa: E712
 
-        def does_not_updte_14_days_in_advance_400(
+        def does_not_update_14_days_in_advance_400(
             client,
             location,
             user_verwaltung,
@@ -1193,7 +1193,7 @@ def describe_pre_orders():
             if forward > 1 and forward < 5:
                 forward = 19
             else:
-                forward = 14
+                forward = 21
 
             datum = db.session.query(PreOrder).first().date
 
