@@ -39,6 +39,14 @@ class ReportsService:
         else:
             raise AccessDeniedError(f"Nutzer:in {user_id}")
 
+        if not daily_orders:
+            returnMessage = [
+                CountOrdersObject(
+                    location_id=user.location_id, rot=0, blau=0, salad_option=0
+                )
+            ]
+            return CountOrdersSchema(many=True).dump(returnMessage)
+
         location_counts = ReportsService._count_location_orders_by_date(daily_orders)
         datum = (
             (daily_orders[0].date).date()
