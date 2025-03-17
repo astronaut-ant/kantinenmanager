@@ -88,7 +88,7 @@
     <v-card class="text-blue-grey-darken-3">
       <v-card-text>
         <div class="d-flex ga-3 mb-4 text-primary">
-          <div class="d-flex align-center">
+          <div class="d-none d-md-flex align-center">
             <v-icon class="mt-n1" size="35">mdi-account-edit</v-icon>
           </div>
           <h1>Benutzer bearbeiten</h1>
@@ -97,15 +97,16 @@
         <div>
           <v-form ref="validation" v-model="form">
             <v-radio-group
+              class="ms-n2"
               :disabled="isOwnCard || props.isFixed"
               v-model="user_group"
               @update:model-value="hasChanged = true"
               :rules="[required]"
               color="primary"
             >
-              <div class="d-flex">
+              <div class="d-md-flex d-block">
                 <v-radio
-                  class="ms-n2"
+                  class=""
                   base-color="blue-grey"
                   label="Verwaltung"
                   value="verwaltung"
@@ -124,9 +125,9 @@
                   </template></v-radio
                 >
               </div>
-              <div class="d-flex">
+              <div class="d-md-flex d-block">
                 <v-radio
-                  class="ms-n2"
+                  class=""
                   base-color="blue-grey"
                   label="Gruppenleitung"
                   value="gruppenleitung"
