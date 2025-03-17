@@ -89,21 +89,21 @@
         <template v-slot:[`item.actions`]="{ item }">
           <v-btn
             icon="mdi-qrcode"
-            class="bg-green mr-2"
+            class="bg-green mr-2 my-1"
             @click="getQRCode(item)"
             size="small"
             :disabled="selected.length > 0"
           ></v-btn>
           <v-btn
             icon="mdi-lead-pencil"
-            class="bg-primary mr-2"
+            class="bg-primary mr-2 my-1"
             @click="openeditDialog(item), (hasChanged = false)"
             size="small"
             :disabled="selected.length > 0"
           ></v-btn>
           <v-btn
             icon="mdi-trash-can-outline"
-            class="bg-red"
+            class="bg-red my-1"
             @click="opendeleteDialog(item)"
             size="small"
             :disabled="selected.length > 0"
