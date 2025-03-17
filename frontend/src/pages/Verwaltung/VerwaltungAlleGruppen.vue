@@ -19,7 +19,8 @@
     <div v-for="group in grouplist" :key="group?.id" class="grid-item">
       <v-card
         class="mx-2 my-2 text-blue-grey-darken-2"
-        width="425"
+        :min-width="350"
+        :max-width="350"
         elevation="16"
       >
         <v-card-item>
@@ -180,7 +181,7 @@
     </v-card>
   </v-dialog>
 
-  <v-dialog v-model="editDialog" max-width="600">
+  <v-dialog v-model="editDialog" max-width="400">
     <v-card class="text-blue-grey-darken-3">
       <v-card-title class="ms-2 mt-2 mb-1 text-primary d-flex justify-start">
         <v-icon left class="mr-2 mb-n3"> mdi-account-group </v-icon>
@@ -202,7 +203,7 @@
               v-bind="props"
               v-model="newLeaderName"
               label="Gruppenleitung"
-              placeholder="Neue Gruppenleitung zuweisen"
+              placeholder="Neue Leitung zuweisen"
               readonly
               append-inner-icon="mdi-chevron-down"
             ></v-text-field>
@@ -285,10 +286,13 @@
         </div>
         <div class="text-medium-emphasis">
           <p>
-          Es werden <strong>{{ groupToDelete?.group_name }}</strong> und
-          folgende Mitglieder gelöscht:
+            Es werden <strong>{{ groupToDelete?.group_name }}</strong> und
+            folgende Mitglieder gelöscht:
           </p>
-          <li class="mt-2 mb-2" v-for="employee in employeesToDelete"> {{ employee.employee_number }} - {{ employee.first_name }} {{ employee.last_name }}</li>
+          <li class="mt-2 mb-2" v-for="employee in employeesToDelete">
+            {{ employee.employee_number }} - {{ employee.first_name }}
+            {{ employee.last_name }}
+          </li>
         </div>
       </v-card-text>
       <v-card-actions>
@@ -345,7 +349,12 @@ const getData = () => {
     })
     .catch((err) => {
       console.error("Error fetching data", err);
-      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
     });
   axios
     .get(import.meta.env.VITE_API + "/api/users/group-leaders", {
@@ -356,7 +365,12 @@ const getData = () => {
     })
     .catch((err) => {
       console.error("Error fetching data", err);
-      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
     });
 
   axios
@@ -366,7 +380,12 @@ const getData = () => {
     })
     .catch((err) => {
       console.error("Error fetching data", err);
-      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
     });
 };
 
@@ -443,11 +462,21 @@ const confirmEdit = () => {
       groupLeaders.value[newLeaderIndex].own_group = 0;
       getData();
       closeEditDialog();
-      feedbackStore.setFeedback("success", "snackbar", "", "Die Gruppe wurde erfolgreich aktualisiert!");
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "",
+        "Die Gruppe wurde erfolgreich aktualisiert!"
+      );
     })
     .catch((err) => {
       console.error("Error editing group", err);
-      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
     });
 };
 const closeEditDialog = () => {
@@ -491,12 +520,22 @@ const confirmDelete = () => {
       );
       console.log(groups);
       closeDeleteDialog();
-      feedbackStore.setFeedback("success", "snackbar", "", "Die Gruppe wurde erfolgreich gelöscht!");
+      feedbackStore.setFeedback(
+        "success",
+        "snackbar",
+        "",
+        "Die Gruppe wurde erfolgreich gelöscht!"
+      );
       getData();
     })
     .catch((err) => {
       console.error("Error deleting group", err);
-      feedbackStore.setFeedback("error", "snackbar", err.response?.data?.title, err.response?.data?.description);
+      feedbackStore.setFeedback(
+        "error",
+        "snackbar",
+        err.response?.data?.title,
+        err.response?.data?.description
+      );
     });
 };
 
