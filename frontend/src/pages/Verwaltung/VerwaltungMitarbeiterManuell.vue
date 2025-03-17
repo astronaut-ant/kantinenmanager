@@ -79,7 +79,7 @@
                 inset
                 variant="outlined"
                 v-model="employee_number"
-                :rules="[required]"
+                :rules="[required, unique]"
                 class="w-100 mb-3"
                 label="Mitarbeiter-Nr."
                 placeholder="Nummer zuweisen"
@@ -167,6 +167,7 @@ const groupnames = ref({});
 const keys = ref([]);
 const groupObjects = ref([]);
 const location_id = ref(null);
+const empNumberArray = ref([]);
 
 onMounted(() => {
   axios
@@ -188,6 +189,26 @@ onMounted(() => {
       );
     });
 });
+
+axios
+  .get(import.meta.env.VITE_API + "/api/employees", {
+    withCredentials: true,
+  })
+  .then((response) => {
+    response.data.forEach((emp) => {
+      empNumberArray.value.push(emp.employee_number);
+    });
+    console.log("Emp-Number:", empNumberArray.value);
+  })
+  .catch((err) => {
+    console.error(err);
+    feedbackStore.setFeedback(
+      "error",
+      "snackbar",
+      err.response?.data?.title,
+      err.response?.data?.description
+    );
+  });
 
 const getGroupObjects = () => {
   axios
@@ -268,6 +289,9 @@ const required = (v) => {
   return !!v || "Eingabe erforderlich";
 };
 
+const unique = (v) => {
+  return !empNumberArray.value.includes(v) || "Gruppe bereits vergeben";
+};
 const onlyIntegers = (value) => {
   if (value === "" || Number.isInteger(Number(value))) {
     return true;
