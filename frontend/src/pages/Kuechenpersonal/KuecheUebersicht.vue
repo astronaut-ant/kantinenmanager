@@ -54,15 +54,15 @@
     @searchresult="updateOverview"
     @changeview=""
   />
-  <v-data-table-virtual
+  <v-data-table
     class="mx-auto w-75 text-blue-grey-darken-1"
     :hover="true"
     :fixed-header="true"
-    :height="tableHeight"
     :items="tableData"
     item-key="id"
     :headers="headers"
     :sort-by="sortBy"
+    show-current-page
   >
     <template v-slot:item="{ item }">
       <tr>
@@ -100,7 +100,7 @@
         </td>
       </tr>
     </template>
-  </v-data-table-virtual>
+  </v-data-table>
 
   <v-dialog v-model="dialog" max-width="400px" persistent>
     <v-card>
