@@ -34,18 +34,20 @@
           <p class="ml-4 mr-2">{{ selected.length }} ausgewählt</p>
           <v-spacer></v-spacer>
           <v-btn
-            prepend-icon="mdi-qrcode"
             class="bg-green mr-2"
             @click="getQRCodeSelected"
             size="small"
-            ><span class="d-none d-md-inline">Codes generieren</span></v-btn
+            >
+            <v-icon>mdi-qrcode</v-icon>
+            <span class="d-none d-md-inline ml-2">Codes generieren</span></v-btn
           >
           <v-btn
-            prepend-icon="mdi-trash-can-outline"
             class="bg-red mr-2"
             @click="opendeleteDialogSelected"
             size="small"
-            ><span class="d-none d-md-inline"
+            >
+            <v-icon>mdi-trash-can-outline</v-icon>
+            <span class="d-none d-md-inline ml-2"
               >Ausgewählte Mitarbeiter löschen</span
             ></v-btn
           >

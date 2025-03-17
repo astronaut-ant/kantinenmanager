@@ -36,7 +36,7 @@
       <v-icon class="me-2"> 
         {{ feedbackStore.status === 'error' ? 'mdi-alert-circle-outline' : 'mdi-check-circle-outline' }}
       </v-icon>
-      <template v-if="feedbackStore.title">
+      <template v-if="feedbackStore.title?.trim()">
         {{ feedbackStore.title }}:
       </template>
       <template v-else-if="feedbackStore.status === 'error'">
