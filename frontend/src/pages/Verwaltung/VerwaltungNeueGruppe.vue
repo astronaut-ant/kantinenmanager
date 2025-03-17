@@ -269,7 +269,7 @@ const required = (v) => {
   return !!v || "Eingabe erforderlich";
 };
 const unique = (v) => {
-  return !blockedGroupnumbers.includes(v) || "Gruppe bereits vergeben";
+  return !blockedGroupnumbers.includes(v) || "Nummer bereits vergeben";
 };
 
 //emptyForm for new submit

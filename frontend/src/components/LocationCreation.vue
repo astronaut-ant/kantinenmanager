@@ -22,7 +22,7 @@
             variant="outlined"
             Placeholder="Namen des Standorts eingeben"
             v-model="standortName"
-            :rules="[required]"
+            :rules="[required, unique]"
             label="Standort"
             required
             clearable
@@ -110,6 +110,7 @@ const availableStandortleiterItems = ref([]);
 const availableKuechenpersonal = [];
 const noKuechenpersonal = ref(false);
 const availableKuechenpersonalItems = ref([]);
+const allLocationNames = ref([]);
 
 //get busylist of all locationleader ids; check
 //get all standortleiter
@@ -136,6 +137,7 @@ onMounted(() => {
       console.log(allLocations);
 
       allLocations.forEach((location) => {
+        allLocationNames.value.push(location.location_name);
         busyStandortleiter.push(location.location_leader.id);
         console.log(busyStandortleiter);
       });
@@ -265,6 +267,12 @@ const handleSubmit = () => {
 //validate
 const required = (v) => {
   return !!v || "Eingabe erforderlich";
+};
+const unique = (v) => {
+  return (
+    !allLocationNames.value.includes(v.trim()) ||
+    "Standortname bereits vergeben"
+  );
 };
 
 const emptyForm = () => {

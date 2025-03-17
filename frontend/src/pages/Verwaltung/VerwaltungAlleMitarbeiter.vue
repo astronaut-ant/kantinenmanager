@@ -351,7 +351,7 @@ axios
     );
   });
 const unique = (v) => {
-  return !empNumberArray.value.includes(v) || "Gruppe bereits vergeben";
+  return !empNumberArray.value.includes(v) || "Nummer bereits vergeben";
 };
 
 const opendeleteDialog = (item) => {
