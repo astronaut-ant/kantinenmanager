@@ -15,7 +15,7 @@
     @searchresult="updateOverview"
   >
     <template #outside>
-      <transition name="fade-toolbar" mode="out-in" style="width: 70%">
+      <transition name="fade-toolbar" mode="out-in" style="width: 75%">
         <v-toolbar
           v-if="selected.length > 0 && items.length > 0"
           color="grey-lighten-2"
