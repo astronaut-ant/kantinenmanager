@@ -38,14 +38,16 @@
             class="bg-green mr-2"
             @click="getQRCodeSelected"
             size="small"
-            >QR Codes generieren</v-btn
+            ><span class="d-none d-md-inline">Codes generieren</span></v-btn
           >
           <v-btn
             prepend-icon="mdi-trash-can-outline"
             class="bg-red mr-2"
             @click="opendeleteDialogSelected"
             size="small"
-            >Ausgewählte Mitarbeiter löschen</v-btn
+            ><span class="d-none d-md-inline"
+              >Ausgewählte Mitarbeiter löschen</span
+            ></v-btn
           >
         </v-toolbar>
 
@@ -157,21 +159,23 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-  <v-dialog v-model="editDialog" persistent max-width="600">
-    <v-card class="text-blue-grey-darken-3" min-width="600">
+  <v-dialog v-model="editDialog" max-width="600">
+    <v-card class="text-blue-grey-darken-3">
       <v-card-title class="ms-2 mt-2 mb-1 text-primary d-flex justify-start">
-        <v-icon size="40" left class="mr-2 mb-n3 me-2"> mdi-human-edit </v-icon>
+        <v-icon size="40" left class="d-none d-md-inline-block mr-2 mb-n3 me-2">
+          mdi-human-edit
+        </v-icon>
         <h2>Mitarbeiter bearbeiten</h2>
       </v-card-title>
       <v-card-text>
         <div>
           <v-form ref="validation" v-model="form">
-            <div class="d-flex ga-8">
+            <div class="d-block d-md-flex ga-8">
               <v-menu offset-y>
                 <template #activator="{ props }">
                   <v-text-field
                     @update:model-value="console.log(group_name)"
-                    class="w-100"
+                    class="w-100 mb-3"
                     :active="true"
                     base-color="blue-grey"
                     color="primary"
@@ -237,7 +241,7 @@
                   variant="outlined"
                   v-model="employee_number"
                   :rules="[required]"
-                  class="w-100"
+                  class="w-100 mb-3"
                   label="Mitarbeiter-Nr."
                   placeholder="Nummer zuweisen"
                   :min="0"
@@ -247,10 +251,10 @@
               </v-container>
             </div>
 
-            <div class="d-flex ga-8 mt-6">
+            <div class="d-block d-md-flex ga-8 mt-6">
               <v-text-field
                 @update:model-value="hasChanged = true"
-                class="w-100"
+                class="w-100 mb-3"
                 :active="true"
                 base-color="blue-grey"
                 color="primary"
@@ -263,7 +267,7 @@
               ></v-text-field>
               <v-text-field
                 @update:model-value="hasChanged = true"
-                class="w-100"
+                class="w-100 mb-3"
                 :active="true"
                 base-color="blue-grey"
                 color="primary"
