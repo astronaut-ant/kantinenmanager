@@ -2,6 +2,7 @@
   <v-dialog
     color=""
     v-model="dialog"
+    class="ms-n6"
     max-width="600"
     :persistent="true"
     :no-click-animation="true"
