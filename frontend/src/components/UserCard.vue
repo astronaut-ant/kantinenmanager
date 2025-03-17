@@ -179,7 +179,7 @@
                 variant="outlined"
                 class="mb-2"
                 v-model="username"
-                :rules="[required]"
+                :rules="[required, unique, noWhiteSpace]"
                 label="Benutzername"
                 clearable
               ></v-text-field>
@@ -292,6 +292,24 @@ const initialPassword = ref();
 const isBlocked = ref(false);
 const hasChanged = ref(false);
 const isOwnCard = ref(false);
+const allsUserNames = ref([]);
+axios
+  .get(import.meta.env.VITE_API + "/api/users", { withCredentials: true })
+  .then((response) => {
+    response.data.forEach((user) => {
+      allsUserNames.value.push(user.username);
+    });
+  })
+  .catch((err) => {
+    console.error(err);
+    feedbackStore.setFeedback(
+      "error",
+      "snackbar",
+      err.response?.data?.title,
+      err.response?.data?.description
+    );
+  });
+
 const handlePasswordReset = () => {
   axios
     .put(
@@ -316,6 +334,16 @@ const handlePasswordReset = () => {
 
 const required = (v) => {
   return !!v || "Eingabe erforderlich";
+};
+const unique = (v) => {
+  return (
+    !allsUserNames.value.includes(v) ||
+    v === props.username ||
+    "Benutzername bereits vergeben"
+  );
+};
+const noWhiteSpace = (v) => {
+  return !v.includes(" ") || "Keine Leerzeichen erlaubt";
 };
 
 const confirmEdit = () => {
@@ -435,6 +463,7 @@ if (appStore.userData.id === props.id) {
   isOwnCard.value = true;
   color.value = "red";
 }
+console.log("props.username: ", props.username);
 </script>
 <style scoped>
 .blockedBackground {

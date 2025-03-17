@@ -102,7 +102,7 @@
               variant="outlined"
               class="mb-5 mt-2"
               v-model="username"
-              :rules="[required]"
+              :rules="[required, unique]"
               label="Benutzername"
               placeholder="Eindeutigen Benutzernamen vergeben"
               clearable
@@ -147,6 +147,8 @@
 import ConfirmDialogCreateUser from "@/components/ConfirmDialogCreateUser.vue";
 import CustomAlert from "@/components/CustomAlert.vue";
 import axios from "axios";
+import { useFeedbackStore } from "@/stores/feedback";
+const feedbackStore = useFeedbackStore();
 const validation = ref("");
 const showConfirm = ref(false);
 const form = ref(false);
@@ -158,6 +160,24 @@ const allLocations = ref([]);
 const notSuccessful = ref(false);
 const errorMessage = ref();
 const initialPassword = ref("");
+const allsUserNames = ref([]);
+
+axios
+  .get(import.meta.env.VITE_API + "/api/users", { withCredentials: true })
+  .then((response) => {
+    response.data.forEach((user) => {
+      allsUserNames.value.push(user.username);
+    });
+  })
+  .catch((err) => {
+    console.error(err);
+    feedbackStore.setFeedback(
+      "error",
+      "snackbar",
+      err.response?.data?.title,
+      err.response?.data?.description
+    );
+  });
 
 const handleSubmit = () => {
   axios
@@ -200,6 +220,12 @@ const handleSubmit = () => {
 
 const required = (v) => {
   return !!v || "Eingabe erforderlich";
+};
+
+const unique = (v) => {
+  return (
+    !allsUserNames.value.includes(v.trim()) || "Benutzername bereits vergeben"
+  );
 };
 
 const emptyForm = () => {

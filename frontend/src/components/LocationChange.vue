@@ -449,7 +449,8 @@ const required = (v) => {
 };
 const unique = (v) => {
   return (
-    !allLocationNames.value.includes(v.trim()) ||
+    !allLocationNames.value.includes(v) ||
+    v === oldLocationName ||
     "Standortname bereits vergeben"
   );
 };

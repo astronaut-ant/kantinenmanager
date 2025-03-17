@@ -327,6 +327,7 @@ const group_name = ref("");
 const location_name = ref("");
 const validation = ref(null);
 const form = ref(false);
+const oldNumber = ref(null);
 
 const selected = ref([]);
 const hasChanged = ref(false);
@@ -351,7 +352,11 @@ axios
     );
   });
 const unique = (v) => {
-  return !empNumberArray.value.includes(v) || "Nummer bereits vergeben";
+  return (
+    !empNumberArray.value.includes(v) ||
+    v === oldNumber.value ||
+    "Nummer bereits vergeben"
+  );
 };
 
 const opendeleteDialog = (item) => {
@@ -385,6 +390,7 @@ const openeditDialog = (item) => {
   const employee = items.value.find(
     (item) => item.id === employeeToEditID.value
   );
+  oldNumber.value = employee.employee_number;
   employee_number.value = employee.employee_number;
   first_name.value = employee.first_name;
   last_name.value = employee.last_name;
