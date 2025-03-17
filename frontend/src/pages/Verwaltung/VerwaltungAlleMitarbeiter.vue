@@ -33,11 +33,7 @@
           <v-divider inset vertical></v-divider>
           <p class="ml-4 mr-2">{{ selected.length }} ausgewählt</p>
           <v-spacer></v-spacer>
-          <v-btn
-            class="bg-green mr-2"
-            @click="getQRCodeSelected"
-            size="small"
-            >
+          <v-btn class="bg-green mr-2" @click="getQRCodeSelected" size="small">
             <v-icon>mdi-qrcode</v-icon>
             <span class="d-none d-md-inline ml-2">Codes generieren</span></v-btn
           >
@@ -45,7 +41,7 @@
             class="bg-red mr-2"
             @click="opendeleteDialogSelected"
             size="small"
-            >
+          >
             <v-icon>mdi-trash-can-outline</v-icon>
             <span class="d-none d-md-inline ml-2"
               >Ausgewählte Mitarbeiter löschen</span
@@ -242,7 +238,7 @@
                   inset
                   variant="outlined"
                   v-model="employee_number"
-                  :rules="[required]"
+                  :rules="[required, unique]"
                   class="w-100 mb-3"
                   label="Mitarbeiter-Nr."
                   placeholder="Nummer zuweisen"
@@ -334,6 +330,29 @@ const form = ref(false);
 
 const selected = ref([]);
 const hasChanged = ref(false);
+const empNumberArray = ref([]);
+axios
+  .get(import.meta.env.VITE_API + "/api/employees", {
+    withCredentials: true,
+  })
+  .then((response) => {
+    response.data.forEach((emp) => {
+      empNumberArray.value.push(emp.employee_number);
+    });
+    console.log("Emp-Number:", empNumberArray.value);
+  })
+  .catch((err) => {
+    console.error(err);
+    feedbackStore.setFeedback(
+      "error",
+      "snackbar",
+      err.response?.data?.title,
+      err.response?.data?.description
+    );
+  });
+const unique = (v) => {
+  return !empNumberArray.value.includes(v) || "Gruppe bereits vergeben";
+};
 
 const opendeleteDialog = (item) => {
   employeeToDelete.value = item.first_name + " " + item.last_name;
