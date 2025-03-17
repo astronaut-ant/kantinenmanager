@@ -565,12 +565,12 @@ onMounted(() => {
 });
 
 const headers = [
-  { title: "Nummer", key: "employee_number", nowrap: true },
-  { title: "Vorname", key: "first_name", nowrap: true },
-  { title: "Nachname", key: "last_name", nowrap: true },
-  { title: "Gruppe", key: "group_name", nowrap: true },
-  { title: "Standort", key: "location_name", nowrap: true },
-  { title: "", key: "actions", sortable: false, nowrap: true },
+  { title: "Nummer", key: "employee_number"},
+  { title: "Vorname", key: "first_name" },
+  { title: "Nachname", key: "last_name" },
+  { title: "Gruppe", key: "group_name" },
+  { title: "Standort", key: "location_name" },
+  { title: "", key: "actions", sortable: false },
 ];
 const sortBy = [{ key: "employee_number", order: "asc" }];
 
