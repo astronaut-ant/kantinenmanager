@@ -35,7 +35,7 @@
           :color="color"
           density="comfortable"
         >
-          {{ formattedRole }}
+          {{ props.role }}
         </v-chip>
         <div class="d-flex ga-1 justify-end">
           <v-btn
@@ -254,11 +254,6 @@ const emit = defineEmits(["user-removed", "user-edited", "avatar-changed"]);
 const color = ref("primary");
 const deleteDialog = ref(false);
 const editDialog = ref(false);
-
-const formattedRole = computed(() => {
-  let capitalized = props.role.charAt(0).toUpperCase() + props.role.slice(1);
-  return capitalized.replace("ue", "ü");
-});
 
 const confirmDelete = () => {
   axios
