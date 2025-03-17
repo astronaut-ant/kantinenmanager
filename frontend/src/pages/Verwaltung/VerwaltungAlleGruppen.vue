@@ -19,8 +19,8 @@
     <div v-for="group in grouplist" :key="group?.id" class="grid-item">
       <v-card
         class="mx-2 my-2 text-blue-grey-darken-2"
-        :min-width="350"
-        :max-width="350"
+        :min-width="400"
+        :max-width="400"
         elevation="16"
       >
         <v-card-item>
@@ -576,7 +576,7 @@ getData();
 <style scoped>
 .grid-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(425px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(405px, 1fr));
   gap: 10px;
   justify-content: center;
   justify-items: center;
@@ -591,6 +591,6 @@ getData();
   justify-content: center;
   align-items: flex-start;
   min-width: 400px;
-  max-width: 425px;
+  max-width: 405px;
 }
 </style>

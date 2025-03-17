@@ -1,7 +1,7 @@
 <template>
   <v-card
-    :min-width="350"
-    :max-width="350"
+    :min-width="400"
+    :max-width="400"
     class="mx-2 my-2 text-blue-grey-darken-2 w-50 w-md-100"
     elevation="16"
   >

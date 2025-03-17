@@ -1,8 +1,8 @@
 <template>
   <v-card
     class="mx-2 my-2 text-blue-grey-darken-2 w-xs-25 w-md-100"
-    min-width="350"
-    max-width="350"
+    :min-width="400"
+    :max-width="400"
     elevation="16"
   >
     <v-card-item>
