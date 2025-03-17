@@ -6,7 +6,7 @@
     <v-row justify="center" class="mt-6 mb-4">
       <v-col cols="12" class="text-center">
         <h1 class="text-h4 text-primary font-weight-bold">
-          <v-icon class="me-2">mdi-invoice-arrow-left-outline</v-icon>
+          <v-icon class="me-2">mdi-invoice-text-plus-outline</v-icon>
           Abrechnung erstellen
         </h1>
       </v-col>
